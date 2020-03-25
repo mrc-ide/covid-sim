@@ -7,7 +7,7 @@
 #define Xa1 40014
 #define Xa2 40692
 #define Xa1vw 2082007225
-#define Xa2vw 84306273
+#define Xa2vw 784306273
 
 /* RANDLIB global variables */
 extern int **SamplingQueue;

@@ -74,11 +74,12 @@ void setall(long iseed1, long iseed2)
 	 Sets the initial seed of generator 1 to ISEED1 and ISEED2. The
 	 initial seeds of the other generators are set accordingly, and
 	 all generators states are set to these seeds.
-	 This is a transcription from Pascal to Fortran of routine
+	 This is a transcription from Pascal to C++ of routine
 	 Set_Initial_Seed from the paper
 	 L'Ecuyer, P. and Cote, S. "Implementing a Random Number Package
 	 with Splitting Facilities." ACM Transactions on Mathematical
 	 Software, 17:98-111 (1991)
+	 https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.149.9439
 							  Arguments
 	 iseed1 -> First of two integer seeds
 	 iseed2 -> Second of two integer seeds
