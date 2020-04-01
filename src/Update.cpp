@@ -1140,10 +1140,6 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 {
 	int k, ai, j1, j2, l, f, m;
 
-#ifdef ABSENTEEISM_PLACE_CLOSURE
-	unsigned short int t_old, t_new;
-	t_new = ts / P.TimeStepsPerDay;
-#endif
 #pragma omp critical (closeplace)
 	{
 
