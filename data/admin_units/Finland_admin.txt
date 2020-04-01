@@ -1,0 +1,157 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+5491630
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Finland
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Eastern_Finland	Lapland	Oulu	Southern_Finland	Western_Finland
+
+[Codes and country/province names for admin units]
+210100	Finland	Eastern_Finland
+210200	Finland	Lapland
+210300	Finland	Oulu
+210400	Finland	Southern_Finland
+210500	Finland	Western_Finland
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.047671078	0.054965259	0.056014762	0.053476463	0.056536536	0.064811095	0.062705231	0.064819758	0.062347876	0.056690848	0.063350454	0.066696771	0.064368553	0.064193305	0.064540733	0.040678121	0.056133158
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.429570	0.338661	0.101898	0.083916	0.031968	0.007216	0.003058	0.001549	0.000780	0.001382
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.91392117	0.9847967	0	0.300743698
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.764836259	0.964666825	0.699256302	0.035333174999999994
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.007871139	0.0078283	0.153539898	0.70829761
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

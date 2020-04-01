@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29905.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "covid-19-spatial-sim", "covid-19-spatial-sim.vcxproj", "{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Debug|x64.ActiveCfg = Debug|x64
+		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Debug|x64.Build.0 = Debug|x64
+		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Release|x64.ActiveCfg = Release|x64
+		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3EE8A4EC-CE23-42B5-B7EE-488E3962634F}
+	EndGlobalSection
+EndGlobal

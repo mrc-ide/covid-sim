@@ -1,0 +1,172 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+9376098
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Hungary
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moson-Sopron	Hajdú-Bihar	Heves	Jász-Nagykun-Szolnok	Komárom-Esztergom	Nógrád	Pest	Somogy	Szabolcs-Szatmár-Bereg	Tolna	Vas	Veszprém	Zala
+
+[Codes and country/province names for admin units]
+260100	Hungary	Bács-Kiskun
+260200	Hungary	Baranya
+260300	Hungary	Békés
+260400	Hungary	Borsod-Abaúj-Zemplén
+260500	Hungary	Budapest
+260600	Hungary	Csongrád
+260700	Hungary	Fejér
+260800	Hungary	Gyor-Moson-Sopron
+260900	Hungary	Hajdú-Bihar
+261000	Hungary	Heves
+261100	Hungary	Jász-Nagykun-Szolnok
+261200	Hungary	Komárom-Esztergom
+261300	Hungary	Nógrád
+261400	Hungary	Pest
+261500	Hungary	Somogy
+261600	Hungary	Szabolcs-Szatmár-Bereg
+261700	Hungary	Tolna
+261800	Hungary	Vas
+261900	Hungary	Veszprém
+262000	Hungary	Zala
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.047735538	0.046315506	0.050035558	0.050292795	0.053615345	0.065602903	0.063368719	0.06676549	0.084332762	0.080072565	0.067093946	0.057268836	0.065869146	0.069367362	0.049249872	0.03838422	0.044629439
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.329000	0.310000	0.168000	0.129000	0.041000	0.011264	0.004696	0.002130	0.001222	0.003689
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.953707079	0.975682323	0	0.32963683499999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.925067851	0.892237438	0.670363165	0.107762562
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.006191031	0.008023873	0.055731319	0.6865639819999999
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

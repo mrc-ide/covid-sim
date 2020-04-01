@@ -1,0 +1,173 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+10007497
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Sweden
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	Norrbotten	Orebro	Östergötland	Skåne	Södermanland	Stockholm	Uppsala	Värmland	Västerbotten	Västernorrland	Västmanland	Västra_Götaland
+
+[Codes and country/province names for admin units]
+510100	Sweden	Blekinge
+510200	Sweden	Dalarna
+510300	Sweden	Gävleborg
+510400	Sweden	Gotland
+510500	Sweden	Halland
+510600	Sweden	Jämtland
+510700	Sweden	Jönköping
+510800	Sweden	Kalmar
+510900	Sweden	Kronoberg
+511000	Sweden	Norrbotten
+511100	Sweden	Orebro
+511200	Sweden	Östergötland
+511300	Sweden	Skåne
+511400	Sweden	Södermanland
+511500	Sweden	Stockholm
+511600	Sweden	Uppsala
+511700	Sweden	Värmland
+511800	Sweden	Västerbotten
+511900	Sweden	Västernorrland
+512000	Sweden	Västmanland
+512100	Sweden	Västra_Götaland
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.059553809	0.058667706	0.058014193	0.053590606	0.05384409	0.072593762	0.068613771	0.062118351	0.06032139	0.06484835	0.067272684	0.061117487	0.056155841	0.05215575	0.055860374	0.042586741	0.052685095
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.395068	0.304013	0.118632	0.117712	0.042660	0.012824	0.004107	0.002081	0.001048	0.001856
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.979664304	1	0	0.24270737499999995
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.948282219	1	0.757292625	0.0
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.006543351	0.007435645	0.14128499	0.749624837
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

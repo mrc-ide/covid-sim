@@ -1,0 +1,160 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+328560
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Iceland
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Austurland	Hálshreppur	Höfuðborgarsvæði	Norðurland_vestra	Suðurland	Suðurnes	Vestfirðir	Vesturland
+
+[Codes and country/province names for admin units]
+270100	Iceland	Austurland
+270200	Iceland	Hálshreppur
+270300	Iceland	Höfuðborgarsvæði
+270400	Iceland	Norðurland_vestra
+270500	Iceland	Suðurland
+270600	Iceland	Suðurnes
+270700	Iceland	Vestfirðir
+270800	Iceland	Vesturland
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.059894505	0.066317949	0.068023443	0.062989011	0.065169231	0.074898168	0.068295971	0.069054945	0.06392967	0.061978022	0.060735531	0.062666667	0.059812454	0.05018315	0.040852747	0.027762637	0.037435897
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.310000	0.205000	0.205000	0.120000	0.120000	0.023850	0.008437	0.003524	0.001637	0.002552
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.963856725	0.980140053	0	0.33104709600000004
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.964091162	0.95478097	0.668952904	0.04521903000000005
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.017601179	0.009621203	0.131840838	0.7950782289999999
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

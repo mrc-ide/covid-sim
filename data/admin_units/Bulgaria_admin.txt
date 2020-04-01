@@ -1,0 +1,180 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+6881384
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Bulgaria
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Lovech	Montana	Pazardzhik	Pernik	Pleven	Plovdiv	Razgrad	Ruse	Shumen	Silistra	Sliven	Smolyan	Sofia	Stara_Zagora	Targovishte	Varna	Veliko_Tarnovo	Vidin	Vratsa	Yambol
+
+[Codes and country/province names for admin units]
+160100	Bulgaria	Blagoevgrad
+160200	Bulgaria	Burgas
+160300	Bulgaria	Dobrich
+160400	Bulgaria	Gabrovo
+160500	Bulgaria	Grad_Sofiya
+160600	Bulgaria	Haskovo
+160700	Bulgaria	Kardzhali
+160800	Bulgaria	Kyustendil
+160900	Bulgaria	Lovech
+161000	Bulgaria	Montana
+161100	Bulgaria	Pazardzhik
+161200	Bulgaria	Pernik
+161300	Bulgaria	Pleven
+161400	Bulgaria	Plovdiv
+161500	Bulgaria	Razgrad
+161600	Bulgaria	Ruse
+161700	Bulgaria	Shumen
+161800	Bulgaria	Silistra
+161900	Bulgaria	Sliven
+162000	Bulgaria	Smolyan
+162100	Bulgaria	Sofia
+162200	Bulgaria	Stara_Zagora
+162300	Bulgaria	Targovishte
+162400	Bulgaria	Varna
+162500	Bulgaria	Veliko_Tarnovo
+162600	Bulgaria	Vidin
+162700	Bulgaria	Vratsa
+162800	Bulgaria	Yambol
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.045007192	0.048449977	0.053337545	0.045372454	0.04309842	0.056192429	0.069200951	0.068612762	0.076947288	0.075890505	0.06858369	0.067375362	0.067252169	0.065524589	0.061107197	0.0411269	0.04692057
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.332332	0.271271	0.175175	0.149149	0.042042	0.014984	0.006766	0.003328	0.001922	0.003030
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.833177461	0.866486581	0	0.330793231
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.735559614	0.933561178	0.669206769	0.06643882199999995
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.004604833	0.005413456	0.056884316	0.686805736
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

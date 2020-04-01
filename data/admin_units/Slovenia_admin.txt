@@ -1,0 +1,164 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+2185618
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Slovenia
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	Osrednjeslovenska	Podravska	Pomurska	Savinjska	Spodnjeposavska	Zasavska
+
+[Codes and country/province names for admin units]
+490100	Slovenia	Gorenjska
+490200	Slovenia	Goriška
+490300	Slovenia	Jugovzhodna_Slovenija
+490400	Slovenia	Koroška
+490500	Slovenia	Notranjsko-kraška
+490600	Slovenia	Obalno-kraška
+490700	Slovenia	Osrednjeslovenska
+490800	Slovenia	Podravska
+490900	Slovenia	Pomurska
+491000	Slovenia	Savinjska
+491100	Slovenia	Spodnjeposavska
+491200	Slovenia	Zasavska
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.048713474	0.052382185	0.05026908	0.04419096	0.046329558	0.052516388	0.064390273	0.072049495	0.076179981	0.070686776	0.072783525	0.07209952	0.070032594	0.067028647	0.046902929	0.038475044	0.054969571
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.296378	0.276353	0.182233	0.180230	0.048061	0.010358	0.003439	0.001310	0.000502	0.001136
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.941674506	0.95958227	0	0.15546461
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.873997709	0.986972381	0.84453539	0.013027619000000046
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.006206619	0.007104289	0.062007092	0.699204564
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

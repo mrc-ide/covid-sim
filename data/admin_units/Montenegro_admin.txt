@@ -1,0 +1,173 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+601621
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Montenegro
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolašin	Kotor	Mojkovac	Nikšic	Plav	Pljevlja	Plužine	Podgorica	Rožaje	Šavnik	Tivat	Ulcinj	Žabljak
+
+[Codes and country/province names for admin units]
+390100	Montenegro	Andrijevica
+390200	Montenegro	Bar
+390300	Montenegro	Berane
+390400	Montenegro	Bijelo_Polje
+390500	Montenegro	Budva
+390600	Montenegro	Cetinje
+390700	Montenegro	Danilovgrad
+390800	Montenegro	Herceg_Novi
+390900	Montenegro	Kolašin
+391000	Montenegro	Kotor
+391100	Montenegro	Mojkovac
+391200	Montenegro	Nikšic
+391300	Montenegro	Plav
+391400	Montenegro	Pljevlja
+391500	Montenegro	Plužine
+391600	Montenegro	Podgorica
+391700	Montenegro	Rožaje
+391800	Montenegro	Šavnik
+391900	Montenegro	Tivat
+392000	Montenegro	Ulcinj
+392100	Montenegro	Žabljak
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.058761715	0.058970293	0.062715146	0.062331426	0.065706889	0.06834994	0.067765603	0.072902038	0.068263961	0.065356605	0.060731265	0.067154198	0.063296299	0.059215491	0.039063022	0.025322341	0.034093768
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.181266	0.210547	0.185277	0.210854	0.122653	0.055061	0.021015	0.007511	0.003034	0.002783
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.806245976	0.948473888	0	0.668189743
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.580614529	0.923406634	0.331810257	0.076593366
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.003424593	0.007120474	0.003665019	0.5362795380000001
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

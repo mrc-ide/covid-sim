@@ -1,0 +1,160 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+10330739
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Greece
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Aegean	Athos	Attica	Crete	Epirus_and_Western_Macedonia	Macedonia_and_Thrace	Peloponnese,_Western_Greece_and_the_Ionian_Islands	Thessaly_and_Central_Greece
+
+[Codes and country/province names for admin units]
+250100	Greece	Aegean
+250200	Greece	Athos
+250300	Greece	Attica
+250400	Greece	Crete
+250500	Greece	Epirus_and_Western_Macedonia
+250600	Greece	Macedonia_and_Thrace
+250700	Greece	Peloponnese,_Western_Greece_and_the_Ionian_Islands
+250800	Greece	Thessaly_and_Central_Greece
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.039283968	0.045252371	0.052022842	0.050524338	0.050792781	0.05063774	0.057354772	0.070872017	0.074878519	0.076172094	0.076402065	0.068055952	0.064906876	0.055706695	0.052716209	0.039011495	0.075409266
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.256743	0.294705	0.197802	0.173826	0.052947	0.015127	0.005293	0.002193	0.000453	0.000911
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.970799546	0.955467156	0	0.26176810399999995
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.53486274	0.940827458	0.738231896	0.059172541999999995
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.007499818	0.007511872	0.091434822	0.548565981
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

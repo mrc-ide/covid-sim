@@ -1,0 +1,171 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+5069349
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Norway
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	Nord-Trøndelag	Nordland	Oppland	Oslo	Rogaland	Sogn_og_Fjordane	Sør-Trøndelag	Telemark	Troms	Vest-Agder	Vestfold
+
+[Codes and country/province names for admin units]
+410100	Norway	Akershus
+410200	Norway	Ãstfold
+410300	Norway	Aust-Agder
+410400	Norway	Buskerud
+410500	Norway	Finnmark
+410600	Norway	Hedmark
+410700	Norway	Hordaland
+410800	Norway	Møre_og_Romsdal
+410900	Norway	Nord-Trøndelag
+411000	Norway	Nordland
+411100	Norway	Oppland
+411200	Norway	Oslo
+411300	Norway	Rogaland
+411400	Norway	Sogn_og_Fjordane
+411500	Norway	Sør-Trøndelag
+411600	Norway	Telemark
+411700	Norway	Troms
+411800	Norway	Vest-Agder
+411900	Norway	Vestfold
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.055660308	0.057657452	0.059253212	0.059360014	0.06516385	0.06882445	0.069510824	0.066753891	0.064084577	0.069635703	0.069612461	0.061816462	0.057400684	0.050721403	0.049210126	0.033141483	0.042193099
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.459540	0.300699	0.099900	0.098901	0.033966	0.004092	0.001311	0.000664	0.000334	0.000592
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.981230907	0.986622976	0	0.28069138699999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.962517446	0.948564094	0.719308613	0.05143590600000003
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.009358515	0.00440397	0.097480748	0.734244972
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

@@ -1,0 +1,165 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+67574098
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+France
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	Grand_Est	Hauts-de-France	Île-de-France	Normandie	Nouvelle-Aquitaine	Occitanie	Pays_de_la_Loire	Provence-Alpes-Côte_d'Azur
+
+[Codes and country/province names for admin units]
+220100	France	Auvergne-Rhône-Alpes
+220200	France	Bourgogne-Franche-Comté
+220300	France	Bretagne
+220400	France	Centre-Val_de_Loire
+220500	France	Corse
+220600	France	Grand_Est
+220700	France	Hauts-de-France
+220800	France	Île-de-France
+220900	France	Normandie
+221000	France	Nouvelle-Aquitaine
+221100	France	Occitanie
+221200	France	Pays_de_la_Loire
+221300	France	Provence-Alpes-Côte_d'Azur
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.055458744	0.059863287	0.06121454	0.059561511	0.056638886	0.056286385	0.060384877	0.062345611	0.060413434	0.067137034	0.066847958	0.065442411	0.060870756	0.058086931	0.053982326	0.033766959	0.06169835
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.358358	0.328328	0.133133	0.126126	0.039039	0.009475	0.003242	0.001277	0.000516	0.000504
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+1	1	0	0.29981962500000003
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+1	1	0.700180375	0.0
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.005630337	0.007257667	0.043229641	0.644294763
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

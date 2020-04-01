@@ -1,0 +1,165 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+36460098
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Canada
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northwest_Territories	Nova_Scotia	Nunavut	Ontario	Prince_Edward_Island	Québec	Saskatchewan	Yukon
+
+[Codes and country/province names for admin units]
+600100	Canada	Alberta
+600200	Canada	British_Columbia
+600300	Canada	Manitoba
+600400	Canada	New_Brunswick
+600500	Canada	Newfoundland_and_Labrador
+600600	Canada	Northwest_Territories
+600700	Canada	Nova_Scotia
+600800	Canada	Nunavut
+600900	Canada	Ontario
+601000	Canada	Prince_Edward_Island
+601100	Canada	Québec
+601200	Canada	Saskatchewan
+601300	Canada	Yukon
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.05280917	0.052402649	0.052540744	0.052681647	0.062621461	0.07241629	0.06958704	0.070274097	0.065266778	0.063148431	0.064211486	0.073100035	0.067896623	0.05697022	0.047502664	0.03247888	0.044091783
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.281960	0.343688	0.152163	0.138367	0.053590	0.017926	0.006509	0.002822	0.001426	0.001549
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+1	1	0	0.305973615
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+1	0.988946442	0.694026385	0.011053557999999963
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.013451359	0.004487405	0.061659202	0.712180272
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

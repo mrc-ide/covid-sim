@@ -1,0 +1,178 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+8715046
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Switzerland
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt	Bern	Fribourg	Genève	Glarus	Graubünden	Jura	Lucerne	Neuchâtel	Nidwalden	Obwalden	Sankt_Gallen	Schaffhausen	Schwyz	Solothurn	Thurgau	Ticino	Uri	Valais	Vaud	Zug	Zürich
+
+[Codes and country/province names for admin units]
+520100	Switzerland	Aargau
+520200	Switzerland	Appenzell_Ausserrhoden
+520300	Switzerland	Appenzell_Innerrhoden
+520400	Switzerland	Basel-Landschaft
+520500	Switzerland	Basel-Stadt
+520600	Switzerland	Bern
+520700	Switzerland	Fribourg
+520800	Switzerland	Genève
+520900	Switzerland	Glarus
+521000	Switzerland	Graubünden
+521100	Switzerland	Jura
+521200	Switzerland	Lucerne
+521300	Switzerland	Neuchâtel
+521400	Switzerland	Nidwalden
+521500	Switzerland	Obwalden
+521600	Switzerland	Sankt_Gallen
+521700	Switzerland	Schaffhausen
+521800	Switzerland	Schwyz
+521900	Switzerland	Solothurn
+522000	Switzerland	Thurgau
+522100	Switzerland	Ticino
+522200	Switzerland	Uri
+522300	Switzerland	Valais
+522400	Switzerland	Vaud
+522500	Switzerland	Zug
+522600	Switzerland	Zürich
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.052206695	0.050044496	0.047335307	0.049129609	0.055945392	0.064190355	0.069046606	0.071828936	0.065959584	0.068834118	0.078195941	0.074395658	0.061911802	0.051026169	0.048704518	0.038184701	0.053060112
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.368000	0.328000	0.126000	0.125000	0.040000	0.008370	0.002526	0.000917	0.000469	0.000718
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.991182732	0.986254991	0	0.35020033500000003
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.248954627	0.938226339	0.649799665	0.061773661000000035
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.007177692	0.008113755	0.068973471	0.7889402010000001
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

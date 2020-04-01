@@ -1,0 +1,179 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+43518280
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Ukraine
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Cherkasy	Chernihiv	Chernivtsi	Crimea	Dnipropetrovs'k	Donets'k	Ivano-Frankivs'k	Kharkiv	Kherson	Khmel'nyts'kyy	Kiev	Kiev_City	Kirovohrad	L'viv	Luhans'k	Mykolayiv	Odessa	Poltava	Rivne	Sevastopol'	Sumy	Ternopil'	Transcarpathia	Vinnytsya	Volyn	Zaporizhzhya	Zhytomyr
+
+[Codes and country/province names for admin units]
+530100	Ukraine	Cherkasy
+530200	Ukraine	Chernihiv
+530300	Ukraine	Chernivtsi
+530400	Ukraine	Crimea
+530500	Ukraine	Dnipropetrovs'k
+530600	Ukraine	Donets'k
+530700	Ukraine	Ivano-Frankivs'k
+530800	Ukraine	Kharkiv
+530900	Ukraine	Kherson
+531000	Ukraine	Khmel'nyts'kyy
+531100	Ukraine	Kiev
+531200	Ukraine	Kiev_City
+531300	Ukraine	Kirovohrad
+531400	Ukraine	L'viv
+531500	Ukraine	Luhans'k
+531600	Ukraine	Mykolayiv
+531700	Ukraine	Odessa
+531800	Ukraine	Poltava
+531900	Ukraine	Rivne
+532000	Ukraine	Sevastopol'
+532100	Ukraine	Sumy
+532200	Ukraine	Ternopil'
+532300	Ukraine	Transcarpathia
+532400	Ukraine	Vinnytsya
+532500	Ukraine	Volyn
+532600	Ukraine	Zaporizhzhya
+532700	Ukraine	Zhytomyr
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.048334514	0.056607551	0.054963101	0.045268782	0.049070719	0.062936369	0.081969492	0.082867882	0.076306978	0.070179492	0.064091404	0.070969866	0.066942428	0.059729876	0.040451062	0.027766948	0.041543536
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.110772	0.200438	0.247297	0.237168	0.113122	0.054194	0.019172	0.008007	0.003721	0.006110
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.917530196	0.953272084	0	0.24834509699999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.879050503	0.998095485	0.751654903	0.0019045149999999955
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00216	0.0076	0.075210421	0.748239
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

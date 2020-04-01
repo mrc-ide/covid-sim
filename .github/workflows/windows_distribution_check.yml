@@ -1,0 +1,21 @@
+name: CI for Windows
+
+on: [push, pull_request]
+
+jobs:
+  windows:
+    name: Windows build and test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+        run: |
+          md build
+          cd build
+          cmake ..\src
+          cmake --build .
+          cd ..
+      - name: regression test
+        run: |
+          cd tests
+          python.exe regressiontest_UK_100th.py

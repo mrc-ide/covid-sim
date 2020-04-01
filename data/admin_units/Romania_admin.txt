@@ -1,0 +1,194 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+33888018
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Romania
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz?u	C?l?ra?i	Cara?-Severin	Cluj	Constan?a	Covasna	Dâmbovi?a	Dolj	Gala?i	Giurgiu	Gorj	Harghita	Hunedoara	Ia?i	Ialomi?a	Ilfov	Maramure?	Mehedin?i	Mure?	Neam?	Olt	Prahova	S?laj	Satu_Mare	Sibiu	Suceava	Teleorman	Timi?	Tulcea	Vâlcea	Vaslui	Vrancea
+
+[Codes and country/province names for admin units]
+440100	Romania	Alba
+440200	Romania	Arad
+440300	Romania	Arge?
+440400	Romania	Bac?u
+440500	Romania	Bihor
+440600	Romania	Bistri?a-N?s?ud
+440700	Romania	Boto?ani
+440800	Romania	Bra?ov
+440900	Romania	Br?ila
+441000	Romania	Bucharest
+441100	Romania	Buz?u
+441200	Romania	C?l?ra?i
+441300	Romania	Cara?-Severin
+441400	Romania	Cluj
+441500	Romania	Constan?a
+441600	Romania	Covasna
+441700	Romania	Dâmbovi?a
+441800	Romania	Dolj
+441900	Romania	Gala?i
+442000	Romania	Giurgiu
+442100	Romania	Gorj
+442200	Romania	Harghita
+442300	Romania	Hunedoara
+442400	Romania	Ia?i
+442500	Romania	Ialomi?a
+442600	Romania	Ilfov
+442700	Romania	Maramure?
+442800	Romania	Mehedin?i
+442900	Romania	Mure?
+443000	Romania	Neam?
+443100	Romania	Olt
+443200	Romania	Prahova
+443300	Romania	S?laj
+443400	Romania	Satu_Mare
+443500	Romania	Sibiu
+443600	Romania	Suceava
+443700	Romania	Teleorman
+443800	Romania	Timi?
+443900	Romania	Tulcea
+444000	Romania	Vâlcea
+444100	Romania	Vaslui
+444200	Romania	Vrancea
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.048841955	0.050184892	0.056179378	0.051697757	0.052494734	0.055952011	0.072574024	0.061844457	0.079193377	0.078126408	0.079331179	0.054217031	0.067053817	0.064768094	0.048210486	0.031334908	0.047995491
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.292292	0.261261	0.175175	0.160160	0.067067	0.021976	0.009924	0.004881	0.002819	0.004445
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.837409627	0.898731845	0	0.452502325
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.775901723	0.847272566	0.547497675	0.152727434
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.004306763	0.006546789	0.039719521	0.6477384270000001
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

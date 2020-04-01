@@ -1,0 +1,168 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+39205350
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Poland
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Dolno?l?skie	Kujawsko-Pomorskie	?ódzkie	Lubelskie	Lubuskie	Ma?opolskie	Mazowieckie	Opolskie	Podkarpackie	Podlaskie	Pomorskie	?l?skie	?wi?tokrzyskie	Warmi?sko-Mazurskie	Wielkopolskie	Zachodniopomorskie
+
+[Codes and country/province names for admin units]
+420100	Poland	Dolno?l?skie
+420200	Poland	Kujawsko-Pomorskie
+420300	Poland	?ódzkie
+420400	Poland	Lubelskie
+420500	Poland	Lubuskie
+420600	Poland	Ma?opolskie
+420700	Poland	Mazowieckie
+420800	Poland	Opolskie
+420900	Poland	Podkarpackie
+421000	Poland	Podlaskie
+421100	Poland	Pomorskie
+421200	Poland	?l?skie
+421300	Poland	?wi?tokrzyskie
+421400	Poland	Warmi?sko-Mazurskie
+421500	Poland	Wielkopolskie
+421600	Poland	Zachodniopomorskie
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.049804045	0.050201517	0.052171496	0.045832962	0.051946086	0.06514653	0.074665825	0.083998948	0.078174436	0.068085473	0.059146573	0.061423502	0.072008044	0.064705592	0.049036182	0.027602819	0.046049969
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.240759	0.260739	0.201798	0.152847	0.076923	0.033110	0.016765	0.008073	0.004160	0.004825
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.913607534	0.960123137	0	0.19037957699999997
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.767800623	0.989802097	0.809620423	0.010197903000000008
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.007662133	0.007635979	0.065865196	0.667007122
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

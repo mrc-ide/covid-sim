@@ -1,0 +1,312 @@
+[Include intervention delays by admin unit]	
+0	
+	
+[Delay to place closure by admin unit]	
+49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	35	35	35	35	35	35	35	35	35	35	35	35	49	49	49	49	49	35	35	35	35	35	35	35	35	35	35	35	35	35	35	35	35	49	49	49	49	49	49	49	35	35	35	35	35	35	35	35	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	35	35	35	35	35	35
+	
+[Duration of place closure by admin unit]	
+720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720
+	
+[Delay to household quaratine by admin unit]	
+49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49
+	
+[Duration of household quarantine by admin unit]	
+720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720
+	
+[Delay to case isolation by admin unit]	
+49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	35	35	35	35	35	35	35	35	35	35	35	35	49	49	49	49	49	35	35	35	35	35	35	35	35	35	35	35	35	35	35	35	35	49	49	49	49	49	49	49	35	35	35	35	35	35	35	35	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	35	35	35	35	35	35
+	
+[Duration of case isolation by admin unit]	
+720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720
+	
+[Delay to social distancing by admin unit]	
+49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	35	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49	49
+	
+[Duration of social distancing by admin unit]	
+720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720	720
+	
+[Treatment start time]	
+1000	
+	
+[Relative susceptibility of treated individual]	
+0.7	
+	
+[Relative infectiousness of treated individual]	
+0.4	
+	
+[Proportion of symptomatic cases prevented by treatment]	
+0.65	
+	
+[Proportion of symptomatic cases resulting in death prevented by treatment]	
+0	
+	
+[Delay to treat cell]	
+1	
+	
+[Duration of course of treatment]	
+5	
+	
+[Duration of course of prophylaxis]	
+10	
+	
+[Proportion treated]	
+0.9	
+	
+[Treatment radius]	
+0	
+	
+[Proportion of households of cases treated]	
+0	
+	
+[Proportion of places treated after case detected]	
+0 0 0 0	
+	
+[Proportion of people treated in targeted places]	
+0 0 0 0	
+	
+[Only treat mixing groups within places]	
+0	
+	
+[Maximum number of doses available]	
+60000000	
+	
+	
+===================================	
+	
+[Movement restrictions start time]	
+1.00E+10	
+	
+[Movement restrictions trigger incidence per cell]	
+1000000000	
+	
+[Delay to start movement restrictions]	
+2	
+	
+[Duration of movement restrictions]	
+7	
+	
+[Residual movements after restrictions]	
+0.25	
+	
+[Minimum radius of movement restrictions]	
+5000	
+	
+[Impose blanket movement restrictions]	
+0	
+	
+===================================	
+	
+[Place closure start time]	
+7	
+	
+[Place closure second start time]	
+1000	
+	
+[Place closure in administrative units rather than rings]	
+0	
+	
+[Administrative unit divisor for place closure]	
+1	
+	
+[Place types to close for admin unit closure (0/1 array)]	
+1	1	1	0
+	
+[Cumulative proportion of place members needing to become sick for admin unit closure]	
+1	
+	
+[Proportion of places in admin unit needing to pass threshold for place closure]	
+1	
+	
+[Delay to start place closure]	
+1	
+	
+[Duration of place closure]	
+#2	
+	
+	
+[Proportion of places remaining open after closure by place type]	
+0	0	0.25	1
+	
+[Relative houshold contact rate after closure]	
+2	
+	
+[Relative spatial contact rate after closure]	
+1.5	
+	
+[Minimum radius for place closure]	
+1	
+	
+[Place closure incidence threshold]	
+0	
+	
+ ^^ needs to be 0 for global triggers	
+	
+[Place closure fractional incidence threshold]	
+0	
+	
+ ^^ needs to be 0 for global triggers or if abs incidence threshold used	
+	
+[Trigger incidence per cell for place closure]	
+#1	
+	
+*** ^^^ change this for global too ***	
+	
+==================================	
+	
+[Household quarantine start time]	
+0	
+	
+[Delay to start household quarantine]	
+1	
+	
+[Length of time households are quarantined]	
+14	
+	
+[Duration of household quarantine policy]	
+#4	
+	
+[Relative household contact rate after quarantine]	
+2	
+	
+[Residual place contacts after household quarantine by place type]	
+0.25	0.25	0.25	0.25
+	
+[Residual spatial contacts after household quarantine]	
+0.25	
+	
+[Household level compliance with quarantine]	
+0.5	
+	
+[Individual level compliance with quarantine]	
+1	
+	
+===================================	
+	
+[Vaccination start time]	
+1000	
+	
+[Duration of household vaccination policy]	
+1000	
+	
+[Apply mass rather than reactive vaccination]	
+1	
+	
+[Priority age range for mass vaccination]	
+0	16
+	
+[Switch time at which efficacy increases]	
+90	
+	
+[Relative susceptibility of vaccinated individual after switch time]	
+0.8	
+	
+[Relative susceptibility of vaccinated individual]	
+0.8	
+	
+[Relative infectiousness of vaccinated individual]	
+0.8	
+	
+[Proportion of symptomatic cases prevented by vaccination]	
+0.4	
+	
+[Vaccination trigger incidence per cell]	
+1	
+	
+[Delay to vaccinate]	
+0	
+	
+[Delay from vaccination to full protection]	
+14	
+	
+[Proportion of population vaccinated]	
+0.9	
+	
+[Vaccination radius]	
+0	
+	
+[Proportion of households of cases vaccinated]	
+0	
+	
+[Maximum number of vaccine courses available]	
+23246000	
+	
+[Start time of additional vaccine production]	
+1000	
+	
+[Rate of additional vaccine production (courses per day)]	
+0	
+	
+===================================	
+	
+[Case isolation start time]	
+0	
+	
+[Proportion of detected cases isolated]	
+0.7	
+	
+[Delay to start case isolation]	
+1	
+	
+[Duration of case isolation]	
+7	
+	
+[Duration of case isolation policy]	
+#4	
+	
+[Residual contacts after case isolation]	
+0.25	
+	
+[Residual household contacts after case isolation]	
+1	
+	
+===================================	
+	
+[Social distancing start time]	
+0	
+	
+[Trigger incidence per cell for social distancing]	
+#1	
+	
+[Duration of social distancing]	
+#2	
+	
+[Relative place contact rate given social distancing by place type]	
+1	1	0.75	0.75
+	
+[Relative houshold contact rate given social distancing]	
+1.25	
+	
+[Relative spatial contact rate given social distancing]	
+0.25	
+	
+[Minimum radius for social distancing]	
+1	
+	
+[Proportion compliant with enhanced social distancing]	
+0	
+	
+[Relative place contact rate given enhanced social distancing by place type]	
+0.25	0.25	0.25	0.25
+	
+[Relative houshold contact rate given enhanced social distancing]	
+1	
+	
+[Relative spatial contact rate given enhanced social distancing]	
+0.33	
+	
+	
+===================================	
+	
+[False positive rate]	
+0	
+	
+[False positive per capita incidence]	
+0	
+0.001666667	
+0.000411	
+	
+[False positive relative incidence by age]	
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	
+1	0.75	0.75	0.5	0.35	0.35	0.35	0.35	0.35	0.35	0.35	0.35	0.35	0.25	0.25	0.25	0.25	
+	
+===================================	

@@ -1,0 +1,237 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+2100130
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Macedonia
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Aerodrom	Aracinovo	Berovo	Bitola	Bogdanci	Bogovinje	Bosilovo	Brvenica	Butel	?air	?aška	Centar	Centar_župa	?ešinovo-Obleševo	?u?er_Sandevo	Debar	Debarca	Del?evo	Demir_Hisar	Demir_Kapija	Dolneni	Drugovo	Gazi_Baba	Gevgelija	Gjor?e_Petrov	Gostivar	Gradsko	Ilinden	Jegunovtse	Karbinci	Karpoš	Kavadartsi	Ki?evo	Kisela_Voda	Ko?ani	Kon?e	Kratovo	Kriva_Palanka	Krivogaštani	Kruševo	Kumanovo	Lake_Ohrid	Lipkovo	Lozovo	Makedonska_Kamenica	Makedonski_Brod	Mavrovo_and_Rostuša	Mogila	Negotino	Novatsi	Novo_Selo	Ohrid	Oslomej	Peh?evo	Petrovec	Plasnica	Prilep	Probištip	Radoviš	Rankovce	Resen	Rosoman	Saraj	Sopište	Star_Dojran	Staro_Nagori?ane	Štip	Struga	Strumitsa	Studeni?ani	Šuto_Orizari	Sveti_Nikole	Tearce	Tetovo	Valandovo	Vasilevo	Veles	Vev?ani	Vinitsa	Vraneštica	Vrap?ište	Zajas	Zelenikovo	Želino	Zrnovci
+
+[Codes and country/province names for admin units]
+350100	Macedonia	Aerodrom
+350200	Macedonia	Aracinovo
+350300	Macedonia	Berovo
+350400	Macedonia	Bitola
+350500	Macedonia	Bogdanci
+350600	Macedonia	Bogovinje
+350700	Macedonia	Bosilovo
+350800	Macedonia	Brvenica
+350900	Macedonia	Butel
+351000	Macedonia	?air
+351100	Macedonia	?aška
+351200	Macedonia	Centar
+351300	Macedonia	Centar_župa
+351400	Macedonia	?ešinovo-Obleševo
+351500	Macedonia	?u?er_Sandevo
+351600	Macedonia	Debar
+351700	Macedonia	Debarca
+351800	Macedonia	Del?evo
+351900	Macedonia	Demir_Hisar
+352000	Macedonia	Demir_Kapija
+352100	Macedonia	Dolneni
+352200	Macedonia	Drugovo
+352300	Macedonia	Gazi_Baba
+352400	Macedonia	Gevgelija
+352500	Macedonia	Gjor?e_Petrov
+352600	Macedonia	Gostivar
+352700	Macedonia	Gradsko
+352800	Macedonia	Ilinden
+352900	Macedonia	Jegunovtse
+353000	Macedonia	Karbinci
+353100	Macedonia	Karpoš
+353200	Macedonia	Kavadartsi
+353300	Macedonia	Ki?evo
+353400	Macedonia	Kisela_Voda
+353500	Macedonia	Ko?ani
+353600	Macedonia	Kon?e
+353700	Macedonia	Kratovo
+353800	Macedonia	Kriva_Palanka
+353900	Macedonia	Krivogaštani
+354000	Macedonia	Kruševo
+354100	Macedonia	Kumanovo
+354200	Macedonia	Lake_Ohrid
+354300	Macedonia	Lipkovo
+354400	Macedonia	Lozovo
+354500	Macedonia	Makedonska_Kamenica
+354600	Macedonia	Makedonski_Brod
+354700	Macedonia	Mavrovo_and_Rostuša
+354800	Macedonia	Mogila
+354900	Macedonia	Negotino
+355000	Macedonia	Novatsi
+355100	Macedonia	Novo_Selo
+355200	Macedonia	Ohrid
+355300	Macedonia	Oslomej
+355400	Macedonia	Peh?evo
+355500	Macedonia	Petrovec
+355600	Macedonia	Plasnica
+355700	Macedonia	Prilep
+355800	Macedonia	Probištip
+355900	Macedonia	Radoviš
+356000	Macedonia	Rankovce
+356100	Macedonia	Resen
+356200	Macedonia	Rosoman
+356300	Macedonia	Saraj
+356400	Macedonia	Sopište
+356500	Macedonia	Star_Dojran
+356600	Macedonia	Staro_Nagori?ane
+356700	Macedonia	Štip
+356800	Macedonia	Struga
+356900	Macedonia	Strumitsa
+357000	Macedonia	Studeni?ani
+357100	Macedonia	Šuto_Orizari
+357200	Macedonia	Sveti_Nikole
+357300	Macedonia	Tearce
+357400	Macedonia	Tetovo
+357500	Macedonia	Valandovo
+357600	Macedonia	Vasilevo
+357700	Macedonia	Veles
+357800	Macedonia	Vev?ani
+357900	Macedonia	Vinitsa
+358000	Macedonia	Vraneštica
+358100	Macedonia	Vrap?ište
+358200	Macedonia	Zajas
+358300	Macedonia	Zelenikovo
+358400	Macedonia	Želino
+358500	Macedonia	Zrnovci
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.053702637	0.055519876	0.053879273	0.058174697	0.062539719	0.073289078	0.077763538	0.078701917	0.074177538	0.069771717	0.06963348	0.066122839	0.061949812	0.055477637	0.038003149	0.026259252	0.025033839
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.096000	0.192000	0.179000	0.284000	0.130000	0.075077	0.026270	0.010885	0.002248	0.004520
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+1	1	0	0.463977238
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.96822083	0.800317676	0.536022762	0.19968232399999997
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.004606911	0.00855335	0.040256908	0.542074303
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

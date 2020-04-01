@@ -1,0 +1,7 @@
+#pragma once
+
+#ifndef SPATIALSIM_SHAREDFUNCS_H_INCLUDED_
+#define SPATIALSIM_SHAREDFUNCS_H_INCLUDED_
+void UpdateProbs(int);
+
+#endif // SPATIALSIM_SHAREDFUNCS_H_INCLUDED_

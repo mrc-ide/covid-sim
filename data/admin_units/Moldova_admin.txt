@@ -1,0 +1,189 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+3689995
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Moldova
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Anenii_Noi	B?l?i	Basarabeasca	Bender	Briceni	Cahul	Calarasi	Cantemir	Causeni	Chi?in?u	Cimi?lia	Criuleni	Donduseni	Drochia	Dub?sari	Edine?	F?le?ti	Flore?ti	G?g?uzia	Glodeni	Hîncesti	Ialoveni	Leova	Nisporeni	Ocni?a	Orhei	Rezina	Rî?cani	Sîngerei	?old?ne?ti	Soroca	?tefan_Voda	Str??eni	Taraclia	Telene?ti	Transnistria	Ungheni
+
+[Codes and country/province names for admin units]
+370100	Moldova	Anenii_Noi
+370200	Moldova	B?l?i
+370300	Moldova	Basarabeasca
+370400	Moldova	Bender
+370500	Moldova	Briceni
+370600	Moldova	Cahul
+370700	Moldova	Calarasi
+370800	Moldova	Cantemir
+370900	Moldova	Causeni
+371000	Moldova	Chi?in?u
+371100	Moldova	Cimi?lia
+371200	Moldova	Criuleni
+371300	Moldova	Donduseni
+371400	Moldova	Drochia
+371500	Moldova	Dub?sari
+371600	Moldova	Edine?
+371700	Moldova	F?le?ti
+371800	Moldova	Flore?ti
+371900	Moldova	G?g?uzia
+372000	Moldova	Glodeni
+372100	Moldova	Hîncesti
+372200	Moldova	Ialoveni
+372300	Moldova	Leova
+372400	Moldova	Nisporeni
+372500	Moldova	Ocni?a
+372600	Moldova	Orhei
+372700	Moldova	Rezina
+372800	Moldova	Rî?cani
+372900	Moldova	Sîngerei
+373000	Moldova	?old?ne?ti
+373100	Moldova	Soroca
+373200	Moldova	?tefan_Voda
+373300	Moldova	Str??eni
+373400	Moldova	Taraclia
+373500	Moldova	Telene?ti
+373600	Moldova	Transnistria
+373700	Moldova	Ungheni
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.050203733	0.054918203	0.053761029	0.050177952	0.059771991	0.081734761	0.10361746	0.088222673	0.074784275	0.064733117	0.058122496	0.071034613	0.063987944	0.057056547	0.026131871	0.019726011	0.022015323
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.226409	0.238729	0.197439	0.192104	0.086595	0.029301	0.013231	0.006508	0.003758	0.005926
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.837409627	0.898731845	0	0.452502325
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.775901723	0.847272566	0.547497675	0.152727434
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00517125	0.007032232	0.039719521	0.746945104
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

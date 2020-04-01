@@ -1,0 +1,170 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+50965144
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Spain
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Andalucía	Aragón	Cantabria	Castilla-La_Mancha	Castilla_y_León	Cataluña	Ceuta_y_Melilla	Comunidad_de_Madrid	Comunidad_Foral_de_Navarra	Comunidad_Valenciana	Extremadura	Galicia	Islas_Baleares	Islas_Canarias	La_Rioja	País_Vasco	Principado_de_Asturias	Región_de_Murcia
+
+[Codes and country/province names for admin units]
+500100	Spain	Andalucía
+500200	Spain	Aragón
+500300	Spain	Cantabria
+500400	Spain	Castilla-La_Mancha
+500500	Spain	Castilla_y_León
+500600	Spain	Cataluña
+500700	Spain	Ceuta_y_Melilla
+500800	Spain	Comunidad_de_Madrid
+500900	Spain	Comunidad_Foral_de_Navarra
+501000	Spain	Comunidad_Valenciana
+501100	Spain	Extremadura
+501200	Spain	Galicia
+501300	Spain	Islas_Baleares
+501400	Spain	Islas_Canarias
+501500	Spain	La_Rioja
+501600	Spain	País_Vasco
+501700	Spain	Principado_de_Asturias
+501800	Spain	Región_de_Murcia
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.042564544	0.048003452	0.053426705	0.047869391	0.048249802	0.050512265	0.056015061	0.070217864	0.08557148	0.084218614	0.077687068	0.073021085	0.062866531	0.051360371	0.04714277	0.038737342	0.062535655
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.255000	0.304000	0.209000	0.177000	0.041000	0.010164	0.002218	0.000871	0.000408	0.000339
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.968576934	0.991132314	0	0.29211170799999997
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.974981243	0.947510365	0.707888292	0.052489635000000034
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.004749309	0.006170466	0.070787334	0.62277534
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

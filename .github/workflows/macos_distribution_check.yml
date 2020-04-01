@@ -1,0 +1,33 @@
+name: CI for macOS
+
+on: push
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install dependencies
+      run: ./ci/install_macos_dependencies.sh
+    - name: build UK
+      run: |
+        mkdir build-UK && cd build-UK
+        cmake ../src -DCOUNTRY=UK
+        make
+        cd ..
+    - name: build US
+      run: |
+        mkdir build-US && cd build-US
+        cmake ../src -DCOUNTRY=US
+        make
+        cd ..
+    - name: regression test
+      run: |
+        cd tests
+        pwd
+        ls -l
+        ./regressiontest_UK_100th.py

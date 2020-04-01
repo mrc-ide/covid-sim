@@ -1,0 +1,235 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+139030314
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Russia
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Adygey	Altay	Amur	Arkhangel'sk	Astrakhan'	Bashkortostan	Belgorod	Bryansk	Buryat	Chechnya	Chelyabinsk	Chukot	Chuvash	City_of_St._Petersburg	Dagestan	Gorno-Altay	Ingush	Irkutsk	Ivanovo	Kabardin-Balkar	Kaliningrad	Kalmyk	Kaluga	Kamchatka	Karachay-Cherkess	Karelia	Kemerovo	Khabarovsk	Khakass	Khanty-Mansiy	Kirov	Komi	Kostroma	Krasnodar	Krasnoyarsk	Kurgan	Kursk	Leningrad	Lipetsk	Maga_Buryatdan	Mariy-El	Mordovia	Moscow_City	Moskva	Murmansk	Nenets	Nizhegorod	North_Ossetia	Novgorod	Novosibirsk	Omsk	Orel	Orenburg	Penza	Perm'	Primor'ye	Pskov	Rostov	Ryazan'	Sakha	Sakhalin	Samara	Saratov	Smolensk	Stavropol'	Sverdlovsk	Tambov	Tatarstan	Tomsk	Tula	Tuva	Tver'	Tyumen'	Udmurt	Ul'yanovsk	Vladimir	Volgograd	Vologda	Voronezh	Yamal-Nenets	Yaroslavl'	Yevrey	Zabaykal'ye
+
+[Codes and country/province names for admin units]
+450100	Russia	Adygey
+450200	Russia	Altay
+450300	Russia	Amur
+450400	Russia	Arkhangel'sk
+450500	Russia	Astrakhan'
+450600	Russia	Bashkortostan
+450700	Russia	Belgorod
+450800	Russia	Bryansk
+450900	Russia	Buryat
+451000	Russia	Chechnya
+451100	Russia	Chelyabinsk
+451200	Russia	Chukot
+451300	Russia	Chuvash
+451400	Russia	City_of_St._Petersburg
+451500	Russia	Dagestan
+451600	Russia	Gorno-Altay
+451700	Russia	Ingush
+451800	Russia	Irkutsk
+451900	Russia	Ivanovo
+452000	Russia	Kabardin-Balkar
+452100	Russia	Kaliningrad
+452200	Russia	Kalmyk
+452300	Russia	Kaluga
+452400	Russia	Kamchatka
+452500	Russia	Karachay-Cherkess
+452600	Russia	Karelia
+452700	Russia	Kemerovo
+452800	Russia	Khabarovsk
+452900	Russia	Khakass
+453000	Russia	Khanty-Mansiy
+453100	Russia	Kirov
+453200	Russia	Komi
+453300	Russia	Kostroma
+453400	Russia	Krasnodar
+453500	Russia	Krasnoyarsk
+453600	Russia	Kurgan
+453700	Russia	Kursk
+453800	Russia	Leningrad
+453900	Russia	Lipetsk
+454000	Russia	Maga_Buryatdan
+454100	Russia	Mariy-El
+454200	Russia	Mordovia
+454300	Russia	Moscow_City
+454400	Russia	Moskva
+454500	Russia	Murmansk
+454600	Russia	Nenets
+454700	Russia	Nizhegorod
+454800	Russia	North_Ossetia
+454900	Russia	Novgorod
+455000	Russia	Novosibirsk
+455100	Russia	Omsk
+455200	Russia	Orel
+455300	Russia	Orenburg
+455400	Russia	Penza
+455500	Russia	Perm'
+455600	Russia	Primor'ye
+455700	Russia	Pskov
+455800	Russia	Rostov
+455900	Russia	Ryazan'
+456000	Russia	Sakha
+456100	Russia	Sakhalin
+456200	Russia	Samara
+456300	Russia	Saratov
+456400	Russia	Smolensk
+456500	Russia	Stavropol'
+456600	Russia	Sverdlovsk
+456700	Russia	Tambov
+456800	Russia	Tatarstan
+456900	Russia	Tomsk
+457000	Russia	Tula
+457100	Russia	Tuva
+457200	Russia	Tver'
+457300	Russia	Tyumen'
+457400	Russia	Udmurt
+457500	Russia	Ul'yanovsk
+457600	Russia	Vladimir
+457700	Russia	Volgograd
+457800	Russia	Vologda
+457900	Russia	Voronezh
+458000	Russia	Yamal-Nenets
+458100	Russia	Yaroslavl'
+458200	Russia	Yevrey
+458300	Russia	Zabaykal'ye
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.063533253	0.064076134	0.05601324	0.048527092	0.045326484	0.061624163	0.085955236	0.081712873	0.072667107	0.066952535	0.058105885	0.071388314	0.069028405	0.057750212	0.036936999	0.021649013	0.038753054
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.256939	0.285258	0.225145	0.144929	0.053423	0.017700	0.007501	0.003800	0.001914	0.003390
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.917530196	0.953272084	0	0.24834509699999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.879050503	0.998095485	0.751654903	0.0019045149999999955
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00196	0.00919	0.075210421	0.746849
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

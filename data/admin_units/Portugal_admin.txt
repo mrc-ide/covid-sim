@@ -1,0 +1,172 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+10490323
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Portugal
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiria	Lisboa	Madeira	Portalegre	Porto	Santarém	Setúbal	Viana_do_Castelo	Vila_Real	Viseu
+
+[Codes and country/province names for admin units]
+430100	Portugal	Aveiro
+430200	Portugal	Azores
+430300	Portugal	Beja
+430400	Portugal	Braga
+430500	Portugal	Bragança
+430600	Portugal	Castelo_Branco
+430700	Portugal	Coimbra
+430800	Portugal	Évora
+430900	Portugal	Faro
+431000	Portugal	Guarda
+431100	Portugal	Leiria
+431200	Portugal	Lisboa
+431300	Portugal	Madeira
+431400	Portugal	Portalegre
+431500	Portugal	Porto
+431600	Portugal	Santarém
+431700	Portugal	Setúbal
+431800	Portugal	Viana_do_Castelo
+431900	Portugal	Vila_Real
+432000	Portugal	Viseu
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.039292293	0.043192768	0.048054632	0.051503588	0.052941994	0.052356511	0.055017468	0.064168952	0.075068451	0.079482523	0.072904811	0.072338844	0.065954528	0.060931926	0.055600597	0.04426635	0.066923763
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.230539	0.334331	0.232535	0.152695	0.035928	0.008479	0.002872	0.001185	0.000621	0.000815
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+1	1	0	0.312125109
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.876812552	1	0.687874891	0.0
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00673664	0.007805672	0.053261549	0.6880697459999999
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

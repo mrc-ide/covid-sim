@@ -1,0 +1,53 @@
+name: CI for different Linux distributions
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake ../src
+        make
+        cd ..
+    - name: regression test
+      run: |
+        cd tests
+        pwd
+        ls -l
+        ./regressiontest_UK_100th.py
+    - uses: actions/upload-artifact@v1
+      with:
+        name: regressiontest_UK_100th-generated-xls
+        path: tests/regressiontest_UK_100th
+
+  test-in-container:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        container_image: ["fedora:latest", "debian:10", "archlinux/base", "ubuntu:bionic", "centos:7", "opensuse/tumbleweed", "alpine:latest"]
+    container:
+      image: ${{ matrix.container_image }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install dependencies
+      run: ./ci/install_dependencies.sh
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake ../src
+        make
+        cd ..
+    - name: regression test
+      run: |
+        cd tests
+        pwd
+        ls -l
+        ./regressiontest_UK_100th.py

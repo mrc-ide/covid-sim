@@ -1,0 +1,218 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+[Administrative unit to seed initial infection into]
+0
+
+[Population size]
+341043367
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+United_States
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Alabama	Alaska	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Columbia	Florida	Georgia	Hawaii	Idaho	Illinois	Indiana	Iowa	Kansas	Kentucky	Louisiana	Maine	Maryland	Massachusetts	Michigan	Minnesota	Mississippi	Missouri	Montana	Nebraska	Nevada	New_Hampshire	New_Jersey	New_Mexico	New_York	North_Carolina	North_Dakota	Ohio	Oklahoma	Oregon	Pennsylvania	Rhode_Island	South_Carolina	South_Dakota	Tennessee	Texas	Utah	Vermont	Virginia	Washington	West_Virginia	Wisconsin	Wyoming
+
+[Codes and country/province names for admin units]
+610100	United_States	Alabama
+610200	United_States	Alaska
+610300	United_States	Arizona
+610400	United_States	Arkansas
+610500	United_States	California
+610600	United_States	Colorado
+610700	United_States	Connecticut
+610800	United_States	Delaware
+610900	United_States	District_of_Columbia
+611000	United_States	Florida
+611100	United_States	Georgia
+611200	United_States	Hawaii
+611300	United_States	Idaho
+611400	United_States	Illinois
+611500	United_States	Indiana
+611600	United_States	Iowa
+611700	United_States	Kansas
+611800	United_States	Kentucky
+611900	United_States	Louisiana
+612000	United_States	Maine
+612100	United_States	Maryland
+612200	United_States	Massachusetts
+612300	United_States	Michigan
+612400	United_States	Minnesota
+612500	United_States	Mississippi
+612600	United_States	Missouri
+612700	United_States	Montana
+612800	United_States	Nebraska
+612900	United_States	Nevada
+613000	United_States	New_Hampshire
+613100	United_States	New_Jersey
+613200	United_States	New_Mexico
+613300	United_States	New_York
+613400	United_States	North_Carolina
+613500	United_States	North_Dakota
+613600	United_States	Ohio
+613700	United_States	Oklahoma
+613800	United_States	Oregon
+613900	United_States	Pennsylvania
+614000	United_States	Rhode_Island
+614100	United_States	South_Carolina
+614200	United_States	South_Dakota
+614300	United_States	Tennessee
+614400	United_States	Texas
+614500	United_States	Utah
+614600	United_States	Vermont
+614700	United_States	Virginia
+614800	United_States	Washington
+614900	United_States	West_Virginia
+615000	United_States	Wisconsin
+615100	United_States	Wyoming
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.059444636	0.060558887	0.063713953	0.064177457	0.067246426	0.072009485	0.069644395	0.065303982	0.061312498	0.060585008	0.062168104	0.065081866	0.062444041	0.053833488	0.043367819	0.029388689	0.039719265
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.283708848	0.345103011	0.150677793	0.12764915	0.057777709	0.022624223	0.007151747	0.002988208	0.001179132	0.001140178
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 
+0 1 0 
+0 0 1 
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+3
+
+[Proportion of age group 1 in place types]
+1	0.68	0
+
+[Minimum age for age group 1 in place types]
+6	18	0
+
+[Maximum age for age group 1 in place types]
+18	65	85
+
+[Proportion of age group 2 in place types]
+0.25	0.32	0
+
+[Minimum age for age group 2 in place types]	
+5	65	0
+
+[Maximum age for age group 2 in place types]	
+6	75	85
+
+[Proportion of age group 3 in place types]
+0.014	0	0.01
+
+[Minimum age for age group 3 in place types]	
+20	21	0
+
+[Maximum age for age group 3 in place types]	
+65	65	85
+
+[Kernel type]
+6
+
+
+[Kernel scale]
+35000
+
+
+[Kernel Shape]
+6
+
+[Kernel type for place types]
+5	6	2
+
+[Kernel shape params for place types]	
+11	6.5	3
+
+[Kernel scale params for place types]	
+14000	35000	4000
+
+[Kernel 3rd param for place types]
+0	0.0004	0
+
+[Kernel 4th param for place types]
+0	2.2	0
+
+[Mean size of place types]	
+460	14.28	100
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]	
+10	0	0
+
+[Param 1 of place group size distribution]	
+25	10	1000
+
+[Power of place size distribution]	
+0	1.34	0
+
+[Offset of place size distribution]
+0	5.35	0
+
+[Maximum of place size distribution]
+0	5927	0
+
+[Proportion of between group place links]	
+0.25	0.25	1.0
+
+(25% of within-group contacts)
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+5
+
+[Holiday start times]
+31	87	109	214
+
+23	78	127	176	234
+
+[Holiday durations]
+15	8	7	78
+
+14	7	14	7	42
+
+===================================
+

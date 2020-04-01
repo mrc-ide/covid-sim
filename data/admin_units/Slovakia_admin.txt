@@ -1,0 +1,160 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+5444658
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Slovakia
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Žilinský
+
+[Codes and country/province names for admin units]
+480100	Slovakia	Banskobystrický
+480200	Slovakia	Bratislavský
+480300	Slovakia	Košický
+480400	Slovakia	Nitriansky
+480500	Slovakia	Prešovský
+480600	Slovakia	Tren?iansky
+480700	Slovakia	Trnavský
+480800	Slovakia	Žilinský
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.051961456	0.051816575	0.051757413	0.048156629	0.053246155	0.066868841	0.075186967	0.080061828	0.083853102	0.073922782	0.063529612	0.066372105	0.066275029	0.061061318	0.043376646	0.029652122	0.032901419
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.197802	0.275724	0.189810	0.207792	0.071928	0.027887	0.011625	0.005272	0.003025	0.009134
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.87455989	0.956959587	0	0.385278836
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.731750181	0.93368794	0.614721164	0.06631206
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00490348	0.007706863	0.042309207	0.670032229
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

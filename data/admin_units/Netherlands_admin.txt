@@ -1,0 +1,166 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+17274810
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Netherlands
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Brabant	Noord-Holland	Overijssel	Utrecht	Zeeland	Zeeuwse_meren	Zuid-Holland
+
+[Codes and country/province names for admin units]
+400100	Netherlands	Drenthe
+400200	Netherlands	Flevoland
+400300	Netherlands	Friesland
+400400	Netherlands	Gelderland
+400500	Netherlands	Groningen
+400600	Netherlands	IJsselmeer
+400700	Netherlands	Limburg
+400800	Netherlands	Noord-Brabant
+400900	Netherlands	Noord-Holland
+401000	Netherlands	Overijssel
+401100	Netherlands	Utrecht
+401200	Netherlands	Zeeland
+401300	Netherlands	Zeeuwse_meren
+401400	Netherlands	Zuid-Holland
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.050125846	0.052166304	0.054724654	0.059293816	0.05957132	0.062838692	0.062862328	0.05955066	0.058647765	0.066911147	0.074334487	0.072971653	0.065653069	0.058625704	0.055585413	0.037296746	0.048840397
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.381381	0.326326	0.118118	0.122122	0.037037	0.009475	0.003242	0.001277	0.000516	0.000504
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.998386266	0.988555369	0	0.16649962500000004
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.911946357	1	0.833500375	0.0
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.008707379	0.006662161	0.089030431	0.765091184
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

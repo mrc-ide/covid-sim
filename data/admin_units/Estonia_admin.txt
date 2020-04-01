@@ -1,0 +1,168 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+1378876
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Estonia
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare	Tartu	Valga	Viljandi	Vıru
+
+[Codes and country/province names for admin units]
+200100	Estonia	Harju
+200200	Estonia	Hiiu
+200300	Estonia	Ida-Viru
+200400	Estonia	J‰rva
+200500	Estonia	Jıgeva
+200600	Estonia	L‰‰ne
+200700	Estonia	L‰‰ne-Viru
+200800	Estonia	P‰rnu
+200900	Estonia	Peipsi
+201000	Estonia	Pılva
+201100	Estonia	Rapla
+201200	Estonia	Saare
+201300	Estonia	Tartu
+201400	Estonia	Valga
+201500	Estonia	Viljandi
+201600	Estonia	Vıru
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.052147732	0.056149876	0.056683595	0.046960549	0.043728831	0.065995798	0.07656767	0.069399392	0.066769993	0.072643925	0.05760479	0.066992376	0.064623053	0.063131955	0.040064408	0.040920018	0.059616038
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.402402	0.279279	0.146146	0.121121	0.035035	0.008263	0.003502	0.001774	0.000894	0.001583
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.917530196	0.953272084	0	0.24834509699999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.879050503	0.998095485	0.751654903	0.0019045149999999955
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.010656283	0.007686128	0.075210421	0.7378524360000001
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

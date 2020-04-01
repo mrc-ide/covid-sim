@@ -1,0 +1,161 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+8804988
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Austria
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Burgenland	Kärnten	Niederösterreich	Oberösterreich	Salzburg	Steiermark	Tirol	Vorarlberg	Wien
+
+[Codes and country/province names for admin units]
+120100	Austria	Burgenland
+120200	Austria	Kärnten
+120300	Austria	Niederösterreich
+120400	Austria	Oberösterreich
+120500	Austria	Salzburg
+120600	Austria	Steiermark
+120700	Austria	Tirol
+120800	Austria	Vorarlberg
+120900	Austria	Wien
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.049760837	0.047301475	0.047059646	0.050227616	0.05648883	0.067353882	0.068881462	0.069177696	0.062809114	0.068016188	0.079215114	0.077007128	0.064661019	0.050070727	0.045222064	0.042541859	0.054205343
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.372000	0.303000	0.149000	0.115000	0.046000	0.008621	0.003435	0.001308	0.000502	0.001135
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.994532505	0.951800944	0	0.412154777
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.854841131	0.869408164	0.587845223	0.13059183600000002
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.005916527	0.008422742	0.074958336	0.716839586
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

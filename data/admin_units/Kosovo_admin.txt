@@ -1,0 +1,161 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+[Administrative unit to seed initial infection into]
+0
+
+[Population size]
+2125671
+
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Kosovo
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+?akovica	Gnjilane	Kosovska_Mitrovica	Pe?ki	Pristina	Prizren	Uroševac
+
+[Codes and country/province names for admin units]
+300100	Kosovo	?akovica
+300200	Kosovo	Gnjilane
+300300	Kosovo	Kosovska_Mitrovica
+300400	Kosovo	Pe?ki
+300500	Kosovo	Pristina
+300600	Kosovo	Prizren
+300700	Kosovo	Uroševac
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.047961458	0.049987925	0.055721916	0.058698212	0.060563877	0.065614367	0.070721853	0.068322733	0.071137196	0.069625299	0.065311301	0.063046317	0.062702392	0.06805446	0.053121363	0.030391411	0.03901792
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.224000	0.256000	0.192000	0.183000	0.079000	0.040648	0.015514	0.005545	0.002240	0.002054
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.407916167	0.640820567	0	0.29
+
+[Minimum age for age group 1 in place types]
+3	15	18	15	
+
+[Maximum age for age group 1 in place types]
+4	16	65	24	
+
+
+[Proportion of age group 2 in place types]
+0.662090696	0.550626104	0.35951743	0.68
+
+[Minimum age for age group 2 in place types]
+5	17	19	25
+
+[Maximum age for age group 2 in place types]
+14	18	20	54
+
+
+[Proportion of age group 3 in place types]
+0.0034245930.007120474	0.001175395	0.57
+
+[Minimum age for age group 3 in place types]
+21	21	21	55
+
+[Maximum age for age group 3 in place types]
+65	65	65	64	
+
+
+[Kernel shape params for place types]
+3 3 3 3
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

@@ -1,0 +1,162 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+2753182
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Lithuania
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	Vilniaus
+
+[Codes and country/province names for admin units]
+330100	Lithuania	Alytaus
+330200	Lithuania	Kauno
+330300	Lithuania	Klaipedos
+330400	Lithuania	Marijampoles
+330500	Lithuania	Panevezio
+330600	Lithuania	Šiauliai
+330700	Lithuania	Taurages
+330800	Lithuania	Telšiai
+330900	Lithuania	Utenos
+331000	Lithuania	Vilniaus
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.053307306	0.057141944	0.044330309	0.044874336	0.049092841	0.067308381	0.068458148	0.055542189	0.059207116	0.071531662	0.067903835	0.086582955	0.068538962	0.061061804	0.03984034	0.042179914	0.063097957
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.377377	0.291291	0.171171	0.113113	0.034034	0.006437	0.003259	0.001570	0.000809	0.000938
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.955059626	1	0	0.13537337699999996
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.786388259	1	0.864626623	0.0
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.00706044	0.012033579	0.074067929	0.708334409
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

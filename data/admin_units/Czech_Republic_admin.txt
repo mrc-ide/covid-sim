@@ -1,0 +1,166 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+10838177
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Czech_Republic
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Jiho?eský	Jihomoravský	Karlovarský	Kraj_Vyso?ina	Královéhradecký	Liberecký	Moravskoslezský	Olomoucký	Pardubický	Plze?ský	Prague	St?edo?eský	Ústecký	Zlínský
+
+[Codes and country/province names for admin units]
+180100	Czech_Republic	Jiho?eský
+180200	Czech_Republic	Jihomoravský
+180300	Czech_Republic	Karlovarský
+180400	Czech_Republic	Kraj_Vyso?ina
+180500	Czech_Republic	Královéhradecký
+180600	Czech_Republic	Liberecký
+180700	Czech_Republic	Moravskoslezský
+180800	Czech_Republic	Olomoucký
+180900	Czech_Republic	Pardubický
+181000	Czech_Republic	Plze?ský
+181100	Czech_Republic	Prague
+181200	Czech_Republic	St?edo?eský
+181300	Czech_Republic	Ústecký
+181400	Czech_Republic	Zlínský
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.052181431	0.05181034	0.053563728	0.045542891	0.044018843	0.059197223	0.066945299	0.071089297	0.086880994	0.081048507	0.064805133	0.061375862	0.060110475	0.063581674	0.057220658	0.03906291	0.041564735
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.287287	0.327327	0.181181	0.157157	0.036036	0.005447	0.002758	0.001328	0.000684	0.000794
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.929467814	0.961306069	0	0.259034553
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.836296904	0.970305309	0.740965447	0.029694690999999995
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.004889043	0.006554273	0.049054726	0.74000509
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

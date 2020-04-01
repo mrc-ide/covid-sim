@@ -1,0 +1,155 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+[Administrative unit to seed initial infection into]
+0
+
+[Population size]
+27274
+
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Monaco
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Monaco
+
+[Codes and country/province names for admin units]
+380100	Monaco	Monaco
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.055458744	0.059863287	0.06121454	0.059561511	0.056638886	0.056286385	0.060384877	0.062345611	0.060413434	0.067137034	0.066847958	0.065442411	0.060870756	0.058086931	0.053982326	0.033766959	0.06169835
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.376939	0.323049	0.145925	0.113684	0.031026	0.009345	0.000020	0.000005	0.000004	0.000003
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+1	0.964	0	0.31
+
+[Minimum age for age group 1 in place types]
+3	15	18	15	
+
+[Maximum age for age group 1 in place types]
+4	16	65	24	
+
+
+[Proportion of age group 2 in place types]
+0.999	0.855	0.604	0.82
+
+[Minimum age for age group 2 in place types]
+5	17	19	25
+
+[Maximum age for age group 2 in place types]
+14	18	20	54
+
+
+[Proportion of age group 3 in place types]
+0.0056303370.007257667	0.001817233	0.57
+
+[Minimum age for age group 3 in place types]
+21	21	21	55
+
+[Maximum age for age group 3 in place types]
+65	65	65	64	
+
+
+[Kernel shape params for place types]
+3 3 3 3
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

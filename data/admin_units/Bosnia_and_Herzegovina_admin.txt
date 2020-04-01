@@ -1,0 +1,155 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+3349873
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Bosnia_and_Herzegovina
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
+
+[Codes and country/province names for admin units]
+150100	Bosnia_and_Herzegovina	Br?ko
+150200	Bosnia_and_Herzegovina	Federacija_Bosna_i_Hercegovina
+150300	Bosnia_and_Herzegovina	Repuplika_Srpska
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.040616127	0.049365173	0.055242371	0.05030305	0.065888506	0.057029732	0.065954648	0.07376216	0.067301265	0.069170313	0.070512357	0.081944273	0.073752101	0.067613687	0.043717186	0.030196765	0.037630284
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.188202	0.239862	0.200909	0.206494	0.092789	0.043145	0.016285	0.006940	0.002804	0.002571
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.556362	0.672716458	0	0.567830854
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.407916167	0.605385593	0.432169146	0.39461440699999994
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.002749198	0.00802388	0.03682622	0.603509601
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+

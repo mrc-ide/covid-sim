@@ -1,0 +1,165 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+[Administrative unit to seed initial infection into]
+0
+
+[Population size]
+41211
+
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Liechtenstein
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Balzers	Eschen	Gamprin	Mauren	Planken	Ruggell	Schaan	Schellenberg	Triesen	Triesenberg	Valduz
+
+[Codes and country/province names for admin units]
+320100	Liechtenstein	Balzers
+320200	Liechtenstein	Eschen
+320300	Liechtenstein	Gamprin
+320400	Liechtenstein	Mauren
+320500	Liechtenstein	Planken
+320600	Liechtenstein	Ruggell
+320700	Liechtenstein	Schaan
+320800	Liechtenstein	Schellenberg
+320900	Liechtenstein	Triesen
+321000	Liechtenstein	Triesenberg
+321100	Liechtenstein	Valduz
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.052206695	0.050044496	0.047335307	0.049129609	0.055945392	0.064190355	0.069046606	0.071828936	0.065959584	0.068834118	0.078195941	0.074395658	0.061911802	0.051026169	0.048704518	0.038184701	0.053060112
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.351327	0.308797	0.144251	0.137647	0.044832	0.008465	0.002555	0.000928	0.000474	0.000726
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.253	0.955	0	0.58
+
+[Minimum age for age group 1 in place types]
+3	15	18	15	
+
+[Maximum age for age group 1 in place types]
+4	16	65	24	
+
+
+[Proportion of age group 2 in place types]
+0.997	0.8715	0.5345	0.88
+
+[Minimum age for age group 2 in place types]
+5	17	19	25
+
+[Maximum age for age group 2 in place types]
+14	18	20	54
+
+
+[Proportion of age group 3 in place types]
+0.0089258660.008512631	0.003002838	0.74
+
+[Minimum age for age group 3 in place types]
+21	21	21	55
+
+[Maximum age for age group 3 in place types]
+65	65	65	64	
+
+
+[Kernel shape params for place types]
+3 3 3 3
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+4
+
+[Holiday start times]
+47  96  145 203
+
+[Holiday durations]
+7 14  7 42
+
+===================================
+
