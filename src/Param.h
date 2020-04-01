@@ -28,14 +28,20 @@ typedef struct PARAM {
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot, DoTimeSeries;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
-	int NC, NMC, NMCL; 
+	int NC; // Number of cells
+	int NMC; // Number of microcells
+	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, nmcw, nmch, DoUTM_coords, nsp, DoSIS, DoInitEquilib, DoSeasonality,DoCorrectAgeDist;
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight, bheight2, bminx, bminy, OutputBitmap, DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
+	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
+	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
+	int bminx, bminy;
+	int OutputBitmap; // Whether to output a bitmap
+	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
 	int MinPopDensForInitialInfection, NumSeedLocations, MaxPopDensForInitialInfection, InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS];
@@ -59,7 +65,10 @@ typedef struct PARAM {
 
 	double T, TimeStep, SampleTime, SampleStep, BitmapAspectScale;
 	int ts_age, TimeStepsPerDayInt, DoSeverity;
-	double scalex, scaley, width, height, cwidth, cheight, mcwidth, mcheight;
+	double scalex, scaley; // Number of pixels per degree in bitmap output
+	double width, height; // Size of spatial domain in degrees
+	double cwidth, cheight; // Size of spatial domain in cells
+	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale, CellPop2;
 	double R0, R0scale, ContactsPerDay, LocalBeta, LatentPeriod, InfectiousPeriod, R0household, R0places, R0spatial;	//// LatentPeriod and InfectiousPeriod are means of icdf's (inverse cumulative distribution functions). 

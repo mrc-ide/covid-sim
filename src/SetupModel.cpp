@@ -62,6 +62,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				if (!(dat = fopen(DensityFile, "r"))) ERR_CRITICAL("Unable to open density file\n");
 				P.BinFileLen = UINT_MAX - 1;
 			}
+			// We will compute a precise spatial bounding box using the population locations.
+			// Initially, set the min values too high, and the max values too low, and then
+			// we will adjust them as we read population data.
 			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
 			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
 			s2 = 0;
@@ -99,6 +102,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					{
 						AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = i2;
 						s2 += t;
+						// Adjust the bounds of the spatial bounding box so that they include the location
+						// for this block of population.
 						if (x < P.SpatialBoundingBox[0]) P.SpatialBoundingBox[0] = x;
 						if (x >= P.SpatialBoundingBox[2]) P.SpatialBoundingBox[2] = x + 1e-6;
 						if (y < P.SpatialBoundingBox[1]) P.SpatialBoundingBox[1] = y;
