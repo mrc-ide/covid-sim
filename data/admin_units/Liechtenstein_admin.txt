@@ -1,4 +1,4 @@
-[Number of seed locations]
+v[Number of seed locations]
 1
 
 [Initial number of infecteds]
@@ -147,7 +147,7 @@ Balzers	Eschen	Gamprin	Mauren	Planken	Ruggell	Schaan	Schellenberg	Triesen	Triese
 ===================================
 
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1

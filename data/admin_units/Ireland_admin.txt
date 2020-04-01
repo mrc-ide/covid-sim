@@ -159,7 +159,7 @@ Carlow	Cavan	Clare	Cork	Donegal	Dublin	Galway	Kerry	Kildare	Kilkenny	Laoighis	Le
 
 ===================================
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1

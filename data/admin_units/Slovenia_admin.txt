@@ -145,7 +145,7 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 
 ===================================
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
