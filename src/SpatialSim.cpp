@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 		sscanf(argv[i + 2], "%li", &P.seed3);
 		sscanf(argv[i + 3], "%li", &P.seed4);
 
-		///// Set paramter defaults - read them in after
+		///// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
 		P.PreControlClusterIdCaseThreshold = 0;
 		P.R0scale = 1.0;
@@ -502,16 +502,16 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (!GetInputParameter2(dat, dat3, "Include households", "%i", (void*) & (P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
-	if (!GetInputParameter2(dat, dat3, "OutputAge"					, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputControls"				, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputCountry"				, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by defualt. 
-	if (!GetInputParameter2(dat, dat3, "OuptutNonSummaryResults"	, "%i", (void*) & (P.OuptutNonSummaryResults)	, 1, 1, 0)) P.OuptutNonSummaryResults = 0;	//// OFF by defualt. 
+	if (!GetInputParameter2(dat, dat3, "OutputAge"					, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputControls"				, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputCountry"				, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default. 
+	if (!GetInputParameter2(dat, dat3, "OuptutNonSummaryResults"	, "%i", (void*) & (P.OuptutNonSummaryResults)	, 1, 1, 0)) P.OuptutNonSummaryResults = 0;	//// OFF by default. 
 
 	if (P.DoHouseholds)
 	{
@@ -1241,7 +1241,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(dat, dat2, "Maximum number of doses available", "%lf", (void*) & (P.TreatMaxCoursesBase), 1, 1, 0)) P.TreatMaxCoursesBase = 1e20;
 	if (!GetInputParameter2(dat, dat2, "Start time of additional treatment production", "%lf", (void*) & (P.TreatNewCoursesStartTime), 1, 1, 0)) P.TreatNewCoursesStartTime = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(dat, dat2, "Rate of additional treatment production (courses per day)", "%lf", (void*) & (P.TreatNewCoursesRate), 1, 1, 0)) P.TreatNewCoursesRate = 0;
-	if (!GetInputParameter2(dat, dat2, "Maximum number of people targetted with radial prophylaxis per case", "%i", (void*) & (P.TreatMaxCoursesPerCase), 1, 1, 0)) P.TreatMaxCoursesPerCase = 1000000000;
+	if (!GetInputParameter2(dat, dat2, "Maximum number of people targeted with radial prophylaxis per case", "%i", (void*) & (P.TreatMaxCoursesPerCase), 1, 1, 0)) P.TreatMaxCoursesPerCase = 1000000000;
 
 
 	if (P.DoAdUnits)
@@ -2894,7 +2894,7 @@ void SaveResults(void)
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			//// prevalance
+			//// prevalence
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"		, AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"		, AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"		, AdUnits[i].ad_name);
@@ -2925,7 +2925,7 @@ void SaveResults(void)
 			{
 				fprintf(dat, "%.10f", TimeSeries[i].t);
 
-				//// prevalance
+				//// prevalence
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].Mild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].ILI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].SARI_adunit[j]);
@@ -3295,7 +3295,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
 			//// **** means
-			//// prevalance
+			//// prevalence
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"			, AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"			, AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"			, AdUnits[i].ad_name);
@@ -3320,7 +3320,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeath_%s"			, AdUnits[i].ad_name);
 
 			//// **** variances
-			//// prevalance
+			//// prevalence
 			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarMild_%s"			, AdUnits[i].ad_name);
 			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarILI_%s"			, AdUnits[i].ad_name);
 			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarSARI_%s"			, AdUnits[i].ad_name);
@@ -3351,7 +3351,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			{
 				fprintf(dat, "%.10f", c * TSMean[i].t);
 				//// **** means
-				//// prevalance
+				//// prevalence
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].SARI_adunit[j]);
@@ -3376,7 +3376,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumD_adunit[j]);
 
 				//// **** variances
-				//// prevalance
+				//// prevalence
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].Mild_adunit[j]		 - c * c * TSMean[i].Mild_adunit[j]			* TSMean[i].Mild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].ILI_adunit[j]		 - c * c * TSMean[i].ILI_adunit[j]			* TSMean[i].ILI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].SARI_adunit[j]		 - c * c * TSMean[i].SARI_adunit[j]			* TSMean[i].SARI_adunit[j]);
@@ -4041,7 +4041,7 @@ void RecordSample(double t, int n)
 
 		//// Set Case isolation start time (by admin unit)
 		for (i = 0; i < P.NumAdunits; i++)
-			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this funcion is small portion of runtime.
+			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
 					DoOrDontAmendStartTime(&AdUnits[i].CaseIsolationTimeStart, t + AdUnits[i].CaseIsolationDelay);
@@ -4051,7 +4051,7 @@ void RecordSample(double t, int n)
 
 		//// Set Household Quarantine start time (by admin unit)
 		for (i = 0; i < P.NumAdunits; i++)
-			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this funcion is small portion of runtime.
+			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
 					DoOrDontAmendStartTime(&AdUnits[i].HQuarantineTimeStart, t + AdUnits[i].HQuarantineDelay);
@@ -4061,7 +4061,7 @@ void RecordSample(double t, int n)
 
 		//// Set DigitalContactTracingTimeStart
 		for (i = 0; i < P.NumAdunits; i++)
-			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this funcion is small portion of runtime.
+			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 				DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart	, t + P.DigitalContactTracingTimeStartBase);
 
 		if (P.DoGlobalTriggers)

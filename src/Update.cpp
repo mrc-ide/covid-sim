@@ -92,7 +92,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		q = x * x + y * y;
 		StateT[tn].sumRad2 += q;
 
-		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maxium radius squared from seeding infection
+		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
 		{
 			Cells[a->pcell].S--;
 			Cells[a->pcell].L++;			//// number of latently infected people increases by one. 
@@ -467,7 +467,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
 			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L; //// change person a's listpos, which will now refer to their position among infectious people, not latent. 
-			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array? I think because the pointer was moved back one so now that bit of memorty needs to refer to person ai. Alternative would be to move everyone back one which would take longer. 
+			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array? I think because the pointer was moved back one so now that bit of memory needs to refer to person ai. Alternative would be to move everyone back one which would take longer. 
 		}
 		////added this to record event if flag is set to 1 and if host isn't initial seed, i.e. if Hosts[ai].infector>=0: ggilani - 10/10/2014
 		//if(P.DoRecordInfEvents)
@@ -642,7 +642,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 							if (!f) //// so if no household members dead, or if one hh member is a child requiring adult supervision, and neither absent nor quarantined.
 							{
 								k = -1; /// don't think this is necessary...
-								for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whehter household members not children needing supervision and are alive.
+								for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
 									if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
 								if (f) //// so finally, if at least one member of household is alive and does not need supervision by an adult, amend absent start and stop times
 								{
