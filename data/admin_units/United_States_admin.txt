@@ -28,7 +28,6 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 
 [Codes and country/province names for admin units]
 610100	United_States	Alabama
-610200	United_States	Alaska
 610300	United_States	Arizona
 610400	United_States	Arkansas
 610500	United_States	California
@@ -38,7 +37,6 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 610900	United_States	District_of_Columbia
 611000	United_States	Florida
 611100	United_States	Georgia
-611200	United_States	Hawaii
 611300	United_States	Idaho
 611400	United_States	Illinois
 611500	United_States	Indiana
