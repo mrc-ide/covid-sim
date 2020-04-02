@@ -67,7 +67,7 @@ typedef struct POPVAR {
 	int cumDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added cumulative and overall digital contact tracing per adunit: ggilani 11/03/20
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
 	int* inv_cell_inf; //// think indexed by i) person. 
-	int *inf_queue[MAX_NUM_THREADS], n_queue[MAX_NUM_THREADS * CACHE_LINE_SIZE]; 	// n_queue is number of people in the queue, inf_queue is the actual queue (i.e. list) of people. 1st index is thread, 2nd is person.
+	int *inf_queue[MAX_NUM_THREADS], n_queue[MAX_NUM_THREADS]; 	// n_queue is number of people in the queue, inf_queue is the actual queue (i.e. list) of people. 1st index is thread, 2nd is person.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
 	float* cell_inf;  //// List of spatial infectiousnesses by person within cell. 
