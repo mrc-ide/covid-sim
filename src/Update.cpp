@@ -127,7 +127,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 			{
 				int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
 				int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
 				{
 					unsigned j = iy * bmh->width + ix;
 					if (j < bmh->imagesize)
