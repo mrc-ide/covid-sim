@@ -8,7 +8,7 @@
 0
 
 [Population size]
-341043367
+338798532
 [ONS pop proj]
 
 [Fix population size at specified value]
@@ -24,7 +24,7 @@ United_States
 0
 
 [List of level 1 administrative units to include]
-Alabama	Alaska	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Columbia	Florida	Georgia	Hawaii	Idaho	Illinois	Indiana	Iowa	Kansas	Kentucky	Louisiana	Maine	Maryland	Massachusetts	Michigan	Minnesota	Mississippi	Missouri	Montana	Nebraska	Nevada	New_Hampshire	New_Jersey	New_Mexico	New_York	North_Carolina	North_Dakota	Ohio	Oklahoma	Oregon	Pennsylvania	Rhode_Island	South_Carolina	South_Dakota	Tennessee	Texas	Utah	Vermont	Virginia	Washington	West_Virginia	Wisconsin	Wyoming
+Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Columbia	Florida	Georgia	Idaho	Illinois	Indiana	Iowa	Kansas	Kentucky	Louisiana	Maine	Maryland	Massachusetts	Michigan	Minnesota	Mississippi	Missouri	Montana	Nebraska	Nevada	New_Hampshire	New_Jersey	New_Mexico	New_York	North_Carolina	North_Dakota	Ohio	Oklahoma	Oregon	Pennsylvania	Rhode_Island	South_Carolina	South_Dakota	Tennessee	Texas	Utah	Vermont	Virginia	Washington	West_Virginia	Wisconsin	Wyoming
 
 [Codes and country/province names for admin units]
 610100	United_States	Alabama
