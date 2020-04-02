@@ -16,8 +16,6 @@
 #define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
 #define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay <= ts) && (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration > ts))
 #define HOST_ABSENT(x) ((Hosts[x].absent_start_time <= ts) && (Hosts[x].absent_stop_time > ts))
-//add macro to see if host is isolated due to digital contact tracing
-#define HOST_ISOLATED_DCT(x) ((Hosts[x].dct_start_time <= ts) && (Hosts[x].dct_end_time > ts))
 
 /*
   #define NO_TREAT_PROPH_CASES

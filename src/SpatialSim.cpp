@@ -511,7 +511,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(dat, dat3, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default. 
 	if (!GetInputParameter2(dat, dat3, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default. 
 	if (!GetInputParameter2(dat, dat3, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default. 
-	if (!GetInputParameter2(dat, dat3, "OuptutNonSummaryResults"	, "%i", (void*) & (P.OuptutNonSummaryResults)	, 1, 1, 0)) P.OuptutNonSummaryResults = 0;	//// OFF by default. 
+  	if (!GetInputParameter2(dat, dat3, "OutputNonSummaryResults"	, "%i", (void*) & (P.OuptutNonSummaryResults)	, 1, 1, 0)) P.OuptutNonSummaryResults = 0;	//// OFF by default. 
 
 	if (P.DoHouseholds)
 	{
@@ -1383,12 +1383,12 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(dat, dat2, "Proportion of digital contacts who self-isolate", "%lf", (void*) & (P.ProportionDigitalContactsIsolate), 1, 1, 0)) P.ProportionDigitalContactsIsolate = 0;
 		if (!GetInputParameter2(dat, dat2, "Delay before digital contacts self-isolate", "%lf", (void*) & (P.DigitalContactTracingDelay), 1, 1, 0)) P.DigitalContactTracingDelay = 0;
 		if (!GetInputParameter2(dat, dat2, "Length of self-isolation for digital contacts", "%lf", (void*) & (P.LengthDigitalContactIsolation), 1, 1, 0)) P.LengthDigitalContactIsolation = 0;
-		if (!GetInputParameter2(dat, dat2, "Place scaling factor - digital contact tracing", "%lf", (void*) & (P.ScalingFactorPlaceDigitalContacts), 1, 1, 0)) P.ScalingFactorPlaceDigitalContacts = 1;
 		if (!GetInputParameter2(dat, dat2, "Spatial scaling factor - digital contact tracing", "%lf", (void*) & (P.ScalingFactorSpatialDigitalContacts), 1, 1, 0)) P.ScalingFactorSpatialDigitalContacts = 1;
 		if (!GetInputParameter2(dat, dat2, "Digital contact tracing start time", "%lf", (void*) & (P.DigitalContactTracingTimeStartBase), 1, 1, 0)) P.DigitalContactTracingTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 		if (!GetInputParameter2(dat, dat2, "Duration of digital contact tracing policy", "%lf", (void*) & (P.DigitalContactTracingPolicyDuration), 1, 1, 0)) P.DigitalContactTracingPolicyDuration = 7;
 		if (!GetInputParameter2(dat, dat2, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
-
+		if (!GetInputParameter2(dat, dat2, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
+		if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
 		//initialise total number of users to 0
 		P.NDigitalContactUsers = 0;
 		P.NDigitalHouseholdUsers = 0;
@@ -1396,7 +1396,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	else
 	{
 		//Set these to 1 so it doesn't interfere with code if we aren't using digital contact tracing.
-		P.ScalingFactorPlaceDigitalContacts = 1;
+		
 		P.ScalingFactorSpatialDigitalContacts = 1;
 	}
 
@@ -2087,7 +2087,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumH = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC
 			= StateT[j].cumInf_h = StateT[j].cumInf_n = StateT[j].cumInf_s = StateT[j].cumHQ = StateT[j].cumAC = StateT[j].cumACS
 			= StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
-		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily = 0;
+		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
 		for (i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
 		for (i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
@@ -2096,8 +2096,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
 		if (P.DoAdUnits)
 			for (i = 0; i <= P.NumAdunits; i++)
-				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
-				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].ndct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
+				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] = 
+				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = StateT[j].ncontacts[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 	
 		if (P.DoSeverity)
 		{
@@ -2136,13 +2136,15 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
 					if (P.DoAirports) Hosts[k].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
-					Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = USHRT_MAX - 1;
+					Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_end_time = USHRT_MAX - 1;
 					Hosts[k].absent_stop_time = 0;
 					Hosts[k].quar_comply = 2;
 					Hosts[k].susc = 1.0;
 					Hosts[k].to_die = 0;
 					Hosts[k].Travelling = 0;
 					Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
+					Hosts[k].detected_time = 0;
+					Hosts[k].digitalContactTraced = 0;
 					Hosts[k].inf = InfStat_Susceptible;
 					Hosts[k].listpos = j;
 					Hosts[k].treat_stop_time = Hosts[k].num_treats = 0;
@@ -2150,7 +2152,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 					Hosts[k].infector = -1;
 					Hosts[k].infect_type = 0;
-					Hosts[k].ncontacts = 0; //reset to 0 for digital contact tracing
 
 					if (P.DoSeverity)
 					{
@@ -2292,6 +2293,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.SocDistTimeStart = 1e10;
 	P.AirportCloseTimeStart = 1e10;
 	P.CaseIsolationTimeStart = 1e10;
+	//P.DigitalContactTracingTimeStart = 1e10;
 	P.HQuarantineTimeStart = 1e10;
 	P.KeyWorkerProphTimeStart = 1e10;
 	P.TreatMaxCourses = P.TreatMaxCoursesBase;
@@ -2753,25 +2755,30 @@ void SaveResults(void)
 	{
 		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile); //modifying to csv file
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t\t");
+    		fprintf(dat, "t");		
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "incDCT%i\t", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for inc per admin unit
+			fprintf(dat, "\tincDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for inc per admin unit
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "DCT%i\t", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for prevalence of digital contact tracing per admin unit
-		}
-		//print actual output
-		for (j = 0; j < P.NumAdunits; j++)
-		{
-			fprintf(dat, "%.10f,", TimeSeries[i].incDCT_adunit[j]); //"\t%lf" //added contact tracing
-		}
-		for (j = 0; j < P.NumAdunits; j++)
-		{
-			fprintf(dat, "%.10f,", TimeSeries[i].DCT_adunit[j]); //"\t%lf" //added contact tracing
+			fprintf(dat, "\tDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for prevalence of digital contact tracing per admin unit
 		}
 		fprintf(dat, "\n");
+		//print actual output
+		for(i=0; i<P.NumSamples; i++)
+		{
+			fprintf(dat, "%.10f", TimeSeries[i].t);
+			for (j = 0; j < P.NumAdunits; j++)
+			{
+				fprintf(dat, "\t%.10f", TimeSeries[i].incDCT_adunit[j]); //"\t%lf" //added contact tracing
+			}
+			for (j = 0; j < P.NumAdunits; j++)
+			{
+				fprintf(dat, "\t%.10f", TimeSeries[i].DCT_adunit[j]); //"\t%lf" //added contact tracing
+			}
+		fprintf(dat, "\n");
+		}
 		fclose(dat);
 
 	}
@@ -3116,6 +3123,39 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			}
 			fclose(dat);
 		}
+	}
+
+	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
+	{
+		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile); 
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		fprintf(dat, "t");
+		for (i = 0; i < P.NumAdunits; i++)
+		{
+			fprintf(dat, "\tincDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for inc per admin unit
+		}
+		for (i = 0; i < P.NumAdunits; i++)
+		{
+			fprintf(dat, "\tDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for prevalence of digital contact tracing per admin unit
+		}
+		fprintf(dat, "\n");
+		//print actual output
+		for (i = 0; i < P.NumSamples; i++)
+		{
+			fprintf(dat, "%.10f", c* TSMean[i].t);
+			for (j = 0; j < P.NumAdunits; j++)
+			{
+				fprintf(dat, "\t%.10f", c*TSMean[i].incDCT_adunit[j]); //"\t % lf" //added contact tracing
+			}
+			for (j = 0; j < P.NumAdunits; j++)
+			{
+				fprintf(dat, "\t%.10f", c * TSMean[i].DCT_adunit[j]); //"\t%lf" //added contact tracing
+			}
+			fprintf(dat, "\n");
+		}
+		
+		fclose(dat);
+
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
@@ -3971,7 +4011,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits)
 		for (i = 0; i <= P.NumAdunits; i++)
 		{
-			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = 0; //added detected cases: ggilani 03/02/15
+			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
 			{
 				TimeSeries[n].incI_adunit[i] += (double)StateT[j].cumI_adunit[i];
@@ -4033,6 +4073,7 @@ void RecordSample(double t, int n)
 			P.PreControlClusterIdTime = t;
 			if (P.PreControlClusterIdCalTime >= 0)
 			{
+
 				P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreControlClusterIdCalTime;
 				InterruptRun = 0;
 			}
@@ -4097,7 +4138,7 @@ void RecordSample(double t, int n)
 		}
 		else
 		{
-			DoOrDontAmendStartTime(&P.TreatTimeStart			, t + P.TreatTimeStartBase			);
+		  DoOrDontAmendStartTime(&P.TreatTimeStart			, t + P.TreatTimeStartBase			);
 			DoOrDontAmendStartTime(&P.VaccTimeStart				, t + P.VaccTimeStartBase			);
 			DoOrDontAmendStartTime(&P.SocDistTimeStart			, t + P.SocDistTimeStartBase		);
 			DoOrDontAmendStartTime(&P.PlaceCloseTimeStart		, t + P.PlaceCloseTimeStartBase		);
@@ -4378,14 +4419,7 @@ void CalcOriginDestMatrix_adunit()
 					{
 						if (m != p)
 						{
-							if (AdUnits[m].id / P.CountryDivisor == AdUnits[p].id / P.CountryDivisor)
-							{
-								flow = total_flow * pop_dens_from[m] * pop_dens_to[p];
-							}
-							else
-							{
-								flow = total_flow * pop_dens_from[m] * pop_dens_to[p];
-							}
+							flow = total_flow * pop_dens_from[m] * pop_dens_to[p]; //updated to remove reference to cross-border flows: ggilani 26/03/20
 							StateT[tn].origin_dest[m][p] += flow;
 							StateT[tn].origin_dest[p][m] += flow;
 						}
@@ -4658,4 +4692,5 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
+
 

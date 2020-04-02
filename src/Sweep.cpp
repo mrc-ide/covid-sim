@@ -268,7 +268,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector) 
 	//// After loop 1a) over infectious people, spatial infections are doled out. 
 
-	int i, j, k, l, m;
+	int i, j, k, l, m,ad;
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
 	int i2, b, i3, f, f2, tn, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
@@ -279,8 +279,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	double s4; // place infectiousness (copy of s3 as some code commented out
 	double s5; //// total spatial infectiousness summed over all infectious people in cell. 
 	double fp; //// false positive
-	double s3_scaled, s4_scaled; //scaled up versions of place infectiousness for digital contact tracing in places: ggilani 10/03/20
-	int n_unscaled; //unscaled value of number of contacts for digital contact tracing in places: ggilani 10/03/20
 	cell* c, *ct;
 	microcell* mi, *mt, *mp;
 	unsigned short int ts;
@@ -294,8 +292,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	sbeta = seasonality * fp * P.LocalBeta;
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
-
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si) schedule(static,1)
+	
+#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -358,29 +356,17 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed). 
 							{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
-								//if doing digital contact tracing, scale up infectiousness s3 - but keep track of original value to make sure we scale down properly
-								if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (Hosts[ci].detected == 1))
-								{
-									s3_scaled = s3 * P.ScalingFactorPlaceDigitalContacts;
-								}
+								
 								mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
 									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
 										Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
 										s3 *= P.MoveRestrEffect;
-									if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (Hosts[ci].detected == 1))
-									{
-										s3_scaled *= P.MoveRestrEffect;
-									}
 								}
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
 								{
 									s3 *= P.MoveRestrEffect;
-									if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (Hosts[ci].detected == 1))
-									{
-										s3_scaled *= P.MoveRestrEffect;
-									}
 								}
 
 								if ((k != HOTEL_PLACE_TYPE) && (!si->Travelling))
@@ -388,49 +374,16 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									i2 = (si->PlaceGroupLinks[k]);
 									s4 = s3;
 									//s4=s3*(1-P.PlaceTypePropBetweenGroupLinks[k]*P.PlaceTypeGroupSizeParam1[k]/((double) Places[k][l].n));
-
-
-									if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
+									if (s4 < 0)
 									{
-										if ((Hosts[ci].digitalContactTracingUser) && (Hosts[ci].detected))
-										{
-											s4_scaled = s3_scaled;
-											if (s4 < 0)
-											{
-												ERR_CRITICAL_FMT("@@@ %lg\n", s4);
-											}
-											else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-												n = Places[k][l].group_size[i2];
-											else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-												n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
-											if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
-
-											//also calculate unscaled versions of n, to ensure than we rescale correctly later
-											if (s4 >= 1)
-											{
-												n_unscaled = Places[k][l].group_size[i2];
-											}
-											else
-											{
-												n_unscaled = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-											}
-										}
-									}
-									else
-									{
-
-										if (s4 < 0)
-										{
-											ERR_CRITICAL_FMT("@@@ %lg\n", s4);
-										}
-										else if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
-									}
-
-
+										fprintf(stderr, "@@@ %lg\n", s4);
+										exit(1);
+  								}
+									else if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
+										n = Places[k][l].group_size[i2];
+									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
+										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
+									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 
 									for (m = 0; m < n; m++)
 									{
@@ -440,43 +393,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
 											s = CalcPlaceSusc(i3, k, ts, ci, tn);
-											//These are all contacts of the infector, so we need to add them to list of contacts (if not already listed), and we need to scale down susceptibility by the appropriate amount so we don't over infect
-											if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
-											{
-												if ((Hosts[ci].detected) && (Hosts[ci].digitalContactTracingUser))
-												{
-													//scale down susceptibility so we don't over accept
-													s *= (((double)n_unscaled) / ((double)n)); //scale down relative to the maximum number of contacts - can probably do this better
-													//if infectee is also a user, add them as a contact
-													if (Hosts[i3].digitalContactTracingUser)
-													{
-														//to try and avoid adding duplicate contacts to the list
-														bool dctflag = true;
-														int ii = 0;
-														while ((ii < Hosts[ci].ncontacts) && dctflag)
-														{
-															if (Hosts[ci].contacts[ii] == i3)
-															{
-																dctflag = false;
-															}
-															ii++;
-														}
-														if (dctflag)
-														{
-															if (Hosts[ci].ncontacts >= MAX_CONTACTS)
-															{
-																ERR_CRITICAL("Exceeded maximum number of contacts per host!\n");
-															}
-															else
-															{
-																Hosts[ci].contacts[Hosts[ci].ncontacts] = i3;
-																Hosts[ci].ncontacts++;
-															}
-														}
-													}
-												}
-											}
-
+											
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
@@ -506,6 +423,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if ((k == HOTEL_PLACE_TYPE) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
+									
 									if (s3 < 0)
 									{
 										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
@@ -515,6 +433,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else
 										n = (int)ignbin_mt((long)Places[k][l].n, s3, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
+
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[SamplingQueue[tn][m]];
@@ -523,43 +442,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
 											s = CalcPlaceSusc(i3, k, ts, ci, tn);
-
-
-											//These are all contacts of the infector, so we need to add them to list of contacts (if not already listed), and we need to scale down susceptibility by the appropriate amount so we don't over infect
-											if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].detected == 1) && (Hosts[ci].digitalContactTracingUser == 1))
-											{
-
-												//scale down susceptibility so we don't over accept
-												s *= (((double)n_unscaled) / ((double)n)); //scale down relative to the maximum number of contacts - can probably do this better
-												//if infectee is also a user, add them as a contact
-												if (Hosts[i3].digitalContactTracingUser == 1)
-												{
-													//to try and avoid adding duplicate contacts to the list
-													bool dctflag = true;
-													int ii = 0;
-													while ((ii < Hosts[ci].ncontacts) && dctflag)
-													{
-														if (Hosts[ci].contacts[ii] == i3)
-														{
-															dctflag = false;
-														}
-														ii++;
-													}
-													if (dctflag)
-													{
-														if (Hosts[ci].ncontacts >= MAX_CONTACTS)
-														{
-															ERR_CRITICAL("Exceeded maximum number of contacts per host!\n");
-														}
-														else
-														{
-															Hosts[ci].contacts[Hosts[ci].ncontacts] = i3;
-															Hosts[ci].ncontacts++;
-														}
-													}
-
-												}
-											}
 
 											if (bm)
 											{
@@ -603,7 +485,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s2 = CalcSpatialInf(ci, ts);
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
 						if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
-							&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (Hosts[ci].detected == 1))
+							&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (ts<=(Hosts[ci].detected_time+P.usCaseIsolationDelay)))
 						{
 							//scale up infectiousness so that we pick more spatial contacts
 							s2 *= P.ScalingFactorSpatialDigitalContacts;
@@ -632,6 +514,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 			if (s5 > 0) //// if spatial infectiousness positive
 			{
 				n = (int)ignpoi_mt(s5 * sbeta * ((double)c->tot_prob), tn); //// number people this cell's population might infect elsewhere. poisson random number based on spatial infectiousness s5, sbeta (seasonality) and this cell's "probability" (guessing this is a function of its population and geographical size). 
+				
 				i2 = c->I;
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1. 
 				{
@@ -688,11 +571,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							f2 = 1;
 						}
-						//add cross border effect - relative contact assumed to be less if infector and infectee live in different countries: ggilani 09/12/14
-						//else if(((AdUnits[Mcells[Hosts[ci].mcell].adunit].id/P.CountryDivisor)!=(AdUnits[Mcells[Hosts[i3].mcell].adunit].id/P.CountryDivisor))&&(ranf_mt(tn)>=P.PropCrossBorderInf)) //checking to see if they are in the same country
-						//{
-						//	f2=1;
-						//}
+
 						else if (m < ct->S) //// if person m susceptible. if not, then block of code not evaluated, we finish this do-while without having allocated infectee, or anybody to infection queue. 
 						{
 							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, is not part of cell c and doesn't share a household with infector. 
@@ -705,35 +584,24 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
 								{
-									if ((Hosts[ci].detected) && (Hosts[ci].digitalContactTracingUser))
+									if ((ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)) && (Hosts[ci].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
 									{
 										//scale down susceptibility so we don't over accept
 										s /= P.ScalingFactorSpatialDigitalContacts;
 										//if infectee is also a user, add them as a contact
 										if (Hosts[i3].digitalContactTracingUser)
 										{
-											//to try and avoid adding duplicate contacts to the list
-											bool dctflag = true;
-											int ii = 0;
-											while ((ii < Hosts[ci].ncontacts) && dctflag)
+											ad = Mcells[Hosts[i3].mcell].adunit;
+											if((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
 											{
-												if (Hosts[ci].contacts[ii] == i3)
-												{
-													dctflag = false;
-												}
-												ii++;
+											//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
+												
+												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
+												StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
 											}
-											if (dctflag)
+											else
 											{
-												if (Hosts[ci].ncontacts >= MAX_CONTACTS)
-												{
-													ERR_CRITICAL("Exceeded maximum number of contacts per host!\n");
-												}
-												else
-												{
-													Hosts[ci].contacts[Hosts[ci].ncontacts] = i3;
-													Hosts[ci].ncontacts++;
-												}
+												fprintf(stderr,"No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 											}
 										}
 									}
@@ -894,113 +762,258 @@ void IncubRecoverySweep(double t, int run)
 		}
 }
 
+
 void DigitalContactTracingSweep(double t)
 {
-	/*
-	 * Function: Update DigitalContactTracing
+	/**
+	 * Function: DigitalContactTracingSweep
 	 *
-	 * Purpose: to count the number of people in each admin unit who are being digitally contact traced each day
-	 * Parameters: none
-	 * Returns: none
+	 * Purpose: to update and count the number of people in each admin unit who are being digitally contact traced each day and remove those who no longer need to be traced
+	 * @param t is a double representing the actual simulation time (not the integer timestep)
+	 * @return void
 	 *
-	 * Author: ggilani, 10/03/20
+	 * Author: ggilani, 10/03/20 - updated 24/03/20
 	 */
-	int i, j, k;
-	unsigned short int ts;
-	//int numCT;
+	int i, j, k, contact,infector,tn;
+	unsigned short int ts, dct_start_time, dct_end_time;
 
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-
-	for (i = 0; i < P.NumAdunits; i++)
+#pragma omp parallel for private(tn,i,j,k,contact,infector,dct_start_time,dct_end_time) schedule(static,1)
+	for (tn = 0; tn < P.NumThreads; tn++)
 	{
-		if ((t >= AdUnits[i].DigitalContactTracingTimeStart) && (t < AdUnits[i].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
+		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
+			//for(i=0;i<P.NumAdunits;i++)
 		{
-			//take care of people no longer requiring contact tracing first
-			for (j = 0; j < AdUnits[i].ndct;)
-			{
-				if (ts >= (Hosts[AdUnits[i].dct[j]].dct_end_time))
-				{
-					//stop contact tracing this host
-					Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
-					k = AdUnits[i].dct[j];
-					AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
-					AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
-					AdUnits[i].ndct--;
-				}
-				else
-				{
-					j++;
-				}
-			}
-
-			//next transfer people who are waiting in the queue to be traced to be contact traced, providing that they have passed the start time
-			for (j = 0; j < AdUnits[i].ndct_queue;)
+			if (t >= AdUnits[i].DigitalContactTracingTimeStart)
 			{
 
-				if (ts >= (Hosts[AdUnits[i].dct_queue[j]].dct_start_time))
+				//take care of people no longer requiring contact tracing
+				for (j = 0; j < AdUnits[i].ndct;)
 				{
-					//if this host is already under isolation, we don't want to re-add them to the list, only update their end time
-					if (Hosts[AdUnits[i].dct[AdUnits[i].ndct]].digitalContactTraced == 1)
+					contact = AdUnits[i].dct[j];
+
+					if (Hosts[AdUnits[i].dct[j]].dct_end_time == ts)
 					{
-						//update end time of isolation, based on list position of host
-						Hosts[AdUnits[i].dct[AdUnits[i].ndct]].dct_end_time = ts + (unsigned short int) (P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+						//if this person has a dct_start_time value great than end_time, it means that they have been added to the queue again, and need to update flag to 1 and end time
+						if (Hosts[contact].dct_start_time > Hosts[AdUnits[i].dct[j]].dct_end_time)
+						{
+							Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+							//set flag to 1 again to indicate waiting for contact tracing
+							Hosts[AdUnits[i].dct[j]].digitalContactTraced = 1;
+						}
+						else
+						{
+							//stop contact tracing this host
+							Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
+						}
+						//remove f
+						k = contact;
+						AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
+						AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
+						AdUnits[i].ndct--;
 					}
 					else
 					{
-						//move this contact from the queue to the main contact tracing list, and mark them as digitally contact traced, and set end time
-						AdUnits[i].dct[AdUnits[i].ndct] = AdUnits[i].dct_queue[j];
-						Hosts[AdUnits[i].dct[AdUnits[i].ndct]].digitalContactTraced = 1;
-						Hosts[AdUnits[i].dct[AdUnits[i].ndct]].dct_end_time = Hosts[AdUnits[i].dct[AdUnits[i].ndct]].dct_start_time + (unsigned short int) (P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-						//update number being traced in AdUnit
-						AdUnits[i].ndct++;
-						//increment state variables
-						StateT[0].cumDCT_adunit[i]++; //NEED TO CHECK THESE - but storing everyone in queue 0 at the moment as this part doesn't rely on threads
-						StateT[0].cumDCT++;
+						j++;
 					}
 
-					//now remove this case from the queue
-					k = AdUnits[i].dct_queue[j];
-					AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-					AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-					AdUnits[i].ndct_queue--;
 				}
-				else
+
+				//next, move people from the adunit queues to the actual adunit contact tracing lists
+				for (j = 0; j < AdUnits[i].ndct_queue;)
 				{
-					j++;
+
+					contact = AdUnits[i].dct_queue[j];
+
+					if ((Hosts[contact].dct_start_time) == ts)
+					{
+						//if host has flag 2 - i.e. their contact tracing time was extended past this new contact tracing time by other contacts
+						if (Hosts[contact].digitalContactTraced == 2)
+						{
+							//no need to add to the contact tracing list or update state variables or flag - only need to update end time
+							Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+
+							// now remove this case from the queue
+							k = contact;
+							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
+							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							AdUnits[i].ndct_queue--;
+
+						}
+						//if host has the flag 1 - i.e. are waiting to be contact traced
+						else if (Hosts[contact].digitalContactTraced == 1)
+						{
+							if (AdUnits[i].ndct < AdUnits[i].n)
+							{
+								AdUnits[i].dct[AdUnits[i].ndct] = contact;
+								//update flag to show they are actively being contact traced now
+								Hosts[contact].digitalContactTraced = 2;
+								//update number being traced in AdUnit
+								AdUnits[i].ndct++;
+								//increment state variables
+								StateT[tn].cumDCT_adunit[i]++;
+								StateT[tn].cumDCT++;
+
+								//now remove this case from the queue
+								k = contact;
+								AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
+								AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+								AdUnits[i].ndct_queue--;
+							}
+							else
+							{
+								fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, P.InfQueuePeakLength);
+								fprintf(stderr, "Error!\n");
+							}
+						}
+						//no-one should have code other than 1 or 2 at this stage
+						else
+						{
+							fprintf(stderr, "start_time: %i, end_time: %i, flag: %i\n", Hosts[contact].dct_start_time, Hosts[contact].dct_end_time, Hosts[contact].digitalContactTraced);
+							fprintf(stderr, "Error!\n");
+
+							// now remove this case from the queue
+							k = contact;
+							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
+							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							AdUnits[i].ndct_queue--;
+						}
+					}
+					//in cases where we reverted to the original start time due to overlapping contact tracing periods - need to remove from queue
+					else if (Hosts[contact].dct_start_time < ts)
+					{
+						// now remove this case from the queue
+						k = contact;
+						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
+						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						AdUnits[i].ndct_queue--;
+					}
+					else if (Hosts[contact].dct_start_time == (USHRT_MAX - 1))
+					{
+						//if a host was added to the queue, but their contacting tracing start time has been reset, that means that they have been identified as a case and will be self-isolating anyway - remove from this queue
+						Hosts[contact].digitalContactTraced = 0;
+						k = contact;
+						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
+						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						AdUnits[i].ndct_queue--;
+					}
+					else
+					{
+						j++;
+					}
+				}
+
+				//move hosts to be contact traced from thread specific to admin unit specific queues - not being digitally contact traced yet.
+				for (j = 0; j < P.NumThreads; j++)
+				{
+					for (k = 0; k < StateT[j].ndct_queue[i]; k++)
+					{
+						//start by finding theoretical start and end isolation times for each contact;
+						infector = StateT[j].contacts[i][k];
+						contact = StateT[j].dct_queue[i][k];
+						dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
+						dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+
+						//based on existing host information, decide whether to add to queue or not
+						//if host is currently being contact traced
+						if (Hosts[contact].digitalContactTraced == 2)
+						{
+							//if this is the first time that we add an additional contact tracing event, or the previous addition just extended the contact tracing period, we just need to do two checks
+							if (Hosts[contact].dct_start_time < Hosts[contact].dct_end_time)
+							{
+								//if overlap between current contact tracing period and new contact tracing period, don't re-add to the queue, but just extend the end time
+								if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_start_time > Hosts[contact].dct_start_time))
+								{
+									Hosts[contact].dct_end_time = dct_end_time;
+								}
+								//else if new contact tracing will start after current contact tracing is over, then we'll need to re-add to the queue. Need to preserve current end time, so only add new start time now
+								else
+								{
+									if (AdUnits[i].ndct_queue < AdUnits[i].n)
+									{
+										Hosts[contact].dct_start_time = dct_start_time;
+										//add to the queue again
+										AdUnits[i].dct_queue[AdUnits[i].ndct_queue] = contact;
+										AdUnits[i].ndct_queue++;
+									}
+									else
+									{
+										fprintf(stderr, "No more space in queue! AdUnit: %i, ndct_queue=%i, max queue length: %i\n", i, AdUnits[i].ndct_queue, AdUnits[i].n);
+										fprintf(stderr, "Error!\n");
+									}
+								}
+							}
+							//else in the scenario that a contact tracing event has been added that happens to take place after the current one finishes
+							else
+							{
+								//i.e. if the new contact tracing period take place after the first has finished, but before the new one, update the start time - can't preserve latest end time though
+								if ((dct_start_time < Hosts[contact].dct_start_time) && (dct_start_time > Hosts[contact].dct_end_time))
+								{
+									Hosts[contact].dct_start_time = dct_start_time;
+								}
+								//else if the new start time is less than or equal to the current end time, and the new end time is greater than equal to the new start time
+								//then the new contact tracing event straddles the two and should be made into one long isolation time. i.e. we revert to original start time
+								//and calculate the latest end time possible
+								else if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_end_time >= Hosts[contact].dct_start_time))
+								{
+									dct_start_time = Hosts[contact].dct_end_time - (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+									dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+									//reset new times
+									Hosts[contact].dct_start_time = dct_start_time;
+									Hosts[contact].dct_end_time = dct_end_time;
+								}
+							}
+						}
+						//else if contact is due to be traced but is still waiting in the queue until delay is finished
+						else if (Hosts[contact].digitalContactTraced == 1)
+						{
+							//if new contact would result in earlier start time for contacting tracing, update the start time, but don't change end time = don't readd to the queue
+							if ((dct_start_time < Hosts[contact].dct_start_time) && (dct_end_time >= Hosts[contact].dct_start_time))// && (dct_end_time>= Hosts[StateT[j].dct_queue[i][k]].dct_start_time) && (dct_end_time < Hosts[StateT[j].dct_queue[i][k]].dct_end_time))
+							{
+								Hosts[contact].dct_start_time = dct_start_time;
+							}
+							//else if new contact would result in a later finishing time for contact tracing, update end time but leave start time unchanged 
+							else if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_end_time > Hosts[contact].dct_end_time))// && (dct_start_time<= Hosts[StateT[j].dct_queue[i][k]].dct_end_time) && (dct_end_time> Hosts[StateT[j].dct_queue[i][k]].dct_end_time))
+							{
+								Hosts[contact].dct_end_time = dct_end_time;
+							}
+							//NOTE: This doesn't currently account for situations with longer delay than isolation times. If this happens, then we could have the situation
+							//where we would need to store multiple distinct start and end times. Haven't done this yet, but can extend to account for it.
+							//currently if this happens, none of the variables would change, i.e. we wouldn't add in the new contact tracing times.
+
+						}
+						// else if contact is not currently being traced and is not waiting in the queue to be traced, add both start and end times and add to queue
+						else if (Hosts[contact].digitalContactTraced == 0)
+						{
+							if (AdUnits[i].ndct_queue < AdUnits[i].n)
+							{
+								Hosts[contact].dct_start_time = dct_start_time;
+								Hosts[contact].dct_end_time = dct_end_time;
+								//update flag to indicate due to be contact traced
+								Hosts[contact].digitalContactTraced = 1;
+								//add to queue
+								AdUnits[i].dct_queue[AdUnits[i].ndct_queue] = contact;
+								AdUnits[i].ndct_queue++;
+							}
+							else
+							{
+								fprintf(stderr, "No more space in queue! AdUnit: %i, ndct_queue=%i, max queue length: %i\n", i, AdUnits[i].ndct_queue, AdUnits[i].n);
+								fprintf(stderr, "Error!\n");
+							}
+						}
+					}
+					//reset state threaded queues to zero length after processing
+					StateT[j].ndct_queue[i] = 0;
+					StateT[j].ncontacts[i] = 0;
 				}
 			}
-
-			//finally add people from the State queues to the AdUnit queues and set the time at which they start being digitally contact traced.
-			for (j = 0; j < P.NumThreads; j++)
-			{
-				for (k = 0; k < StateT[j].ndct_queue[i]; k++)
-				{
-					AdUnits[i].dct_queue[k + AdUnits[i].ndct_queue] = StateT[j].dct_queue[i][k];
-					//set contact tracing start time
-					Hosts[AdUnits[i].dct_queue[k + AdUnits[i].ndct_queue]].dct_start_time = ts + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
-					AdUnits[i].ndct++;
-
-				}
-				AdUnits[i].ndct_queue += StateT[j].ndct_queue[i];
-			}
-
 		}
 	}
-
-	//reset State variable queues
-	for (i = 0; i < P.NumAdunits; i++)
-	{
-		//AdUnits[i].nct_queue = 0;
-		for (j = 0; j < P.NumThreads; j++)
-		{
-			StateT[j].ndct_queue[i] = 0;
-		}
-	}
-
-
 }
+
+
 
 int TreatSweep(double t)
 {
@@ -1609,3 +1622,4 @@ int TreatSweep(double t)
 
 	return (f > 0);
 }
+
