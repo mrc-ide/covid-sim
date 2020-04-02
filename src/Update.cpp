@@ -481,6 +481,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 }
 void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 {
+	//// Function DoDetectedCase does many things associated with various interventions. 
+	//// Enacts Household quarantine, case isolation, place closure. 
+	//// and therefore changes lots of quantities (e.g. quar_comply and isolation_start_time) associated with model macros e.g. HOST_ABSENT / HOST_ISOLATED
+
 	int i, j, k, f, j1, j2;
 	person* a = Hosts + ai;
 
@@ -569,11 +573,11 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
 				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineHouseDelay));
-				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0;
-				if (k) StateT[tn].cumHQ++;
-
-				Hosts[j1].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
-				if ((Hosts[j1].quar_comply) && (!HOST_ABSENT(j1)))
+				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
+				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
+				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
+				Hosts[j1].quar_comply = ((k == 0) ?	0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0)); 
+				if ((Hosts[j1].quar_comply) && (!HOST_ABSENT(j1))) //// If first person compliant and not already absent, increment absences
 				{
 					if (HOST_AGE_YEAR(j1) >= P.CaseAbsentChildAgeCutoff)
 					{
@@ -581,6 +585,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					}
 					else		StateT[tn].cumACS++;
 				}
+				///// cycle through remaining household members and repeat the above steps
 				for (j = j1 + 1; j < j2; j++)
 				{
 					Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
@@ -619,22 +624,19 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[NUM_PLACE_TYPES_NOAIR - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
 						StateT[tn].cumAC++;
 				}
-				if ((P.DoHouseholds) && (P.DoPlaces) && (HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff))
+				if ((P.DoHouseholds) && (P.DoPlaces) && (HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff)) //// if host is a child who requires adult to stay at home. 
 				{
 					if (!HOST_QUARANTINED(ai)) StateT[tn].cumACS++;
-					if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers))
+					if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers)) //// if adult needs to stay at home (i.e. if Proportion of children at home for whom one adult also stays at home = 1 or coinflip satisfied.)
 					{
 						j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 						f = 0;
 
-						/*loop through household members. 
-						Ask whether a) household member alive; AND 
-									b) household member is not a child requiring adult to stay home; AND 
-									c) household member doesn't have links to an office. 
-						If any household member satisfies all of these conditions, don't do following code block.
-						*/
+						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (j = j1; (j < j2) && (!f); j++) 
 							f = ((abs(Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (Hosts[j].PlaceLinks[NUM_PLACE_TYPES_NOAIR - 1] < 0));
+						
+						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
 							for (j = j1; (j < j2) && (!f); j++) //// loop through people again, now checking whether household member already absent or quarantined. If they are, don't do following block.
@@ -1014,6 +1016,10 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 
 void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 {
+	//// DoPlaceClose function called in TreatSweep (with arg DoAnyway = 1) and DoDetectedCase (with arg DoAnyway = 0).
+	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
+	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
+
 	int k, ai, j1, j2, l, f, m, f2;
 	unsigned short trig;
 	unsigned short int t_start, t_stop;
@@ -1021,7 +1027,6 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 #ifdef ABSENTEEISM_PLACE_CLOSURE
 	unsigned short int t_old, t_new;
 #endif
-
 
 	f2 = 0;
 	/*	if((j<0)||(j>=P.Nplace[i]))
@@ -1044,7 +1049,9 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	}
 #pragma omp critical (closeplace)
 	{
-		if (Places[i][j].close_end_time < t_stop)
+		//// close_start_time initialized to USHRT_MAX - 1.
+		//// close_end_time initialized to zero in InitModel (so will pass this check on at least first call of this function).
+		if (Places[i][j].close_end_time < t_stop) 
 		{
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
@@ -1075,7 +1082,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 				}
 #endif
 			}
-			if (Places[i][j].control_trig < USHRT_MAX - 1)
+			if (Places[i][j].control_trig < USHRT_MAX - 1) //// control_trig initialized to zero so this check will pass at least once
 			{
 				if (P.PlaceCloseFracIncTrig > 0)
 					k = (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseFracIncTrig);
@@ -1084,17 +1091,20 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 				if (((!P.PlaceCloseByAdminUnit) && (k)) || (DoAnyway))
 				{
 					if (P.DoPlaceCloseOnceOnly)
-						Places[i][j].control_trig = USHRT_MAX - 1;  // Places only close once
+						Places[i][j].control_trig = USHRT_MAX - 1;  //// Places only close once, and so this code block would not be entered again.
 					else
-						Places[i][j].control_trig = 0;
-					if ((P.PlaceCloseEffect[i] == 0) || (ranf_mt(tn) >= P.PlaceCloseEffect[i]))
+						Places[i][j].control_trig = 0;				//// otherwise reset the trigger.
+
+					//// set close_start_time and close_end_time
+					
+					if ((P.PlaceCloseEffect[i] == 0) || (ranf_mt(tn) >= P.PlaceCloseEffect[i])) //// if proportion of places of type i remaining open is 0 or happens to be closed with prob PlaceCloseEffect[i]...
 					{
 						if (Places[i][j].close_start_time > t_start) Places[i][j].close_start_time = t_start;
 						Places[i][j].close_end_time = t_stop;
-						f2 = 1;
+						f2 = 1; /// /set flag to true so next part of function used.
 					}
 					else
-						Places[i][j].close_start_time = Places[i][j].close_end_time = t_stop;
+						Places[i][j].close_start_time = Places[i][j].close_end_time = t_stop; //// ... otherwise set start and end of closure to be the same, which will cause macro PLACE_CLOSED to always return false.
 				}
 			}
 		}
@@ -1102,25 +1112,27 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	if (f2)
 	{
 		if (P.DoRealSymptWithdrawal)
-			for (k = 0; k < Places[i][j].n; k++)
+			for (k = 0; k < Places[i][j].n; k++) //// loop over all people in place.
 			{
 				ai = Places[i][j].members[k];
-				if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai)))
+				if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai))) //// if person is a child and neither absent nor quarantined
 				{
 					StateT[tn].cumAPCS++;
-					if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers))
+					if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers)) //// if child needs adult supervision
 					{
 						j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 						if ((j1 < 0) || (j2 > P.N)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
 						f = 0;
+
+						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (l = j1; (l < j2) && (!f); l++)
 							f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) &&
 							((Hosts[l].PlaceLinks[NUM_PLACE_TYPES_NOAIR - 1] < 0) || (HOST_ABSENT(l)) || (HOST_QUARANTINED(l))));
-						if (!f)
+						if (!f) //// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						{
-							for (l = j1; (l < j2) && (!f); l++)
+							for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
 								if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead)) { m = l; f = 1; }
-							if (f)
+							if (f) //// ... if so then amend absent start and stop times.
 							{
 								if (Hosts[m].absent_start_time > Places[i][j].close_start_time) Hosts[m].absent_start_time = Places[i][j].close_start_time;
 								if (Hosts[m].absent_stop_time < Places[i][j].close_end_time) Hosts[m].absent_stop_time = Places[i][j].close_end_time;
@@ -1129,6 +1141,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 						}
 					}
 				}
+				///// finally amend absent start and stop times if they contadict place start and stop times.
 				if (Hosts[ai].absent_start_time > Places[i][j].close_start_time) Hosts[ai].absent_start_time = Places[i][j].close_start_time;
 				if (Hosts[ai].absent_stop_time < Places[i][j].close_end_time) Hosts[ai].absent_stop_time = Places[i][j].close_end_time;
 				if ((HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff) && (Hosts[ai].PlaceLinks[NUM_PLACE_TYPES_NOAIR - 1] >= 0)) StateT[tn].cumAPC++;

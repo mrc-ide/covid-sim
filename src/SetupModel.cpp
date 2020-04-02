@@ -558,10 +558,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	for (i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
 	for (i = 0; i < P.N; i++) Hosts[i].esocdist_comply = (ranf() < P.ESocProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
-	//	else
-	//		{
-	//		for(i=0;i<P.N;i++) Hosts[i].esocdist_comply=0;
-	//		}
 	if (P.OutputBitmap)
 	{
 		InitBMHead();

@@ -1021,7 +1021,7 @@ int TreatSweep(double t)
 	unsigned short int tspf;	////  time-step place closure finish
 	unsigned short int tsmb;	////  time-step movement restriction begin
 	unsigned short int tsmf;	////  time-step movement restriction finish
-	unsigned short int tssdf;	////  time-step social distancing finish (e.g. household quarantine)
+	unsigned short int tssdf;	////  time-step social distancing finish 
 	unsigned short int tskwpf;	////  time-step key worker place closure finish
 	int global_trig;
 	double r;
@@ -1128,6 +1128,12 @@ int TreatSweep(double t)
 					//// and then implements those treatments by setting various flags (i.e. .treat/ .vacc etc.) by microcell.
 					//// Further, this block assigns all microcells that are within this admin unit (and around this microcell) to be treated, using the flags set to avoid duplication. 
 
+
+
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** TREATMENT
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+
 					if ((Mcells[b].treat == 2) && (ts >= Mcells[b].treat_end_time))
 					{
 						f = 1;
@@ -1207,6 +1213,12 @@ int TreatSweep(double t)
 							} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
 						}
 					}
+
+
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** VACCINATION
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+
 
 					//// vaccinates proportion VaccProp of people in microcell (or at least adds them to geovacc_queue). 
 					if ((Mcells[b].vacc == 1) && (ts >= Mcells[b].vacc_start_time))
@@ -1292,6 +1304,14 @@ int TreatSweep(double t)
 							} while (f3);
 						}
 					}
+					
+					
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** PLACE CLOSURE
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+
+
+					///// note that here f2 bool asks whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig < P.PlaceCloseCellIncStopThresh);
 					else if (P.DoAdminTriggers)
@@ -1318,8 +1338,12 @@ int TreatSweep(double t)
 										DoPlaceOpen(j2, Mcells[b].places[j2][i2], ts, tn);
 						}
 					}
+
+
 					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == 0))
 					{
+						///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold. 
+
 						if (P.DoGlobalTriggers)
 							f2 = (global_trig >= P.PlaceCloseCellIncThresh);
 						else if (P.DoAdminTriggers)
@@ -1363,6 +1387,12 @@ int TreatSweep(double t)
 								}
 						}
 					}
+					
+					
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					
 					if ((Mcells[b].moverest == 2) && (ts >= Mcells[b].move_end_time))
 					{
 						f = 1;
@@ -1436,6 +1466,11 @@ int TreatSweep(double t)
 						}
 					}
 
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** SOCIAL DISTANCING
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+
+
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig < P.SocDistCellIncStopThresh);
 					else if (P.DoAdminTriggers)
@@ -1448,12 +1483,14 @@ int TreatSweep(double t)
 						trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
 						f2 = (Mcells[b].treat_trig < trig_thresh);
 					}
+
+					//// if: policy of social distancing has started AND this microcell cell has been labelled to as undergoing social distancing, AND either trigger not reached (note definition of f2 changes in next few lines) or end time has passed.
 					if ((t >= P.SocDistTimeStart) && (Mcells[b].socdist == 2) && ((f2) || (ts >= Mcells[b].socdist_end_time)))
 					{
 						f = 1;
-						Mcells[b].socdist = P.DoSocDistOnceOnly;
-						Mcells[b].socdist_trig = 0;
-						Mcells[b].socdist_end_time = ts;
+						Mcells[b].socdist = P.DoSocDistOnceOnly; //// i.e. if P.DoSocDistOnceOnly set to false, socdist set to 0 here, hence will be picked up upon some subsequent call to TreatSweep if required trigger passes threshold.
+						Mcells[b].socdist_trig = 0;	//// reset trigger
+						Mcells[b].socdist_end_time = ts; //// record end time.
 					}
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig >= P.SocDistCellIncThresh);
@@ -1473,20 +1510,28 @@ int TreatSweep(double t)
 						interventionFlag = 1;
 
 						if (P.DoInterventionDelaysByAdUnit)
-							if ((t <= AdUnits[Mcells[b].adunit].SocialDistanceTimeStart) || (t >= (AdUnits[Mcells[b].adunit].SocialDistanceTimeStart + AdUnits[Mcells[b].adunit].SocialDistanceDuration)))
+							if ((t <= AdUnits[Mcells[b].adunit].SocialDistanceTimeStart) || 
+								(t >= (AdUnits[Mcells[b].adunit].SocialDistanceTimeStart + AdUnits[Mcells[b].adunit].SocialDistanceDuration))) //// i.e. if outside window of social distancing for this admin unit.
 								interventionFlag = 0;
 
 						if (interventionFlag == 1)
-							if ((Mcells[b].n > 0) && (Mcells[b].socdist == 0))
+							if ((Mcells[b].n > 0) && (Mcells[b].socdist == 0)) //// if microcell populated and not currently undergoing social distancing
 							{
-								Mcells[b].socdist = 2;
-								Mcells[b].socdist_trig = 0;
+								Mcells[b].socdist = 2; //// update flag to denote that cell is undergoing social distancing
+								Mcells[b].socdist_trig = 0; /// reset trigger
+								//// set (admin-specific) social distancing end time.
 								if (P.DoInterventionDelaysByAdUnit)
 									Mcells[b].socdist_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + AdUnits[Mcells[b].adunit].SocialDistanceDuration));
 								else
 									Mcells[b].socdist_end_time = tssdf;
 							}
 					}
+
+
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+					//// **** //// **** //// **** //// **** KEY-WORKER PROPHYLAXIS
+					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+
 					if ((Mcells[b].keyworkerproph == 2) && (ts >= Mcells[b].keyworkerproph_end_time))
 					{
 						f = 1;
