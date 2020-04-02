@@ -2755,7 +2755,8 @@ void SaveResults(void)
 	{
 		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile); //modifying to csv file
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
-    fprintf(dat, "t");		for (i = 0; i < P.NumAdunits; i++)
+    		fprintf(dat, "t");		
+		for (i = 0; i < P.NumAdunits; i++)
 		{
 			fprintf(dat, "\tincDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for inc per admin unit
 		}
