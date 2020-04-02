@@ -1782,7 +1782,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 #else
 				nc = n - 2 - (int)(3 * ranf_mt(tn));
 #endif
-			if (nc == 0)
+			if (nc <= 0)
 			{
 				do
 				{
@@ -2478,7 +2478,6 @@ void StratifyPlaces(void)
 					l = 0;
 					for (j = 0; j < P.Nplace[k]; j++)
 						l += (int)Places[k][j].ng;
-					m = 2 * m / P.NumThreads;
 					if (!(StateT[i].p_queue[k] = (int*)calloc(l, sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 					if (!(StateT[i].pg_queue[k] = (int*)calloc(l, sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 				}
