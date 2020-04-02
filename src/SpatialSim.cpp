@@ -1388,7 +1388,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(dat, dat2, "Duration of digital contact tracing policy", "%lf", (void*) & (P.DigitalContactTracingPolicyDuration), 1, 1, 0)) P.DigitalContactTracingPolicyDuration = 7;
 		if (!GetInputParameter2(dat, dat2, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
 		if (!GetInputParameter2(dat, dat2, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
-		if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1
+		if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
 		//initialise total number of users to 0
 		P.NDigitalContactUsers = 0;
 		P.NDigitalHouseholdUsers = 0;
