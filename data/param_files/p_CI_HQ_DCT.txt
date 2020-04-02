@@ -300,6 +300,12 @@ NOTE: if we set the proportion of users by age to 1 for all age groups, this mea
 [Length of self-isolation for digital contacts]
 7
 
+[Include household contacts in digital contact tracing]
+1
+
+[Include place group contacts in digital contact tracing]
+1
+
 [Spatial scaling factor - digital contact tracing]
 10
 
