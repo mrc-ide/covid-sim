@@ -17,18 +17,19 @@
 1
 
 [Number of countries to include]
-1
-
-[List of names of countries to include]
-American_Samoa
-
-[Number of level 1 administrative units to include]
 0
 
-[List of level 1 administrative units to include]
+[List of names of countries to include]
+United_States
 
+[Number of level 1 administrative units to include]
+1
+
+[List of level 1 administrative units to include]
+American_Samoa
 
 [Codes and country/province names for admin units]
+560200	United_States	American_Samoa
 
 [Mask for level 1 administrative units]
 100000

@@ -14,21 +14,22 @@
 [ONS pop proj]
 
 [Fix population size at specified value]
-1
-
-[Number of countries to include]
-1
-
-[List of names of countries to include]
-Alaska
-
-[Number of level 1 administrative units to include]
 0
 
-[List of level 1 administrative units to include]
+[Number of countries to include]
+0
 
+[List of names of countries to include]
+United_States
+
+[Number of level 1 administrative units to include]
+1
+
+[List of level 1 administrative units to include]
+Alaska
 
 [Codes and country/province names for admin units]
+560100	United_States	Alaska
 
 [Mask for level 1 administrative units]
 100000
