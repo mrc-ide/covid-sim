@@ -1,6 +1,6 @@
 name: CI for Windows
 
-on: [push, pull_request]
+on: push
 
 jobs:
   windows:
