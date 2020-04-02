@@ -455,6 +455,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 		{
 			Hosts[ai].detected = 1;
+			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
 		}
 
 
@@ -481,7 +482,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 }
 void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 {
-	int i, j, k, f, j1, j2;
+	int i, j, k, f, j1, j2, m, h, ad;
 	person* a = Hosts + ai;
 
 	//// Increment triggers (Based on numbers of detected cases) for interventions. Used in TreatSweep function when not doing Global or Admin triggers. And not when doing ICU triggers.
@@ -490,6 +491,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (Mcells[a->mcell].move_trig				< USHRT_MAX - 1) Mcells[a->mcell].move_trig++;
 	if (Mcells[a->mcell].socdist_trig			< USHRT_MAX - 1) Mcells[a->mcell].socdist_trig++;
 	if (Mcells[a->mcell].keyworkerproph_trig	< USHRT_MAX - 1) Mcells[a->mcell].keyworkerproph_trig++;
+
 #ifndef ABSENTEEISM_PLACE_CLOSURE
 #ifdef PLACE_CLOSE_ROUND_HOUSEHOLD
 	if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
@@ -657,12 +659,82 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 		}
 
-	if (P.DoDigitalContactTracing)  
-		if ((t >= AdUnits[Mcells[a->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[a->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
-			if (Hosts[ai].digitalContactTracingUser) //if host is a digital contact tracing app user, need to add their contacts to a list of people to be notified
-				for (i = 0; i < Hosts[ai].ncontacts; i++)
-					if ((P.ProportionDigitalContactsIsolate == 1) || (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)) //add contacts to queue of digital contacts, assuming a certain proportion self-isolate. Note: need to add contacts to the queue related to their own admin unit, not admin unit of infector
-						StateT[tn].dct_queue[Mcells[Hosts[Hosts[ai].contacts[i]].mcell].adunit][StateT[tn].ndct_queue[Mcells[Hosts[Hosts[ai].contacts[i]].mcell].adunit]] = Hosts[ai].contacts[i];
+		//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
+		if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
+		{
+			//if (Hosts[ai].isolation_start_time = ts) //only if host is definitely going to be isolated?
+			//{
+			//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
+			//	if (Hosts[ai].digitalContactTraced==2)
+			//	{
+			//		//if case is currently being contact traced, set end time of contact tracing to now
+			//		Hosts[ai].dct_end_time = ts + P.usCaseIsolationDelay;
+			//	}
+			//	else if ((Hosts[ai].digitalContactTraced==1) && Hosts[ai].dct_start_time > ts)
+			//	{
+			//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
+			//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
+			//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
+			//	}
+			//}
+
+			//Then we want to find all their household and place group contacts to add to the contact tracing queue
+			//Start with household contacts
+			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
+			for (j = j1; j < j2; j++)
+			{
+				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
+				if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+				{
+					//add contact and detected infectious host to lists
+					ad = Mcells[Hosts[j].mcell].adunit;
+					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
+					{
+						StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = j;
+						StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
+					}
+					else
+					{
+						fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+					}
+				}
+			}
+			//then loop over place group contacts as well
+			for (i = 0; i < P.PlaceTypeNum; i++)
+			{
+				k = Hosts[ai].PlaceLinks[i];
+				if (k >= 0)
+				{
+					//Find place group link
+					m = Hosts[ai].PlaceGroupLinks[i];
+					j1 = Places[i][k].group_start[m]; j2 = j1 + Places[i][k].group_size[m];
+					for (j = j1; j < j2; j++)
+					{
+						h = Places[i][k].members[j];
+						ad = Mcells[Hosts[h].mcell].adunit;
+						//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
+						if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+						{
+							ad = Mcells[Hosts[h].mcell].adunit;
+							if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
+							{
+								//PLEASE CHECK ALL THIS LOGIC CAREFULLY!
+								
+								StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = h;
+								StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai; //keep a record of who the detected case was
+							}
+							else 
+							{
+								fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+							}
+								
+						}
+					}
+				}
+			}
+			
+		}
+	
 }
 
 void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
@@ -742,6 +814,8 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 			StateT[tn].cumDC++;
 			StateT[tn].cumDC_adunit[Mcells[a->mcell].adunit]++;
 			DoDetectedCase(ai, t, ts, tn);
+			//add detection time
+			
 		}
 
 		if (HOST_TREATED(ai)) Cells[Hosts[ai].pcell].cumTC++;
@@ -910,6 +984,23 @@ void DoDeath(int ai, int tn, int run)
 				}
 			}
 		}
+
+		////add remove people from contact tracing if they die
+		//if ((P.DoDigitalContactTracing) && (Hosts[ai].digitalContactTracingUser))
+		//{
+		//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
+		//	if (Hosts[ai].digitalContactTraced == 2)
+		//	{
+		//		//if case is currently being contact traced, set end time of contact tracing to now
+		//		Hosts[ai].dct_end_time = Hosts[ai].recovery_time; //i.e. now - time of death
+		//	}
+		//	else if ((Hosts[ai].digitalContactTraced == 1) && (Hosts[ai].dct_start_time > Hosts[ai].recovery_time))
+		//	{
+		//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
+		//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
+		//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
+		//	}			
+		//}
 	}
 }
 

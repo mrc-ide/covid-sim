@@ -367,28 +367,36 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (P.DoHouseholds && P.ClusterDigitalContactUsers)
 		{
 			//Loop through households
-			for (i = 0; i < P.NH; i++)
+
+			//NOTE: Are we still okay with this kind of openmp parallelisation. I know there have been some discussions re:openmp, but not followed them completely
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1)
+			for (tn = 0; tn < P.NumThreads; tn++)
 			{
-				if (ranf() < P.PropPopUsingDigitalContactTracing)
+				for (i = tn; i < P.NH; i += P.NumThreads)
 				{
-					//select this household for digital contact app use
-					//loop through household members and check whether they will be selected for use
-					i1 = Households[i].FirstPerson;
-					i2 = i1 + Households[i].nh;
-					for (j = i1; j < i2; j++)
+					if (ranf_mt(tn) < P.PropPopUsingDigitalContactTracing)
 					{
-						//get age of host
-						age = HOST_AGE_GROUP(j);
-						if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
-						//check to see if host will be a user based on age group
-						if (ranf() < P.ProportionSmartphoneUsersByAge[age])
+						//select this household for digital contact app use
+						//loop through household members and check whether they will be selected for use
+						i1 = Households[i].FirstPerson;
+						i2 = i1 + Households[i].nh;
+						for (j = i1; j < i2; j++)
 						{
-							Hosts[j].digitalContactTracingUser = 1;
-							P.NDigitalContactUsers++;
-							if (!(Hosts[j].contacts = (int*)malloc(MAX_CONTACTS * sizeof(int)))) ERR_CRITICAL("Unable to allocate contacts storage\n");
+							//get age of host
+							age = HOST_AGE_GROUP(j);
+							if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
+							//check to see if host will be a user based on age group
+							if (ranf_mt(tn) < P.ProportionSmartphoneUsersByAge[age])
+							{
+								Hosts[j].digitalContactTracingUser = 1;
+//is this okay?
+#pragma omp critical
+								P.NDigitalContactUsers++;
+							}
 						}
+#pragma omp critical
+						P.NDigitalHouseholdUsers++;
 					}
-					P.NDigitalHouseholdUsers++;
 				}
 			}
 			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NH);
@@ -412,22 +420,26 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			{
 				//for use with non-clustered
 				digitalContactTracingProbScaling = P.PropPopUsingDigitalContactTracing / maxDigitalContactCoverage;
-			}
-
-			for (i = 0; i < P.N; i++)
-			{
-				age = HOST_AGE_GROUP(i);
-				if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
-
-				if (ranf() < (P.ProportionSmartphoneUsersByAge[age] * digitalContactTracingProbScaling))
+				//NOTE: same for this parallelisation loop - is it still okay or are we moving to a different standard?
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1)
+				for (tn = 0; tn < P.NumThreads; tn++)
 				{
-					Hosts[i].digitalContactTracingUser = 1;
-					P.NDigitalContactUsers++;
-					if (!(Hosts[i].contacts = (int*)malloc(MAX_CONTACTS * sizeof(int)))) ERR_CRITICAL("Unable to allocate contacts storage\n");
+					for (i = tn; i < P.N; i += P.NumThreads)
+					{
+						age = HOST_AGE_GROUP(i);
+						if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
+
+						if (ranf_mt(tn) < (P.ProportionSmartphoneUsersByAge[age] * digitalContactTracingProbScaling))
+						{
+							Hosts[i].digitalContactTracingUser = 1;
+#pragma omp critical
+							P.NDigitalContactUsers++;
+						}
+					}
 				}
+				fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.N);
 			}
 		}
-		fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.N);
 	}
 
 
@@ -1409,13 +1421,19 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			if (!(AdUnits[i].dct_queue = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-			if (!(AdUnits[i].dct = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-			for (j = 0; j < P.NumThreads; j++)
+			//malloc or calloc for these?
+			if (!(AdUnits[i].dct_queue = (int*)malloc(AdUnits[i].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+			if (!(AdUnits[i].dct = (int*)malloc(AdUnits[i].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+		}
+		for (i = 0; i < P.NumThreads; i++)
+		{
+			for (j = 0; j < P.NumAdunits; j++)
 			{
-				if (!(StateT[j].dct_queue[i] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].dct_queue[j] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].contacts[j] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
+		
 	}
 
 	//If outputting origin-destination matrix, set up storage for flow between admin units

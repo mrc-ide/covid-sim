@@ -19,9 +19,9 @@ typedef struct PERSON {
 	int mcell; //// microcell
 	int listpos, infector, hh /*= household*/;
 	unsigned short int age;
-	unsigned short int to_die, Travelling, detected; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
+	unsigned short int to_die, Travelling, detected, detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	int digitalContactTraced;
-	unsigned short int esocdist_comply, quar_start_time, isolation_start_time, isolation_stop_time, keyworker; //added isolation stop time to help with contact tracing
+	unsigned short int esocdist_comply, quar_start_time, isolation_start_time, keyworker;
 	unsigned char quar_comply;
 	unsigned short int absent_start_time, absent_stop_time;
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];
@@ -37,8 +37,7 @@ typedef struct PERSON {
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc. 
 
 	//added variables for digital contact tracing
-	int digitalContactTracingUser, *contacts;
-	short ncontacts;
+	int digitalContactTracingUser;
 
 } person;
 
@@ -79,7 +78,7 @@ typedef struct POPVAR {
 	int dum[CACHE_LINE_SIZE];
 	int* h_queue[MAX_ADUNITS], nh_queue[MAX_ADUNITS], *hd_queue[MAX_ADUNITS], nhd_queue[MAX_ADUNITS]; //queues for hospitalisation by admin unit: ggilani 30/10/14. h_queue and hd_queue actually 2D. Weirdly one dimension allocated on stack and other is pointer. d refers to discharge. n to length of queue. 
 	int* ct_queue[MAX_ADUNITS], nct_queue[MAX_ADUNITS]; // queues for contact tracing: ggilani 12/06/17
-	int* dct_queue[MAX_ADUNITS], ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
+	int* dct_queue[MAX_ADUNITS], ndct_queue[MAX_ADUNITS], *contacts[MAX_ADUNITS], ncontacts[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
 
 									  ///// Prevalence quantities (+ by admin unit)
