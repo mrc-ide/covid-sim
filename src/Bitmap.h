@@ -37,7 +37,7 @@ typedef struct BITMAP_HEADER {
 	unsigned char palette[BWCOLS * 4][4];
 } bitmap_header;
 
-extern float* bmi, *bmi2, *bmi3, *bmi4;
+extern int32_t *bmPopulation, *bmInfected, *bmRecovered, *bmTreated;
 extern bitmap_header* bmh;
 
 #ifdef WIN32_BM

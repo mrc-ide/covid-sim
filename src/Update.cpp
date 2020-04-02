@@ -62,7 +62,7 @@ void DoImmune(int ai)
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
-					bmi3[j]++;
+					bmRecovered[j]++;
 				}
 			}
 		}
@@ -133,7 +133,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
-						bmi2[j]++;
+						bmInfected[j]++;
 					}
 				}
 			}
@@ -904,7 +904,7 @@ void DoRecover(int ai, int run, int tn)
 						if (j < bmh->imagesize)
 						{
 #pragma omp atomic
-							bmi2[j]--;
+							bmInfected[j]--;
 						}
 					}
 				}
@@ -936,9 +936,9 @@ void DoRecover(int ai, int run, int tn)
 						if (j < bmh->imagesize)
 						{
 #pragma omp atomic
-							bmi3[j]++;
+							bmRecovered[j]++;
 #pragma omp atomic
-							bmi2[j]--;
+							bmInfected[j]--;
 						}
 					}
 				}
@@ -983,9 +983,9 @@ void DoDeath(int ai, int tn, int run)
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
-						bmi3[j]++;
+						bmRecovered[j]++;
 #pragma omp atomic
-						bmi2[j]--;
+						bmInfected[j]--;
 					}
 				}
 			}
@@ -1038,7 +1038,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
-						bmi4[j]++;
+						bmTreated[j]++;
 					}
 				}
 			}
@@ -1071,7 +1071,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
-					bmi4[j]++;
+					bmTreated[j]++;
 				}
 			}
 		}
@@ -1102,7 +1102,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
-					bmi4[j]++;
+					bmTreated[j]++;
 				}
 			}
 		}
@@ -1304,7 +1304,7 @@ int DoVacc(int ai, unsigned short int ts)
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
-					bmi4[j]++;
+					bmTreated[j]++;
 				}
 			}
 		}
@@ -1338,7 +1338,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
-					bmi4[j]++;
+					bmTreated[j]++;
 				}
 			}
 		}
