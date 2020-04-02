@@ -23,7 +23,7 @@ static CLSID  encoderClsid;
 #endif
 
 static unsigned char* bmf, *bmPixels, *bmp;
-// externs from SpatialSim.c
+// externs from SpatialSim.cpp
 // TODO: move these to a header files
 extern char OutFile[1024], OutFileBase[1024];
 

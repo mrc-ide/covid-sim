@@ -265,7 +265,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Loop 1a) calculates the force of infection exerted by each infected person on (and therefore number of new infections to) i) their house; ii) their place(s); iii) other spatial cells. 
 	//// Each force of infection includes infectiousness and susceptibility components. 
 	//// Infectiousness is (broadly) a function of 1 person (their age, treatment status, places, no. people in their household etc.) 
-	//// Susceptibility is (broadly) a function of 2 people (a person's susceptbility TO ANOTHER PERSON / potential infector) 
+	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector) 
 	//// After loop 1a) over infectious people, spatial infections are doled out. 
 
 	int i, j, k, l, m;
@@ -854,7 +854,7 @@ void IncubRecoverySweep(double t, int run)
 				si = Hosts + ci;		//// person
 				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);  //// ... change infectious (but asymptomatic) person to infectous and symptomatic. If doing severity, this contains DoMild and DoILI. 
+					DoCase(ci, t, ts, tn);  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
 
 				if (P.DoSeverity)
 				{

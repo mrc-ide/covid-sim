@@ -396,7 +396,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
 		{
-			//Based on the the age distribution of the population and the proportion of smart phone users per age band, there is a theoretical upper maximum proportion of the total population who can be covered by the digital app;
+			//Based on the age distribution of the population and the proportion of smart phone users per age band, there is a theoretical upper maximum proportion of the total population who can be covered by the digital app;
 			//First calculate the theoretical maximum
 			maxDigitalContactCoverage = 0;
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
