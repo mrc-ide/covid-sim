@@ -92,12 +92,12 @@ void CaptureBitmap(int ns, int tp)
 	{
 		if (bmPopulation[i] == -1)
 			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
-		else if ((bmTreated[i] == 0) && (bmInfected[i] == 0) && (bmRecovered[i] > 0))
-			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
 		else if (bmInfected[i] > 0)
 			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)bmInfected[i]) / logMaxPop); /* red for infected */
 		else if (bmTreated[i] > 0)
 			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* blue for treated */
+		else if (bmRecovered[i] > 0)
+			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
 		else if (bmPopulation[i] > 0)
 			bmPixels[i] = (unsigned char)(BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* grey for just people */
 		else
