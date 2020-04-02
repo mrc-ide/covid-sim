@@ -3,6 +3,8 @@
 #ifndef SPATIALSIM_BITMAP_H_INCLUDED_
 #define SPATIALSIM_BITMAP_H_INCLUDED_
 
+#include <stdint.h>
+
 #ifdef UNIX
 #define DIRECTORY_SEPARATOR "/"
 #else
