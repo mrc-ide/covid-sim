@@ -4034,7 +4034,7 @@ void RecordSample(double t, int n)
 			if (P.PreControlClusterIdCalTime >= 0)
 			{
 				P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreControlClusterIdCalTime;
-				InterruptRun = 0;
+				InterruptRun = 1;
 			}
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
