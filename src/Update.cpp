@@ -659,25 +659,27 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 		}
 
-		//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
-		if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
+	//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
+	if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
+	{
+		//if (Hosts[ai].isolation_start_time = ts) //only if host is definitely going to be isolated?
+		//{
+		//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
+		//	if (Hosts[ai].digitalContactTraced==2)
+		//	{
+		//		//if case is currently being contact traced, set end time of contact tracing to now
+		//		Hosts[ai].dct_end_time = ts + P.usCaseIsolationDelay;
+		//	}
+		//	else if ((Hosts[ai].digitalContactTraced==1) && Hosts[ai].dct_start_time > ts)
+		//	{
+		//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
+		//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
+		//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
+		//	}
+		//}
+		
+		if(P.IncludeHouseholdDigitalContactTracing)
 		{
-			//if (Hosts[ai].isolation_start_time = ts) //only if host is definitely going to be isolated?
-			//{
-			//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
-			//	if (Hosts[ai].digitalContactTraced==2)
-			//	{
-			//		//if case is currently being contact traced, set end time of contact tracing to now
-			//		Hosts[ai].dct_end_time = ts + P.usCaseIsolationDelay;
-			//	}
-			//	else if ((Hosts[ai].digitalContactTraced==1) && Hosts[ai].dct_start_time > ts)
-			//	{
-			//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
-			//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
-			//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
-			//	}
-			//}
-
 			//Then we want to find all their household and place group contacts to add to the contact tracing queue
 			//Start with household contacts
 			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
@@ -699,6 +701,9 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					}
 				}
 			}
+		}
+		if(P.IncludePlaceGroupDigitalContactTracing)
+		{
 			//then loop over place group contacts as well
 			for (i = 0; i < P.PlaceTypeNum; i++)
 			{
@@ -732,8 +737,9 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					}
 				}
 			}
-			
 		}
+			
+	}
 	
 }
 
