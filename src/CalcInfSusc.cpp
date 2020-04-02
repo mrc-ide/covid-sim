@@ -8,7 +8,7 @@
 #include "Param.h"
 
 //// Infectiousness functions (House, Place, Spatial, Person). Idea is that in addition to a person's personal infectiousness, they have separate "infectiousnesses" for their house, place and on other cells (spatial). 
-//// These funcctions consider one person only. A person has an infectiousness that is independent of other people. Slightly different therefore than susceptibility functions. 
+//// These functions consider one person only. A person has an infectiousness that is independent of other people. Slightly different therefore than susceptibility functions. 
 double CalcHouseInf(int j, unsigned short int ts)
 {
 	return		(HOST_ISOLATED(j) ? P.CaseIsolationHouseEffectiveness : 1.0)
