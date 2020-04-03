@@ -479,7 +479,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	P.UpdatesPerSample = (int)t;
 	P.TimeStep = P.SampleStep / t;
 	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-	P.TimeStepsPerYear = P.TimeStepsPerDay * DAYS_PER_YEAR;
 	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
 	GetInputParameter(dat, dat2, "Sampling time", "%lf", (void*) & (P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
