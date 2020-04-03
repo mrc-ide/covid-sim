@@ -318,7 +318,6 @@ extern results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSV
 extern airport* Airports;
 extern events* InfEventLog;
 extern int* nEvents;
-extern int* RevCellLookup;
 
 
 extern double ** PopDensity, *mcell_dens;

@@ -85,7 +85,6 @@ bitmap_header* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
 events* InfEventLog;
 int* nEvents;
-int* RevCellLookup;
 
 //added counter for number of types ranf and ranf_mt are called
 int count_ranf, count_ranfmt;
