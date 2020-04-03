@@ -171,7 +171,6 @@ typedef struct PARAM {
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;
-	int DoUpdateCaseDetection;
 	double TimeToUpdateCaseDetection, UpdatedCaseDetectionRate;
 	int DoInterventionDelaysByAdUnit;
 	

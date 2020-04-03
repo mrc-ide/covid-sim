@@ -297,7 +297,6 @@ typedef struct ADMINUNIT {
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
 	int* dct_queue, ndct_queue, *dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
-	double caseDetectRate; //case detection rate: ggilani 03/02/15
 	double caseDetectInit;
 } adminunit;
 

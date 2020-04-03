@@ -2100,8 +2100,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 			AdUnits[i].place_close_trig = 0;
 			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
-			if (P.DoUpdateCaseDetection)
-				AdUnits[i].caseDetectRate = AdUnits[i].caseDetectInit;
 			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
 			AdUnits[i].ndct_queue = 0;
 
