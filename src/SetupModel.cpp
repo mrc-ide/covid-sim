@@ -263,7 +263,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
-	P.CellPop2 = ((double)P.N) * ((double)P.N) / (((double)P.NC) * ((double)P.NC));
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 
 	fprintf(stderr, "Initialising kernel...\n");

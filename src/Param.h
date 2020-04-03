@@ -70,7 +70,7 @@ typedef struct PARAM {
 	double cwidth, cheight; // Size of spatial domain in cells
 	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
-	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale, CellPop2;
+	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, ContactsPerDay, LocalBeta, LatentPeriod, InfectiousPeriod, R0household, R0places, R0spatial;	//// LatentPeriod and InfectiousPeriod are means of icdf's (inverse cumulative distribution functions). 
 	double Seasonality[DAYS_PER_YEAR];
 	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection, InfectiousnessBetaA, InfectiousnessBetaB;
