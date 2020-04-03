@@ -14,30 +14,40 @@
 #pragma pack(push, 2)
 
 typedef struct PERSON {
+	int pcell;			// place cell, Cells[person->pcell] holds this person
+	int mcell;			// microcell, Mcells[person->mcell] holds this person
+	int hh;				// Household[person->hh] holds this person
+	int infector;		// If >=0, Hosts[person->infector] was who infected this person
+	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
 
-	int pcell; //// place cell, 
-	int mcell; //// microcell
-	int listpos, infector, hh /*= household*/;
-	unsigned short int age;
-	unsigned short int to_die, Travelling, detected, detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
-	int digitalContactTraced;
-	unsigned short int esocdist_comply, quar_start_time, isolation_start_time, keyworker;
-	unsigned char quar_comply;
+	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
+	float infectiousness, susc;
+
+	unsigned int digitalContactTraced;
+	unsigned int digitalContactTracingUser : 1;
+	unsigned int esocdist_comply : 1;
+	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
+	unsigned int to_die : 1;
+	unsigned int detected : 1; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
+
+	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
+	unsigned char age;
+	unsigned char quar_comply;		// can be 0, 1, or 2
+	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
+	signed char Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
+
+	unsigned short ncontacts;	// for digital contact tracing
+	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
+	short int inf, infect_type;		// INFECT_TYPE_MASK
+
+	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
-	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];
-	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.)
-	float infectiousness, susc, vacc_eff; 
-	short int inf, infect_type;
+	unsigned short int quar_start_time, isolation_start_time, isolation_stop_time; //added isolation stop time to help with contact tracing (not currently used)
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is time at which you become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
 	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function. 
 	unsigned short int dct_start_time, dct_end_time; //digital contact tracing start and end time: ggilani 10/03/20
-	short int num_treats;
-	char Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc. 
-
-	//added variables for digital contact tracing
-	int digitalContactTracingUser;
 
 } person;
 
