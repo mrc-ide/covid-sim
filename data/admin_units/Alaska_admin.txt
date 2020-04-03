@@ -10,7 +10,7 @@
 
 
 [Population size]
-783984
+783961
 [ONS pop proj]
 
 [Fix population size at specified value]
