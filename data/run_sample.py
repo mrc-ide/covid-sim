@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""Run the sample data.
+
+See README.md in this directory for more information.
+"""
 
 import argparse
 import gzip
@@ -75,6 +79,11 @@ def parse_args():
 
 args = parse_args()
 
+# Lists of places that need to be handled specially
+united_states = [ "United_States" ]
+canada = [ "Canada" ]
+usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US", "Puerto_Rico", "American_Samoa"]
+
 # Determine whether we need to build the tool or use a user supplied one:
 if args.spatialsim is not None:
     exe = args.spatialsim
@@ -82,7 +91,7 @@ else:
     build_dir = os.path.join(args.outputdir, "build")
 
     # Build the right version depending on the country
-    if args.country == "United_States" or args.country == "Canada":
+    if args.country in united_states:
         country = "-DCOUNTRY=US"
     else:
         country = "-DCOUNTRY=UK"
@@ -117,19 +126,29 @@ if not os.path.exists(admin_file):
 
 # Population density file in gziped form, text file, and binary file as
 # processed by SpatialSim
-if args.country == "United_States" or args.country == "Canada":
-    wpop_file_gz = os.path.join(args.datadir, "populations", "wpop_usacan.txt.gz")
+if args.country in united_states + canada:
+    wpop_file_root = "usacan"
+elif args.country in usa_territories:
+    wpop_file_root = "us_terr"
 else:
-    wpop_file_gz = os.path.join(args.datadir, "populations", "wpop_eur.txt.gz")
+    wpop_file_root = "eur"
 
+wpop_file_gz = os.path.join(
+        args.datadir,
+        "populations",
+        "wpop_{0}.txt.gz".format(wpop_file_root))
 if not os.path.exists(wpop_file_gz):
     print("Unable to find population file for country: {0}".format(args.country))
     print("Data directory: {0}".format(args.datadir))
     print("Looked for: {0}".format(wpop_file_gz))
     exit(1)
 
-wpop_file = os.path.join(args.outputdir, "wpop_eur.txt")
-wpop_bin = os.path.join(args.outputdir, "{0}_pop_density.bin".format(args.country))
+wpop_file = os.path.join(
+        args.outputdir,
+        "wpop_{0}.txt".format(wpop_file_root))
+wpop_bin = os.path.join(
+        args.outputdir,
+        "{0}_pop_density.bin".format(args.country))
 
 # gunzip wpop fie
 try_remove(wpop_file)
@@ -139,7 +158,7 @@ with gzip.open(wpop_file_gz, 'rb') as f_in:
         shutil.copyfileobj(f_in, f_out)
 
 # Configure pre-parameter file.  This file doesn't change between runs:
-if args.country == "United_States":
+if args.country in united_states:
     pp_file = os.path.join(args.paramdir, "preUS_R0=2.0.txt")
 else:
     pp_file = os.path.join(args.paramdir, "pre_R0=2.0.txt")
@@ -170,7 +189,7 @@ if not os.path.exists(controls_file):
     exit(1)
 
 school_file = None
-if args.country == "United_States":
+if args.country in united_states:
     school_file = os.path.join(args.datadir, "populations", "USschools.txt")
 
     if not os.path.exists(school_file):
