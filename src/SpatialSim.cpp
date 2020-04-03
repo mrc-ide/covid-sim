@@ -86,8 +86,6 @@ bitmap_header* bmh;
 events* InfEventLog;
 int* nEvents;
 
-//added counter for number of types ranf and ranf_mt are called
-int count_ranf, count_ranfmt;
 double ** PopDensity, * mcell_dens;
 int* mcell_adunits, * mcell_num, * mcell_country;
 double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
@@ -339,10 +337,6 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
 	//// **** INITIALIZE
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-
-	//initialise random number counts to zero
-	count_ranf = 0;
-	count_ranfmt = 0;
 
 	///// initialize model (for all realisations). 
 	SetupModel(DensityFile, NetworkFile, SchoolFile, RegDemogFile);
