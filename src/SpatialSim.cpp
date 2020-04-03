@@ -110,18 +110,16 @@ unsigned int cntr = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 
-FILE* KMLFile, * KMLFile2;
-
 /* int NumPC,NumPCD; */
 #define MAXINTFILE 10
 
 int main(int argc, char* argv[])
 {
 	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotP, GotPP, GotO, GotD, GotL, GotS, GotA, GotAP, GotScF, GotIF, Perr, cl;
+	int i, GotP, GotPP, GotO, GotL, GotS, GotA, GotAP, GotScF, Perr, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default. 
-	GotP = GotO = GotD = GotL = GotS = GotA = GotAP = GotScF = GotIF = GotPP = 0;
+	GotP = GotO = GotL = GotS = GotA = GotAP = GotScF = GotPP = 0;
 
 	Perr = 0;
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
@@ -162,7 +160,6 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'D' && argv[i][2] == ':')
 			{
-				GotD = 1;
 				sscanf(&argv[i][3], "%s", DensityFile);
 				P.DoHeteroDensity = 1;
 				P.DoPeriodicBoundaries = 0;
@@ -254,7 +251,6 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'I' && argv[i][2] == ':')
 			{
-				GotIF = 1;
 				sscanf(&argv[i][3], "%s", InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
 			}
