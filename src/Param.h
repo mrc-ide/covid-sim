@@ -64,7 +64,7 @@ typedef struct PARAM {
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS];
 
 	double T, TimeStep, SampleTime, SampleStep, BitmapAspectScale;
-	int ts_age, TimeStepsPerDayInt, DoSeverity;
+	int ts_age, DoSeverity;
 	double scalex, scaley; // Number of pixels per degree in bitmap output
 	double width, height; // Size of spatial domain in degrees
 	double cwidth, cheight; // Size of spatial domain in cells
