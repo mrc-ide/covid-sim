@@ -6,7 +6,6 @@
 void SetupModel(char*, char*, char*, char*);
 void SetupPopulation(char*, char*, char*);
 void SetupAirports(void);
-void SetupRoads(void); //added new function to take care of roads: ggilani - 12/02/15
 void AssignHouseholdAges(int, int, int);
 void AssignPeopleToPlaces(void);
 void StratifyPlaces(void);
