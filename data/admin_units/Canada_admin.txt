@@ -152,14 +152,14 @@ Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northw
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+74	176	356	438	540	720	
 
 
 [Holiday durations]
-7 14  7 42
+5	90	10	5	90	10	
 
 ===================================
 

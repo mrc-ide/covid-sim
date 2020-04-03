@@ -134,20 +134,20 @@ American_Samoa
 
 ===================================
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-4
+8
 
 [Holiday start times]
-47  96  145 203
+93	177	261	345	457	541	625	709	
 
 
 [Holiday durations]
-7 14  7 42
+15	17	16	43	15	17	16	43	
 
 ===================================
 

@@ -151,14 +151,14 @@ Berat	Dibër	Durrës	Elbasan	Fier	Gjirokastër	Korçë	Kukës	Lezhë	Shkodër	Tiranë	Vlo
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+110	163	355	474	527	719	
 
 
 [Holiday durations]
-7 14  7 42
+7	86	14	7	86	14	
 
 ===================================
 

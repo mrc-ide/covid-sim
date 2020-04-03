@@ -160,14 +160,14 @@ Bjelovarska-Bilogorska	Brodsko-Posavska	Dubrovacko-Neretvanska	Grad_Zagreb	Istar
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+107	164	357	471	528	721	
 
 
 [Holiday durations]
-7 14  7 42
+9	80	17	9	80	17	
 
 ===================================
 

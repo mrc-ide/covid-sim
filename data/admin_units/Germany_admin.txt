@@ -158,11 +158,11 @@ Baden-Württemberg	Bayern	Berlin	Brandenburg	Bremen	Hamburg	Hessen	Mecklenburg-Vo
 4
 
 [Holiday start times]
-47  96  145 203
+181	354	545	718	
 
 
 [Holiday durations]
-7 14  7 42
+36	14	36	14	
 
 ===================================
 

@@ -142,14 +142,14 @@ Bruxelles	Vlaanderen	Wallonie
 0 0 1 1
 
 [Number of holidays]
-4
+10
 
 [Holiday start times]
-47  96  145 203
+62	97	181	301	357	426	461	545	665	721	
 
 
 [Holiday durations]
-7 14  7 42
+7	15	61	7	12	7	15	61	7	12	
 
 ===================================
 

@@ -157,14 +157,14 @@ Andalucía	Aragón	Cantabria	Castilla-La_Mancha	Castilla_y_León	Cataluña	Ceuta_y_M
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+106	180	355	470	544	719	
 
 
 [Holiday durations]
-7 14  7 42
+10	78	14	10	78	14	
 
 ===================================
 
