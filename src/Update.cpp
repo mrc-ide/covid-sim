@@ -852,10 +852,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 
 void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 {
-	person* a;
-
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
-	a = Hosts + ai;
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
 		if ((!P.DoEarlyCaseDiagnosis) || (State.cumDC >= P.PreControlClusterIdCaseThreshold)) StateT[tn].cumDC++;
