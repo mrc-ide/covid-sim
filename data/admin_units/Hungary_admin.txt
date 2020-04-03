@@ -159,14 +159,14 @@ Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moso
 0 0 1 1
 
 [Number of holidays]
-4
+8
 
 [Holiday start times]
-47  96  145 203
+107	167	301	357	471	531	665	721	
 
 
 [Holiday durations]
-7 14  7 42
+6	76	5	9	6	76	5	9	
 
 ===================================
 

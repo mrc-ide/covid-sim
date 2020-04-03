@@ -151,14 +151,14 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 0 0 1 1
 
 [Number of holidays]
-4
+10
 
 [Holiday start times]
-47  96  145 203
+51	116	175	301	358	415	480	539	665	722	
 
 
 [Holiday durations]
-7 14  7 42
+7	6	68	7	8	7	6	68	7	8	
 
 ===================================
 

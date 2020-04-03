@@ -134,20 +134,20 @@ Guam
 
 ===================================
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+95	148	356	459	512	720	
 
 
 [Holiday durations]
-7 14  7 42
+5	76	10	5	76	10	
 
 ===================================
 

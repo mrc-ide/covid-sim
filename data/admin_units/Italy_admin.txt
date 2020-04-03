@@ -159,14 +159,14 @@ Abruzzo	Apulia	Basilicata	Calabria	Campania	Emilia-Romagna	Friuli-Venezia_Giulia
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+109	160	357	473	524	721	
 
 
 [Holiday durations]
-7 14  7 42
+6	93	12	6	93	12	
 
 ===================================
 

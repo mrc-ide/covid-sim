@@ -153,14 +153,14 @@ Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Braban
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+53	200	292	417	564	656	
 
 
 [Holiday durations]
-7 14  7 42
+9	43	9	9	43	9	
 
 ===================================
 

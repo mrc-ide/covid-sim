@@ -166,14 +166,14 @@ Cherkasy	Chernihiv	Chernivtsi	Crimea	Dnipropetrovs'k	Donets'k	Ivano-Frankivs'k	K
 0 0 1 1
 
 [Number of holidays]
-4
+8
 
 [Holiday start times]
-47  96  145 203
+69	153	294	357	433	517	658	721	
 
 
 [Holiday durations]
-7 14  7 42
+5	89	5	11	5	89	5	11	
 
 ===================================
 

@@ -158,14 +158,14 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 0 0 1 1
 
 [Number of holidays]
-4
+8
 
 [Holiday start times]
-47  96  145 203
+45	104	170	353	409	468	534	717	
 
 
 [Holiday durations]
-7 14  7 42
+8	9	63	15	8	9	63	15	
 
 ===================================
 

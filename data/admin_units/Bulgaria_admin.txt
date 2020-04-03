@@ -167,14 +167,14 @@ Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Love
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+88	164	355	452	528	719	
 
 
 [Holiday durations]
-7 14  7 42
+8	91	10	8	91	10	
 
 ===================================
 

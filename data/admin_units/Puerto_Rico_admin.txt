@@ -134,20 +134,20 @@ Puerto_Rico
 
 ===================================
 [Include holidays]
-1
+0
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-4
+10
 
 [Holiday start times]
-47  96  145 203
+47	95	159	328	356	411	459	523	692	720	
 
 
 [Holiday durations]
-7 14  7 42
+5	5	67	5	15	5	5	67	5	15	
 
 ===================================
 

@@ -159,14 +159,14 @@ Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiri
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+97	172	350	461	536	714	
 
 
 [Holiday durations]
-7 14  7 42
+15	83	16	15	83	16	
 
 ===================================
 

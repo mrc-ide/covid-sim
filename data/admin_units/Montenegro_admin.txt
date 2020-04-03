@@ -163,11 +163,11 @@ Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolaši
 4
 
 [Holiday start times]
-47  96  145 203
+163	362	527	726	
 
 
 [Holiday durations]
-7 14  7 42
+80	22	80	22	
 
 ===================================
 

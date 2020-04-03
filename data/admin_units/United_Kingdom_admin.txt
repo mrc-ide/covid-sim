@@ -156,14 +156,14 @@ East_Midlands	East_of_England	London	North_East	North_West	South_East	South_West
 0 0 1 1
 
 [Number of holidays]
-4
+10
 
 [Holiday start times]
-47  96  145 203
+48	97	195	294	353	412	461	559	658	717	
 
 
 [Holiday durations]
-7 14  7 42
+7	15	51	7	15	7	15	51	7	15	
 
 ===================================
 

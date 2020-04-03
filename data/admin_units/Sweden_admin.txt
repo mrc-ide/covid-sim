@@ -160,14 +160,14 @@ Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	N
 0 0 1 1
 
 [Number of holidays]
-4
+6
 
 [Holiday start times]
-47  96  145 203
+106	165	355	470	529	719	
 
 
 [Holiday durations]
-7 14  7 42
+8	71	16	8	71	16	
 
 ===================================
 

@@ -181,14 +181,14 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 0 0 1 1
 
 [Number of holidays]
-4
+10
 
 [Holiday start times]
-47  96  145 203
+32	109	165	299	355	396	473	529	663	719	
 
 
 [Holiday durations]
-7 14  7 42
+9	16	90	9	22	9	16	90	9	22	
 
 ===================================
 
