@@ -988,9 +988,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (s > 1.0) s = 1.0;
 		m += (Mcells[i].n = (int)ignbin_mt((long)(P.N - m), s, 0));
 		t -= mcell_dens[i] / maxd;
-		if (Mcells[i].n > 0) P.NMCP++;
-    if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
-		AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+		if (Mcells[i].n > 0) {
+      P.NMCP++;
+      if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+	  	AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+    }
 	}
 	Mcells[P.NMC - 1].n = P.N - m;
 	if (Mcells[P.NMC - 1].n > 0) P.NMCP++;
