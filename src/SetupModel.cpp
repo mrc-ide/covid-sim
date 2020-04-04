@@ -972,7 +972,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (i = 0; i < P.NMC; i++)
 		{
 			if (mcell_num[i] > 0)
+      {
+				if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing PopByAdunit)\n", i);
 				mcell_dens[i] *= P.PopByAdunit[mcell_adunits[i]][1] / (1e-10 + P.PopByAdunit[mcell_adunits[i]][0]);
+      }
 			maxd += mcell_dens[i];
 		}
 		t = 0;
@@ -990,8 +993,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (s > 1.0) s = 1.0;
 		m += (Mcells[i].n = (int)ignbin_mt((long)(P.N - m), s, 0));
 		t -= mcell_dens[i] / maxd;
-		if (Mcells[i].n > 0) P.NMCP++;
-		AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+		if (Mcells[i].n > 0) {
+      P.NMCP++;
+      if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+	  	AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+    }
 	}
 	Mcells[P.NMC - 1].n = P.N - m;
 	if (Mcells[P.NMC - 1].n > 0) P.NMCP++;
