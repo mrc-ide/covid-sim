@@ -2485,9 +2485,6 @@ int RunModel(int run) //added run number as parameter
 						ir = 0;
 				}
 				else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
-#ifdef IMPORT_POP_SIZE
-				ir *= ((double)P.N) / IMPORT_POP_SIZE; //// change infection import rate to account for differences between imported population size IMPORT_POP_SIZE and runtime population size P.N. 
-#endif
 				if (ir > 0) //// if infection import rate > 0, seed some infections
 				{
 					for(k=ni=0;k<P.NumSeedLocations;k++) ni+=(nsi[k] = (int)ignpoi(P.TimeStep * ir*P.InitialInfectionsAdminUnitWeight[k])); //// sample number imported infections from Poisson distribution. 
