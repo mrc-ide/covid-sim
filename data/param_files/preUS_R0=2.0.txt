@@ -1,3 +1,61 @@
+
+[Output every realisation]
+1
+
+[Output bitmap]
+0
+
+[Output infection tree]
+0
+
+[Only output non-extinct realisations]
+0
+
+[OutputAge]
+1
+
+[OutputSeverityAdminUnit]
+1
+
+[OutputR0]
+0
+
+[OutputControls]
+0
+
+[OutputCountry]
+0
+
+[OutputAdUnitVar]
+0
+
+[OutputHousehold]
+0
+
+[OutputInfType]
+0
+
+[OutputNonSeverity]
+0
+
+[OutputNonSummaryResults]
+0
+
+[Output incidence by administrative unit]
+0
+
+[Digital contact tracing trigger incidence per cell]
+100
+
+[Case isolation trigger incidence per cell]
+100
+
+[Household quarantine trigger incidence per cell]
+100
+
+[Include administrative units within countries]
+1
+
 [Update timestep]
 0.25
 
