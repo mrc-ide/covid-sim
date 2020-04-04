@@ -60,13 +60,13 @@ SpatialSim
     /CLP2:0 
     /M:US_LS2018.bin
     [/L:NetworkFileToLoad | /S:NetworkFileToSave] 
-    [/A:AirTravelFile] 
+    [/AP:AirTravelFile] 
     [/s:SchoolFile] 
     [/R:R0scaling]
     Seed1 Seed2 Seed3 Seed4
 ```
 Explanation of additional arguments:
-- `[/A:AirTravelFile]` Air travel data for a specific geography (unused for some countries, such as UK)
+- `[/AP:AirTravelFile]` Air travel data for a specific geography (unused for some countries, such as UK)
 - `[/s:USschools.txt]` School information for a specific geography.
 - `[/R:1.1]`. The base reproduction number, `R0`, for a disease is the number of secondary cases in susceptibles per infected case. `R0scaling` scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`)
 - `/CLP1:100000`, `/CLP2:0` etc. are special parameters that interact with wildcards `#100000`, `#0` etc. in the parameter file (and less often the pre-parameter file). Wildcard `#n` is replaced by the value of `CLPn`. This is useful to vary parts of parameter files without needing to generate entirely new parameter files.
