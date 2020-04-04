@@ -57,9 +57,7 @@ void SaveSnapshot(void);
 void RecordInfTypes(void);
 void RecordSample(double, int);
 
-double ContactTracingEffect(int, unsigned short int); //added function to account for effect of contact tracing: ggilani 13/11/14
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
-int BedsAvailablePerAdUnit(double, int); //added function to check current number of beds available in an admin unit
 
 int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, int);
