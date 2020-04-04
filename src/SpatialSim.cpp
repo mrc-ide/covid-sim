@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 			InitModel(i);
 			RunModel(i);
 		}
-		if (P.OuptutNonSummaryResults)
+		if (P.OutputNonSummaryResults)
 		{
 			if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
 			{
@@ -509,7 +509,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(dat, dat3, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default. 
 	if (!GetInputParameter2(dat, dat3, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default. 
 	if (!GetInputParameter2(dat, dat3, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default. 
-  	if (!GetInputParameter2(dat, dat3, "OutputNonSummaryResults"	, "%i", (void*) & (P.OuptutNonSummaryResults)	, 1, 1, 0)) P.OuptutNonSummaryResults = 0;	//// OFF by default. 
+  	if (!GetInputParameter2(dat, dat3, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default. 
 
 	if (P.DoHouseholds)
 	{
@@ -1208,8 +1208,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(dat, dat2, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
 
 	if (!GetInputParameter2(dat, dat2, "Treatment trigger incidence per cell"				, "%lf", (void*) & (P.TreatCellIncThresh)			, 1, 1, 0)) P.TreatCellIncThresh			= 1000000000;
-	if (!GetInputParameter2(dat, dat2, "Case isolation trigger incidence per cell"			, "%lf", (void*) & (P.CaseIsolation_CellIncThresh)	, 1, 1, 0)) P.CaseIsolation_CellIncThresh	= 1000000000;
-	if (!GetInputParameter2(dat, dat2, "Household quarantine trigger incidence per cell"			, "%lf", (void*) & (P.HHQuar_CellIncThresh)			, 1, 1, 0)) P.HHQuar_CellIncThresh			= 1000000000;
+	if (!GetInputParameter2(dat, dat2, "Case isolation trigger incidence per cell"			, "%lf", (void*) & (P.CaseIsolation_CellIncThresh)	, 1, 1, 0)) P.CaseIsolation_CellIncThresh	= P.TreatCellIncThresh; //// changed default to be P.TreatCellIncThresh
+	if (!GetInputParameter2(dat, dat2, "Household quarantine trigger incidence per cell"	, "%lf", (void*) & (P.HHQuar_CellIncThresh)			, 1, 1, 0)) P.HHQuar_CellIncThresh			= P.TreatCellIncThresh; //// changed default to be P.TreatCellIncThresh
 
 	if (!GetInputParameter2(dat, dat2, "Relative susceptibility of treated individual", "%lf", (void*) & (P.TreatSuscDrop), 1, 1, 0)) P.TreatSuscDrop = 1;
 	if (!GetInputParameter2(dat, dat2, "Relative infectiousness of treated individual", "%lf", (void*) & (P.TreatInfDrop), 1, 1, 0)) P.TreatInfDrop = 1;
