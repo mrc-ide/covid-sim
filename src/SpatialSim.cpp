@@ -809,16 +809,24 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 #endif
 		if (!P.DoAirports)
     {
-      // Airports disabled => all places are not to do with airports
+      // Airports disabled => all places are not to do with airports, and we
+      // have no hotels.
       P.PlaceTypeNoAirNum = P.PlaceTypeNum;
+      P.HotelPlaceType = P.PlaceTypeNum;
     }
     else
 		{
       // When airports are activated we must have at least one airport place
+      // and a hotel type.
       GetInputParameter(dat, dat3, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
+      GetInputParameter(dat, dat3, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
       if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
         ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
       }
+      if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
+        ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+      }
+
 			if (!GetInputParameter2(dat, dat2, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
 			if (!GetInputParameter2(dat, dat2, "Proportion of hotel attendees who are local", "%lf", (void*) & (P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;
 			if (!GetInputParameter2(dat, dat2, "Distribution of duration of air journeys", "%lf", (void*) & (P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
@@ -2148,7 +2156,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
-					if (P.DoAirports) Hosts[k].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
 					Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_end_time = USHRT_MAX - 1;
 					Hosts[k].absent_stop_time = 0;
 					Hosts[k].quar_comply = 2;
@@ -2612,7 +2620,7 @@ void SaveDistribs(void)
 	if (P.DoPlaces)
 	{
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if (j != HOTEL_PLACE_TYPE)
+			if (j != P.HotelPlaceType)
 			{
 				for (i = 0; i < P.Nplace[j]; i++)
 					Places[j][i].n = 0;
@@ -2629,7 +2637,7 @@ void SaveDistribs(void)
 				PlaceDistDistrib[j][i] = 0;
 		for (i = 0; i < P.N; i++)
 			for (j = 0; j < P.PlaceTypeNum; j++)
-				if ((j != HOTEL_PLACE_TYPE) && (Hosts[i].PlaceLinks[j] >= 0))
+				if ((j != P.HotelPlaceType) && (Hosts[i].PlaceLinks[j] >= 0))
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 						fprintf(stderr, "*%i %i: %i ", i, j, Hosts[i].PlaceLinks[j]);
@@ -2646,7 +2654,7 @@ void SaveDistribs(void)
 			for (i = 0; i < MAX_PLACE_SIZE; i++)
 				PlaceSizeDistrib[j][i] = 0;
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if (j != HOTEL_PLACE_TYPE)
+			if (j != P.HotelPlaceType)
 				for (i = 0; i < P.Nplace[j]; i++)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
 						PlaceSizeDistrib[j][Places[j][i].n]++;
@@ -2654,14 +2662,14 @@ void SaveDistribs(void)
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "dist");
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if (j != HOTEL_PLACE_TYPE)
+			if (j != P.HotelPlaceType)
 				fprintf(dat, "\tfreq_p%i", j);
 		fprintf(dat, "\n");
 		for (i = 0; i < MAX_DIST; i++)
 		{
 			fprintf(dat, "%i", i);
 			for (j = 0; j < P.PlaceTypeNum; j++)
-				if (j != HOTEL_PLACE_TYPE)
+				if (j != P.HotelPlaceType)
 					fprintf(dat, "\t%i", PlaceDistDistrib[j][i]);
 			fprintf(dat, "\n");
 		}
@@ -2670,14 +2678,14 @@ void SaveDistribs(void)
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "size");
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if (j != HOTEL_PLACE_TYPE)
+			if (j != P.HotelPlaceType)
 				fprintf(dat, "\tfreq_p%i", j);
 		fprintf(dat, "\n");
 		for (i = 0; i < MAX_PLACE_SIZE; i++)
 		{
 			fprintf(dat, "%i", i);
 			for (j = 0; j < P.PlaceTypeNum; j++)
-				if (j != HOTEL_PLACE_TYPE)
+				if (j != P.HotelPlaceType)
 					fprintf(dat, "\t%i", PlaceSizeDistrib[j][i]);
 			fprintf(dat, "\n");
 		}

@@ -502,7 +502,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 #endif
 	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if ((j != HOTEL_PLACE_TYPE) && (a->PlaceLinks[j] >= 0))
+			if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 			{
 				DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
 #ifndef PLACE_CLOSE_ROUND_HOUSEHOLD
@@ -767,7 +767,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 			a->absent_start_time = USHRT_MAX - 1;
 			if (P.DoPlaces)
 				for (j = 0; j < P.PlaceTypeNum; j++)
-					if ((a->PlaceLinks[j] >= 0) && (j != HOTEL_PLACE_TYPE) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
+					if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 					{
 						if ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j]))
 						{
