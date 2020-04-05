@@ -1478,6 +1478,9 @@ void SetupAirports(void)
 	indexlist* base, *cur;
 
 	fprintf(stderr, "Assigning airports to microcells\n");
+  // Convince static analysers that values are set correctly:
+  if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+
 	P.KernelType = P.AirportKernelType;
 	P.KernelScale = P.AirportKernelScale;
 	P.KernelShape = P.AirportKernelShape;
