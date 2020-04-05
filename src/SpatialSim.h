@@ -24,7 +24,6 @@
 	#define HOST_TO_BE_TREATED(x) (0)
 	#define PLACE_TREATED(x,y) (0)
   */
-#define FAST_US
 
 //// place type codes
 #define PlaceType_PrimarySchool			0

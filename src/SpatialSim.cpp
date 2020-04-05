@@ -802,11 +802,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 					P.InhibitInterAdunitPlaceAssignment[i] = 0;
 		}
 
-#ifdef FAST_US
-		P.DoAirports = 0;
-#else
 		if (!GetInputParameter2(dat, dat2, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
-#endif
 		if (!P.DoAirports)
     {
       // Airports disabled => all places are not to do with airports, and we
