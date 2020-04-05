@@ -47,7 +47,7 @@ double CalcPersonInf(int j, unsigned short int ts)
 double CalcHouseSusc(int ai, unsigned short int ts, int infector, int tn)
 {
 	return CalcPersonSusc(ai, ts, infector, tn)
-		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistHouseholdEffect : P.SocDistHouseholdEffect) : 1.0)
+		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistHouseholdEffectC : P.SocDistHouseholdEffectC) : 1.0)
 		* (Hosts[ai].digitalContactTraced==2 ? P.CaseIsolationHouseEffectiveness : 1.0);
 }
 double CalcPlaceSusc(int ai, int k, unsigned short int ts, int infector, int tn)
@@ -55,14 +55,14 @@ double CalcPlaceSusc(int ai, int k, unsigned short int ts, int infector, int tn)
 	return		CalcPersonSusc(ai, ts, infector, tn)
 		*	(HOST_QUARANTINED(ai) ? P.HQuarantinePlaceEffect[k] : 1.0)
 		*	(Hosts[ai].digitalContactTraced==2 ? P.CaseIsolationEffectiveness : 1.0)
-		*	((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistPlaceEffect[k] : P.SocDistPlaceEffect[k]) : 1.0);
+		*	((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistPlaceEffectC[k] : P.SocDistPlaceEffectC[k]) : 1.0);
 }
 double CalcSpatialSusc(int ai, unsigned short int ts, int infector, int tn)
 {
 	return		CalcPersonSusc(ai, ts, infector, tn)
 		*	(HOST_QUARANTINED(ai) ? P.HQuarantineSpatialEffect : 1.0)
 		*	(Hosts[ai].digitalContactTraced==2 ? P.CaseIsolationEffectiveness : 1.0)
-		*	((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistSpatialEffect : P.SocDistSpatialEffect) : 1.0);
+		*	((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.ESocDistSpatialEffectC : P.SocDistSpatialEffectC) : 1.0);
 }
 double CalcPersonSusc(int ai, unsigned short int ts, int infector, int tn)
 {
