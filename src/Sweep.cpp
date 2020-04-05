@@ -669,6 +669,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 void IncubRecoverySweep(double t, int run)
 {
 	int i, j, k, l, b, tn, ci;
+	double ht;
 	cell* c;
 	person* si;
 	unsigned short int ts; //// this timestep
@@ -678,7 +679,8 @@ void IncubRecoverySweep(double t, int run)
 
 	for (i = 0; i < P.NumHolidays; i++)
 	{
-		if ((t + P.TimeStep >= P.HolidayStartTime[i]+P.PreControlClusterIdHolOffset) && (t < P.HolidayStartTime[i]+ P.PreControlClusterIdHolOffset))
+		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+		if ((t + P.TimeStep >= ht) && (t < ht))
 		{
 #pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
 			for (tn = 0; tn < P.NumThreads; tn++)
@@ -692,11 +694,11 @@ void IncubRecoverySweep(double t, int run)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
-								k = (int)(P.HolidayStartTime[i] * P.TimeStepsPerDay);
+								k = (int)(ht * P.TimeStepsPerDay);
 								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short)k;
 								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short)k;
 
-								k = (int)((P.HolidayStartTime[i] + P.HolidayDuration[i]) * P.TimeStepsPerDay);
+								k = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
 								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short)k;
 								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short)k;
 							}
