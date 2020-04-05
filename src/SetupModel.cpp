@@ -19,7 +19,7 @@
 
 void* BinFileBuf;
 bin_file* BF;
-int netbuf[NUM_PLACE_TYPES_NOAIR * 1000000];
+int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
@@ -317,7 +317,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				}
 			}
 		}
-		for (j = 0; j < NUM_PLACE_TYPES_NOAIR; j++)
+		for (j = 0; j < P.PlaceTypeNoAirNum; j++)
 		{
 			m = l = 0;
 			while ((m < P.KeyWorkerPlaceNum[j]) && (l < 1000))
@@ -2535,7 +2535,7 @@ void LoadPeopleToPlaces(char* NetworkFile)
 		ERR_CRITICAL("Incompatible network file - please rebuild using '/S:'.\n");
 	}
 
-	npt = NUM_PLACE_TYPES_NOAIR;
+	npt = P.PlaceTypeNoAirNum;
 	fread_big(&i, sizeof(int), 1, dat);
 	fread_big(&j, sizeof(int), 1, dat);
 	fread_big(&s1, sizeof(long), 1, dat);
@@ -2586,7 +2586,7 @@ void SavePeopleToPlaces(char* NetworkFile)
 	FILE* dat;
 	int fileversion = NETWORK_FILE_VERSION;
 
-	npt = NUM_PLACE_TYPES_NOAIR;
+	npt = P.PlaceTypeNoAirNum;
 	if (!(dat = fopen(NetworkFile, "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 

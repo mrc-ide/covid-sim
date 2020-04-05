@@ -807,8 +807,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 #else
 		if (!GetInputParameter2(dat, dat2, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
 #endif
-		if (P.DoAirports)
+		if (!P.DoAirports)
+    {
+      // Airports disabled => all places are not to do with airports
+      P.PlaceTypeNoAirNum = P.PlaceTypeNum;
+    }
+    else
 		{
+      // When airports are activated we must have at least one airport place
+      GetInputParameter(dat, dat3, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
+      if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
+        ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+      }
 			if (!GetInputParameter2(dat, dat2, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
 			if (!GetInputParameter2(dat, dat2, "Proportion of hotel attendees who are local", "%lf", (void*) & (P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;
 			if (!GetInputParameter2(dat, dat2, "Distribution of duration of air journeys", "%lf", (void*) & (P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
