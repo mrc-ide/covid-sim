@@ -174,7 +174,7 @@ typedef struct PARAM {
 	int DoInterventionDelaysByAdUnit;
 	
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OuptutNonSummaryResults; 
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults; 
 } param;
 
 extern param P;
