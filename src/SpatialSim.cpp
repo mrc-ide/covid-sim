@@ -99,7 +99,12 @@ double case_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], case_hous
 double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES];
 double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
 double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
-float* bmi, * bmi2, * bmi3, * bmi4;
+
+// These allow up to about 2 billion people per pixel, which should be ample.
+int32_t *bmPopulation; // The population in each bitmap pixel. Special value -1 means "country boundary"
+int32_t *bmInfected; // The number of infected people in each bitmap pixel.
+int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
+int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
 char OutFile[1024], OutFileBase[1024], OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024], AdunitFile[1024];
 
@@ -2035,7 +2040,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 #endif
 		for (unsigned p = 0; p < bmh->imagesize; p++)
 		{
-			bmi2[p] = bmi3[p] = bmi4[p] = 0;
+			bmInfected[p] = bmRecovered[p] = bmTreated[p] = 0;
 		}
 	}
 	ns = 0;

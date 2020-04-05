@@ -31,7 +31,7 @@ void CaptureBitmap(int ns, int tp)
 {
 	int i, x, y, f, mi;
 	unsigned j;
-	static double mx;
+	static double logMaxPop;
 	static int fst = 1;
 	double prev;
 
@@ -39,8 +39,8 @@ void CaptureBitmap(int ns, int tp)
 	if (fst)
 	{
 		fst = 0;
-		mx = 0;
-		for (i = 0; i < mi; i++) bmi[i] = 0;
+		int32_t maxPop = 0;
+		for (i = 0; i < mi; i++) bmPopulation[i] = 0;
 		for (i = 0; i < P.N; i++)
 		{
 			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
@@ -50,12 +50,12 @@ void CaptureBitmap(int ns, int tp)
 				j = y * bmh->width + x;
 				if ((j < bmh->imagesize) && (j >= 0))
 				{
-					bmi[j]++;
-					if (bmi[j] > mx) mx = (double)bmi[j];
+					bmPopulation[j]++;
+					if (bmPopulation[j] > maxPop) maxPop = bmPopulation[j];
 				}
 			}
 		}
-		mx = log(1.001 * mx);
+		logMaxPop = log(1.001 * (double)maxPop);
 		for (i = 0; i < P.NMC; i++)
 			if (Mcells[i].n > 0)
 			{
@@ -73,7 +73,7 @@ void CaptureBitmap(int ns, int tp)
 					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 					{
 						j = y * bmh->width + x;
-						if ((j < bmh->imagesize) && (j >= 0)) bmi[j] = -1;
+						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
@@ -90,16 +90,16 @@ void CaptureBitmap(int ns, int tp)
 #pragma omp parallel for private(i) schedule(static,5000)
 	for (i = 0; i < mi; i++)
 	{
-		if (bmi[i] == -1)
+		if (bmPopulation[i] == -1)
 			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
-		else if ((bmi4[i] == 0) && (bmi2[i] == 0) && (bmi3[i] > 0))
-			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log(bmi3[i]) / mx);  /* green for recovered */
-		else if (bmi2[i] > 0)
-			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log(bmi2[i]) / mx); /* red for infected */
-		else if (bmi4[i] > 0)
-			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log(bmi[i]) / mx); /* blue for treated */
-		else if (bmi[i] > 0)
-			bmPixels[i] = (unsigned char)(BWCOLS * log(bmi[i]) / mx); /* grey for just people */
+		else if (bmInfected[i] > 0)
+			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)bmInfected[i]) / logMaxPop); /* red for infected */
+		else if (bmTreated[i] > 0)
+			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* blue for treated */
+		else if (bmRecovered[i] > 0)
+			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
+		else if (bmPopulation[i] > 0)
+			bmPixels[i] = (unsigned char)(BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* grey for just people */
 		else
 			bmPixels[i] = 0;
 	}
@@ -254,13 +254,13 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	if (!(bmi = (float*)malloc(bmh->imagesize * sizeof(float))))
+	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmi2 = (float*)malloc(bmh->imagesize * sizeof(float))))
+	if (!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmi3 = (float*)malloc(bmh->imagesize * sizeof(float))))
+	if (!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmi4 = (float*)malloc(bmh->imagesize * sizeof(float))))
+	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
 #ifdef WIN32_BM
