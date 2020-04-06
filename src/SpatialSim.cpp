@@ -1066,7 +1066,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		GetInputParameter(dat, dat2, "Mean_ILIToSARI", "%lf", (void*) & (P.Mean_ILIToSARI), 1, 1, 0);
 		GetInputParameter(dat, dat2, "Mean_SARIToCritical", "%lf", (void*) & (P.Mean_SARIToCritical), 1, 1, 0);
 		GetInputParameter(dat, dat2, "Mean_CriticalToDeath", "%lf", (void*) & (P.Mean_CriticalToDeath), 1, 1, 0);
-
+		if(!GetInputParameter2(dat, dat2, "MeanTimeToTest", "%lf", (void*)&(P.Mean_SARIToCritical), 1, 1, 0)) P.Mean_TimeToTest=0.0;
+		if (!GetInputParameter2(dat, dat2, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_SARIToCritical), 1, 1, 0)) P.Mean_TimeToTestOffset = 0.0;
 		//// Get ICDFs
 		if(!GetInputParameter2(dat, dat2, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
 			{
@@ -3275,174 +3276,139 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		fclose(dat);
 	}
 
-	if(P.DoSeverity)
+	if (P.DoSeverity)
 	{
-		printf("\nSaveSummaryResults: writing Severity");
+		printf("\nSaveResults: writing Severity");
 		//// output separate severity file (can integrate with main if need be)
 		sprintf(outname, "%s.severity.xls", OutFile);
 		printf("\nFilename: %s", outname);
 
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
-		//// set colnames
-		fprintf(dat, "t\tPropSchClosed\tPropSocDist\tS\tL\tI\tR\tD\tincI\tincC\tincDC\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tvarS\tvarI\tvarR\tvarD\tvarMild\tvarILI\tvarSARI\tvarCritical\tvarCritRecov\tvarincI\tvarincC\tvarincDC\tvarincMild\tvarincILI\tvarincSARI\tvarincCritical\tvarincCritRecov\tvarincDeath\tvarcumMild\tvarcumILI\tvarcumSARI\tvarcumCritical\tvarcumCritRecov\n");//\t\t%lf\t%lf\t%lf\n",P.R0household,P.R0places,P.R0spatial);
-		c = 1 / ((double)P.NRactual);
-		//// populate table
-		s = 0.0;
-		for(i = 0; i < P.NumSamples; i++)
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
+		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
+		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
+		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+		incSARI = incCritical = incCritRecov = 0;
+		for (i = 0; i < P.NumSamples; i++)
 		{
-			t=0.0;
-			//// means
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t",
-				c * TSMean[i].t			, c * TSMean[i].PropPlacesClosed[0], c * TSMean[i].PropSocDist, 
-				c * TSMean[i].S			, c * TSMean[i].L		, c * TSMean[i].I		, c * TSMean[i].R			, c * TSMean[i].D, c * TSMean[i].incI, c * TSMean[i].incC, c * TSMean[i].incDC,
-				c * TSMean[i].Mild		, c * TSMean[i].ILI		, c * TSMean[i].SARI	, c * TSMean[i].Critical	, c * TSMean[i].CritRecov	, 
-				c * TSMean[i].incMild	, c * TSMean[i].incILI	, c * TSMean[i].incSARI	, c * TSMean[i].incCritical	, c * TSMean[i].incCritRecov, c * TSMean[i].incD, 
-				c * TSMean[i].cumMild	, c * TSMean[i].cumILI	, c * TSMean[i].cumSARI	, c * TSMean[i].cumCritical	, c * TSMean[i].cumCritRecov);
-			//// variances
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
-				c * TSVar[i].S				- c * c * TSMean[i].S				* TSMean[i].S,
-				c * TSVar[i].I				- c * c * TSMean[i].I				* TSMean[i].I,
-				c * TSVar[i].R				- c * c * TSMean[i].R				* TSMean[i].R,
-				c * TSVar[i].D				- c * c * TSMean[i].D				* TSMean[i].D,
-				c * TSVar[i].Mild			- c * c * TSMean[i].Mild			* TSMean[i].Mild,
-				c * TSVar[i].ILI			- c * c * TSMean[i].ILI				* TSMean[i].ILI,
-				c * TSVar[i].SARI			- c * c * TSMean[i].SARI			* TSMean[i].SARI,
-				c * TSVar[i].Critical		- c * c * TSMean[i].Critical		* TSMean[i].Critical,
-				c * TSVar[i].CritRecov		- c * c * TSMean[i].CritRecov		* TSMean[i].CritRecov,
-				c * TSVar[i].incI			- c * c * TSMean[i].incI			* TSMean[i].incI,
-				c * TSVar[i].incC			- c * c * TSMean[i].incC			* TSMean[i].incC,
-				c * TSVar[i].incDC			- c * c * TSMean[i].incDC			* TSMean[i].incDC,
-				c * TSVar[i].incMild		- c * c * TSMean[i].incMild			* TSMean[i].incMild,
-				c * TSVar[i].incILI			- c * c * TSMean[i].incILI			* TSMean[i].incILI,
-				c * TSVar[i].incSARI		- c * c * TSMean[i].incSARI			* TSMean[i].incSARI,
-				c * TSVar[i].incCritical	- c * c * TSMean[i].incCritical		* TSMean[i].incCritical,
-				c * TSVar[i].incCritRecov	- c * c * TSMean[i].incCritRecov	* TSMean[i].incCritRecov,
-				c * TSVar[i].incD			- c * c * TSMean[i].incD			* TSMean[i].incD,
-				c * TSVar[i].cumMild		- c * c * TSMean[i].cumMild			* TSMean[i].cumMild,
-				c * TSVar[i].cumILI			- c * c * TSMean[i].cumILI			* TSMean[i].cumILI,
-				c * TSVar[i].cumSARI		- c * c * TSMean[i].cumSARI			* TSMean[i].cumSARI,
-				c * TSVar[i].cumCritical	- c * c * TSMean[i].cumCritical		* TSMean[i].cumCritical,
-				c * TSVar[i].cumCritRecov	- c * c * TSMean[i].cumCritRecov	* TSMean[i].cumCritRecov);
+			if (i > 0)
+			{
+				SARI = (TimeSeries[i].SARI - TimeSeries[i - 1].SARI) * sc2 + SARI * sc1;
+				Critical = (TimeSeries[i].Critical - TimeSeries[i - 1].Critical) * sc2 + Critical * sc1;
+				CritRecov = (TimeSeries[i].CritRecov - TimeSeries[i - 1].CritRecov) * sc2 + CritRecov * sc1;
+				incSARI = TimeSeries[i].incSARI * (1.0 - sc2) + incSARI * sc1;
+				incCritical = TimeSeries[i].incCritical * (1.0 - sc2) + incCritical * sc1;
+				incCritRecov = TimeSeries[i].incCritRecov * (1.0 - sc2) + incCritRecov * sc1;
+			}
+			else
+			{
+				SARI = TimeSeries[i].SARI * sc2;
+				Critical = TimeSeries[i].Critical * sc2;
+				CritRecov = TimeSeries[i].CritRecov * sc2;
+			}
+
+			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+				TimeSeries[i].t, TimeSeries[i].S, TimeSeries[i].I, TimeSeries[i].R, TimeSeries[i].incI,
+				TimeSeries[i].Mild, TimeSeries[i].ILI, TimeSeries[i].SARI - SARI, TimeSeries[i].Critical - Critical, TimeSeries[i].CritRecov - CritRecov,
+				TimeSeries[i].incMild, TimeSeries[i].incILI, incSARI, incCritical, incCritRecov, TimeSeries[i].incD,
+				TimeSeries[i].cumMild, TimeSeries[i].cumILI, TimeSeries[i].cumSARI, TimeSeries[i].cumCritical, TimeSeries[i].cumCritRecov, TimeSeries[i].D);
 		}
 		fclose(dat);
 
-		if((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
+		if ((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
+			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
+
+			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
+			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
 			sprintf(outname, "%s.severity.adunit.xls", OutFile);
-			if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			//// **** means
-			//// prevalence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s"	, AdUnits[i].ad_name);
+			//// prevalance
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s", AdUnits[i].ad_name);
 
 			//// incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s"			, AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_adu%s", AdUnits[i].ad_name);
 
 			//// cumulative incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeath_%s"			, AdUnits[i].ad_name);
-
-			//// **** variances
-			//// prevalence
-			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarMild_%s"			, AdUnits[i].ad_name);
-			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarILI_%s"			, AdUnits[i].ad_name);
-			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarSARI_%s"			, AdUnits[i].ad_name);
-			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarCritical_%s"		, AdUnits[i].ad_name);
-			for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarCritRecov_%s"		, AdUnits[i].ad_name);
-
-			//// incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincMild_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincILI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincSARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincCritical_%s"	, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincCritRecov_%s"	, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarincDeath_%s"		, AdUnits[i].ad_name);
-
-			//// cumulative incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumMild_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumILI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumSARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumCritical_%s"	, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumCritRecov_%s"	, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tvarcumDeath_%s"		, AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_%s", AdUnits[i].ad_name);
 
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table. 
-			for(i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.NumSamples; i++)
 			{
-				fprintf(dat, "%.10f", c * TSMean[i].t);
-				//// **** means
-				//// prevalence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Critical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_adunit[j]);
-				    
+				if (i > 0)
+				{
+					SARI_a[j] = (TimeSeries[i].SARI_adunit[j] - TimeSeries[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
+					Critical_a[j] = (TimeSeries[i].Critical_adunit[j] - TimeSeries[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
+					CritRecov_a[j] = (TimeSeries[i].CritRecov_adunit[j] - TimeSeries[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
+					incSARI_a[j] = TimeSeries[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
+					incCritical_a[j] = TimeSeries[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
+					incCritRecov_a[j] = TimeSeries[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
+				}
+				else
+				{
+					SARI_a[j] = TimeSeries[i].SARI_adunit[j] * sc2;
+					Critical_a[j] = TimeSeries[i].Critical_adunit[j] * sc2;
+					CritRecov_a[j] = TimeSeries[i].CritRecov_adunit[j] * sc2;
+				}
+				fprintf(dat, "%.10f", TimeSeries[i].t);
+
+				//// prevalance
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].Mild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].SARI_adunit[j] - SARI_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].Critical_adunit[j] - Critical_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].CritRecov_adunit[j] - CritRecov_a[j]);
+
 				//// incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", incSARI_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", incCritical_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", incCritRecov_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%lg", TimeSeries[i].incD_adunit[j]);
 
 				//// cumulative incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumCritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumD_adunit[j]);
 
-				//// **** variances
-				//// prevalence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].Mild_adunit[j]		 - c * c * TSMean[i].Mild_adunit[j]			* TSMean[i].Mild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].ILI_adunit[j]		 - c * c * TSMean[i].ILI_adunit[j]			* TSMean[i].ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].SARI_adunit[j]		 - c * c * TSMean[i].SARI_adunit[j]			* TSMean[i].SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].Critical_adunit[j]	 - c * c * TSMean[i].Critical_adunit[j]		* TSMean[i].Critical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].CritRecov_adunit[j] - c * c * TSMean[i].CritRecov_adunit[j]	* TSMean[i].CritRecov_adunit[j]);
-				    
-				//// incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incI_adunit[j]			- c * c * TSMean[i].incI_adunit[j]				* TSMean[i].incI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incMild_adunit[j]		- c * c * TSMean[i].incMild_adunit[j]			* TSMean[i].incMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incILI_adunit[j]		- c * c * TSMean[i].incILI_adunit[j]			* TSMean[i].incILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incSARI_adunit[j]		- c * c * TSMean[i].incSARI_adunit[j]			* TSMean[i].incSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incCritical_adunit[j]	- c * c * TSMean[i].incCritical_adunit[j]		* TSMean[i].incCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incCritRecov_adunit[j]	- c * c * TSMean[i].incCritRecov_adunit[j]		* TSMean[i].incCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].incD_adunit[j]			- c * c * TSMean[i].incD_adunit[j]				* TSMean[i].incD_adunit[j]);
-				    
-				//// cumulative incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumMild_adunit[j]		- c * c * TSMean[i].cumMild_adunit[j]			* TSMean[i].cumMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumILI_adunit[j]		- c * c * TSMean[i].cumILI_adunit[j]			* TSMean[i].cumILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumSARI_adunit[j]		- c * c * TSMean[i].cumSARI_adunit[j]			* TSMean[i].cumSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumCritical_adunit[j]	- c * c * TSMean[i].cumCritical_adunit[j]		* TSMean[i].cumCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumCritRecov_adunit[j]	- c * c * TSMean[i].cumCritRecov_adunit[j]		* TSMean[i].cumCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSVar[i].cumD_adunit[j]			- c * c * TSMean[i].cumD_adunit[j]				* TSMean[i].cumD_adunit[j]);
-
-				if(i != P.NumSamples - 1) fprintf(dat, "\n");
+				if (i != P.NumSamples - 1) fprintf(dat, "\n");
 			}
 			fclose(dat);
+			free(SARI_a); free(Critical_a); free(CritRecov_a);
+			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
 		}
 	}
 }

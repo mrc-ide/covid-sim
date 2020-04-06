@@ -367,14 +367,16 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	//Set up the population for digital contact tracing here... - ggilani 09/03/20
 	if (P.DoDigitalContactTracing)
 	{
-
+		P.NDigitalContactUsers = 0;
+		l = m=0;
 		//if clustering by Households
 		if (P.DoHouseholds && P.ClusterDigitalContactUsers)
 		{
 			//Loop through households
 
 			//NOTE: Are we still okay with this kind of openmp parallelisation. I know there have been some discussions re:openmp, but not followed them completely
-#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1)
+			l = m = 0;
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l,m)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (i = tn; i < P.NH; i += P.NumThreads)
@@ -394,56 +396,39 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 							if (ranf_mt(tn) < P.ProportionSmartphoneUsersByAge[age])
 							{
 								Hosts[j].digitalContactTracingUser = 1;
-//is this okay?
-#pragma omp critical
-								P.NDigitalContactUsers++;
+								l++;
 							}
 						}
-#pragma omp critical
-						P.NDigitalHouseholdUsers++;
+						m++;
 					}
 				}
 			}
+			P.NDigitalContactUsers = l;
+			P.NDigitalHouseholdUsers = m;
 			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NH);
 			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.N);
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
 		{
-			//Based on the age distribution of the population and the proportion of smart phone users per age band, there is a theoretical upper maximum proportion of the total population who can be covered by the digital app;
-			//First calculate the theoretical maximum
-			maxDigitalContactCoverage = 0;
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
+			//for use with non-clustered
+			l = 0;
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l)
+			for (tn = 0; tn < P.NumThreads; tn++)
 			{
-				maxDigitalContactCoverage += P.PropAgeGroup[0][i] * P.ProportionSmartphoneUsersByAge[i];
-			}
-			// if proportion of coverage required by user input exceeds maximum theoretical value, display error
-			if (P.PropPopUsingDigitalContactTracing > maxDigitalContactCoverage)
-			{
-				ERR_CRITICAL("Proportion of app users selected is greater than maximum theoretical value.\n");
-			}
-			else
-			{
-				//for use with non-clustered
-				digitalContactTracingProbScaling = P.PropPopUsingDigitalContactTracing / maxDigitalContactCoverage;
-				//NOTE: same for this parallelisation loop - is it still okay or are we moving to a different standard?
-#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1)
-				for (tn = 0; tn < P.NumThreads; tn++)
+				for (i = tn; i < P.N; i += P.NumThreads)
 				{
-					for (i = tn; i < P.N; i += P.NumThreads)
-					{
-						age = HOST_AGE_GROUP(i);
-						if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
+					age = HOST_AGE_GROUP(i);
+					if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
-						if (ranf_mt(tn) < (P.ProportionSmartphoneUsersByAge[age] * digitalContactTracingProbScaling))
-						{
-							Hosts[i].digitalContactTracingUser = 1;
-#pragma omp critical
-							P.NDigitalContactUsers++;
-						}
+					if (ranf_mt(tn) < (P.ProportionSmartphoneUsersByAge[age] * P.PropPopUsingDigitalContactTracing))
+					{
+						Hosts[i].digitalContactTracingUser = 1;
+						l++;
 					}
 				}
-				fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.N);
 			}
+			P.NDigitalContactUsers = l;
+			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.N);
 		}
 	}
 
