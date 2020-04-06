@@ -480,6 +480,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		//	}
 	}
 }
+
 void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 {
 	//// Function DoDetectedCase does many things associated with various interventions. 
