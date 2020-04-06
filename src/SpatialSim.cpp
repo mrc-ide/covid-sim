@@ -3365,18 +3365,24 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			{
 				if (i > 0)
 				{
-					SARI_a[j] = (TimeSeries[i].SARI_adunit[j] - TimeSeries[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
-					Critical_a[j] = (TimeSeries[i].Critical_adunit[j] - TimeSeries[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
-					CritRecov_a[j] = (TimeSeries[i].CritRecov_adunit[j] - TimeSeries[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
-					incSARI_a[j] = TimeSeries[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
-					incCritical_a[j] = TimeSeries[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
-					incCritRecov_a[j] = TimeSeries[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
+					for (j = 0; j < P.NumAdunits; ++j)
+					{
+						SARI_a[j] = (TimeSeries[i].SARI_adunit[j] - TimeSeries[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
+						Critical_a[j] = (TimeSeries[i].Critical_adunit[j] - TimeSeries[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
+						CritRecov_a[j] = (TimeSeries[i].CritRecov_adunit[j] - TimeSeries[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
+						incSARI_a[j] = TimeSeries[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
+						incCritical_a[j] = TimeSeries[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
+						incCritRecov_a[j] = TimeSeries[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
+					}
 				}
 				else
 				{
-					SARI_a[j] = TimeSeries[i].SARI_adunit[j] * sc2;
-					Critical_a[j] = TimeSeries[i].Critical_adunit[j] * sc2;
-					CritRecov_a[j] = TimeSeries[i].CritRecov_adunit[j] * sc2;
+					for (j = 0; j < P.NumAdunits; ++j)
+					{
+						SARI_a[j] = TimeSeries[i].SARI_adunit[j] * sc2;
+						Critical_a[j] = TimeSeries[i].Critical_adunit[j] * sc2;
+						CritRecov_a[j] = TimeSeries[i].CritRecov_adunit[j] * sc2;
+					}
 				}
 				fprintf(dat, "%.10f", TimeSeries[i].t);
 
