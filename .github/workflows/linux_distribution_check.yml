@@ -21,6 +21,7 @@ jobs:
         ls -l
         ./regressiontest_UK_100th.py
     - name: regression test (US based)
+      run: |
         cd "${GITHUB_WORKSPACE}/tests"
         ./regressiontest_US_based.py
 
@@ -51,5 +52,6 @@ jobs:
         ls -l
         ./regressiontest_UK_100th.py
     - name: regression test (US based)
+      run: |
         cd "${GITHUB_WORKSPACE}/tests"
         ./regressiontest_US_based.py
