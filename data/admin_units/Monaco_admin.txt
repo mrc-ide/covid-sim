@@ -1,10 +1,13 @@
 [Number of seed locations]
+
 1
 
 [Initial number of infecteds]
+
 100
 
 [Administrative unit to seed initial infection into]
+
 0
 
 [Population size]

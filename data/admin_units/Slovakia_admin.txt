@@ -147,14 +147,14 @@ Banskobystrickı	Bratislavskı	Košickı	Nitriansky	Prešovskı	Tren?iansky	Trnavskı	
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-55	107	181	357	419	471	545	721	
+107	181	357	419	471	545	721	
 
 
 [Holiday durations]
-5	6	62	14	5	6	62	14	
+6	62	14	5	6	62	14	
 
 ===================================
 

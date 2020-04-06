@@ -164,14 +164,14 @@ Borski	Brani?evski	Grad_Beograd	Jablani?ki	Južno-Ba?ki	Južno-Banatski	Kolubarski
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-2	119	167	312	366	483	531	676	
+119	167	312	366	483	531	676	
 
 
 [Holiday durations]
-6	4	74	4	6	4	74	4	
+4	74	4	6	4	74	4	
 
 ===================================
 

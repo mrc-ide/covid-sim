@@ -152,14 +152,14 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-47	103	187	293	356	411	467	551	657	720	
+103	187	293	356	411	467	551	657	720	
 
 
 [Holiday durations]
-15	15	56	15	14	15	15	56	15	14	
+15	56	15	14	15	15	56	15	14	
 
 ===================================
 

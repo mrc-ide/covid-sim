@@ -145,14 +145,14 @@ Brest	Homyel'	Hrodna	Mahilyow	Minsk	Vitsyebsk
 0 0 1 1
 
 [Number of holidays]
-6
+5
 
 [Holiday start times]
-20	107	172	384	471	536	
+107	172	384	471	536	
 
 
 [Holiday durations]
-15	6	71	15	6	71	
+6	71	15	6	71	
 
 ===================================
 

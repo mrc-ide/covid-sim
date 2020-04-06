@@ -155,14 +155,14 @@ Harju	Hiiu	Ida-Viru	Järva	Jõgeva	Lääne	Lääne-Viru	Pärnu	Peipsi	Põlva	Rapla	Saare
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-55	111	162	294	357	419	475	526	658	721	
+111	162	294	357	419	475	526	658	721	
 
 
 [Holiday durations]
-7	7	79	7	12	7	7	79	7	12	
+7	79	7	12	7	7	79	7	12	
 
 ===================================
 

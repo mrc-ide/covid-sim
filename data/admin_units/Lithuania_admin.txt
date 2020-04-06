@@ -149,14 +149,14 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-48	112	301	360	412	476	665	724	
+112	301	360	412	476	665	724	
 
 
 [Holiday durations]
-5	4	5	5	5	4	5	5	
+4	5	5	5	4	5	5	
 
 ===================================
 
