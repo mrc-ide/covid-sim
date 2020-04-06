@@ -835,9 +835,9 @@ void DigitalContactTracingSweep(double t)
 							Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 							// now remove this case from the queue
-							k = contact;
+							//k = contact;
 							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 							AdUnits[i].ndct_queue--;
 
 						}
@@ -856,9 +856,9 @@ void DigitalContactTracingSweep(double t)
 								StateT[tn].cumDCT++;
 
 								//now remove this case from the queue
-								k = contact;
+								//k = contact;
 								AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-								AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+								//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 								AdUnits[i].ndct_queue--;
 							}
 							else
@@ -874,9 +874,9 @@ void DigitalContactTracingSweep(double t)
 							fprintf(stderr, "Error!\n");
 
 							// now remove this case from the queue
-							k = contact;
+							//k = contact;
 							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 							AdUnits[i].ndct_queue--;
 						}
 					}
@@ -884,18 +884,18 @@ void DigitalContactTracingSweep(double t)
 					else if (Hosts[contact].dct_start_time < ts)
 					{
 						// now remove this case from the queue
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 						AdUnits[i].ndct_queue--;
 					}
 					else if (Hosts[contact].dct_start_time == (USHRT_MAX - 1))
 					{
 						//if a host was added to the queue, but their contacting tracing start time has been reset, that means that they have been identified as a case and will be self-isolating anyway - remove from this queue
 						Hosts[contact].digitalContactTraced = 0;
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 						AdUnits[i].ndct_queue--;
 					}
 					else
@@ -912,7 +912,7 @@ void DigitalContactTracingSweep(double t)
 						//start by finding theoretical start and end isolation times for each contact;
 						infector = StateT[j].contacts[i][k];
 						contact = StateT[j].dct_queue[i][k];
-						dct_start_time = Hosts[infector].detected_time + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
+						dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay+ (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
 						dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 						//based on existing host information, decide whether to add to queue or not

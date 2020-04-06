@@ -2144,8 +2144,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
 					if (P.DoAirports) Hosts[k].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
-					Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_end_time = USHRT_MAX - 1;
-					Hosts[k].absent_stop_time = 0;
+					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  USHRT_MAX - 1;
+					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
 					Hosts[k].quar_comply = 2;
 					Hosts[k].susc = 1.0;
 					Hosts[k].to_die = 0;
@@ -2155,8 +2155,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					Hosts[k].digitalContactTraced = 0;
 					Hosts[k].inf = InfStat_Susceptible;
 					Hosts[k].listpos = j;
-					Hosts[k].treat_stop_time = Hosts[k].num_treats = 0;
-					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = USHRT_MAX - 1;
+					Hosts[k].num_treats = 0;
 					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 					Hosts[k].infector = -1;
 					Hosts[k].infect_type = 0;
