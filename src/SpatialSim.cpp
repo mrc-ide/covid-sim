@@ -2759,11 +2759,11 @@ void SaveResults(void)
     		fprintf(dat, "t");		
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tincDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for inc per admin unit
+			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name); //"\tT%i" //printing headers for inc per admin unit
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tDCT%i", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor); //"\tT%i" //printing headers for prevalence of digital contact tracing per admin unit
+			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name); //"\tT%i" //printing headers for prevalence of digital contact tracing per admin unit
 		}
 		fprintf(dat, "\n");
 		//print actual output

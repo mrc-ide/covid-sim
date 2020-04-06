@@ -264,7 +264,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 
 	P.CellPop2 = ((double)P.N) * ((double)P.N) / (((double)P.NC) * ((double)P.NC));
-	SaveAgeDistrib();
+	if(P.OutputNonSeverity) SaveAgeDistrib();
 
 	fprintf(stderr, "Initialising kernel...\n");
 	InitKernel(0, 1.0);	fprintf(stderr, "Initialising places...\n");
