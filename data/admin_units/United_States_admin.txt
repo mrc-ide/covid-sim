@@ -194,7 +194,7 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1

@@ -159,7 +159,7 @@ Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1

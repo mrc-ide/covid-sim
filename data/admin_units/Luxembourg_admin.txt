@@ -136,7 +136,7 @@ Diekirch	Grevenmacher	Luxembourg
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1

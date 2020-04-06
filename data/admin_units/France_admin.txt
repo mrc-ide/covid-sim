@@ -146,7 +146,7 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
