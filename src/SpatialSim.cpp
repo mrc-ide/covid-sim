@@ -3362,18 +3362,24 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			{
 				if (i > 0)
 				{
-					SARI_a[j] = (TSMean[i].SARI_adunit[j] - TSMean[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
-					Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
-					CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
-					incSARI_a[j] = TSMean[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
-					incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
-					incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
+					for (j = 0; j < P.NumAdunits; ++j)
+					{
+						SARI_a[j] = (TSMean[i].SARI_adunit[j] - TSMean[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
+						Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
+						CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
+						incSARI_a[j] = TSMean[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
+						incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
+						incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
+					}
 				}
 				else
 				{
-					SARI_a[j] = TSMean[i].SARI_adunit[j] * sc2;
-					Critical_a[j] = TSMean[i].Critical_adunit[j] * sc2;
-					CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc2;
+					for (j = 0; j < P.NumAdunits; ++j)
+					{
+						SARI_a[j] = TSMean[i].SARI_adunit[j] * sc2;
+						Critical_a[j] = TSMean[i].Critical_adunit[j] * sc2;
+						CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc2;
+					}
 				}
 				fprintf(dat, "%.10f", c*TSMean[i].t);
 
