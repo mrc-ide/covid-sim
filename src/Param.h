@@ -51,26 +51,26 @@ typedef struct PARAM {
 	long seed1, seed2, seed3, seed4;
 	long newseed1, newseed2, newseed3, newseed4; //added these to allow for seeds to be reset - ggilani 09/03/17
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay, TimeStepsPerYear;
+	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
 	double MildToRecovery_icdf[CDF_RES + 1], ILIToRecovery_icdf[CDF_RES + 1], SARIToRecovery_icdf[CDF_RES + 1], CriticalToCritRecov_icdf[CDF_RES + 1], CritRecovToRecov_icdf[CDF_RES + 1];
 	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
 	/// means for above icdf's. 
-	double Mean_MildToRecovery, Mean_ILIToRecovery, Mean_SARIToRecovery, Mean_CriticalToCritRecov, Mean_CritRecovToRecov;
+	double Mean_MildToRecovery, Mean_ILIToRecovery, Mean_SARIToRecovery, Mean_CriticalToCritRecov, Mean_CritRecovToRecov, Mean_TimeToTest, Mean_TimeToTestOffset;
 	double Mean_ILIToSARI, Mean_SARIToCritical, Mean_CriticalToDeath;
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS];
 
 	double T, TimeStep, SampleTime, SampleStep, BitmapAspectScale;
-	int ts_age, TimeStepsPerDayInt, DoSeverity;
+	int ts_age, DoSeverity;
 	double scalex, scaley; // Number of pixels per degree in bitmap output
 	double width, height; // Size of spatial domain in degrees
 	double cwidth, cheight; // Size of spatial domain in cells
 	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
-	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale, CellPop2;
+	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, ContactsPerDay, LocalBeta, LatentPeriod, InfectiousPeriod, R0household, R0places, R0spatial;	//// LatentPeriod and InfectiousPeriod are means of icdf's (inverse cumulative distribution functions). 
 	double Seasonality[DAYS_PER_YEAR];
 	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection, InfectiousnessBetaA, InfectiousnessBetaB;
@@ -99,6 +99,7 @@ typedef struct PARAM {
 	double PlaceTypeGroupSizeParam1[NUM_PLACE_TYPES], PlaceExclusivityMatrix[NUM_PLACE_TYPES * NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [NUM_PLACE_TYPES][NUM_PLACE_TYPES]
 	double PropAgeGroup[MAX_ADUNITS][NUM_AGE_GROUPS], PopByAdunit[MAX_ADUNITS][2], MeanAnnualDeathRate;
 	double MortalityByAge[MAX_ADUNITS][NUM_AGE_GROUPS * AGE_GROUP_WIDTH], CumulPropDead[MAX_ADUNITS][NUM_AGE_GROUPS * AGE_GROUP_WIDTH + 1], InvLifeExpecDist[MAX_ADUNITS][1001];
+
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
@@ -165,11 +166,11 @@ typedef struct PARAM {
 	//Added parameters to deal with digital contact tracing - ggilani 09/03/2020
 	int DoDigitalContactTracing, ClusterDigitalContactUsers, NDigitalContactUsers, NDigitalHouseholdUsers;
 	double PropPopUsingDigitalContactTracing, ScalingFactorSpatialDigitalContacts, DigitalContactTracingDelay, LengthDigitalContactIsolation, ProportionDigitalContactsIsolate, ProportionSmartphoneUsersByAge[NUM_AGE_GROUPS];
-	double DigitalContactTracingPolicyDuration;
-	int OutputDigitalContactTracing, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing;
+	double DigitalContactTracingPolicyDuration, DCTCaseIsolationHouseEffectiveness, DCTCaseIsolationEffectiveness;
+	int OutputDigitalContactTracing, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing, DCTIsolateIndexCases;
+
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;
-	int DoUpdateCaseDetection;
 	double TimeToUpdateCaseDetection, UpdatedCaseDetectionRate;
 	int DoInterventionDelaysByAdUnit;
 	

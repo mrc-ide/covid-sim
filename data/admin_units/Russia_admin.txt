@@ -216,20 +216,20 @@ Adygey	Altay	Amur	Arkhangel'sk	Astrakhan'	Bashkortostan	Belgorod	Bryansk	Buryat	
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-69	153	294	357	433	517	658	721	
+153	294	357	433	517	658	721	
 
 
 [Holiday durations]
-5	89	5	11	5	89	5	11	
+89	5	11	5	89	5	11	
 
 ===================================
 

@@ -152,20 +152,20 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-45	104	170	353	409	468	534	717	
+104	170	353	409	468	534	717	
 
 
 [Holiday durations]
-8	9	63	15	8	9	63	15	
+9	63	15	8	9	63	15	
 
 ===================================
 

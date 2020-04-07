@@ -480,6 +480,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		//	}
 	}
 }
+
 void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 {
 	//// Function DoDetectedCase does many things associated with various interventions. 
@@ -664,22 +665,27 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
 	if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
 	{
-		//if (Hosts[ai].isolation_start_time = ts) //only if host is definitely going to be isolated?
-		//{
-		//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
-		//	if (Hosts[ai].digitalContactTraced==2)
-		//	{
-		//		//if case is currently being contact traced, set end time of contact tracing to now
-		//		Hosts[ai].dct_end_time = ts + P.usCaseIsolationDelay;
-		//	}
-		//	else if ((Hosts[ai].digitalContactTraced==1) && Hosts[ai].dct_start_time > ts)
-		//	{
-		//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
-		//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
-		//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
-		//	}
-		//}
-		
+		// allow for DCT to isolate index cases
+		if ((Hosts[ai].digitalContactTraced == 0)&&(P.DCTIsolateIndexCases))
+		{
+			j = Mcells[Hosts[ai].mcell].adunit;
+			if (AdUnits[j].ndct < AdUnits[j].n)
+			{
+				Hosts[ai].digitalContactTraced = 2;
+				Hosts[ai].dct_start_time = ts + P.usCaseIsolationDelay;
+				Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+#pragma omp critical (indexDCT)
+				{
+					AdUnits[j].dct[AdUnits[j].ndct] = ai;
+					AdUnits[j].ndct++;
+				}
+			}
+			else
+			{
+				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", j, AdUnits[j].ndct, P.InfQueuePeakLength);
+				fprintf(stderr, "Error!\n");
+			}
+		}
 		if(P.IncludeHouseholdDigitalContactTracing)
 		{
 			//Then we want to find all their household and place group contacts to add to the contact tracing queue
@@ -846,10 +852,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 
 void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 {
-	person* a;
-
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
-	a = Hosts + ai;
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
 		if ((!P.DoEarlyCaseDiagnosis) || (State.cumDC >= P.PreControlClusterIdCaseThreshold)) StateT[tn].cumDC++;

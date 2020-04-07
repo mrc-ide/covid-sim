@@ -270,7 +270,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 	int i, j, k, l, m,ad;
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
-	int i2, b, i3, f, f2, tn, cq /*cell queue*/, bm, ci /*person index*/;
+	int i2, b, i3, f, f2,fct, tn, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
 	double s; // household FOI on fellow household member, then place susceptibility, then random number for spatial infections allocation* / ;
@@ -293,7 +293,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad) schedule(static,1)
+#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -476,6 +476,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				//// Spatial FOI component
 				if (sbeta > 0) //// sum spatial infectiousness over all infected people, the infections from which are allocated after loop over infected people. 
 				{
+					fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
+						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 					if (si->Travelling) //// if host currently away from their cell, they cannot add to their cell's spatial infectiousness.
 					{
 						s2 = 0; f = 0;
@@ -484,8 +486,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					{
 						s2 = CalcSpatialInf(ci, ts);
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
-						if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
-							&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (ts<=(Hosts[ci].detected_time+P.usCaseIsolationDelay)))
+						if (fct)
 						{
 							//scale up infectiousness so that we pick more spatial contacts
 							s2 *= P.ScalingFactorSpatialDigitalContacts;
@@ -582,30 +583,26 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								s = CalcSpatialSusc(i3, ts, ci, tn);
 
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
-								if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration))
-								{
-									if ((ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)) && (Hosts[ci].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+								if (fct)
 									{
-										//scale down susceptibility so we don't over accept
-										s /= P.ScalingFactorSpatialDigitalContacts;
-										//if infectee is also a user, add them as a contact
-										if (Hosts[i3].digitalContactTracingUser)
+									//scale down susceptibility so we don't over accept
+									s /= P.ScalingFactorSpatialDigitalContacts;
+									//if infectee is also a user, add them as a contact
+									if (Hosts[i3].digitalContactTracingUser)
+									{
+										ad = Mcells[Hosts[i3].mcell].adunit;
+										if((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
 										{
-											ad = Mcells[Hosts[i3].mcell].adunit;
-											if((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
-											{
-											//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
+										//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
 												
-												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
-												StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
-											}
-											else
-											{
-												fprintf(stderr,"No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-											}
+											StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
+											StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
+										}
+										else
+										{
+											fprintf(stderr,"No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 										}
 									}
-
 								}
 
 								if (bm)
@@ -811,9 +808,9 @@ void DigitalContactTracingSweep(double t)
 							Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
 						}
 						//remove f
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
-						AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
+						//AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
 						AdUnits[i].ndct--;
 					}
 					else
@@ -838,9 +835,9 @@ void DigitalContactTracingSweep(double t)
 							Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 							// now remove this case from the queue
-							k = contact;
+							//k = contact;
 							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 							AdUnits[i].ndct_queue--;
 
 						}
@@ -859,9 +856,9 @@ void DigitalContactTracingSweep(double t)
 								StateT[tn].cumDCT++;
 
 								//now remove this case from the queue
-								k = contact;
+								//k = contact;
 								AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-								AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+								//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 								AdUnits[i].ndct_queue--;
 							}
 							else
@@ -877,9 +874,9 @@ void DigitalContactTracingSweep(double t)
 							fprintf(stderr, "Error!\n");
 
 							// now remove this case from the queue
-							k = contact;
+							//k = contact;
 							AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-							AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+							//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 							AdUnits[i].ndct_queue--;
 						}
 					}
@@ -887,18 +884,18 @@ void DigitalContactTracingSweep(double t)
 					else if (Hosts[contact].dct_start_time < ts)
 					{
 						// now remove this case from the queue
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 						AdUnits[i].ndct_queue--;
 					}
 					else if (Hosts[contact].dct_start_time == (USHRT_MAX - 1))
 					{
 						//if a host was added to the queue, but their contacting tracing start time has been reset, that means that they have been identified as a case and will be self-isolating anyway - remove from this queue
 						Hosts[contact].digitalContactTraced = 0;
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-						AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
+						//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
 						AdUnits[i].ndct_queue--;
 					}
 					else
@@ -915,7 +912,8 @@ void DigitalContactTracingSweep(double t)
 						//start by finding theoretical start and end isolation times for each contact;
 						infector = StateT[j].contacts[i][k];
 						contact = StateT[j].dct_queue[i][k];
-						dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
+						dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay+ (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
+						if (dct_start_time <= ts) dct_start_time = ts+P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay); //clunky to prevent contacts made after detection being lost
 						dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 						//based on existing host information, decide whether to add to queue or not
@@ -1022,7 +1020,6 @@ int TreatSweep(double t)
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
 	int i, j, i2, j2, k, l, m, b;
-	int rd, prd, mrd; /// rd = radius; prd = place close radium; mrd = movement restriction radius in terms of microcells. 
 	int f, f1, f2, f3, f4; //// various fail conditions. Used for other things 
 	int tn, bs, adi, ad, ad2;
 	int minx, maxx, miny, trig_thresh, nckwp;
@@ -1042,9 +1039,6 @@ int TreatSweep(double t)
 	double r;
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
-	rd = (int)ceil(P.TreatRadius / P.mcwidth);
-	prd = (int)ceil(P.PlaceCloseRadius / P.mcwidth);
-	mrd = (int)ceil(P.MoveRestrRadius / P.mcwidth);
 	f = f1 = 0;
 	if (P.DoGlobalTriggers)
 	{
@@ -1126,7 +1120,7 @@ int TreatSweep(double t)
 		tspf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
 		tsmf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
 		tsmb = (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
-		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDuration));
+		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationC));
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 

@@ -143,20 +143,20 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-48	112	301	360	412	476	665	724	
+112	301	360	412	476	665	724	
 
 
 [Holiday durations]
-5	4	5	5	5	4	5	5	
+4	5	5	5	4	5	5	
 
 ===================================
 
