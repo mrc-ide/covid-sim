@@ -668,14 +668,22 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		// allow for DCT to isolate index cases
 		if ((Hosts[ai].digitalContactTraced == 0)&&(P.DCTIsolateIndexCases))
 		{
-			Hosts[ai].digitalContactTraced == 2;
-			Hosts[ai].dct_start_time = ts+ P.usCaseIsolationDelay;
-			Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-			j= Mcells[Hosts[ai].mcell].adunit;
-#pragma omp critical (indexDCT)
+			j = Mcells[Hosts[ai].mcell].adunit;
+			if (AdUnits[j].ndct < AdUnits[j].n)
 			{
-				AdUnits[j].dct[AdUnits[i].ndct] = ai;
-				AdUnits[j].ndct++;
+				Hosts[ai].digitalContactTraced = 2;
+				Hosts[ai].dct_start_time = ts + P.usCaseIsolationDelay;
+				Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+#pragma omp critical (indexDCT)
+				{
+					AdUnits[j].dct[AdUnits[j].ndct] = ai;
+					AdUnits[j].ndct++;
+				}
+			}
+			else
+			{
+				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", j, AdUnits[j].ndct, P.InfQueuePeakLength);
+				fprintf(stderr, "Error!\n");
 			}
 		}
 		if(P.IncludeHouseholdDigitalContactTracing)
