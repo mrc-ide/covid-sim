@@ -22,7 +22,7 @@ In consequence, the model must be told the geography of a region, such as its po
 
 ### Warning: need to recompile
 
-Teh code currently *must* be recompiled for use with different countries:  it is insufficient to simply use country-specific network and population files. The UK and US are modelled respectively by ensuring the macros `#define COUNTRY_UK` and `#define COUNTRY_US` in the file `Country.h`. We plan to change this so different countries can be specified by the command line.
+The code currently *must* be recompiled for use with different countries:  it is insufficient to simply use country-specific network and population files. The UK and US are modelled respectively by ensuring the macros `#define COUNTRY_UK` and `#define COUNTRY_US` in the file `Country.h`. We plan to change this so different countries can be specified by the command line.
 
 ## Main command-line arguments
 
