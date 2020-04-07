@@ -1,0 +1,236 @@
+[Include intervention delays by admin unit]
+0
+
+======== PLACE CLOSURE PARAMETERS
+
+[Place closure start time]
+7
+
+[Place closure second start time]
+1000
+
+[Delay to place closure by admin unit]
+0	0	0
+
+[Duration of place closure by admin unit]
+0	0	0
+
+[Place closure in administrative units rather than rings]
+0
+
+[Administrative unit divisor for place closure]
+1
+
+[Place types to close for admin unit closure (0/1 array)]
+1	1	1	0
+
+[Cumulative proportion of place members needing to become sick for admin unit closure]
+1
+
+[Proportion of places in admin unit needing to pass threshold for place closure]
+1
+
+[Delay to start place closure]
+1
+
+[Duration of place closure]
+#2
+
+[Proportion of places remaining open after closure by place type]
+0	0	0.25	1
+
+[Relative household contact rate after closure]
+2
+
+[Relative spatial contact rate after closure]
+1.5
+
+[Minimum radius for place closure]
+1
+
+[Place closure incidence threshold]
+0
+
+ ^^ needs to be 0 for global triggers	
+
+[Place closure fractional incidence threshold]
+0
+
+ ^^ needs to be 0 for global triggers or if abs incidence threshold used	
+
+[Trigger incidence per cell for place closure]
+#1
+
+*** ^^^ change this for global too ***	
+
+==================================	HOUSEHOLD QUARANTINE PARAMETERS
+
+[Household quarantine start time]
+0
+^ i.e. it will start as soon as we reach the trigger.
+
+[Delay to start household quarantine]
+1
+
+[Delay to household quarantine by admin unit]
+0	0	0
+
+[Duration of household quarantine by admin unit]
+0	0	0
+
+[Household quarantine trigger incidence per cell]
+0
+
+[Length of time households are quarantined]
+14
+
+[Duration of household quarantine policy]
+#4
+
+[Relative household contact rate after quarantine]
+2
+
+[Residual place contacts after household quarantine by place type]
+0.25	0.25	0.25	0.25
+
+[Residual spatial contacts after household quarantine]
+0.25
+
+[Household level compliance with quarantine]
+0.5
+
+[Individual level compliance with quarantine]
+1
+
+===================================		CASE ISOLATION PARAMETERS
+
+[Case isolation start time]
+0
+^ i.e. it will start as soon as we reach the trigger.
+
+[Delay to case isolation by admin unit]
+0	0	0
+
+[Duration of case isolation by admin unit]
+0	0	0
+
+[Case isolation trigger incidence per cell]
+0
+
+[Proportion of detected cases isolated]
+0.7
+
+[Delay to start case isolation]
+1
+
+[Duration of case isolation]
+7
+
+[Duration of case isolation policy]
+#4
+
+[Residual contacts after case isolation]
+0.25
+
+[Residual household contacts after case isolation]
+1
+
+===================================		SOCIAL DISTANCINT PARAMETERS
+
+[Social distancing start time]
+0
+^ i.e. it will start as soon as we reach the trigger.
+
+[Delay to social distancing by admin unit]
+0	0	0
+
+[Duration of social distancing by admin unit]
+0	0	0
+
+[Trigger incidence per cell for social distancing]
+#1
+
+[Duration of social distancing]
+#2
+
+[Relative place contact rate given social distancing by place type]
+1	1	0.75	0.75
+
+[Relative houshold contact rate given social distancing]
+1.25
+
+[Relative spatial contact rate given social distancing]
+0.25
+
+[Minimum radius for social distancing]
+1
+
+[Proportion compliant with enhanced social distancing]
+0
+
+[Relative place contact rate given enhanced social distancing by place type]
+0.25	0.25	0.25	0.25
+
+[Relative houshold contact rate given enhanced social distancing]
+1
+
+[Relative spatial contact rate given enhanced social distancing]
+0.25
+
+===================================		DIGITAL CONTACT TRACING PARAMETERS
+
+[Include digital contact tracing]
+0
+
+[Digital contact tracing start time]
+100000
+
+[Cluster digital app clusters by household]
+0
+
+[Proportion of population or households covered by digital contact tracing]
+0.6
+
+^If we cluster by household, then we select a proportion of households to be potential app users, if not then we select people over the whole population
+
+[Proportion of smartphone users by age]
+0 0 0 0.96 0.96 0.96 0.96 0.91 0.91 0.91 0.91 0.55 0.55 0.55 0.55 0.55 0.55
+
+(Taken from p. 189 here: https://www.ofcom.org.uk/__data/assets/pdf_file/0026/143981/technology-tracker-2019-uk-data-tables.pdf)
+
+^This mobile phone data would be used specifically for the digital app. If we include actual phone usage data and don't cluster by household, then we adjust the probability of any individual to be a user in order to obtain the specified proportion - however this is limited by a theoretical maximum and if our desired probability exceeds this, we'll get an error.  We don't currently adjust the probabilities if clustering by household - the proportion of households containing users will match the desired proportion but due to age dependent usage, the actual proportion of the population who are users will be lower.
+^NOTE: if we set the proportion of users by age to 1 for all age groups, this means everyone can be tracked and is more similar to standard contact tracing.
+
+[Proportion of digital contacts who self-isolate]
+0.9
+
+[Delay before digital contacts self-isolate]
+3
+^This is added on to the time at which an case is detected and the delay for the case to be isolated, so in reality the delay is slightly longer than this - could change back if confusing?
+
+[Length of self-isolation for digital contacts]
+7
+
+[Include household contacts in digital contact tracing]
+1
+
+[Include place group contacts in digital contact tracing]
+1
+
+[Spatial scaling factor - digital contact tracing]
+10
+^These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't result in infection)
+
+[Digital contact tracing trigger incidence per cell]
+#1
+
+[Duration of digital contact tracing policy]
+#2
+
+[Output digital contact tracing]
+1
+
+^Output the a file showing the number of people under isolation due to contact tracing in each admin unit at any given time
+
+
+
