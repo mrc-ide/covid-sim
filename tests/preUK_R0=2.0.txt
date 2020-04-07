@@ -2,7 +2,7 @@
 1
 
 [Output bitmap]
-0
+1
 
 [Output infection tree]
 0
