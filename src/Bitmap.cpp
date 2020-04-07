@@ -29,7 +29,7 @@ static unsigned char* bmf, *bmPixels, *bmp;
 // TODO: move these to a header files
 extern char OutFile[1024], OutFileBase[1024];
 
-void CaptureBitmap(int ns, int tp)
+void CaptureBitmap()
 {
 	int i, x, y, f, mi;
 	unsigned j;
@@ -107,7 +107,7 @@ void CaptureBitmap(int ns, int tp)
 	}
 }
 
-void OutputBitmap(double t2, int tp)
+void OutputBitmap(int tp)
 {
 	char buf[3000], OutF[3000];
 	int j = 0;

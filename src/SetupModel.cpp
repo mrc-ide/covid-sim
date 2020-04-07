@@ -615,8 +615,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	//if(P.OutputBitmap)
 	//{
-	//	CaptureBitmap(0,0);
-	//	OutputBitmap(0.0,0);
+	//	CaptureBitmap();
+	//	OutputBitmap(0);
 	//}
 
 }
