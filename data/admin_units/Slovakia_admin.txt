@@ -141,20 +141,20 @@ Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Ž
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-8
+7
 
 [Holiday start times]
-55	107	181	357	419	471	545	721	
+107	181	357	419	471	545	721	
 
 
 [Holiday durations]
-5	6	62	14	5	6	62	14	
+6	62	14	5	6	62	14	
 
 ===================================
 

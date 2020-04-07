@@ -136,20 +136,20 @@ Bruxelles	Vlaanderen	Wallonie
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-62	97	181	301	357	426	461	545	665	721	
+97	181	301	357	426	461	545	665	721	
 
 
 [Holiday durations]
-7	15	61	7	12	7	15	61	7	12	
+15	61	7	12	7	15	61	7	12	
 
 ===================================
 

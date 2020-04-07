@@ -136,20 +136,20 @@ Diekirch	Grevenmacher	Luxembourg
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-12
+11
 
 [Holiday start times]
-46	95	193	219	299	355	410	459	557	583	663	719	
+95	193	219	299	355	410	459	557	583	663	719	
 
 
 [Holiday durations]
-9	17	56	7	9	15	9	17	56	7	9	15	
+17	56	7	9	15	9	17	56	7	9	15	
 
 ===================================
 
