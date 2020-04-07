@@ -1173,9 +1173,9 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				AgeDistCorrB[i][j] /= AgeDistAd[i][j];
 			}
 			// output problematic adjustments (these should be 0.0f)
-			fprintf(stderr, "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
-			fprintf(stderr, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
-			fprintf(stderr, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
+			//fprintf(stderr, "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
+			//fprintf(stderr, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
+			//fprintf(stderr, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
 		}
 
 		// make age adjustments to population
