@@ -1435,7 +1435,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			for (i = 0; i < NUM_PLACE_TYPES; i++) P.PlaceCloseEffect[i] = 1;
 	}
 	if (P.DoHouseholds)
-		if (!GetInputParameter2(dat, dat2, "Relative houshold contact rate after closure", "%lf", (void*)& P.PlaceCloseHouseholdRelContact, 1, 1, 0)) P.PlaceCloseHouseholdRelContact = 1;
+		if (!GetInputParameter2(dat, dat2, "Relative household contact rate after closure", "%lf", (void*)& P.PlaceCloseHouseholdRelContact, 1, 1, 0)) P.PlaceCloseHouseholdRelContact = 1;
 	if (!GetInputParameter2(dat, dat2, "Relative spatial contact rate after closure", "%lf", (void*)& P.PlaceCloseSpatialRelContact, 1, 1, 0))
 	{
 		P.PlaceCloseSpatialRelContact = 1;
@@ -1495,10 +1495,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (P.DoHouseholds)
 	{
-		if (!GetInputParameter2(dat, dat2, "Relative houshold contact rate given social distancing", "%lf", (void*)& P.SocDistHouseholdEffect, 1, 1, 0)) P.SocDistHouseholdEffect = 1;
-		if (!GetInputParameter2(dat, dat2, "Relative houshold contact rate given enhanced social distancing", "%lf", (void*)& P.ESocDistHouseholdEffect, 1, 1, 0)) P.ESocDistHouseholdEffect = 1;
-		if (!GetInputParameter2(dat, dat2, "Relative houshold contact rate given social distancing  after change", "%lf", (void*)&P.SocDistHouseholdEffect2, 1, 1, 0)) P.SocDistHouseholdEffect2 = P.SocDistHouseholdEffect;
-		if (!GetInputParameter2(dat, dat2, "Relative houshold contact rate given enhanced social distancing after change", "%lf", (void*)&P.ESocDistHouseholdEffect2, 1, 1, 0)) P.ESocDistHouseholdEffect2 = P.ESocDistHouseholdEffect;
+		if (!GetInputParameter2(dat, dat2, "Relative household contact rate given social distancing", "%lf", (void*)& P.SocDistHouseholdEffect, 1, 1, 0)) P.SocDistHouseholdEffect = 1;
+		if (!GetInputParameter2(dat, dat2, "Relative household contact rate given enhanced social distancing", "%lf", (void*)& P.ESocDistHouseholdEffect, 1, 1, 0)) P.ESocDistHouseholdEffect = 1;
+		if (!GetInputParameter2(dat, dat2, "Relative household contact rate given social distancing  after change", "%lf", (void*)&P.SocDistHouseholdEffect2, 1, 1, 0)) P.SocDistHouseholdEffect2 = P.SocDistHouseholdEffect;
+		if (!GetInputParameter2(dat, dat2, "Relative household contact rate given enhanced social distancing after change", "%lf", (void*)&P.ESocDistHouseholdEffect2, 1, 1, 0)) P.ESocDistHouseholdEffect2 = P.ESocDistHouseholdEffect;
 	}
 	if (!GetInputParameter2(dat, dat2, "Relative spatial contact rate given social distancing", "%lf", (void*)& P.SocDistSpatialEffect, 1, 1, 0)) P.SocDistSpatialEffect = 1;
 	if (!GetInputParameter2(dat, dat2, "Relative spatial contact rate given social distancing after change", "%lf", (void*)&P.SocDistSpatialEffect2, 1, 1, 0)) P.SocDistSpatialEffect2 = P.SocDistSpatialEffect;
