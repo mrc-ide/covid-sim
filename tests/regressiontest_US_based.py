@@ -38,7 +38,7 @@
 #    checksums file:
 #
 #    cd bad/test
-#    cp us-output/results.checksums.txt us-input
+#    ./regressiontest_US_based.py --accept
 #    git add us-input/results.checksums.txt
 #    git commit -m "Update checksums"
 #    git push
@@ -76,7 +76,11 @@ import subprocess
 
 testdir='regressiontest_US_based'
 
-# Portable ../../
+accept_results = False
+if len(sys.argv) > 1 and sys.argv[1] == '--accept':
+    accept_results = True
+
+# Sort out directories
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'us-input')
 output_dir = os.path.join(script_dir, 'us-output')
@@ -163,7 +167,8 @@ subprocess.run(
     ])
 print('=== Done')
 
-checksums_filename = os.path.join('results.checksums.txt')
+expected_checksums = os.path.join(input_dir, 'results.checksums.txt')
+actual_checksums = os.path.join(output_dir, 'results.checksums.txt')
 
 # Compute SHA-512 checksums for the generated .xls files.
 sha512sums = []
@@ -188,12 +193,12 @@ print('end')
 # Write the checksums into a file in the temporary directory. (This is
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
-with open(checksums_filename, 'wb') as checksums_outfile:
+with open(actual_checksums, 'wb') as checksums_outfile:
     for sha512sum in sha512sums:
         checksums_outfile.write(sha512sum)
 
 # Read the expected checksums from the reference file.
-sha512sums_reference = open(os.pardir + os.sep + checksums_filename, 'rb').readlines()
+sha512sums_reference = open(expected_checksums, 'rb').readlines()
 print('Reference checksums:')
 print(b''.join(sha512sums_reference).decode('utf-8'))
 print('end')
@@ -216,4 +221,11 @@ else:
                 print(str(x))
                 print(str(y))
                 break
-    sys.exit(1)
+
+    if accept_results:
+        print('Accepting results.')
+        with open(actual_checksums, 'rb') as checksums_in:
+            with open(expected_checksums, 'wb') as checksums_out:
+                shutil.copyfileobj(checksums_in, checksums_out)
+    else:
+        sys.exit(1)
