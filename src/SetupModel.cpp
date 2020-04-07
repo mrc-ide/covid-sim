@@ -1179,7 +1179,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		}
 
 		// make age adjustments to population
-#pragma omp parallel for private(tn,j,i,k,m) schedule(static,1)
+#pragma omp parallel for private(tn,j,i,k,m,s) schedule(static,1)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (i = tn; i < P.N; i += P.NumThreads)
 			{
