@@ -19,7 +19,9 @@ jobs:
         run: |
           cd tests
           python.exe regressiontest_UK_100th.py
+          cd ..
       - name: regression test (US based)
         run: |
-          cd %GITHUB_WORKSPACE%\tests
+          cd tests
           python.exe regressiontest_US_based.py
+          cd ..
