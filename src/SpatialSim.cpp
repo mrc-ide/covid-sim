@@ -2519,10 +2519,7 @@ int RunModel(int run) //added run number as parameter
 				if (!P.DoSI) IncubRecoverySweep(t, run);
 				// If doing new contact tracing, update numbers of people under contact tracing after each time step
 
-				if (P.DoDigitalContactTracing)
-				{
-					DigitalContactTracingSweep(t);
-				}
+				if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
 
 				nu++;
 				fs2 = ((P.DoDeath) || (P.DoSIS) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));

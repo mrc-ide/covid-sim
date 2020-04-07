@@ -913,6 +913,7 @@ void DigitalContactTracingSweep(double t)
 						infector = StateT[j].contacts[i][k];
 						contact = StateT[j].dct_queue[i][k];
 						dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay+ (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
+						if (dct_start_time <= ts) dct_start_time = ts+P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay); //clunky to prevent contacts made after detection being lost
 						dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 						//based on existing host information, decide whether to add to queue or not
