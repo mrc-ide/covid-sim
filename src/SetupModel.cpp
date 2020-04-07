@@ -1131,6 +1131,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			if (!(AgeDistCorrB[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 		}
 
+		// compute AgeDistAd[i][j] = total number of people in adunit i, age group j
 		for (i = 0; i < P.NumAdunits; i++)
 			for (j = 0; j < NUM_AGE_GROUPS; j++)
 				AgeDistAd[i][j] = 0;
@@ -1139,6 +1140,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
 		}
+		// normalize AgeDistAd[i][j], so it's the proportion of people in adunit i that are in age group j
 		k = (P.DoAdunitDemog) ? P.NumAdunits : 1;
 		for (i = 0; i < k; i++)
 		{
@@ -1148,29 +1150,35 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			for (j = 0; j < NUM_AGE_GROUPS; j++)
 				AgeDistAd[i][j] /= s;
 		}
+		// determine adjustments to be made to match age data in parameters
 		for (i = 0; i < k; i++)
 		{
 			s = t = 0;
 			AgeDistCorrB[i][0] = 0;
 			for (j = 0; j < NUM_AGE_GROUPS; j++)
 			{
+				// compute s = the proportion of people that need removing from adunit i, age group j to match age data in parameters
 				s = t + AgeDistAd[i][j] - P.PropAgeGroup[i][j] - AgeDistCorrB[i][j];
 				if (s > 0)
 				{
-					t = AgeDistCorrF[i][j] = s;
+					t = AgeDistCorrF[i][j] = s; // people to push up into next age group
 					AgeDistCorrB[i][j + 1] = 0;
 				}
 				else
 				{
 					t = AgeDistCorrF[i][j] = 0;
-					AgeDistCorrB[i][j + 1] = fabs(s);
+					AgeDistCorrB[i][j + 1] = fabs(s); // people to pull down from next age group
 				}
-				AgeDistCorrF[i][j] /= AgeDistAd[i][j];
+				AgeDistCorrF[i][j] /= AgeDistAd[i][j]; // convert from proportion of people in the adunit to proportion of people in the adunit and age group
 				AgeDistCorrB[i][j] /= AgeDistAd[i][j];
 			}
+			// output problematic adjustments (these should be 0.0f)
+			fprintf(stderr, "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
+			fprintf(stderr, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
+			fprintf(stderr, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
 		}
 
-
+		// make age adjustments to population
 #pragma omp parallel for private(tn,j,i,k,m) schedule(static,1)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (i = tn; i < P.N; i += P.NumThreads)
@@ -1178,10 +1186,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				m = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
 				j = HOST_AGE_GROUP(i);
 				s = ranf_mt(tn);
+				// probabilistic age adjustment by one age category (5 years)
 				if (s < AgeDistCorrF[m][j])
-					Hosts[i].age += 5.0;
+					Hosts[i].age += 5;
 				else if (s < AgeDistCorrF[m][j] + AgeDistCorrB[m][j])
-					Hosts[i].age -= 5.0;
+					Hosts[i].age -= 5;
 			}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -1193,7 +1202,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		free(AgeDistCorrF);
 		free(AgeDistCorrB);
 	}
-	for (i = 0; i < P.N; i++) AgeDist[HOST_AGE_GROUP(i)]++;
+	for (i = 0; i < P.N; i++)
+	{
+		if (Hosts[i].age >= NUM_AGE_GROUPS * AGE_GROUP_WIDTH)
+		{
+			ERR_CRITICAL_FMT("Person %i has unexpected age %i\n", i, Hosts[i].age);
+		}
+		AgeDist[HOST_AGE_GROUP(i)]++;
+	}
 	fprintf(stderr, "Ages/households assigned\n");
 
 	if (!P.DoRandomInitialInfectionLoc)
