@@ -85,10 +85,7 @@ bitmap_header* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
 events* InfEventLog;
 int* nEvents;
-int* RevCellLookup;
 
-//added counter for number of types ranf and ranf_mt are called
-int count_ranf, count_ranfmt;
 double ** PopDensity, * mcell_dens;
 int* mcell_adunits, * mcell_num, * mcell_country;
 double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
@@ -113,18 +110,16 @@ unsigned int cntr = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 
-FILE* KMLFile, * KMLFile2;
-
 /* int NumPC,NumPCD; */
 #define MAXINTFILE 10
 
 int main(int argc, char* argv[])
 {
 	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotP, GotPP, GotO, GotD, GotL, GotS, GotA, GotAP, GotScF, GotIF, Perr, cl;
+	int i, GotP, GotPP, GotO, GotL, GotS, GotA, GotAP, GotScF, Perr, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default. 
-	GotP = GotO = GotD = GotL = GotS = GotA = GotAP = GotScF = GotIF = GotPP = 0;
+	GotP = GotO = GotL = GotS = GotA = GotAP = GotScF = GotPP = 0;
 
 	Perr = 0;
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
@@ -165,7 +160,6 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'D' && argv[i][2] == ':')
 			{
-				GotD = 1;
 				sscanf(&argv[i][3], "%s", DensityFile);
 				P.DoHeteroDensity = 1;
 				P.DoPeriodicBoundaries = 0;
@@ -257,7 +251,6 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'I' && argv[i][2] == ':')
 			{
-				GotIF = 1;
 				sscanf(&argv[i][3], "%s", InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
 			}
@@ -340,10 +333,6 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
 	//// **** INITIALIZE
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-
-	//initialise random number counts to zero
-	count_ranf = 0;
-	count_ranfmt = 0;
 
 	///// initialize model (for all realisations). 
 	SetupModel(DensityFile, NetworkFile, SchoolFile, RegDemogFile);
@@ -480,8 +469,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	P.UpdatesPerSample = (int)t;
 	P.TimeStep = P.SampleStep / t;
 	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-	P.TimeStepsPerDayInt = (int)P.TimeStepsPerDay;
-	P.TimeStepsPerYear = P.TimeStepsPerDay * DAYS_PER_YEAR;
 	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
 	GetInputParameter(dat, dat2, "Sampling time", "%lf", (void*) & (P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
@@ -2101,8 +2088,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 			AdUnits[i].place_close_trig = 0;
 			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
-			if (P.DoUpdateCaseDetection)
-				AdUnits[i].caseDetectRate = AdUnits[i].caseDetectInit;
 			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
 			AdUnits[i].ndct_queue = 0;
 

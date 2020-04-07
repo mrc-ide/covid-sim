@@ -263,7 +263,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
-	P.CellPop2 = ((double)P.N) * ((double)P.N) / (((double)P.NC) * ((double)P.NC));
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 
 	fprintf(stderr, "Initialising kernel...\n");
@@ -1032,13 +1031,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			k += Cells[j].n;
 		}
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
-	if (!(RevCellLookup = (int*)malloc(P.NC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	i2 = 0;
-	for (j = 0; j < P.NC; j++)
-		if (Cells[j].n > 0)
-			RevCellLookup[j] = i2++;
-		else
-			RevCellLookup[j] = -1;
 
 	if (!(Hosts = (person*)calloc(P.N, sizeof(person)))) ERR_CRITICAL("Unable to allocate host storage\n");
 	fprintf(stderr, "sizeof(person)=%i\n", (int) sizeof(person));

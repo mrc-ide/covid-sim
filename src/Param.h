@@ -51,7 +51,7 @@ typedef struct PARAM {
 	long seed1, seed2, seed3, seed4;
 	long newseed1, newseed2, newseed3, newseed4; //added these to allow for seeds to be reset - ggilani 09/03/17
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay, TimeStepsPerYear;
+	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
@@ -64,13 +64,13 @@ typedef struct PARAM {
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS];
 
 	double T, TimeStep, SampleTime, SampleStep, BitmapAspectScale;
-	int ts_age, TimeStepsPerDayInt, DoSeverity;
+	int ts_age, DoSeverity;
 	double scalex, scaley; // Number of pixels per degree in bitmap output
 	double width, height; // Size of spatial domain in degrees
 	double cwidth, cheight; // Size of spatial domain in cells
 	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
-	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale, CellPop2;
+	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, ContactsPerDay, LocalBeta, LatentPeriod, InfectiousPeriod, R0household, R0places, R0spatial;	//// LatentPeriod and InfectiousPeriod are means of icdf's (inverse cumulative distribution functions). 
 	double Seasonality[DAYS_PER_YEAR];
 	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection, InfectiousnessBetaA, InfectiousnessBetaB;
@@ -171,7 +171,6 @@ typedef struct PARAM {
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;
-	int DoUpdateCaseDetection;
 	double TimeToUpdateCaseDetection, UpdatedCaseDetectionRate;
 	int DoInterventionDelaysByAdUnit;
 	

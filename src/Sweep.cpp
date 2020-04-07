@@ -1020,7 +1020,6 @@ int TreatSweep(double t)
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
 	int i, j, i2, j2, k, l, m, b;
-	int rd, prd, mrd; /// rd = radius; prd = place close radium; mrd = movement restriction radius in terms of microcells. 
 	int f, f1, f2, f3, f4; //// various fail conditions. Used for other things 
 	int tn, bs, adi, ad, ad2;
 	int minx, maxx, miny, trig_thresh, nckwp;
@@ -1040,9 +1039,6 @@ int TreatSweep(double t)
 	double r;
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
-	rd = (int)ceil(P.TreatRadius / P.mcwidth);
-	prd = (int)ceil(P.PlaceCloseRadius / P.mcwidth);
-	mrd = (int)ceil(P.MoveRestrRadius / P.mcwidth);
 	f = f1 = 0;
 	if (P.DoGlobalTriggers)
 	{

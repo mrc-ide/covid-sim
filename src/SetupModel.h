@@ -22,6 +22,6 @@ typedef struct BIN_FILE {
 	int cnt, ad;
 } bin_file;
 
-extern char OutFile[1024],OutDensFile[1024], RoadNetworkFile[1024];
+extern char OutFile[1024],OutDensFile[1024];
 
 #endif // SPATIALSIM_SETUPMODEL_H_INCLUDED_
