@@ -26,7 +26,7 @@ typedef struct PARAM {
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot, DoTimeSeries;
+	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
 	int NC; // Number of cells
 	int NMC; // Number of microcells
@@ -46,12 +46,12 @@ typedef struct PARAM {
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
 	int MinPopDensForInitialInfection, NumSeedLocations, MaxPopDensForInitialInfection, InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS];
 	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
-	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath, UpdatesPerDemogUpdate;
+	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
 	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis, DoInterventionFile;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
 	long seed1, seed2, seed3, seed4;
-	long newseed1, newseed2, newseed3, newseed4; //added these to allow for seeds to be reset - ggilani 09/03/17
+	long newseed1, newseed2; //added these to allow for seeds to be reset - ggilani 09/03/17
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
@@ -78,17 +78,16 @@ typedef struct PARAM {
 	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
-	double R0, R0scale, ContactsPerDay, LocalBeta;
+	double R0, R0scale, LocalBeta;
 	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
-	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection, InfectiousnessBetaA, InfectiousnessBetaB;
-	double LethalInfectiousPeriod, ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
+	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection;
+	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
-	double DiseaseMortality;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
@@ -108,14 +107,14 @@ typedef struct PARAM {
 	double PlaceTypeSizePower[NUM_PLACE_TYPES], PlaceTypeSizeOffset[NUM_PLACE_TYPES], PlaceTypeSizeMax[NUM_PLACE_TYPES];
 	double PlaceTypeGroupSizeParam1[NUM_PLACE_TYPES], PlaceExclusivityMatrix[NUM_PLACE_TYPES * NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [NUM_PLACE_TYPES][NUM_PLACE_TYPES]
 	double PropAgeGroup[MAX_ADUNITS][NUM_AGE_GROUPS], PopByAdunit[MAX_ADUNITS][2], MeanAnnualDeathRate;
-	double MortalityByAge[MAX_ADUNITS][NUM_AGE_GROUPS * AGE_GROUP_WIDTH], CumulPropDead[MAX_ADUNITS][NUM_AGE_GROUPS * AGE_GROUP_WIDTH + 1], InvLifeExpecDist[MAX_ADUNITS][1001];
+	double InvLifeExpecDist[MAX_ADUNITS][1001];
 
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
-	double ColourPeriod, BoundingBox[4], BitmapScale, BitmapStartTime, BitmapStopTime;
+	double ColourPeriod, BoundingBox[4], BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh; 
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;
@@ -125,7 +124,7 @@ typedef struct PARAM {
 	double VaccSuscDrop, VaccSuscDrop2, VaccInfDrop, VaccMortDrop, VaccSympDrop, VaccDelayMean, VaccTimeStart, VaccTimeEfficacySwitch, VaccTimeStartGeo;
 	double VaccTimeToEfficacy, VaccProp, VaccRadius, VaccRadius2, VaccMinRadius, VaccMinRadius2, VaccPropCaseHouseholds, VaccHouseholdsDuration, VaccMaxCoursesBase;
 	double VaccNewCoursesRate, VaccNewCoursesStartTime, VaccMaxCourses, VaccNewCoursesEndTime, VaccEfficacyDecay, VaccCellIncThresh, VaccCampaignInterval, VaccCoverageIncreasePeriod;
-	int MinVaccAge, VaccDosePerDay; 
+	int VaccDosePerDay; 
 	double PreAlertControlPropCasesId, PostAlertControlPropCasesId, ControlPropCasesId;
 	double MoveRestrRadius, MoveRestrRadius2;
 	double MoveDelayMean, MoveRestrEffect, MoveRestrDuration, MoveRestrTimeStart;
@@ -163,11 +162,7 @@ typedef struct PARAM {
 	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// us = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay
 	unsigned short int usCaseIsolationDuration, usCaseIsolationDelay, usCaseAbsenteeismDuration, usCaseAbsenteeismDelay;
 
-	double RoutineImmunisationStartTime, RoutineImmunisationEffectiveCoverage, RoutineImmunisationMinAge, RoutineImmunisationMaxAge, RoutineCoverageNonDistrCountry;
-	double SIAMinAge, SIAMaxAge, SIAStartTime, SIARepeatInterval, SIAEffectiveCoverage, SIADuration, VaccPhialLifetime;
-	unsigned short int usRoutineImmunisationStartTime, usSIAStartTime, usRoutineImmunisationMaxAge, usRoutineImmunisationMinAge;
-	unsigned short int usSIAMaxAge, usSIAMinAge, usSIARepeatInterval, usSIADuration;
-	int DoDistributionVaccination, SIADoAllCountries, VaccDosesPerPhial;
+	int DoDistributionVaccination;
 	//Added DoRecordInfEvents and MaxInfEvents in order to give the user a choice as to whether to output infection events as a line list: ggilani - 10/10/14
 	int DoRecordInfEvents, MaxInfEvents, RecordInfEventsPerRun;
 	double KernelPowerScale, KernelOffsetScale;
@@ -180,8 +175,6 @@ typedef struct PARAM {
 	int OutputDigitalContactTracing, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing, DCTIsolateIndexCases;
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
-	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;
-	double TimeToUpdateCaseDetection, UpdatedCaseDetectionRate;
 	int DoInterventionDelaysByAdUnit;
 	
 
