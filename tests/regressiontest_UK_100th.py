@@ -38,7 +38,7 @@
 #    checksums file:
 #
 #    cd bad/test
-#    cp regressiontest_UK_100th/regressiontest_UK_100th.checksums.txt .
+#    python regressiontest_UK_100th.py --accept
 #    git add regressiontest_UK_100th.checksums.txt
 #    git commit -m "Update checksums"
 #    git push
@@ -75,6 +75,10 @@ import shutil
 import subprocess
 
 testdir='regressiontest_UK_100th'
+
+accept_results = False
+if len(sys.argv) > 1 and sys.argv[1] == '--accept':
+    accept_results = True
 
 # Portable ../../
 updir2 = os.pardir + os.sep + os.pardir + os.sep 
@@ -182,4 +186,11 @@ else:
                 print(str(x))
                 print(str(y))
                 break
-    sys.exit(1)
+
+    if accept_results:
+        print('Accepting results.')
+        with open(checksums_filename, 'rb') as checksums_in:
+            with open(os.pardir + os.sep + checksums_filename, 'wb') as checksums_out:
+                shutil.copyfileobj(checksums_in, checksums_out)
+    else:
+        sys.exit(1)
