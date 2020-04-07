@@ -167,7 +167,7 @@ typedef struct PARAM {
 	int DoDigitalContactTracing, ClusterDigitalContactUsers, NDigitalContactUsers, NDigitalHouseholdUsers;
 	double PropPopUsingDigitalContactTracing, ScalingFactorSpatialDigitalContacts, DigitalContactTracingDelay, LengthDigitalContactIsolation, ProportionDigitalContactsIsolate, ProportionSmartphoneUsersByAge[NUM_AGE_GROUPS];
 	double DigitalContactTracingPolicyDuration, DCTCaseIsolationHouseEffectiveness, DCTCaseIsolationEffectiveness;
-	int OutputDigitalContactTracing, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing;
+	int OutputDigitalContactTracing, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing, DCTIsolateIndexCases;
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;

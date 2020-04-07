@@ -808,9 +808,9 @@ void DigitalContactTracingSweep(double t)
 							Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
 						}
 						//remove f
-						k = contact;
+						//k = contact;
 						AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
-						AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
+						//AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
 						AdUnits[i].ndct--;
 					}
 					else

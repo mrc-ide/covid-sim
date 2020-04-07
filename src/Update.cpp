@@ -665,22 +665,19 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
 	if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
 	{
-		//if (Hosts[ai].isolation_start_time = ts) //only if host is definitely going to be isolated?
-		//{
-		//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
-		//	if (Hosts[ai].digitalContactTraced==2)
-		//	{
-		//		//if case is currently being contact traced, set end time of contact tracing to now
-		//		Hosts[ai].dct_end_time = ts + P.usCaseIsolationDelay;
-		//	}
-		//	else if ((Hosts[ai].digitalContactTraced==1) && Hosts[ai].dct_start_time > ts)
-		//	{
-		//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
-		//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
-		//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
-		//	}
-		//}
-		
+		// allow for DCT to isolate index cases
+		if ((Hosts[ai].digitalContactTraced == 0)&&(P.DCTIsolateIndexCases))
+		{
+			Hosts[ai].digitalContactTraced == 2;
+			Hosts[ai].dct_start_time = ts+ P.usCaseIsolationDelay;
+			Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+			j= Mcells[Hosts[ai].mcell].adunit;
+#pragma omp critical (indexDCT)
+			{
+				AdUnits[j].dct[AdUnits[i].ndct] = ai;
+				AdUnits[j].ndct++;
+			}
+		}
 		if(P.IncludeHouseholdDigitalContactTracing)
 		{
 			//Then we want to find all their household and place group contacts to add to the contact tracing queue
