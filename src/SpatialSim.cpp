@@ -1589,7 +1589,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	//Add origin-destination matrix parameter
 	if (!GetInputParameter2(dat, dat2, "Output origin destination matrix", "%i", (void*) & (P.DoOriginDestinationMatrix), 1, 1, 0)) P.DoOriginDestinationMatrix = 0;
 
+	// Close input files.
 	fclose(dat);
+	if (dat2 != NULL) fclose(dat2);
+	if (dat2 != dat3 && dat3 != NULL) fclose(dat3);
 
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
