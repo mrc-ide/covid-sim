@@ -1393,11 +1393,24 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(dat, dat2, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
 		if (!GetInputParameter2(dat, dat2, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
 		if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
+
+		//added admin unit specific delays by admin unit
+		if (P.DoInterventionDelaysByAdUnit)
+		{
+			double AdunitDelayToDCT[MAX_ADUNITS];
+			double AdunitDurationDCT[MAX_ADUNITS];
+
+			if (!GetInputParameter2(dat, dat2, "Delay to digital contact tracing by admin unit", "%lg", (void*)AdunitDelayToDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToDCT[i] = 0;
+			if (!GetInputParameter2(dat, dat2, "Duration of digital contact tracing by admin unit", "%lg", (void*)AdunitDurationDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationDCT[i] = 0;
+			for (i = 0; i < P.NumAdunits; i++)
+			{
+				AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
+				AdUnits[i].DCTDuration = AdunitDurationDCT[i];
+			}
+		}
 		if (!GetInputParameter2(dat, dat2, "Isolate index cases in digital contact tracing", "%i", (void*)&(P.DCTIsolateIndexCases), 1, 1, 0)) P.DCTIsolateIndexCases = 1;
 		if (!GetInputParameter2(dat, dat2, "Residual contacts after digital contact tracing isolation", "%lf", (void*)&(P.DCTCaseIsolationEffectiveness), 1, 1, 0)) P.DCTCaseIsolationEffectiveness = P.CaseIsolationEffectiveness;
 		if (!GetInputParameter2(dat, dat2, "Residual household contacts after digital contact tracing isolation", "%lf", (void*)&(P.DCTCaseIsolationHouseEffectiveness), 1, 1, 0)) P.DCTCaseIsolationHouseEffectiveness = P.CaseIsolationHouseEffectiveness;
-
-
 		//initialise total number of users to 0
 		P.NDigitalContactUsers = 0;
 		P.NDigitalHouseholdUsers = 0;
@@ -4073,9 +4086,23 @@ void RecordSample(double t, int n)
 			}
 
 		//// Set DigitalContactTracingTimeStart
-		for (i = 0; i < P.NumAdunits; i++)
-			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
-				DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart	, t + P.DigitalContactTracingTimeStartBase);
+		if (P.DoDigitalContactTracing)
+		{
+			for (i = 0; i < P.NumAdunits; i++)
+			{
+				if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
+				{
+					if (P.DoInterventionDelaysByAdUnit)
+					{
+						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t + AdUnits[i].DCTDelay);
+					}
+					else
+					{
+						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t + P.DigitalContactTracingTimeStartBase);
+					}
+				}
+			}
+		}
 
 		if (P.DoGlobalTriggers)
 		{
