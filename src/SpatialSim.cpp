@@ -1608,6 +1608,14 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	//Add origin-destination matrix parameter
 	if (!GetInputParameter2(dat, dat2, "Output origin destination matrix", "%i", (void*) & (P.DoOriginDestinationMatrix), 1, 1, 0)) P.DoOriginDestinationMatrix = 0;
 
+	GetInputParameter(dat, dat2, "Mean child age gap", "%i", (void*) & (P.MeanChildAgeGap), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Min adult age", "%i", (void*) & (P.MinAdultAge), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Max MF partner age gap", "%i", (void*) & (P.MaxMFPartnerAgeGap), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Max FM partner age gap", "%i", (void*) & (P.MaxFMPartnerAgeGap), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Min parent age gap", "%i", (void*) & (P.MinParentAgeGap), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Max parent age gap", "%i", (void*) & (P.MaxParentAgeGap), 1, 1, 0);
+	GetInputParameter(dat, dat2, "Max child age", "%i", (void*) & (P.MaxChildAge), 1, 1, 0);
+
 	// Close input files.
 	fclose(dat);
 	if (dat2 != NULL) fclose(dat2);

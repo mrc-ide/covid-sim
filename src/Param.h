@@ -186,6 +186,14 @@ typedef struct PARAM {
 	
 
 	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults; 
+
+	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
+	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult
+	int MaxMFPartnerAgeGap; // The largest number of years older than a female partner that a male partner can be
+	int MaxFMPartnerAgeGap; // The largest number of years older than a male partner that a female partner can be
+	int MinParentAgeGap; // The minimum number of years older than a child that a parent must be
+	int MaxParentAgeGap; // The maximum number of years older than a child that a parent can be
+	int MaxChildAge; // The maximum age, in years, of a child
 } param;
 
 extern param P;
