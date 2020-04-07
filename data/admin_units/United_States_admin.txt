@@ -194,7 +194,7 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
@@ -203,13 +203,9 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 5
 
 [Holiday start times]
-31	87	109	214
-
 23	78	127	176	234
 
 [Holiday durations]
-15	8	7	78
-
 14	7	14	7	42
 
 ===================================

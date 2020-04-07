@@ -175,20 +175,20 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-32	109	165	299	355	396	473	529	663	719	
+109	165	299	355	396	473	529	663	719	
 
 
 [Holiday durations]
-9	16	90	9	22	9	16	90	9	22	
+16	90	9	22	9	16	90	9	22	
 
 ===================================
 
