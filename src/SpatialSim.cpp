@@ -804,24 +804,24 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 		if (!GetInputParameter2(dat, dat2, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
 		if (!P.DoAirports)
-    {
-      // Airports disabled => all places are not to do with airports, and we
-      // have no hotels.
-      P.PlaceTypeNoAirNum = P.PlaceTypeNum;
-      P.HotelPlaceType = P.PlaceTypeNum;
-    }
-    else
 		{
-      // When airports are activated we must have at least one airport place
-      // and a hotel type.
-      GetInputParameter(dat, dat3, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
-      GetInputParameter(dat, dat3, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
-      if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
-        ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
-      }
-      if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
-        ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
-      }
+			// Airports disabled => all places are not to do with airports, and we
+			// have no hotels.
+			P.PlaceTypeNoAirNum = P.PlaceTypeNum;
+			P.HotelPlaceType = P.PlaceTypeNum;
+		}
+		else
+		{
+			// When airports are activated we must have at least one airport place
+			// // and a hotel type.
+			GetInputParameter(dat, dat3, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
+			GetInputParameter(dat, dat3, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
+			if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
+				ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+			}
+			if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
+				ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+			}
 
 			if (!GetInputParameter2(dat, dat2, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
 			if (!GetInputParameter2(dat, dat2, "Proportion of hotel attendees who are local", "%lf", (void*) & (P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;

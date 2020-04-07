@@ -21,8 +21,8 @@ void TravelReturnSweep(double t)
 {
 	int i, j, k, l, n, nr, ner, tn;
 
-  // Convince static analysers that values are set correctly:
-  if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	// Convince static analysers that values are set correctly:
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t + P.TimeStep) != floor(1 + t))
 	{
@@ -73,8 +73,8 @@ void TravelDepartSweep(double t)
 	double s, s2, nl;
 	cell* ct;
 
-  // Convince static analysers that values are set correctly:
-  if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	// Convince static analysers that values are set correctly:
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t - P.TimeStep) != floor(1 + t))
 	{
