@@ -464,7 +464,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	double s, t, AgeSuscScale;
 	int i, j, k, f, nc, na;
 	char CountryNameBuf[128 * MAX_COUNTRIES], AdunitListNamesBuf[128 * MAX_ADUNITS];
-	char** AdunitNames, * AdunitNamesBuf;
 
 	char* CountryNames[MAX_COUNTRIES];
 	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
@@ -539,6 +538,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(dat, dat3, "Divisor for countries", "%i", (void*) & (P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 	if (P.DoAdUnits)
 	{
+    char** AdunitNames, * AdunitNamesBuf;
 		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 
@@ -604,9 +604,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			}
 			else
 				P.DoAdunitBoundaries = 0;
-			free(AdunitNames);
-			free(AdunitNamesBuf);
 		}
+    free(AdunitNames);
+    free(AdunitNamesBuf);
 		
 		if (!GetInputParameter2(dat, dat3, "Output incidence by administrative unit", "%i", (void*) & (P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
 		if (!GetInputParameter2(dat, dat3, "Draw administrative unit boundaries on maps", "%i", (void*) & (P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
