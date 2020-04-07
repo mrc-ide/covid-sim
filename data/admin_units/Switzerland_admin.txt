@@ -165,14 +165,14 @@ Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt
 0 0 1 1
 
 [Number of holidays]
-4
+9
 
 [Holiday start times]
-181	354	545	718	
+108	176	274	356	400	472	540	638	720
 
 
 [Holiday durations]
-36	14	36	14	
+14	56	14	12	10	14	56	14	12
 
 ===================================
 
