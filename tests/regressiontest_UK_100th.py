@@ -153,7 +153,7 @@ for dirname, filename in paths:
     except FileNotFoundError:
         # certUtil (always? available in modern Windows)
         output = subprocess.check_output(['certUtil', '-hashfile', filename, 'SHA512'], cwd=dirname)
-        sha = output.splitlines()[1]
+        sha = output.decode('utf-8').splitlines()[1]
     line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
     print(line)
     sha512sums.append(line)
