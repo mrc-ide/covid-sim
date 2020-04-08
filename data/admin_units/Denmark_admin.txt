@@ -138,20 +138,20 @@ Hovedstaden	Midtjylland	Nordjylland	Sjælland	Syddanmark
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-41	104	179	287	357	405	468	543	651	721	
+104	179	287	357	405	468	543	651	721	
 
 
 [Holiday durations]
-7	8	46	7	8	7	8	46	7	8	
+8	46	7	8	7	8	46	7	8	
 
 ===================================
 

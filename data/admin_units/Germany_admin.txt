@@ -149,20 +149,20 @@ Baden-Württemberg	Bayern	Berlin	Brandenburg	Bremen	Hamburg	Hessen	Mecklenburg-Vo
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-4
+11
 
 [Holiday start times]
-181	354	545	718	
+85	148	189	284	355	406	449	512	553	648	719
 
 
 [Holiday durations]
-36	14	36	14	
+11	6	42	10	14	7	11	6	42	10	14
 
 ===================================
 

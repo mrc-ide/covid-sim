@@ -149,20 +149,20 @@ Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-10
+9
 
 [Holiday start times]
-55	111	162	294	357	419	475	526	658	721	
+111	162	294	357	419	475	526	658	721	
 
 
 [Holiday durations]
-7	7	79	7	12	7	7	79	7	12	
+7	79	7	12	7	7	79	7	12	
 
 ===================================
 

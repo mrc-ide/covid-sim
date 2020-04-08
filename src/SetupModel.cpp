@@ -19,7 +19,7 @@
 
 void* BinFileBuf;
 bin_file* BF;
-int netbuf[NUM_PLACE_TYPES_NOAIR * 1000000];
+int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
@@ -263,7 +263,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
-	P.CellPop2 = ((double)P.N) * ((double)P.N) / (((double)P.NC) * ((double)P.NC));
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 
 	fprintf(stderr, "Initialising kernel...\n");
@@ -317,7 +316,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				}
 			}
 		}
-		for (j = 0; j < NUM_PLACE_TYPES_NOAIR; j++)
+		for (j = 0; j < P.PlaceTypeNoAirNum; j++)
 		{
 			m = l = 0;
 			while ((m < P.KeyWorkerPlaceNum[j]) && (l < 1000))
@@ -493,7 +492,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t = x = y = 0;
 	if (P.DoPlaces)
 		for (j = 0; j < P.PlaceTypeNum; j++)
-			if (j != HOTEL_PLACE_TYPE)
+			if (j != P.HotelPlaceType)
 			{
 #pragma omp parallel for private(i,k,d,q,s2,s3,t3,l,m,x,y) schedule(static,1000) reduction(+:t)
 				for (i = 0; i < P.N; i++)
@@ -1032,13 +1031,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			k += Cells[j].n;
 		}
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
-	if (!(RevCellLookup = (int*)malloc(P.NC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	i2 = 0;
-	for (j = 0; j < P.NC; j++)
-		if (Cells[j].n > 0)
-			RevCellLookup[j] = i2++;
-		else
-			RevCellLookup[j] = -1;
 
 	if (!(Hosts = (person*)calloc(P.N, sizeof(person)))) ERR_CRITICAL("Unable to allocate host storage\n");
 	fprintf(stderr, "sizeof(person)=%i\n", (int) sizeof(person));
@@ -1255,7 +1248,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				PropPlaces[k][l] += P.PlaceTypePropAgeGroup2[l];
 			if ((k < P.PlaceTypeAgeMax3[l]) && (k >= P.PlaceTypeAgeMin3[l]))
 				PropPlaces[k][l] += P.PlaceTypePropAgeGroup3[l];
-			if (l == HOTEL_PLACE_TYPE)
+			if (l == P.HotelPlaceType)
 				PropPlacesC[k][l] = ((l > 0) ? PropPlacesC[k][l - 1] : 0);
 			else
 				PropPlacesC[k][l] = PropPlaces[k][l] + ((l > 0) ? PropPlacesC[k][l - 1] : 0);
@@ -1383,7 +1376,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 		for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 			for (l = 1; l < P.PlaceTypeNum; l++)
-				if (l != HOTEL_PLACE_TYPE)
+				if (l != P.HotelPlaceType)
 				{
 					if (PropPlacesC[k][l - 1] < 1)
 						PropPlaces[k][l] /= (1 - PropPlacesC[k][l - 1]);
@@ -1463,6 +1456,9 @@ void SetupAirports(void)
 	indexlist* base, *cur;
 
 	fprintf(stderr, "Assigning airports to microcells\n");
+  // Convince static analysers that values are set correctly:
+  if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+
 	P.KernelType = P.AirportKernelType;
 	P.KernelScale = P.AirportKernelScale;
 	P.KernelShape = P.AirportKernelShape;
@@ -1564,7 +1560,7 @@ void SetupAirports(void)
 			}
 			l = 0;
 			for (j = 0; j < Airports[i].num_mcell; j++)
-				l += Mcells[Airports[i].DestMcells[j].id].np[HOTEL_PLACE_TYPE];
+				l += Mcells[Airports[i].DestMcells[j].id].np[P.HotelPlaceType];
 			if (l < 10)
 			{
 				fprintf(stderr, "(%i ", l);
@@ -1588,17 +1584,17 @@ void SetupAirports(void)
 			{
 				tmin += 0.25 * MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL;
 				Airports[i].num_place = 0;
-				for (j = 0; j < P.Nplace[HOTEL_PLACE_TYPE]; j++)
+				for (j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
 					if (dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
-						Places[HOTEL_PLACE_TYPE][j].loc_x, Places[HOTEL_PLACE_TYPE][j].loc_y) < tmin)
+						Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
 			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
 			if (!(Airports[i].DestPlaces = (indexlist*)calloc(Airports[i].num_place, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
-			for (j = 0; j < P.Nplace[HOTEL_PLACE_TYPE]; j++)
+			for (j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
 				if ((t = dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
-					Places[HOTEL_PLACE_TYPE][j].loc_x, Places[HOTEL_PLACE_TYPE][j].loc_y)) < tmin)
+					Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y)) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
@@ -1625,7 +1621,7 @@ void SetupAirports(void)
 	P.KernelShape = P.MoveKernelShape;
 	P.KernelP3 = P.MoveKernelP3;
 	P.KernelP4 = P.MoveKernelP4;
-	for (i = 0; i < P.Nplace[HOTEL_PLACE_TYPE]; i++) Places[HOTEL_PLACE_TYPE][i].n = 0;
+	for (i = 0; i < P.Nplace[P.HotelPlaceType]; i++) Places[P.HotelPlaceType][i].n = 0;
 	InitKernel(0, 1.0);
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
@@ -1913,7 +1909,7 @@ void AssignPeopleToPlaces(void)
 
 		for (tp = 0; tp < P.PlaceTypeNum; tp++)
 		{
-			if (tp != HOTEL_PLACE_TYPE)
+			if (tp != P.HotelPlaceType)
 			{
 				cnt = 0;
 				for (a = 0; a < P.NCP; a++)
@@ -2391,7 +2387,7 @@ void StratifyPlaces(void)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (j = tn; j < P.PlaceTypeNum; j += P.NumThreads)
 			{
-				if (j == HOTEL_PLACE_TYPE)
+				if (j == P.HotelPlaceType)
 				{
 					l = 2 * ((int)P.PlaceTypeMeanSize[j]);
 					for (i = 0; i < P.Nplace[j]; i++)
@@ -2520,7 +2516,7 @@ void LoadPeopleToPlaces(char* NetworkFile)
 		ERR_CRITICAL("Incompatible network file - please rebuild using '/S:'.\n");
 	}
 
-	npt = NUM_PLACE_TYPES_NOAIR;
+	npt = P.PlaceTypeNoAirNum;
 	fread_big(&i, sizeof(int), 1, dat);
 	fread_big(&j, sizeof(int), 1, dat);
 	fread_big(&s1, sizeof(long), 1, dat);
@@ -2571,7 +2567,7 @@ void SavePeopleToPlaces(char* NetworkFile)
 	FILE* dat;
 	int fileversion = NETWORK_FILE_VERSION;
 
-	npt = NUM_PLACE_TYPES_NOAIR;
+	npt = P.PlaceTypeNoAirNum;
 	if (!(dat = fopen(NetworkFile, "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 

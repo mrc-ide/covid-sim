@@ -21,6 +21,9 @@ void TravelReturnSweep(double t)
 {
 	int i, j, k, l, n, nr, ner, tn;
 
+	// Convince static analysers that values are set correctly:
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+
 	if (floor(1 + t + P.TimeStep) != floor(1 + t))
 	{
 		nr = ner = 0;
@@ -29,35 +32,35 @@ void TravelReturnSweep(double t)
 #pragma omp parallel for private(i,j,k,n,tn) reduction(+:nr,ner) schedule(static,1)
 		for (tn = 0; tn < P.NumThreads; tn++)
 		{
-			for (j = tn; j < P.Nplace[HOTEL_PLACE_TYPE]; j += P.NumThreads)
+			for (j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
 			{
-				n = Places[HOTEL_PLACE_TYPE][j].n;
+				n = Places[P.HotelPlaceType][j].n;
 				for (k = n - 1; k >= 0; k--)
 				{
-					i = Places[HOTEL_PLACE_TYPE][j].members[k];
+					i = Places[P.HotelPlaceType][j].members[k];
 					if (Hosts[i].Travelling == l)
 					{
 						n--;
-						/*						if((n<0)||(Places[HOTEL_PLACE_TYPE][j].members[n]<0)||(Places[HOTEL_PLACE_TYPE][j].members[n]>=P.N))
-													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[HOTEL_PLACE_TYPE][j].members[n]);ner++;}
+						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.N))
+													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else if((k<0)||(k>n))
-													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[HOTEL_PLACE_TYPE][j].members[n]);ner++;}
+													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else
 						*/
 						if (k != n)
 						{
-							Places[HOTEL_PLACE_TYPE][j].members[k] = Places[HOTEL_PLACE_TYPE][j].members[n];
+							Places[P.HotelPlaceType][j].members[k] = Places[P.HotelPlaceType][j].members[n];
 						}
 						nr++;
-						if (Hosts[i].PlaceLinks[HOTEL_PLACE_TYPE] != j)
+						if (Hosts[i].PlaceLinks[P.HotelPlaceType] != j)
 						{
-							ner++; fprintf(stderr, "(%i %i) ", j, Hosts[i].PlaceLinks[HOTEL_PLACE_TYPE]);
+							ner++; fprintf(stderr, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
 						}
-						Hosts[i].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+						Hosts[i].PlaceLinks[P.HotelPlaceType] = -1;
 						Hosts[i].Travelling = 0;
 					}
 				}
-				Places[HOTEL_PLACE_TYPE][j].n = n;
+				Places[P.HotelPlaceType][j].n = n;
 			}
 		}
 		fprintf(stderr, " d=%i e=%i>", nr, ner);
@@ -70,10 +73,13 @@ void TravelDepartSweep(double t)
 	double s, s2, nl;
 	cell* ct;
 
+	// Convince static analysers that values are set correctly:
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+
 	if (floor(1 + t - P.TimeStep) != floor(1 + t))
 	{
 		bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
-		mps = 2 * ((int)P.PlaceTypeMeanSize[HOTEL_PLACE_TYPE]) - P.NumThreads - 1;
+		mps = 2 * ((int)P.PlaceTypeMeanSize[P.HotelPlaceType]) - P.NumThreads - 1;
 		k = (int)floor(t);
 		d = k % MAX_TRAVEL_TIME;
 		nad = nld = nsk = 0;
@@ -104,9 +110,9 @@ void TravelDepartSweep(double t)
 								f2 = 1;
 #pragma omp critical
 								{
-									if (Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] == -1)
+									if (Hosts[i2].PlaceLinks[P.HotelPlaceType] == -1)
 									{
-										Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -2;
+										Hosts[i2].PlaceLinks[P.HotelPlaceType] = -2;
 										f2 = 0;
 									}
 								}
@@ -126,7 +132,7 @@ void TravelDepartSweep(double t)
 												nsk++;
 												j++;
 #pragma omp critical
-												Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+												Hosts[i2].PlaceLinks[P.HotelPlaceType] = -1;
 											}
 										}
 									}
@@ -141,18 +147,18 @@ void TravelDepartSweep(double t)
 											l = Airports[k].DestPlaces[m].id;
 #pragma omp critical
 											{
-												if ((hp = Places[HOTEL_PLACE_TYPE][l].n) < mps)
+												if ((hp = Places[P.HotelPlaceType][l].n) < mps)
 												{
 													f = 0;
-													Places[HOTEL_PLACE_TYPE][l].n++;
+													Places[P.HotelPlaceType][l].n++;
 												}
 											}
 											if (!f)
 											{
 												f3 = 0;
-												Places[HOTEL_PLACE_TYPE][l].members[hp] = i2;
+												Places[P.HotelPlaceType][l].members[hp] = i2;
 												d2 = (d + P.InvJourneyDurationDistrib[(int)(ranf_mt(tn) * 1024.0)]) % MAX_TRAVEL_TIME;
-												Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = l;
+												Hosts[i2].PlaceLinks[P.HotelPlaceType] = l;
 												Hosts[i2].Travelling = 1 + d2;
 												nad++;
 												j++;
@@ -162,7 +168,7 @@ void TravelDepartSweep(double t)
 										if (f)
 										{
 #pragma omp critical
-											Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+											Hosts[i2].PlaceLinks[P.HotelPlaceType] = -1;
 											if (++f3 > 100)
 											{
 												j++; nsk++;
@@ -177,18 +183,18 @@ void TravelDepartSweep(double t)
 					}
 				}
 		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
-		nl = ((double)P.PlaceTypeMeanSize[HOTEL_PLACE_TYPE]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
+		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
 #pragma omp parallel for private(c,i,i2,j,l,d2,m,n,s,s2,ct,f,f2,f3,tn,hp) reduction(+:nld,nsk) schedule(static,1)
 		for (tn = 0; tn < P.NumThreads; tn++)
-			for (i = tn; i < P.Nplace[HOTEL_PLACE_TYPE]; i += P.NumThreads)
+			for (i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				c = ((int)(Places[HOTEL_PLACE_TYPE][i].loc_x / P.cwidth)) * P.nch + ((int)(Places[HOTEL_PLACE_TYPE][i].loc_y / P.cheight));
+				c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.cwidth)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.cheight));
 				n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
-				if (Places[HOTEL_PLACE_TYPE][i].n + n > mps)
+				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
-					nsk += (Places[HOTEL_PLACE_TYPE][i].n + n - mps);
-					n = mps - Places[HOTEL_PLACE_TYPE][i].n;
+					nsk += (Places[P.HotelPlaceType][i].n + n - mps);
+					n = mps - Places[P.HotelPlaceType][i].n;
 				}
 				for (j = 0; j < n; j++)
 				{
@@ -208,18 +214,18 @@ void TravelDepartSweep(double t)
 							if ((Hosts[i2].Travelling == 0) && ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2])))
 							{
 #pragma omp critical
-								{if (Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] == -1) { Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -2; f3 = 1; }}
+								{if (Hosts[i2].PlaceLinks[P.HotelPlaceType] == -1) { Hosts[i2].PlaceLinks[P.HotelPlaceType] = -2; f3 = 1; }}
 							}
 							if (f3)
 							{
-								s2 = dist2_raw(Households[Hosts[i2].hh].loc_x, Households[Hosts[i2].hh].loc_y, Places[HOTEL_PLACE_TYPE][i].loc_x, Places[HOTEL_PLACE_TYPE][i].loc_y);
+								s2 = dist2_raw(Households[Hosts[i2].hh].loc_x, Households[Hosts[i2].hh].loc_y, Places[P.HotelPlaceType][i].loc_x, Places[P.HotelPlaceType][i].loc_y);
 								f2 = 1;
 								if ((bm) && (s2 > P.MoveRestrRadius2))
 								{
 									if (ranf_mt(tn) >= P.MoveRestrEffect)
 									{
 #pragma omp critical
-										Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+										Hosts[i2].PlaceLinks[P.HotelPlaceType] = -1;
 										nsk++;
 										f2 = 0;
 									}
@@ -230,19 +236,19 @@ void TravelDepartSweep(double t)
 									if (ranf_mt(tn) >= s)
 									{
 #pragma omp critical
-										Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+										Hosts[i2].PlaceLinks[P.HotelPlaceType] = -1;
 										f = 1;
 									}
 									else
 									{
 										d2 = (d + P.InvLocalJourneyDurationDistrib[(int)(ranf_mt(tn) * 1024.0)]) % MAX_TRAVEL_TIME;
-										hp = Places[HOTEL_PLACE_TYPE][i].n;
-										Places[HOTEL_PLACE_TYPE][i].n++;
-										Places[HOTEL_PLACE_TYPE][i].members[hp] = i2;
+										hp = Places[P.HotelPlaceType][i].n;
+										Places[P.HotelPlaceType][i].n++;
+										Places[P.HotelPlaceType][i].members[hp] = i2;
 										Hosts[i2].Travelling = 1 + d2;
 										nld++;
 #pragma omp critical
-										Hosts[i2].PlaceLinks[HOTEL_PLACE_TYPE] = i;
+										Hosts[i2].PlaceLinks[P.HotelPlaceType] = i;
 									}
 								}
 							}
@@ -369,7 +375,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									s3 *= P.MoveRestrEffect;
 								}
 
-								if ((k != HOTEL_PLACE_TYPE) && (!si->Travelling))
+								if ((k != P.HotelPlaceType) && (!si->Travelling))
 								{
 									i2 = (si->PlaceGroupLinks[k]);
 									s4 = s3;
@@ -420,7 +426,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										}
 									}
 								}
-								if ((k == HOTEL_PLACE_TYPE) || (!si->Travelling))
+								if ((k == P.HotelPlaceType) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
 									
@@ -1020,7 +1026,6 @@ int TreatSweep(double t)
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
 	int i, j, i2, j2, k, l, m, b;
-	int rd, prd, mrd; /// rd = radius; prd = place close radium; mrd = movement restriction radius in terms of microcells. 
 	int f, f1, f2, f3, f4; //// various fail conditions. Used for other things 
 	int tn, bs, adi, ad, ad2;
 	int minx, maxx, miny, trig_thresh, nckwp;
@@ -1040,9 +1045,6 @@ int TreatSweep(double t)
 	double r;
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
-	rd = (int)ceil(P.TreatRadius / P.mcwidth);
-	prd = (int)ceil(P.PlaceCloseRadius / P.mcwidth);
-	mrd = (int)ceil(P.MoveRestrRadius / P.mcwidth);
 	f = f1 = 0;
 	if (P.DoGlobalTriggers)
 	{
@@ -1124,7 +1126,7 @@ int TreatSweep(double t)
 		tspf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
 		tsmf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
 		tsmb = (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
-		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDuration));
+		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationC));
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
@@ -1346,7 +1348,7 @@ int TreatSweep(double t)
 						if (f2)
 						{
 							for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-								if (j2 != HOTEL_PLACE_TYPE)
+								if (j2 != P.HotelPlaceType)
 									for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
 										DoPlaceOpen(j2, Mcells[b].places[j2][i2], ts, tn);
 						}
@@ -1393,7 +1395,7 @@ int TreatSweep(double t)
 										Mcells[b].place_trig = 0;
 										Mcells[b].placeclose = 2;
 										for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-											if (j2 != HOTEL_PLACE_TYPE)
+											if (j2 != P.HotelPlaceType)
 												for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
 													DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
 									}

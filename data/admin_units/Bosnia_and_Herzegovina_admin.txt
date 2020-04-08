@@ -136,20 +136,20 @@ Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
 
 ===================================
 [Include holidays]
-0
+1
 
 [Proportion of places remaining open during holidays by place type]
 0 0 1 1
 
 [Number of holidays]
-6
+5
 
 [Holiday start times]
-1	88	170	365	452	534	
+88	170	365	452	534	
 
 
 [Holiday durations]
-25	8	72	25	8	72	
+8	72	25	8	72	
 
 ===================================
 
