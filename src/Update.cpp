@@ -456,6 +456,20 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		{
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
+
+			//if (ai == 857676)
+			//{
+			//	fprintf(stderr, "stop\n");
+			//}
+
+			if (P.DoDigitalContactTracing)
+			{
+				//set dct_trigger_time for index case
+				if (Hosts[ai].dct_trigger_time == (USHRT_MAX - 1)) //if this hasn't been set in DigitalContactTracingSweep due to detection of contact of contacts, set it here
+				{
+					Hosts[ai].dct_trigger_time = Hosts[ai].detected_time + (unsigned short int) (P.DelayFromIndexCaseDetectionToDCTIsolation * P.TimeStepsPerDay);
+				}
+			}
 		}
 
 
@@ -665,87 +679,97 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
 	if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
 	{
+		
 		// allow for DCT to isolate index cases
-		if ((Hosts[ai].digitalContactTraced == 0)&&(P.DCTIsolateIndexCases))
+		if (P.DCTIsolateIndexCases) //(Hosts[ai].digitalContactTraced == 0)&& - currently removed this condition as it would mean that someone already under isolation wouldn't have their isolation extended
 		{
-			j = Mcells[Hosts[ai].mcell].adunit;
-			if (AdUnits[j].ndct < AdUnits[j].n)
+			ad = Mcells[Hosts[ai].mcell].adunit;
+			//if (AdUnits[j].ndct < AdUnits[j].n)
+			if(StateT[tn].ndct_queue[ad] < AdUnits[ad].n)
 			{
-				Hosts[ai].digitalContactTraced = 2;
-				Hosts[ai].dct_start_time = ts + P.usCaseIsolationDelay;
-				Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-#pragma omp critical (indexDCT)
-				{
-					AdUnits[j].dct[AdUnits[j].ndct] = ai;
-					AdUnits[j].ndct++;
-				}
+				//if we are isolating an index case, we set their infector as themselves in order to get the timings consistent.
+				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = ai;
+				StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
+				StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
+
+				//Hosts[ai].digitalContactTraced = 2;
+				//Hosts[ai].dct_start_time = ts + P.usCaseIsolationDelay;
+				//Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
+//#pragma omp critical (indexDCT)
+				//{
+					//Commented this out and switched to state queues as otherwise they will be counted in the digital contact tracing numbers before their start time.
+					//AdUnits[j].dct[AdUnits[j].ndct] = ai;
+					//AdUnits[j].ndct++;
+				//}
 			}
 			else
 			{
-				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", j, AdUnits[j].ndct, P.InfQueuePeakLength);
+				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, StateT[tn].ndct_queue, AdUnits[ad].n);
 				fprintf(stderr, "Error!\n");
 			}
 		}
-		if(P.IncludeHouseholdDigitalContactTracing)
-		{
-			//Then we want to find all their household and place group contacts to add to the contact tracing queue
-			//Start with household contacts
-			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-			for (j = j1; j < j2; j++)
-			{
-				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-				if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
-				{
-					//add contact and detected infectious host to lists
-					ad = Mcells[Hosts[j].mcell].adunit;
-					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
-					{
-						StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = j;
-						StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
-					}
-					else
-					{
-						fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-					}
-				}
-			}
-		}
-		if(P.IncludePlaceGroupDigitalContactTracing)
-		{
-			//then loop over place group contacts as well
-			for (i = 0; i < P.PlaceTypeNum; i++)
-			{
-				k = Hosts[ai].PlaceLinks[i];
-				if (k >= 0)
-				{
-					//Find place group link
-					m = Hosts[ai].PlaceGroupLinks[i];
-					j1 = Places[i][k].group_start[m]; j2 = j1 + Places[i][k].group_size[m];
-					for (j = j1; j < j2; j++)
-					{
-						h = Places[i][k].members[j];
-						ad = Mcells[Hosts[h].mcell].adunit;
-						//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-						if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
-						{
-							ad = Mcells[Hosts[h].mcell].adunit;
-							if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
-							{
-								//PLEASE CHECK ALL THIS LOGIC CAREFULLY!
-								
-								StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = h;
-								StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai; //keep a record of who the detected case was
-							}
-							else 
-							{
-								fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-							}
-								
-						}
-					}
-				}
-			}
-		}
+		//currently commenting this out as household members will likely be picked up by hou
+
+		//if(P.IncludeHouseholdDigitalContactTracing)
+		//{
+		//	//Then we want to find all their household and place group contacts to add to the contact tracing queue
+		//	//Start with household contacts
+		//	j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
+		//	for (j = j1; j < j2; j++)
+		//	{
+		//		//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
+		//		if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//		{
+		//			//add contact and detected infectious host to lists
+		//			ad = Mcells[Hosts[j].mcell].adunit;
+		//			if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
+		//			{
+		//				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = j;
+		//				StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
+		//			}
+		//			else
+		//			{
+		//				fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+		//			}
+		//		}
+		//	}
+		//}
+		//if(P.IncludePlaceGroupDigitalContactTracing)
+		//{
+		//	//then loop over place group contacts as well
+		//	for (i = 0; i < P.PlaceTypeNum; i++)
+		//	{
+		//		k = Hosts[ai].PlaceLinks[i];
+		//		if (k >= 0)
+		//		{
+		//			//Find place group link
+		//			m = Hosts[ai].PlaceGroupLinks[i];
+		//			j1 = Places[i][k].group_start[m]; j2 = j1 + Places[i][k].group_size[m];
+		//			for (j = j1; j < j2; j++)
+		//			{
+		//				h = Places[i][k].members[j];
+		//				ad = Mcells[Hosts[h].mcell].adunit;
+		//				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
+		//				if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//				{
+		//					ad = Mcells[Hosts[h].mcell].adunit;
+		//					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
+		//					{
+		//						//PLEASE CHECK ALL THIS LOGIC CAREFULLY!
+		//						
+		//						StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = h;
+		//						StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai; //keep a record of who the detected case was
+		//					}
+		//					else 
+		//					{
+		//						fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+		//					}
+		//						
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 			
 	}
 	

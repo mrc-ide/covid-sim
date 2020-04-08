@@ -1407,15 +1407,15 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (i = 0; i < P.NumAdunits; i++)
 		{
 			//malloc or calloc for these?
-			if (!(AdUnits[i].dct_queue = (int*)malloc(AdUnits[i].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			if (!(AdUnits[i].dct = (int*)malloc(AdUnits[i].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		}
 		for (i = 0; i < P.NumThreads; i++)
 		{
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				if (!(StateT[i].dct_queue[j] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-				if (!(StateT[i].contacts[j] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].dct_queue[j] = (int*)malloc(AdUnits[j].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].contacts[j] = (int*)malloc(AdUnits[j].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].contact_time[j] = (unsigned short int*)malloc(AdUnits[j].n * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
 		
