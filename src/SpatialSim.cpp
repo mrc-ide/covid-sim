@@ -3345,7 +3345,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s", AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_adu%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s", AdUnits[i].ad_name);
 
 			//// cumulative incidence
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s", AdUnits[i].ad_name);
@@ -3360,23 +3360,26 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			/////// ****** /////// ****** /////// ****** Populate table. 
 			for (i = 0; i < P.NumSamples; i++)
 			{
-				if (i > 0)
+				
+				for (j = 0; j < P.NumAdunits; j++)
 				{
-					SARI_a[j] = (TSMean[i].SARI_adunit[j] - TSMean[i - 1].SARI_adunit[j]) * sc2 + SARI_a[j] * sc1;
-					Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc2 + Critical_a[j] * sc1;
-					CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc2 + CritRecov_a[j] * sc1;
-					incSARI_a[j] = TSMean[i].incSARI_adunit[j] * (1.0 - sc2) + incSARI_a[j] * sc1;
-					incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc2) + incCritical_a[j] * sc1;
-					incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc2) + incCritRecov_a[j] * sc1;
-				}
-				else
-				{
-					SARI_a[j] = TSMean[i].SARI_adunit[j] * sc2;
-					Critical_a[j] = TSMean[i].Critical_adunit[j] * sc2;
-					CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc2;
+					if (i > 0)
+					{
+						SARI_a[j] = (TSMean[i].SARI_adunit[j] - TSMean[i - 1].SARI_adunit[j]) * sc2a + SARI_a[j] * sc1a;
+						Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc2a + Critical_a[j] * sc1a;
+						CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc2a + CritRecov_a[j] * sc1a;
+						incSARI_a[j] = TSMean[i].incSARI_adunit[j] * (1.0 - sc2a) + incSARI_a[j] * sc1a;
+						incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc2a) + incCritical_a[j] * sc1a;
+						incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc2a) + incCritRecov_a[j] * sc1a;
+					}
+					else
+					{
+						SARI_a[j] = TSMean[i].SARI_adunit[j] * sc2a;
+						Critical_a[j] = TSMean[i].Critical_adunit[j] * sc2a;
+						CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc2a;
+					}
 				}
 				fprintf(dat, "%.10f", c*TSMean[i].t);
-
 				//// prevalance
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
