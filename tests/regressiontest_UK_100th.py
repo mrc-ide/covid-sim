@@ -88,8 +88,8 @@ updir1 = os.pardir + os.sep
 shutil.rmtree(testdir, True)
 os.mkdir(testdir)
 os.chdir(testdir)
-subprocess.run(['cmake', updir2 + 'src'])
-subprocess.run(['cmake', '--build', '.'])
+subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2 + 'src'])
+subprocess.check_call(['cmake', '--build', '.'])
 
 if os.name == 'nt':
     spacialsim_exe = os.getcwd() + os.sep + 'Debug\SpatialSim.exe'
@@ -111,7 +111,7 @@ if not os.path.exists(wpop_file):
 
 # Run the simulation.
 print('=== Starting building network:')
-subprocess.run(
+subprocess.check_call(
     [spacialsim_exe, '/c:1',
      '/PP:' +  updir1 + 'preUK_R0=2.0.txt', 
      '/P:' + updir1  + 'p_NoInt.txt', '/CLP1:100000',
@@ -121,7 +121,7 @@ subprocess.run(
      '98798150', '729101', '17389101', '4797132'
     ])
 print('=== Starting running:')
-subprocess.run(
+subprocess.check_call(
     [spacialsim_exe, '/c:1',
      '/PP:' + updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1 + 'p_PC7_CI_HQ_SDbad.txt', '/CLP1:100',
@@ -135,37 +135,44 @@ print('=== Done')
 
 checksums_filename='regressiontest_UK_100th.checksums.txt'
 
-# Compute SHA-512 checksums for the generated .xls files.
+# Compute SHA-512 checksums for the generated files.
+paths = []
 sha512sums = []
 for direntry in os.scandir():
     name = direntry.name
     if name.endswith('.xls'):
-        try:
-            # sha512sum (usually installed on Linux, sometimes on Windows)
-            sha512sum = subprocess.check_output(['sha512sum', '--binary', name])
-        except FileNotFoundError:
-            # certUtil (always? available in modern Windows)
-            output = subprocess.check_output(['certUtil', '-hashfile', name, 'SHA512'])
-            sha512sum = output.splitlines()[1] + b" *" + name.encode() + b"\n"
-        print(sha512sum.decode('utf-8'))
-        sha512sums.append(sha512sum)
+        paths.append((None, name))
+paths.append(('CI_100_91_R0=2.2.ge', 'CI_100_91_R0=2.2.00100.bmp'))
+max_filename_len = max(map(len, [ filename for dirname, filename in paths ]))
+
+for dirname, filename in paths:
+    try:
+        # sha512sum (usually installed on Linux, sometimes on Windows)
+        output = subprocess.check_output(['sha512sum', '--binary', filename], cwd=dirname)
+        sha = output.decode('utf-8').split(' ')[0]
+    except FileNotFoundError:
+        # certUtil (always? available in modern Windows)
+        output = subprocess.check_output(['certUtil', '-hashfile', filename, 'SHA512'], cwd=dirname)
+        sha = output.decode('utf-8').splitlines()[1]
+    line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
+    print(line)
+    sha512sums.append(line)
 
 sha512sums.sort()
 print('New checksums:')
-print(b''.join(sha512sums).decode('utf-8'))
+print('\n'.join(sha512sums))
 print('end')
 
 # Write the checksums into a file in the temporary directory. (This is
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
 with open(checksums_filename, 'wb') as checksums_outfile:
-    for sha512sum in sha512sums:
-        checksums_outfile.write(sha512sum)
+    checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
 
 # Read the expected checksums from the reference file.
-sha512sums_reference = open(os.pardir + os.sep + checksums_filename, 'rb').readlines()
+sha512sums_reference = list(filter(None, open(os.pardir + os.sep + checksums_filename, 'rb').read().decode('utf-8').split('\n')))
 print('Reference checksums:')
-print(b''.join(sha512sums_reference).decode('utf-8'))
+print('\n'.join(sha512sums_reference))
 print('end')
 
 # Compare the checksums against the expected values.

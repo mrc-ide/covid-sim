@@ -18,7 +18,9 @@
 ULONG_PTR m_gdiplusToken;
 static HBITMAP bmpdib;
 static CLSID  encoderClsid;
-#else
+#endif
+
+#ifndef _WIN32
 #include <sys/stat.h> // for mkdir
 #endif
 
@@ -293,7 +295,7 @@ void InitBMHead()
 
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);
-#ifdef WIN32_BM
+#ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else
 	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);
