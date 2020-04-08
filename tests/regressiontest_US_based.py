@@ -152,7 +152,7 @@ subprocess.run(
      '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
-print('=== Starting running (no schools):')
+print('=== Starting running (schools):')
 subprocess.run(
     [spacialsim_exe, '/c:1',
      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
@@ -170,37 +170,43 @@ print('=== Done')
 expected_checksums = os.path.join(input_dir, 'results.checksums.txt')
 actual_checksums = os.path.join(output_dir, 'results.checksums.txt')
 
-# Compute SHA-512 checksums for the generated .xls files.
+# Compute SHA-512 checksums for the generated files.
+paths = []
 sha512sums = []
 for direntry in os.scandir():
     name = direntry.name
     if name.endswith('.xls'):
-        try:
-            # sha512sum (usually installed on Linux, sometimes on Windows)
-            sha512sum = subprocess.check_output(['sha512sum', '--binary', name])
-        except FileNotFoundError:
-            # certUtil (always? available in modern Windows)
-            output = subprocess.check_output(['certUtil', '-hashfile', name, 'SHA512'])
-            sha512sum = output.splitlines()[1] + b" *" + name.encode() + b"\n"
-        print(sha512sum.decode('utf-8'))
-        sha512sums.append(sha512sum)
+        paths.append((None, name))
+max_filename_len = max(map(len, [ filename for dirname, filename in paths ]))
+
+for dirname, filename in paths:
+    try:
+        # sha512sum (usually installed on Linux, sometimes on Windows)
+        output = subprocess.check_output(['sha512sum', '--binary', filename], cwd=dirname)
+        sha = output.decode('utf-8').split(' ')[0]
+    except FileNotFoundError:
+        # certUtil (always? available in modern Windows)
+        output = subprocess.check_output(['certUtil', '-hashfile', filename, 'SHA512'], cwd=dirname)
+        sha = output.decode('utf-8').splitlines()[1]
+    line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
+    print(line)
+    sha512sums.append(line)
 
 sha512sums.sort()
 print('New checksums:')
-print(b''.join(sha512sums).decode('utf-8'))
+print('\n'.join(sha512sums))
 print('end')
 
 # Write the checksums into a file in the temporary directory. (This is
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
 with open(actual_checksums, 'wb') as checksums_outfile:
-    for sha512sum in sha512sums:
-        checksums_outfile.write(sha512sum)
+    checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
 
 # Read the expected checksums from the reference file.
-sha512sums_reference = open(expected_checksums, 'rb').readlines()
+sha512sums_reference = list(filter(None, open(expected_checksums, 'rb').read().decode('utf-8').split('\n')))
 print('Reference checksums:')
-print(b''.join(sha512sums_reference).decode('utf-8'))
+print('\n'.join(sha512sums_reference))
 print('end')
 
 # Compare the checksums against the expected values.
