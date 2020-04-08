@@ -167,8 +167,7 @@ print('end')
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
 with open(checksums_filename, 'wb') as checksums_outfile:
-    for sha512sum in sha512sums:
-        checksums_outfile.write(sha512sum.encode('utf-8'))
+    checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
 
 # Read the expected checksums from the reference file.
 sha512sums_reference = list(filter(None, open(os.pardir + os.sep + checksums_filename, 'rb').read().decode('utf-8').split('\n')))
