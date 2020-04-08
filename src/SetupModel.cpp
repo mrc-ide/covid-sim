@@ -522,18 +522,22 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				}
 				fprintf(stderr, "%lg  ", t / ((double)P.N));
 			}
-#pragma omp parallel for private(i) schedule(static,500) reduction(+:x,y)
-	for (i = 0; i < P.N; i++)
 	{
-		x += Hosts[i].recovery_time * P.TimeStep;
-		y += Hosts[i].recovery_time;
-		Hosts[i].recovery_time = 0;
+		double recovery_time_days = 0;
+		double recovery_time_timesteps = 0;
+#pragma omp parallel for private(i) schedule(static,500) reduction(+:recovery_time_days,recovery_time_timesteps)
+		for (i = 0; i < P.N; i++)
+		{
+			recovery_time_days += Hosts[i].recovery_time * P.TimeStep;
+			recovery_time_timesteps += Hosts[i].recovery_time;
+			Hosts[i].recovery_time = 0;
+		}
+		t /= ((double)P.N);
+		recovery_time_days /= ((double)P.N);
+		recovery_time_timesteps /= ((double)P.N);
+		fprintf(stderr, "R0 for places = %lg\nR0 for random spatial = %lg\nOverall R0=%lg\n", P.R0places = t, P.R0spatial = P.R0 - s - t, P.R0);
+		fprintf(stderr, "Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
 	}
-	t /= ((double)P.N);
-	x /= ((double)P.N);
-	y /= ((double)P.N);
-	fprintf(stderr, "R0 for places = %lg\nR0 for random spatial = %lg\nOverall R0=%lg\n", P.R0places = t, P.R0spatial = P.R0 - s - t, P.R0);
-	fprintf(stderr, "Mean infectious period (sampled) = %lg (%lg)\n", x, y);
 	if (P.DoSI)
 		P.LocalBeta = (P.R0 / t2 - s - t);
 	else
