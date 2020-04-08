@@ -13,7 +13,7 @@
 0	0	0
 
 [Duration of place closure by admin unit]
-0	0	0
+121	121	121
 
 [Place closure in administrative units rather than rings]
 0
@@ -34,7 +34,7 @@
 1
 
 [Duration of place closure]
-#2
+121
 
 [Proportion of places remaining open after closure by place type]
 0	0	0.25	1
@@ -59,7 +59,7 @@
  ^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
-#1
+100
 
 *** ^^^ change this for global too ***	
 
@@ -76,7 +76,7 @@
 0	0	0
 
 [Duration of household quarantine by admin unit]
-0	0	0
+121	121	121
 
 [Household quarantine trigger incidence per cell]
 0
@@ -85,7 +85,7 @@
 14
 
 [Duration of household quarantine policy]
-#4
+121
 
 [Relative household contact rate after quarantine]
 2
@@ -112,7 +112,7 @@
 0	0	0
 
 [Duration of case isolation by admin unit]
-0	0	0
+121	121	121
 
 [Case isolation trigger incidence per cell]
 0
@@ -127,7 +127,7 @@
 7
 
 [Duration of case isolation policy]
-#4
+121
 
 [Residual contacts after case isolation]
 0.25
@@ -145,13 +145,13 @@
 0	0	0
 
 [Duration of social distancing by admin unit]
-0	0	0
+121	121	121
 
 [Trigger incidence per cell for social distancing]
-#1
+100
 
 [Duration of social distancing]
-#2
+121
 
 [Relative place contact rate given social distancing by place type]
 1	1	0.75	0.75
@@ -223,10 +223,16 @@
 ^These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't result in infection)
 
 [Digital contact tracing trigger incidence per cell]
-#1
+100
 
 [Duration of digital contact tracing policy]
-#2
+121
+
+[Duration of digital contact tracing by admin unit]
+121	121	121
+
+[Delay to digital contact tracing by admin unit]
+0	0	0
 
 [Output digital contact tracing]
 1

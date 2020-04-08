@@ -34,7 +34,7 @@
 1
 
 [Duration of place closure]
-#2
+0
 
 [Proportion of places remaining open after closure by place type]
 0	0	0.25	1
@@ -59,7 +59,7 @@
  ^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
-#1
+10000000000
 
 *** ^^^ change this for global too ***	
 
@@ -84,7 +84,7 @@
 14
 
 [Duration of household quarantine policy]
-#4
+0
 
 [Relative household contact rate after quarantine]
 2
@@ -125,7 +125,7 @@
 7
 
 [Duration of case isolation policy]
-#4
+0
 
 [Residual contacts after case isolation]
 0.25
@@ -145,10 +145,10 @@
 0	0	0
 
 [Trigger incidence per cell for social distancing]
-#1
+10000000000
 
 [Duration of social distancing]
-#2
+0
 
 [Relative place contact rate given social distancing by place type]
 1	1	0.75	0.75
@@ -219,10 +219,16 @@
 
 
 [Digital contact tracing trigger incidence per cell]
-#1
+100000000
 
 [Duration of digital contact tracing policy]
-#2
+0
+
+[Duration of digital contact tracing by admin unit]
+0	0	0
+
+[Delay to digital contact tracing by admin unit]
+0	0	0
 
 [Output digital contact tracing]
 1

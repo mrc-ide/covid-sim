@@ -255,7 +255,7 @@ Also comparable with 1957 pandemic attack rates from Chin.
 1
 
 [Treatment trigger incidence per cell]
-#1
+100
 
 [Places close only once]
 1

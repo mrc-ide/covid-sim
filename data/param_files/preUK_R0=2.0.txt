@@ -200,7 +200,7 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 1
 
 [Number of deaths accummulated before alert]
-#3
+1
 
 [Number of days to accummulate cases/deaths before alert]
 7
