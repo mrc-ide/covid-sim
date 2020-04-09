@@ -138,34 +138,36 @@ subprocess.run(
      '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
-print('=== Starting building network (schools):')
-subprocess.run(
-    [spacialsim_exe, '/c:1',
-     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
-     '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
-     '/O:' + os.path.join(output_dir, 'results-noint-schools'),
-     '/D:' + wpop_file,
-     '/M:' + wpop_bin_schools,
-     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
-     '/S:' + os.path.join(output_dir, 'network-schools.bin'),
-     '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
-     '/R:1.5',
-     '98798150', '729101', '17389101', '4797132'
-    ])
-print('=== Starting running (schools):')
-subprocess.run(
-    [spacialsim_exe, '/c:1',
-     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
-     '/P:' + os.path.join(input_dir, 'input-params.txt'),
-     '/O:' + os.path.join(output_dir, 'results-int-schools'),
-     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
-     '/D:' + wpop_bin_schools,
-     '/L:' + os.path.join(output_dir, 'network-schools.bin'),
-     '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
-     '/R:1.5',
-     '98798150', '729101', '17389101', '4797132'
-    ])
-print('=== Done')
+
+# Disable school testing for the moment.
+# print('=== Starting building network (schools):')
+# subprocess.run(
+#     [spacialsim_exe, '/c:1',
+#      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+#      '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
+#      '/O:' + os.path.join(output_dir, 'results-noint-schools'),
+#      '/D:' + wpop_file,
+#      '/M:' + wpop_bin_schools,
+#      '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+#      '/S:' + os.path.join(output_dir, 'network-schools.bin'),
+#      '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
+#      '/R:1.5',
+#      '98798150', '729101', '17389101', '4797132'
+#     ])
+# print('=== Starting running (schools):')
+# subprocess.run(
+#     [spacialsim_exe, '/c:1',
+#      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+#      '/P:' + os.path.join(input_dir, 'input-params.txt'),
+#      '/O:' + os.path.join(output_dir, 'results-int-schools'),
+#      '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+#      '/D:' + wpop_bin_schools,
+#      '/L:' + os.path.join(output_dir, 'network-schools.bin'),
+#      '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
+#      '/R:1.5',
+#      '98798150', '729101', '17389101', '4797132'
+#     ])
+# print('=== Done')
 
 expected_checksums = os.path.join(input_dir, 'results.checksums.txt')
 actual_checksums = os.path.join(output_dir, 'results.checksums.txt')
