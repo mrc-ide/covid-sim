@@ -114,6 +114,9 @@ typedef struct POPVAR {
  * 
  * In the function `RecordSample` we transform (copy parts, calculate summary statistics) 
  * of the `POPVAR` state into a time-stamped `RESULTS` structure.
+ *
+ * NOTE: This struct must contain only doubles (and arrays of doubles) for the TSMean
+ * 	     averaging code to work.
  */
 typedef struct RESULTS {
 

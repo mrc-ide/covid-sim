@@ -1,0 +1,571 @@
+[Update timestep]
+0.25
+
+[Equilibriation time]
+0
+
+[Sampling timestep]
+1
+
+[Sampling time]
+720
+
+[Population size]
+325000000
+
+
+[Fix population size at specified value]
+1
+
+[Include administrative units within countries]
+1
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+1000
+
+[Divisor for countries]
+100000
+
+[Number of level 1 administrative units to include]
+49
+
+[List of level 1 administrative units to include]
+4601000	4603000	4604000	4605000	4606000	4607000	4608000	4609000	4610000	4611000	4613000	4614000	4615000	4616000	4617000	4618000	4619000	4620000	4621000	4622000	4623000	4624000	4625000	4626000	4627000	4628000	4629000	4630000	4631000	4632000	4633000	4634000	4635000	4636000	4637000	4638000	4639000	4640000	4641000	4642000	4643000	4644000	4645000	4646000	4647000	4648000	4649000	4650000	4651000
+	
+
+[Output incidence by administrative unit]
+1
+
+[Correct administrative unit populations]
+0
+
+[Number of spatial cells]
+-1
+
+[Grid size]	
+0.075
+
+[Use long/lat coord system]
+1
+
+[Spatial domain for simulation]	
+-124.733333333	24.551
+-66.9583333333	49.376
+
+[Number of micro-cells per spatial cell width]		
+9	
+
+[Proportion of network transmission]
+0
+
+[Include age]
+1	
+
+[Age distribution of population]
+0.061669715	0.062641379	0.064402133	0.064699202	0.066326894	0.071667951	0.067134551	0.065816306	0.060004889	0.063863695	0.064671352	0.066908654	0.062130791	0.05262767	0.04133904	0.027577927	0.036517854
+
+
+
+[Initial immunity profile by age]	
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+
+[Initial immunity applied to all household members]
+1
+
+[Relative spatial contact rates by age]
+0.6	0.7	0.75	1	1	1	1	1	1	1	1	1	1	1	1	0.75	0.5
+[POLYMOD, averaging 20-70]
+
+0.25	0.25	0.5	0.75	1	1	1	1	1	1	1	1	1	0.75	0.5	0.25	0.25
+
+
+[Include households]
+1		
+
+[Household size distribution]
+0.283708848	0.345103011	0.150677793	0.12764915	0.057777709	0.022624223	0.008172906	0.002900964	0.001022776	0.000362621
+
+
+[Household attack rate]
+0.14
+
+(Adjusted to be the same as Cauchemez 2004 for R0=1.3.)		
+
+
+[Relative transmission rates for place types]
+0.14	0.07	0.07
+
+
+School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. 
+Also comparable with 1957 pandemic attack rates from Chin.
+
+[Household transmission denominator power]		
+0.8
+	
+(Cauchemez 2004)	
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 
+0 1 0 
+0 0 1 
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+3
+
+[Proportion of age group 1 in place types]
+1	0.68	0
+
+[Minimum age for age group 1 in place types]
+6	18	0
+
+[Maximum age for age group 1 in place types]
+18	65	85
+
+[Proportion of age group 2 in place types]
+0.25	0.32	0
+
+[Minimum age for age group 2 in place types]	
+5	65	0
+
+[Maximum age for age group 2 in place types]	
+6	75	85
+
+[Proportion of age group 3 in place types]
+0.014	0	0.01
+
+[Minimum age for age group 3 in place types]	
+20	21	0
+
+[Maximum age for age group 3 in place types]	
+65	65	85
+
+[Kernel type for place types]
+5	6	2
+
+[Kernel shape params for place types]	
+11	6.5	3
+
+[Kernel scale params for place types]	
+14000	35000	4000
+
+[Kernel 3rd param for place types]
+0	0.0004	0
+
+[Kernel 4th param for place types]
+0	2.2	0
+
+[Mean size of place types]	
+460	14.28	100
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]	
+10	0	0
+
+[Param 1 of place group size distribution]	
+25	10	1000
+
+[Power of place size distribution]	
+0	1.34	0
+
+[Offset of place size distribution]
+0	5.35	0
+
+[Maximum of place size distribution]
+0	5927	0
+
+[Proportion of between group place links]	
+0.25	0.25	1.0
+
+(25% of within-group contacts)
+
+
+[Include symptoms]
+1
+
+[Delay from end of latent period to start of symptoms]
+0.5
+
+assume average time to symptom onset is a day
+
+[Proportion symptomatic by age group]
+0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66
+0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
+
+[Symptomatic infectiousness relative to asymptomatic]
+1.5
+2
+
+[Relative rate of random contacts if symptomatic]
+0.5
+
+[Relative level of place attendance if symptomatic]
+0.25 	0.25	0.5
+
+
+
+[Model symptomatic withdrawal to home as true absenteeism]
+1
+
+[Maximum age of child at home for whom one adult also stays at home]
+16
+
+[Proportion of children at home for whom one adult also stays at home]
+1
+
+[Duration of place absenteeism for cases who withdraw]
+7
+
+[Proportion of cases dying]
+0.0
+
+[Kernel type]
+6
+
+[Kernel scale]
+35000
+
+[Kernel Shape]
+6
+
+[Kernel 3rd param]
+0.0004
+
+[Kernel 4th param]
+2.2
+
+[Airport Kernel Type]
+5
+
+[Airport Kernel Scale]
+70000
+
+[Airport Kernel Shape]
+5
+
+[Include air travel]
+0
+
+[Scaling factor for input file to convert to daily traffic]
+0.02739726
+
+[Proportion of hotel attendees who are local]
+0.5
+
+[Distribution of duration of air journeys]
+0.251535987	0.118533503	0.111732441	0.100318764	0.086858903	0.073041965	0.059930976	0.051250658	0.037926671	0.029373344	0.022391185	0.016819546	0.012461722	0.009114166
+
+
+[Distribution of duration of local journeys]
+0.599865282	0.179106553	0.085043398	0.047388702	0.028660397	0.01826272	0.012076961	0.008765688	0.00571327	0.004047072	0.002911161	0.002121768	0.001564184	0.001164773
+
+[Number of seed locations]
+3
+
+[Administrative unit to seed initial infection into]
+0	4643000	4648000
+
+[Administrative unit seeding weights]
+1	1	1
+[Initial number of infecteds]
+0
+
+[Location of initial infecteds]
+-0.176 50.835
+200000	200000
+
+[Maximum population in microcell of initial infection]
+500000000
+
+[Randomise initial infection location]
+1
+
+[All initial infections located in same microcell]
+0
+
+[Time when infection rate changes]
+30
+
+[Initial rate of importation of infections]
+1
+
+
+[Changed rate of importation of infections]
+1
+
+
+[Length of importation time profile provided]
+150
+
+[Daily importation time profile]
+0.00039637	0.000422404	0.000603232	0.000806818	0.000977838	0.001215654	0.001475435	0.001759331	0.002095855	0.002476933	0.002909161	0.003410198	0.003982451	0.004638805	0.005395127	0.00626298	0.007261369	0.008410463	0.009732184	0.011253768	0.01300553	0.015022328	0.017344927	0.020019826	0.023100555	0.026649391	0.030737285	0.035446471	0.04087166	0.04712199	0.054323081	0.062619805	0.072178958	0.083192875	0.095883242	0.110505088	0.127353055	0.146765647	0.169134051	0.194907414	0.224605405	0.258825037	0.298255169	0.343688393	0.396040694	0.456363956	0.525872339	0.605965353	0.698253328	0.804594637	0.927128729	1.068321589	1.231009953	1.418469229	1.634476217	1.883366252	2.170149943	2.500595049	2.881346836	3.320054954	3.825541988	4.407960394	5.07901906	5.852193458	6.742999237	7.769281222	8.951656384	10.31379847	11.88295306	13.690484	15.7725322	18.17054397	20.93225706	24.11247717	27.77414928	31.98955641	36.84153527	42.42484495	48.84810841	56.23529325	64.72777172	74.48650501	85.69401624	98.55689323	113.307934	130.2079818	149.5482524	171.650606	196.8670786	225.5805289	258.1996665	295.1479906	336.8602628	383.7567184	382.0284161	329.2333209	282.9819783	242.6943429	207.7671547	177.6025491	151.6341438	129.3333359	110.223406	93.87499488	79.90856345	67.99027638	57.82900897	49.17215405	41.80131863	35.5286855	30.19272742	25.65482116	21.79680064	18.51741927	15.73036742	13.3620726	11.34984238	9.640307581	8.188006869	6.954337378	5.906435165	5.016354116	4.260368274	3.61826508	3.072912654	2.609742089	2.216371142	1.882286966	1.598554546	1.357591285	1.152944119	0.979149081	0.831549648	0.70620165	0.59974816	0.509342763	0.43256591	0.367362791	0.311990061	0.264964778	0.22502858	0.19111364	0.162311178	0.137852214	0.117080312	0.099440002	0.084459683	0.07173828	0.06093513	0.051761119
+0
+
+
+[Assume SI model]
+0
+
+[Reproduction number]
+2
+
+[Power of scaling of spatial R0 with density]
+0
+
+[Include latent period]
+1
+
+[Latent period]	
+4.59
+
+(From Marc's estimates) - minus half a day to account for infectiousness pre symptom onset
+
+[Latent period inverse CDF]
+0	0.098616903	0.171170649	0.239705594	0.307516598	0.376194441	0.446827262	0.520343677	0.597665592	0.679808341	0.767974922	0.863671993	0.968878064	1.086313899	1.219915022	1.37573215	1.563841395	1.803041398	2.135346254	2.694118208	3.964172493
+
+
+
+(From Marc's estimates)
+
+0.337603919	0.531028655	0.605598307	0.663734057	0.714098988	0.760017037	0.803220894	0.844790662	0.885497063	0.925959562	0.966735451	1.008383094	1.05152112	1.096901152	1.145518376	1.19880817	1.25904732	1.330312414	1.421351091	1.55855824	2.120232776
+
+
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1
+(fixed latent period)
+
+0	0.084316056	0.179208436	0.287716206	0.414411663	0.566644354	0.757376134	0.806831536	0.859743301	0.916631096	0.978141381	1.04509234	1.118540666	1.199884333	1.291027502	1.394658862	1.514752269	1.645029341	1.802468475	2.001461849	2.272128403
+
+(Elveback)
+
+[Model time varying infectiousness]
+1
+
+[Infectiousness profile]
+0.487464241	1	1.229764827	1.312453175	1.307955665	1.251658756	1.166040358	1.065716869	0.960199498	0.855580145	0.755628835	0.662534099	0.577412896	0.500665739	0.432225141	0.371729322	0.318643018	0.272340645	0.232162632	0.19745264	0.167581252	0.141960133	0.120049578	0.101361532	0.085459603	0.071957123	0.060514046	0.050833195	0.04265624	0.035759641	0.029950735	0.025064045	0.02095788	0.017511251	0.014621091	0.012199802	0.010173075	0.008477992	0.007061366	0.005878301	0.00489096	0.004067488	0.003381102	0.00280931	0.002333237	0.001937064	0.001607543	0.001333589	0.001105933	0.00091683	0.000759816	0.000629496	0.000521372	0.000431695	0.000357344	0.000295719	0.000244659
+
+
+
+10.66332076	4.541186908	2.687577454	1.827631772	1.340883681	1.033008677	0.823681092	0.673874701	0.562464626	0.47708646	0.410059783	0.356384398	0.312678622	0.276582011	0.246402478	0.220899078	0.199143584	0.18042958	0.164211194	0.150060852	0.137639543	0.126675513	0.11694875	0.108279517	0.100519754	0.093546572	0.087257254	0.081565386
+
+
+[Infectious period]
+14
+
+[Infectious period inverse CDF]	
+0	0.171566836	0.424943468	0.464725594	0.50866631	0.55773764	0.613298069	0.67732916	0.752886568	0.843151261	0.895791527	0.955973422	1.026225109	1.110607115	1.216272375	1.336349102	1.487791911	1.701882384	1.865779085	2.126940581	2.524164972
+
+(Cauchemez)
+
+[k of individual variation in infectiousness]
+0.25
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0	0	1	1
+
+[Number of holidays]
+5
+
+[Holiday start times]
+31	87	109	214
+
+23	78	127	176	234
+
+[Holiday durations]
+15	8	7	78
+
+14	7	14	7	42
+
+===================================
+
+
+[Target country]	
+46
+	
+[Restrict treatment to target country]
+0
+
+
+[Use global triggers for interventions]
+0
+
+[Use admin unit triggers for interventions]
+1
+
+[Number of sampling intervals over which cumulative incidence measured for global trigger]
+7
+
+[Use cases per thousand threshold for area controls]
+0
+
+[Divisor for per-capita global threshold (default 1000)]
+100000
+
+[Divisor for per-capita area threshold (default 1000)]
+1000000
+
+
+[Proportion of cases detected before outbreak alert]
+1
+
+[Number of detected cases needed before outbreak alert triggered]
+100
+
+[Proportion of cases detected for treatment]
+1
+
+[Treatment trigger incidence per cell]
+#1
+
+[Places close only once]
+1
+
+[Social distancing only once]
+1
+
+
+[Use ICU case triggers for interventions]
+1
+
+====================================
+
+[Number of realisations]
+1
+
+[Number of non-extinct realisations]
+1
+
+[Maximum number of cases defining small outbreak]
+10000
+
+[Do one generation]
+0
+
+[Output every realisation]
+1
+
+[Output bitmap]
+0
+
+[Output infection tree]
+0
+
+[Only output non-extinct realisations]
+0
+
+[Bitmap scale]
+60
+
+[Bitmap y:x aspect scaling]
+1.5
+
+[Calculate spatial correlations]
+0
+
+[Bitmap movie frame interval]
+300
+
+[Record infection events]
+0
+
+[Record infection events per run]
+0
+
+[Max number of infection events to record]
+10000000000
+
+[Limit number of infections]
+0
+
+[Max number of infections]
+10000000000
+
+
+===================================																				
+
+[Do Severity Analysis]																				
+1																				
+																				
+[Mean_MildToRecovery]																				
+10																				
+																				
+[Mean_ILIToRecovery]																				
+14
+
+[Mean_SARIToRecovery]																				
+8																				
+																				
+[Mean_CriticalToCritRecov]																				
+10																				
+																				
+[Mean_CritRecovToRecov]																				
+5																				
+																				
+[Mean_ILIToSARI]																				
+5																				
+																				
+[Mean_SARIToCritical]																				
+6																				
+																				
+[Mean_CriticalToDeath]																				
+10																				
+																				
+[Mean_SARIToDeath]																				
+8																				
+																				
+[MildToRecovery_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1
+
+																				
+[ILIToRecovery_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																			
+[SARIToRecovery_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																			
+[CriticalToCritRecov_icdf]																			1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+[CritRecovToRecov_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+[ILIToSARI_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+[SARIToCritical_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+[CriticalToDeath_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+																
+[SARIToDeath_icdf]																				
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1																				
+[Prop_Mild_ByAge]																				
+0.642962245	0.642962245	0.628705377	0.628705377	0.579207151	0.579207151	0.540447477	0.540447477	0.511295428	0.511295428	0.421230829	0.421230829	0.342452284	0.342452284	0.267218361	0.267218361	0.234989185
+																				
+[Prop_ILI_ByAge]																				
+0.356293563	0.35640359	0.370123515	0.368900031	0.415446412	0.410502964	0.443317919	0.436203354	0.459759949	0.45009753	0.521034292	0.506347036	0.555945257	0.540567901	0.586682575	0.556146985	0.585010815
+																					
+[Prop_SARI_ByAge]																				
+0.001070934	0.0009126	0.001685292	0.003445953	0.007693823	0.014807722	0.023362506	0.033494916	0.041235376	0.054131584	0.078413377	0.093333699	0.119494142	0.122831301	0.135965201	0.144193328	0.079242424
+
+																			
+[Prop_Critical_ByAge]																				
+5.66296E-05	4.82571E-05	8.9116E-05	0.000182217	0.000406839	0.000783013	0.001235379	0.001882613	0.002620114	0.004363934	0.009063713	0.016396809	0.034448976	0.054410842	0.085397018	0.123434935	0.193484848
+
+							
+[CFR_Critical_ByAge]																				
+0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5	0.5				
+																				
+[CFR_SARI_ByAge]																				
+0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.014293732	0.016158969	0.020501748	0.029395403	0.044677032	0.073315052	0.112652243	0.159727019	0.21769897	0.620944315
+
+				
+																						
+	
+
+
+

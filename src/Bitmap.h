@@ -9,15 +9,19 @@
 #define DIRECTORY_SEPARATOR "/"
 #else
 #define DIRECTORY_SEPARATOR "\\"
+#ifndef NO_WIN32_BM
 #define WIN32_BM
 #endif
+#endif
 #define STRICT
-#ifdef WIN32_BM
+#ifdef _WIN32
 #define _WIN32_WINNT 0x0400
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#ifdef WIN32_BM
 #include <vfw.h>
 #include <gdiplus.h>
+#endif
 #endif
 #ifdef IMAGE_MAGICK
 #include "Magick++.h"
@@ -48,8 +52,8 @@ extern bitmap_header* bmh;
 extern ULONG_PTR m_gdiplusToken;
 #endif
 
-void CaptureBitmap(int, int);
-void OutputBitmap(double, int);
+void CaptureBitmap();
+void OutputBitmap(int);
 void InitBMHead();
 
 #endif // SPATIALSIM_BITMAP_H_INCLUDED_
