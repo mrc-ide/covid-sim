@@ -52,8 +52,8 @@ extern bitmap_header* bmh;
 extern ULONG_PTR m_gdiplusToken;
 #endif
 
-void CaptureBitmap(int, int);
-void OutputBitmap(double, int);
+void CaptureBitmap();
+void OutputBitmap(int);
 void InitBMHead();
 
 #endif // SPATIALSIM_BITMAP_H_INCLUDED_

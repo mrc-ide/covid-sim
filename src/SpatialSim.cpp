@@ -4169,8 +4169,8 @@ void RecordSample(double t, int n)
 	if (P.OutputBitmap >= 1)
 	{
 		TSMean = TSMeanNE; TSVar = TSVarNE;
-		CaptureBitmap	(n, 0);
-		OutputBitmap	(t, 0);
+		CaptureBitmap	();
+		OutputBitmap	(0);
 	}
 }
 
