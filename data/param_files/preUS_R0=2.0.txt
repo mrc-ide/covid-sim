@@ -90,6 +90,10 @@
 School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. 
 Also comparable with 1957 pandemic attack rates from Chin.
 
+[Proportion of between group place links]	
+0.25	0.25	1.0
+(25% of within-group contacts)
+
 [Include symptoms]
 1
 
