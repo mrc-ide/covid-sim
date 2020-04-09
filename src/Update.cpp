@@ -501,7 +501,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//// Enacts Household quarantine, case isolation, place closure. 
 	//// and therefore changes lots of quantities (e.g. quar_comply and isolation_start_time) associated with model macros e.g. HOST_ABSENT / HOST_ISOLATED
 
-	int i, j, k, f, j1, j2, m, h, ad;
+	int i, j, k, f, j1, j2, ad; // m, h, ad;
 	person* a = Hosts + ai;
 
 	//// Increment triggers (Based on numbers of detected cases) for interventions. Used in TreatSweep function when not doing Global or Admin triggers. And not when doing ICU triggers.
