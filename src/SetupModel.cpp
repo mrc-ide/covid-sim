@@ -1296,7 +1296,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (j = 0; j < P.nsp; j++)
 		{
 			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
-			if (!(Places[j] = (place*)malloc(m * sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
+			if (!(Places[j] = (place*)calloc(m, sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			for (i = 0; i < m; i++)
 				if (!(Places[j][i].AvailByAge = (unsigned short int*) malloc(P.PlaceTypeMaxAgeRead[j] * sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			P.Nplace[j] = 0;
