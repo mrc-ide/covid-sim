@@ -14,14 +14,14 @@ typedef struct PARAM {
 
 
 	int N; /**< Population size */
-	int NH;
+	int NH; // Number of households
 	int NR; /**< Number of Realisations */
 	int NRN; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
 	int NRactNE;
-	int UpdatesPerSample;
-	int NumSamples;
+	int UpdatesPerSample; // Number of time steps between samples
+	int NumSamples; // Total number of samples that will be made
 	int KernelType;
 	int MoveKernelType;
 	int AirportKernelType;
@@ -65,15 +65,23 @@ typedef struct PARAM {
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS];
 
-	double T, TimeStep, SampleTime, SampleStep, BitmapAspectScale;
-	int ts_age, DoSeverity;
+	double T;
+	double TimeStep; // The length of a time step, in days
+	double SampleTime; // The number of days to run for
+	double SampleStep; // The length of a sampling step, in days
+	double BitmapAspectScale; // Height of bitmap / Width of bitmap
+	int ts_age;
+	int DoSeverity; // Non-zero (true) if severity analysis should be done
 	double scalex, scaley; // Number of pixels per degree in bitmap output
 	double width, height; // Size of spatial domain in degrees
 	double cwidth, cheight; // Size of spatial domain in cells
 	double mcwidth, mcheight; // Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
-	double R0, R0scale, ContactsPerDay, LocalBeta, LatentPeriod, InfectiousPeriod, R0household, R0places, R0spatial;	//// LatentPeriod and InfectiousPeriod are means of icdf's (inverse cumulative distribution functions). 
+	double R0, R0scale, ContactsPerDay, LocalBeta;
+	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
+	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
+	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
 	double InfectiousnessSD, R0DensityScalePower, InfectiousnessGamA, InfectiousnessGamR, SuscReductionFactorPerInfection, InfectiousnessBetaA, InfectiousnessBetaB;
 	double LethalInfectiousPeriod, ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;

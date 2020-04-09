@@ -97,7 +97,7 @@ void CaptureBitmap(int ns, int tp)
 		else if (bmInfected[i] > 0)
 			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)bmInfected[i]) / logMaxPop); /* red for infected */
 		else if (bmTreated[i] > 0)
-			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* blue for treated */
+			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmTreated[i]) / logMaxPop); /* blue for treated */
 		else if (bmRecovered[i] > 0)
 			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
 		else if (bmPopulation[i] > 0)
