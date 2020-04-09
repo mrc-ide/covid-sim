@@ -4,16 +4,16 @@
 ======== PLACE CLOSURE PARAMETERS
 
 [Place closure start time]
-100000
+7
 
 [Place closure second start time]
-100000
+1000
 
 [Delay to place closure by admin unit]
 0	0	0
 
 [Duration of place closure by admin unit]
-0	0	0
+121	121	121
 
 [Place closure in administrative units rather than rings]
 0
@@ -34,7 +34,7 @@
 1
 
 [Duration of place closure]
-0
+121
 
 [Proportion of places remaining open after closure by place type]
 0	0	0.25	1
@@ -59,14 +59,15 @@
  ^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
-10000000000
+100
 
 *** ^^^ change this for global too ***	
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
 
 [Household quarantine start time]
-100000
+0
+^ i.e. it will start as soon as we reach the trigger.
 
 [Delay to start household quarantine]
 1
@@ -75,7 +76,7 @@
 0	0	0
 
 [Duration of household quarantine by admin unit]
-0	0	0
+121	121	121
 
 [Household quarantine trigger incidence per cell]
 0
@@ -84,7 +85,7 @@
 14
 
 [Duration of household quarantine policy]
-0
+121
 
 [Relative household contact rate after quarantine]
 2
@@ -104,13 +105,14 @@
 ===================================		CASE ISOLATION PARAMETERS
 
 [Case isolation start time]
-100000
+0
+^ i.e. it will start as soon as we reach the trigger.
 
 [Delay to case isolation by admin unit]
 0	0	0
 
 [Duration of case isolation by admin unit]
-0	0	0
+121	121	121
 
 [Case isolation trigger incidence per cell]
 0
@@ -125,7 +127,7 @@
 7
 
 [Duration of case isolation policy]
-0
+121
 
 [Residual contacts after case isolation]
 0.25
@@ -136,19 +138,20 @@
 ===================================		SOCIAL DISTANCINT PARAMETERS
 
 [Social distancing start time]
-100000
+0
+^ i.e. it will start as soon as we reach the trigger.
 
 [Delay to social distancing by admin unit]
 0	0	0
 
 [Duration of social distancing by admin unit]
-0	0	0
+121	121	121
 
 [Trigger incidence per cell for social distancing]
-10000000000
+100
 
 [Duration of social distancing]
-0
+121
 
 [Relative place contact rate given social distancing by place type]
 1	1	0.75	0.75
@@ -177,10 +180,11 @@
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
 [Include digital contact tracing]
-0
+1
 
 [Digital contact tracing start time]
-100000
+0
+^ i.e. it will start as soon as we reach the trigger.
 
 [Cluster digital app clusters by household]
 0
@@ -192,6 +196,7 @@
 
 [Proportion of smartphone users by age]
 0 0 0 0.96 0.96 0.96 0.96 0.91 0.91 0.91 0.91 0.55 0.55 0.55 0.55 0.55 0.55
+
 (Taken from p. 189 here: https://www.ofcom.org.uk/__data/assets/pdf_file/0026/143981/technology-tracker-2019-uk-data-tables.pdf)
 
 ^This mobile phone data would be used specifically for the digital app. If we include actual phone usage data and don't cluster by household, then we adjust the probability of any individual to be a user in order to obtain the specified proportion - however this is limited by a theoretical maximum and if our desired probability exceeds this, we'll get an error.  We don't currently adjust the probabilities if clustering by household - the proportion of households containing users will match the desired proportion but due to age dependent usage, the actual proportion of the population who are users will be lower.
@@ -217,15 +222,14 @@
 10
 ^These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't result in infection)
 
-
 [Digital contact tracing trigger incidence per cell]
-100000000
+100
 
 [Duration of digital contact tracing policy]
-0
+121
 
 [Duration of digital contact tracing by admin unit]
-0	0	0
+121	121	121
 
 [Delay to digital contact tracing by admin unit]
 0	0	0

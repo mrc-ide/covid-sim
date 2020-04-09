@@ -18,7 +18,9 @@
 ULONG_PTR m_gdiplusToken;
 static HBITMAP bmpdib;
 static CLSID  encoderClsid;
-#else
+#endif
+
+#ifndef _WIN32
 #include <sys/stat.h> // for mkdir
 #endif
 
@@ -27,7 +29,7 @@ static unsigned char* bmf, *bmPixels, *bmp;
 // TODO: move these to a header files
 extern char OutFile[1024], OutFileBase[1024];
 
-void CaptureBitmap(int ns, int tp)
+void CaptureBitmap()
 {
 	int i, x, y, f, mi;
 	unsigned j;
@@ -95,7 +97,7 @@ void CaptureBitmap(int ns, int tp)
 		else if (bmInfected[i] > 0)
 			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)bmInfected[i]) / logMaxPop); /* red for infected */
 		else if (bmTreated[i] > 0)
-			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* blue for treated */
+			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmTreated[i]) / logMaxPop); /* blue for treated */
 		else if (bmRecovered[i] > 0)
 			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
 		else if (bmPopulation[i] > 0)
@@ -105,7 +107,7 @@ void CaptureBitmap(int ns, int tp)
 	}
 }
 
-void OutputBitmap(double t2, int tp)
+void OutputBitmap(int tp)
 {
 	char buf[3000], OutF[3000];
 	int j = 0;
@@ -293,7 +295,7 @@ void InitBMHead()
 
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);
-#ifdef WIN32_BM
+#ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else
 	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);

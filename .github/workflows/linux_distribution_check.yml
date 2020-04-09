@@ -14,12 +14,16 @@ jobs:
         cmake ../src
         make
         cd ..
-    - name: regression test
+    - name: regression test (UK based)
       run: |
         cd tests
         pwd
         ls -l
         ./regressiontest_UK_100th.py
+    - name: regression test (US based)
+      run: |
+        cd "${GITHUB_WORKSPACE}/tests"
+        ./regressiontest_US_based.py
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -47,3 +51,7 @@ jobs:
         pwd
         ls -l
         ./regressiontest_UK_100th.py
+    - name: regression test (US based)
+      run: |
+        cd "${GITHUB_WORKSPACE}/tests"
+        ./regressiontest_US_based.py

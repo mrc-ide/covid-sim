@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Regression test for checking output of SpatialSim
+# Regression test for checking output of SpatialSim in US mode
 # NOTE: This uses test data and is not a run reflective of real-world
 # situations.
 
@@ -20,10 +20,10 @@
 # 2. Run the test in the good and bad clones:
 #
 #    cd bad/test
-#    ./regressiontest_UK_100th.py
+#    ./regressiontest_US_based.py
 #    cd ../..
 #    cd good/test
-#    ./regressiontest_UK_100th.py
+#    ./regressiontest_US_based.py
 #    cd ../..
 #
 # 3. Use a file comparison tool, like meld (https://meldmerge.org/) to
@@ -38,8 +38,8 @@
 #    checksums file:
 #
 #    cd bad/test
-#    python regressiontest_UK_100th.py --accept
-#    git add regressiontest_UK_100th.checksums.txt
+#    ./regressiontest_US_based.py --accept
+#    git add us-input/results.checksums.txt
 #    git commit -m "Update checksums"
 #    git push
 
@@ -74,22 +74,24 @@ import sys
 import shutil
 import subprocess
 
-testdir='regressiontest_UK_100th'
+testdir='regressiontest_US_based'
 
 accept_results = False
 if len(sys.argv) > 1 and sys.argv[1] == '--accept':
     accept_results = True
 
-# Portable ../../
-updir2 = os.pardir + os.sep + os.pardir + os.sep 
-datadir = updir2 + "data" + os.sep
-updir1 = os.pardir + os.sep
+# Sort out directories
+script_dir = os.path.dirname(os.path.realpath(__file__))
+input_dir = os.path.join(script_dir, 'us-input')
+output_dir = os.path.join(script_dir, 'us-output')
+src_dir = os.path.join(script_dir, os.pardir, 'src')
+data_dir = os.path.join(script_dir, os.pardir, 'data')
 
-shutil.rmtree(testdir, True)
-os.mkdir(testdir)
-os.chdir(testdir)
-subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2 + 'src'])
-subprocess.check_call(['cmake', '--build', '.'])
+shutil.rmtree(output_dir, ignore_errors=True)
+os.makedirs(output_dir, exist_ok=False)
+os.chdir(output_dir)
+subprocess.run(['cmake', src_dir, "-DCOUNTRY=US"])
+subprocess.run(['cmake', '--build', '.'])
 
 if os.name == 'nt':
     spacialsim_exe = os.getcwd() + os.sep + 'Debug\SpatialSim.exe'
@@ -99,9 +101,10 @@ print(spacialsim_exe)
 
 # Population density file in gziped form, text file, and binary file as
 # processed by SpatialSim
-wpop_file_gz = os.path.join(datadir, "populations", "wpop_eur.txt.gz")
-wpop_file = "wpop_eur.txt"
-wpop_bin = "wpop_test.bin"
+wpop_file_gz = os.path.join(data_dir, "populations", "wpop_usacan.txt.gz")
+wpop_file = os.path.join(output_dir, "wpop_usacan.txt")
+wpop_bin = os.path.join(output_dir, "wpop-test.bin")
+wpop_bin_schools = os.path.join(output_dir, "wpop-test-schools.bin")
 
 # gunzip wpop fie
 if not os.path.exists(wpop_file):
@@ -110,30 +113,64 @@ if not os.path.exists(wpop_file):
                 shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
-print('=== Starting building network:')
-subprocess.check_call(
+print('=== Starting building network (no schools):')
+subprocess.run(
     [spacialsim_exe, '/c:1',
-     '/PP:' +  updir1 + 'preUK_R0=2.0.txt', 
-     '/P:' + updir1  + 'p_NoInt.txt', '/CLP1:100000',
-     '/CLP2:0', '/O:NoInt_R0=2.2', '/D:' + wpop_file, '/M:' + wpop_bin,
-     '/A:' + updir1 + 'sample_admin.txt',
-     '/S:NetworkUKN_32T_100th.bin', '/R:1.1',
+     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+     '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
+     '/O:' + os.path.join(output_dir, 'results-noint'),
+     '/D:' + wpop_file,
+     '/M:' + wpop_bin,
+     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+     '/S:' + os.path.join(output_dir, 'network.bin'),
+     '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
-print('=== Starting running:')
-subprocess.check_call(
+print('=== Starting running (no schools):')
+subprocess.run(
     [spacialsim_exe, '/c:1',
-     '/PP:' + updir1 + 'preUK_R0=2.0.txt',
-     '/P:' + updir1 + 'p_PC7_CI_HQ_SDbad.txt', '/CLP1:100',
-     '/CLP2:91', '/CLP3:121', '/CLP4:121', '/O:CI_100_91_R0=2.2',
-     '/A:' + updir1 + 'sample_admin.txt',
+     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+     '/P:' + os.path.join(input_dir, 'input-params.txt'),
+     '/O:' + os.path.join(output_dir, 'results-int'),
+     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
      '/D:' + wpop_bin,
-     '/L:NetworkUKN_32T_100th.bin', '/R:1.1',
+     '/L:' + os.path.join(output_dir, 'network.bin'),
+     '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
-print('=== Done')
 
-checksums_filename='regressiontest_UK_100th.checksums.txt'
+# Disable school testing for the moment.
+# print('=== Starting building network (schools):')
+# subprocess.run(
+#     [spacialsim_exe, '/c:1',
+#      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+#      '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
+#      '/O:' + os.path.join(output_dir, 'results-noint-schools'),
+#      '/D:' + wpop_file,
+#      '/M:' + wpop_bin_schools,
+#      '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+#      '/S:' + os.path.join(output_dir, 'network-schools.bin'),
+#      '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
+#      '/R:1.5',
+#      '98798150', '729101', '17389101', '4797132'
+#     ])
+# print('=== Starting running (schools):')
+# subprocess.run(
+#     [spacialsim_exe, '/c:1',
+#      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+#      '/P:' + os.path.join(input_dir, 'input-params.txt'),
+#      '/O:' + os.path.join(output_dir, 'results-int-schools'),
+#      '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+#      '/D:' + wpop_bin_schools,
+#      '/L:' + os.path.join(output_dir, 'network-schools.bin'),
+#      '/s:' + os.path.join(data_dir, 'populations', 'USschools.txt'),
+#      '/R:1.5',
+#      '98798150', '729101', '17389101', '4797132'
+#     ])
+# print('=== Done')
+
+expected_checksums = os.path.join(input_dir, 'results.checksums.txt')
+actual_checksums = os.path.join(output_dir, 'results.checksums.txt')
 
 # Compute SHA-512 checksums for the generated files.
 paths = []
@@ -142,7 +179,6 @@ for direntry in os.scandir():
     name = direntry.name
     if name.endswith('.xls'):
         paths.append((None, name))
-paths.append(('CI_100_91_R0=2.2.ge', 'CI_100_91_R0=2.2.00100.bmp'))
 max_filename_len = max(map(len, [ filename for dirname, filename in paths ]))
 
 for dirname, filename in paths:
@@ -166,11 +202,11 @@ print('end')
 # Write the checksums into a file in the temporary directory. (This is
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
-with open(checksums_filename, 'wb') as checksums_outfile:
+with open(actual_checksums, 'wb') as checksums_outfile:
     checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
 
 # Read the expected checksums from the reference file.
-sha512sums_reference = list(filter(None, open(os.pardir + os.sep + checksums_filename, 'rb').read().decode('utf-8').split('\n')))
+sha512sums_reference = list(filter(None, open(expected_checksums, 'rb').read().decode('utf-8').split('\n')))
 print('Reference checksums:')
 print('\n'.join(sha512sums_reference))
 print('end')
@@ -196,8 +232,8 @@ else:
 
     if accept_results:
         print('Accepting results.')
-        with open(checksums_filename, 'rb') as checksums_in:
-            with open(os.pardir + os.sep + checksums_filename, 'wb') as checksums_out:
+        with open(actual_checksums, 'rb') as checksums_in:
+            with open(expected_checksums, 'wb') as checksums_out:
                 shutil.copyfileobj(checksums_in, checksums_out)
     else:
         sys.exit(1)
