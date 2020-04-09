@@ -4290,8 +4290,8 @@ void RecordInfTypes(void)
 			s += (TimeSeries[n].Rtype[i] /= TimeSeries[n].Rdenom);
 		TimeSeries[n].Rdenom = s;
 	}
-	nf = (sizeof(results) - 3 * sizeof(float*)) / sizeof(double);
-	if (!P.DoAdUnits) nf -= MAX_ADUNITS;
+	nf = sizeof(results) / sizeof(double);
+	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
 	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
@@ -4311,7 +4311,7 @@ void RecordInfTypes(void)
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
-			for (i = 1; i < nf; i++)
+			for (i = 1 /* skip over `t` */; i < nf; i++)
 			{
 				res_av[i] += res[i];
 				res_var[i] += res[i] * res[i];
