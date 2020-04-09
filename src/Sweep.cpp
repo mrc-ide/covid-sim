@@ -907,7 +907,7 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
+//#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -922,7 +922,7 @@ void DigitalContactTracingSweep(double t)
 						//start by finding theoretical start and end isolation times for each contact;
 						infector = StateT[j].contacts[i][k];
 						contact = StateT[j].dct_queue[i][k];
-						contact_time = StateT[j].contact_time[i][k];
+ 						contact_time = StateT[j].contact_time[i][k];
 
 						if (contact == infector)
 						{
@@ -961,6 +961,8 @@ void DigitalContactTracingSweep(double t)
 							{
 								dct_start_time = USHRT_MAX - 1; //for contacts of asymptomatic cases - they won't get added as their index case won't know that they are infected (unless explicitly tested)
 								//but we keep them in the queue in case their index case is detected as the contact of someone else and gets their trigger time set
+								//calculate speculative end time of isolation based on contact time, in order to remove from queue if their host isn't detected.
+								dct_end_time = contact_time + (unsigned short int) ((P.DigitalContactTracingDelay + P.LengthDigitalContactIsolation) * P.TimeStepsPerDay);
 							}
 						}
 
@@ -1029,6 +1031,22 @@ void DigitalContactTracingSweep(double t)
 								StateT[j].ncontact_time[i]--;
 							}
 						}
+						//if contact of an asymptomatic host has reached the theoretical end of their isolation time, remove from the queue so they don't stay here forever
+						else if ((dct_start_time==(USHRT_MAX-1)) && (dct_end_time==ts))
+						{
+							//now remove this case from the queue
+							StateT[j].dct_queue[i][k] = StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1];
+							StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = contact;
+							StateT[j].ndct_queue[i]--;
+
+							StateT[j].contacts[i][k] = StateT[j].contacts[i][StateT[j].ncontacts[i] - 1];
+							StateT[j].contacts[i][StateT[j].ncontacts[i] - 1] = infector;
+							StateT[j].ncontacts[i]--;
+
+							StateT[j].contact_time[i][k] = StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1];
+							StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1] = contact_time;
+							StateT[j].ncontact_time[i]--;
+						}
 						else
 						{
 							k++;
@@ -1094,228 +1112,6 @@ void DigitalContactTracingSweep(double t)
 		}
 	}
 }
-
-////take care of people no longer requiring contact tracing
-//for (j = 0; j < AdUnits[i].ndct;)
-//{
-//	contact = AdUnits[i].dct[j];
-//
-//	if (Hosts[AdUnits[i].dct[j]].dct_end_time == ts)
-//	{
-//		//if this person has a dct_start_time value great than end_time, it means that they have been added to the queue again, and need to update flag to 1 and end time
-//		if (Hosts[contact].dct_start_time > Hosts[AdUnits[i].dct[j]].dct_end_time)
-//		{
-//			Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//			//set flag to 1 again to indicate waiting for contact tracing
-//			Hosts[AdUnits[i].dct[j]].digitalContactTraced = 1;
-//		}
-//		else
-//		{
-//			//stop contact tracing this host
-//			Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
-//		}
-//		//remove f
-//		//k = contact;
-//		AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
-//		//AdUnits[i].dct[AdUnits[i].ndct - 1] = k;
-//		AdUnits[i].ndct--;
-//	}
-//	else
-//	{
-//		j++;
-//	}
-//
-//}
-//
-////next, move people from the adunit queues to the actual adunit contact tracing lists
-//for (j = 0; j < AdUnits[i].ndct_queue;)
-//{
-//
-//	contact = AdUnits[i].dct_queue[j];
-//
-//	if ((Hosts[contact].dct_start_time) == ts)
-//	{
-//		//if host has flag 2 - i.e. their contact tracing time was extended past this new contact tracing time by other contacts
-//		if (Hosts[contact].digitalContactTraced == 2)
-//		{
-//			//no need to add to the contact tracing list or update state variables or flag - only need to update end time
-//			Hosts[contact].dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//
-//			// now remove this case from the queue
-//			//k = contact;
-//			AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-//			//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-//			AdUnits[i].ndct_queue--;
-//
-//		}
-//		//if host has the flag 1 - i.e. are waiting to be contact traced
-//		else if (Hosts[contact].digitalContactTraced == 1)
-//		{
-//			if (AdUnits[i].ndct < AdUnits[i].n)
-//			{
-//				AdUnits[i].dct[AdUnits[i].ndct] = contact;
-//				//update flag to show they are actively being contact traced now
-//				Hosts[contact].digitalContactTraced = 2;
-//				//update number being traced in AdUnit
-//				AdUnits[i].ndct++;
-//				//increment state variables
-//				StateT[tn].cumDCT_adunit[i]++;
-//				StateT[tn].cumDCT++;
-//
-//				//now remove this case from the queue
-//				//k = contact;
-//				AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-//				//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-//				AdUnits[i].ndct_queue--;
-//			}
-//			else
-//			{
-//				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, P.InfQueuePeakLength);
-//				fprintf(stderr, "Error!\n");
-//			}
-//		}
-//		//no-one should have code other than 1 or 2 at this stage
-//		else
-//		{
-//			fprintf(stderr, "start_time: %i, end_time: %i, flag: %i\n", Hosts[contact].dct_start_time, Hosts[contact].dct_end_time, Hosts[contact].digitalContactTraced);
-//			fprintf(stderr, "Error!\n");
-//
-//			// now remove this case from the queue
-//			//k = contact;
-//			AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-//			//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-//			AdUnits[i].ndct_queue--;
-//		}
-//	}
-//	//in cases where we reverted to the original start time due to overlapping contact tracing periods - need to remove from queue
-//	else if (Hosts[contact].dct_start_time < ts)
-//	{
-//		// now remove this case from the queue
-//		//k = contact;
-//		AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-//		//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-//		AdUnits[i].ndct_queue--;
-//	}
-//	else if (Hosts[contact].dct_start_time == (USHRT_MAX - 1))
-//	{
-//		//if a host was added to the queue, but their contacting tracing start time has been reset, that means that they have been identified as a case and will be self-isolating anyway - remove from this queue
-//		Hosts[contact].digitalContactTraced = 0;
-//		//k = contact;
-//		AdUnits[i].dct_queue[j] = AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1];
-//		//AdUnits[i].dct_queue[AdUnits[i].ndct_queue - 1] = k;
-//		AdUnits[i].ndct_queue--;
-//	}
-//	else
-//	{
-//		j++;
-//	}
-//}
-//
-////move hosts to be contact traced from thread specific to admin unit specific queues - not being digitally contact traced yet.
-//for (j = 0; j < P.NumThreads; j++)
-//{
-//	for (k = 0; k < StateT[j].ndct_queue[i]; k++)
-//	{
-//		//start by finding theoretical start and end isolation times for each contact;
-//		infector = StateT[j].contacts[i][k];
-//		contact = StateT[j].dct_queue[i][k];
-//		dct_start_time = Hosts[infector].detected_time + P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay);
-//		if (dct_start_time <= ts) dct_start_time = ts + P.usCaseIsolationDelay + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay); //clunky to prevent contacts made after detection being lost
-//		dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//
-//		//based on existing host information, decide whether to add to queue or not
-//		//if host is currently being contact traced
-//		if (Hosts[contact].digitalContactTraced == 2)
-//		{
-//			//if this is the first time that we add an additional contact tracing event, or the previous addition just extended the contact tracing period, we just need to do two checks
-//			if (Hosts[contact].dct_start_time < Hosts[contact].dct_end_time)
-//			{
-//				//if overlap between current contact tracing period and new contact tracing period, don't re-add to the queue, but just extend the end time
-//				if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_start_time > Hosts[contact].dct_start_time))
-//				{
-//					Hosts[contact].dct_end_time = dct_end_time;
-//				}
-//				//else if new contact tracing will start after current contact tracing is over, then we'll need to re-add to the queue. Need to preserve current end time, so only add new start time now
-//				else
-//				{
-//					if (AdUnits[i].ndct_queue < AdUnits[i].n)
-//					{
-//						Hosts[contact].dct_start_time = dct_start_time;
-//						//add to the queue again
-//						AdUnits[i].dct_queue[AdUnits[i].ndct_queue] = contact;
-//						AdUnits[i].ndct_queue++;
-//					}
-//					else
-//					{
-//						fprintf(stderr, "No more space in queue! AdUnit: %i, ndct_queue=%i, max queue length: %i\n", i, AdUnits[i].ndct_queue, AdUnits[i].n);
-//						fprintf(stderr, "Error!\n");
-//					}
-//				}
-//			}
-//			//else in the scenario that a contact tracing event has been added that happens to take place after the current one finishes
-//			else
-//			{
-//				//i.e. if the new contact tracing period take place after the first has finished, but before the new one, update the start time - can't preserve latest end time though
-//				if ((dct_start_time < Hosts[contact].dct_start_time) && (dct_start_time > Hosts[contact].dct_end_time))
-//				{
-//					Hosts[contact].dct_start_time = dct_start_time;
-//				}
-//				//else if the new start time is less than or equal to the current end time, and the new end time is greater than equal to the new start time
-//				//then the new contact tracing event straddles the two and should be made into one long isolation time. i.e. we revert to original start time
-//				//and calculate the latest end time possible
-//				else if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_end_time >= Hosts[contact].dct_start_time))
-//				{
-//					dct_start_time = Hosts[contact].dct_end_time - (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//					dct_end_time = Hosts[contact].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//					//reset new times
-//					Hosts[contact].dct_start_time = dct_start_time;
-//					Hosts[contact].dct_end_time = dct_end_time;
-//				}
-//			}
-//		}
-//		//else if contact is due to be traced but is still waiting in the queue until delay is finished
-//		else if (Hosts[contact].digitalContactTraced == 1)
-//		{
-//			//if new contact would result in earlier start time for contacting tracing, update the start time, but don't change end time = don't readd to the queue
-//			if ((dct_start_time < Hosts[contact].dct_start_time) && (dct_end_time >= Hosts[contact].dct_start_time))// && (dct_end_time>= Hosts[StateT[j].dct_queue[i][k]].dct_start_time) && (dct_end_time < Hosts[StateT[j].dct_queue[i][k]].dct_end_time))
-//			{
-//				Hosts[contact].dct_start_time = dct_start_time;
-//			}
-//			//else if new contact would result in a later finishing time for contact tracing, update end time but leave start time unchanged 
-//			else if ((dct_start_time <= Hosts[contact].dct_end_time) && (dct_end_time > Hosts[contact].dct_end_time))// && (dct_start_time<= Hosts[StateT[j].dct_queue[i][k]].dct_end_time) && (dct_end_time> Hosts[StateT[j].dct_queue[i][k]].dct_end_time))
-//			{
-//				Hosts[contact].dct_end_time = dct_end_time;
-//			}
-//			//NOTE: This doesn't currently account for situations with longer delay than isolation times. If this happens, then we could have the situation
-//			//where we would need to store multiple distinct start and end times. Haven't done this yet, but can extend to account for it.
-//			//currently if this happens, none of the variables would change, i.e. we wouldn't add in the new contact tracing times.
-//
-//		}
-//		// else if contact is not currently being traced and is not waiting in the queue to be traced, add both start and end times and add to queue
-//		else if (Hosts[contact].digitalContactTraced == 0)
-//		{
-//			if (AdUnits[i].ndct_queue < AdUnits[i].n)
-//			{
-//				Hosts[contact].dct_start_time = dct_start_time;
-//				Hosts[contact].dct_end_time = dct_end_time;
-//				//update flag to indicate due to be contact traced
-//				Hosts[contact].digitalContactTraced = 1;
-//				//add to queue
-//				AdUnits[i].dct_queue[AdUnits[i].ndct_queue] = contact;
-//				AdUnits[i].ndct_queue++;
-//			}
-//			else
-//			{
-//				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct_queue=%i, max queue length: %i\n", i, AdUnits[i].ndct_queue, AdUnits[i].n);
-//				fprintf(stderr, "Error!\n");
-//			}
-//		}
-//	}
-//	//reset state threaded queues to zero length after processing
-//	StateT[j].ndct_queue[i] = 0;
-//	StateT[j].ncontacts[i] = 0;
-//}
-			
 
 
 int TreatSweep(double t)

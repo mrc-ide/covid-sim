@@ -452,7 +452,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 				a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
 		}
 
-		if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
+		if ((a->inf== InfStat_InfectiousAlmostSymptomatic) && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
 		{
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
