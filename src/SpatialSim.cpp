@@ -2340,7 +2340,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	int i /*seed location index*/;
 	int j /*microcell number*/;
 	int k, l /*k,l are grid coords at first, then l changed to be person within Microcell j, then k changed to be index of new infection*/;
-	int m /*guard against too many infections and infinite loop*/;
+	int m = 0/*guard against too many infections and infinite loop*/;
 	int f /*range = {0, 1000}*/, f2 /*not used, think extraneous*/;
 	int n /*number of seed locations?*/;
 
@@ -4343,18 +4343,14 @@ void CalcOriginDestMatrix_adunit()
 	int tn, i, j, k, l, m, p;
 	double total_flow, flow;
 	ptrdiff_t cl_from, cl_to, cl_from_mcl, cl_to_mcl, mcl_from, mcl_to;
-	double pop_dens_from[MAX_ADUNITS], pop_dens_to[MAX_ADUNITS];
 
-#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,pop_dens_from,pop_dens_to,flow) schedule(static) //reduction(+:s,t2)
+#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) //reduction(+:s,t2)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NCP; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
-			for (k = 0; k < P.NumAdunits; k++)
-			{
-				pop_dens_from[k] = 0.0;
-			}
+			double pop_dens_from[MAX_ADUNITS] = {};
 
 			//find index of cell from which flow travels
 			cl_from = CellLookup[i] - Cells;
@@ -4378,10 +4374,7 @@ void CalcOriginDestMatrix_adunit()
 			for (j = i; j < P.NCP; j++)
 			{
 				//reset pop density matrix to zero
-				for (m = 0; m < P.NumAdunits; m++)
-				{
-					pop_dens_to[m] = 0.0;
-				}
+				double pop_dens_to[MAX_ADUNITS] = {};
 
 				//find index of cell which flow travels to
 				cl_to = CellLookup[j] - Cells;
