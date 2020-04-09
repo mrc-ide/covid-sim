@@ -347,7 +347,12 @@ int main(int argc, char* argv[])
 	//print out number of calls to random number generator
 
 	///// Set seeds
-	if (!P.ResetSeeds)	setall(P.seed3, P.seed4);
+	if (!P.ResetSeeds)
+	{
+		P.newseed1 = P.seed3;
+		P.newseed2 = P.seed4;
+		setall(P.newseed1, P.newseed2);
+	}
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
@@ -380,7 +385,7 @@ int main(int argc, char* argv[])
 				}
 				else
 				{
-					//sample 4 new seeds to use as random number generators
+					//sample 2 new seeds for random number generators
 					P.newseed1 = (int)(ranf() * 1e8);
 					P.newseed2 = (int)(ranf() * 1e8);
 				}
@@ -395,11 +400,10 @@ int main(int argc, char* argv[])
 
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
-		//fprintf(stderr, "%f\n", ranf());
-		//fprintf(stderr, "%f\n", ranf_mt(5));
 		if (P.DoLoadSnapshot) LoadSnapshot();
 		if (RunModel(i))
-		{  // has been interrupted to reset holiday time
+		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
+			setall(P.newseed1, P.newseed2);  // reset random number seeds to generate same run again after calibration. 
 			InitModel(i);
 			RunModel(i);
 		}
