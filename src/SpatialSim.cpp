@@ -2173,7 +2173,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
-					if (P.DoAirports) Hosts[k].PlaceLinks[HOTEL_PLACE_TYPE] = -1;
+					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
 					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = USHRT_MAX - 1;
 					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
 					Hosts[k].quar_comply = 2;
