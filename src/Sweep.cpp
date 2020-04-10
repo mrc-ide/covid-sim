@@ -684,6 +684,11 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					ci = c->infected[j];
 					si = Hosts + ci;
 
+					//calculate flag for digital contact tracing here at the beginning for each individual infector
+					fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
+						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
+
+
 					//// decide on infectee outside cell c. 
 					do
 					{
@@ -813,7 +818,7 @@ void IncubRecoverySweep(double t, int run)
 		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
 		if ((t + P.TimeStep >= ht) && (t < ht))
 		{
-#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
+//#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (b = tn; b < P.N; b += P.NumThreads)
@@ -826,12 +831,12 @@ void IncubRecoverySweep(double t, int run)
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
 								k = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short)k;
-								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short)k;
+								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short) k;
+								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short) k;
 
 								k = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short)k;
-								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short)k;
+								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short) k;
+								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short) k;
 							}
 						}
 					}
