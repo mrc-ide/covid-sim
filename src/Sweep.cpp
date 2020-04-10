@@ -427,7 +427,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 										{
 											ad = Mcells[Hosts[i3].mcell].adunit;
 											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
@@ -537,7 +537,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 										{
 											ad = Mcells[Hosts[i3].mcell].adunit;
 											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
@@ -724,7 +724,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//scale down susceptibility so we don't over accept
 									s /= P.ScalingFactorSpatialDigitalContacts;
 									//if infectee is also a user, add them as a contact
-									if (Hosts[i3].digitalContactTracingUser)
+									if (Hosts[i3].digitalContactTracingUser && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 									{
 										ad = Mcells[Hosts[i3].mcell].adunit;
 										if((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
