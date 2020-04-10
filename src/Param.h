@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef SPATIALSIM_PARAM_H_INCLUDED_
-#define SPATIALSIM_PARAM_H_INCLUDED_
+#ifndef COVIDSIM_PARAM_H_INCLUDED_
+#define COVIDSIM_PARAM_H_INCLUDED_
 
 #include "Country.h"
 #include "Constants.h"
 
 /**
  * @brief Stores the parameters for the simulation.
- * 
+ *
  */
 typedef struct PARAM {
 
