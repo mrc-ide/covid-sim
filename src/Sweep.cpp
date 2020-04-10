@@ -881,16 +881,16 @@ void IncubRecoverySweep(double t, int run)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
-						DoRecover(ci, run, tn);
+						DoRecover(ci, tn, run);
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
-					}
+					} 
 					else /// if they die and this timestep is after they've died.
 					{	// si->to_die
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							DoRecover(ci, run, tn);
+							DoRecover(ci, tn, run);
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 						else
-							DoDeath(ci, run, tn);
+							DoDeath(ci, tn, run);
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 				}
