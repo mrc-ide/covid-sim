@@ -150,7 +150,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			DoIncub(ai, ts, tn, run);
 			DoCase(ai, t, ts, tn);
-			DoRecover(ai, run, tn);
+			DoRecover(ai, tn, run);
 		}
 	}
 }
@@ -885,7 +885,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 	StateT[tn].cumFC++;
 }
 
-void DoRecover(int ai, int run, int tn)
+void DoRecover(int ai, int tn, int run)
 {
 	int i, j, x, y;
 	person* a;
@@ -978,7 +978,7 @@ void DoRecover(int ai, int run, int tn)
 	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
-void DoDeath(int ai, int run, int tn)
+void DoDeath(int ai, int tn, int run)
 {
 	int i, x, y;
 	person* a = Hosts + ai;
