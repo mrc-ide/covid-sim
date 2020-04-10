@@ -978,7 +978,7 @@ void DoRecover(int ai, int run, int tn)
 	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
-void DoDeath(int ai, int tn, int run)
+void DoDeath(int ai, int run, int tn)
 {
 	int i, x, y;
 	person* a = Hosts + ai;
