@@ -23,8 +23,6 @@ typedef struct PERSON {
 	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
 	float infectiousness, susc;
 
-	unsigned int digitalContactTraced;
-	unsigned int digitalContactTracingUser : 1;
 	unsigned int esocdist_comply : 1;
 	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
 	unsigned int to_die : 1;
@@ -36,17 +34,19 @@ typedef struct PERSON {
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
 	signed char Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
-	unsigned short ncontacts;	// for digital contact tracing
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 	short int inf, infect_type;		// INFECT_TYPE_MASK
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
-	unsigned short int quar_start_time, isolation_start_time, isolation_stop_time; //added isolation stop time to help with contact tracing (not currently used)
+	unsigned short int quar_start_time, isolation_start_time;
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is time at which you become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
 	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
-	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function. 
-	unsigned short int dct_start_time, dct_end_time; //digital contact tracing start and end time: ggilani 10/03/20
+	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
+	unsigned int digitalContactTraced : 1;
+	unsigned int index_case_dct : 1;
+	unsigned int digitalContactTracingUser : 1;
+	unsigned short int dct_start_time, dct_end_time, dct_trigger_time; //digital contact tracing start and end time: ggilani 10/03/20
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc. 
 
 } person;
@@ -88,7 +88,8 @@ typedef struct POPVAR {
 	int dum[CACHE_LINE_SIZE];
 	int* h_queue[MAX_ADUNITS], nh_queue[MAX_ADUNITS], *hd_queue[MAX_ADUNITS], nhd_queue[MAX_ADUNITS]; //queues for hospitalisation by admin unit: ggilani 30/10/14. h_queue and hd_queue actually 2D. Weirdly one dimension allocated on stack and other is pointer. d refers to discharge. n to length of queue. 
 	int* ct_queue[MAX_ADUNITS], nct_queue[MAX_ADUNITS]; // queues for contact tracing: ggilani 12/06/17
-	int* dct_queue[MAX_ADUNITS], ndct_queue[MAX_ADUNITS], *contacts[MAX_ADUNITS], ncontacts[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
+	int* dct_queue[MAX_ADUNITS], ndct_queue[MAX_ADUNITS], *contacts[MAX_ADUNITS], ncontacts[MAX_ADUNITS], ncontact_time[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
+	unsigned short int* contact_time[MAX_ADUNITS]; //added some more queues to store time contact is made: ggilani 07/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
 
 									  ///// Prevalence quantities (+ by admin unit)
@@ -298,7 +299,7 @@ typedef struct ADMINUNIT {
 	//adding in admin level delays and durations for admin units: ggilani 17/03/20
 	double SocialDistanceDelay, HQuarantineDelay, CaseIsolationDelay, PlaceCloseDelay, DCTDelay;
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
-	int* dct_queue, ndct_queue, *dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
+	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
 	double caseDetectInit;
 } adminunit;
