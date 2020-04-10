@@ -3301,7 +3301,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		printf("\nFilename: %s", outname);
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
-		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
+		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
@@ -3324,10 +3324,10 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				CritRecov = TSMean[i].CritRecov * sc2;
 			}
 
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				c* TSMean[i].t, c* TSMean[i].S, c* TSMean[i].I, c* TSMean[i].R, c* TSMean[i].incI,
-				c* TSMean[i].Mild, c* TSMean[i].ILI, c* (TSMean[i].SARI - SARI), c* (TSMean[i].Critical - Critical), c* (TSMean[i].CritRecov - CritRecov),
-				c * TSMean[i].incMild, c * TSMean[i].incILI, c * incSARI, c * incCritical, c * incCritRecov, c * TSMean[i].incD,
+				c* TSMean[i].Mild, c* TSMean[i].ILI, c* TSMean[i].SARI,c* TSMean[i].Critical, c* TSMean[i].CritRecov,c* (TSMean[i].SARI - SARI), c* (TSMean[i].Critical - Critical), c* (TSMean[i].CritRecov - CritRecov),
+				c * TSMean[i].incMild, c * TSMean[i].incILI, c * TSMean[i].incSARI, c * TSMean[i].incCritical, c * TSMean[i].incCritRecov, c * incSARI, c * incCritical, c * incCritRecov, c * TSMean[i].incD,
 				c * TSMean[i].cumMild, c * TSMean[i].cumILI, c * TSMean[i].cumSARI, c * TSMean[i].cumCritical, c * TSMean[i].cumCritRecov, c*TSMean[i].D);
 		}
 		fclose(dat);
@@ -3357,7 +3357,9 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s", AdUnits[i].ad_name);
-
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARIP_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCriticalP_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecovP_%s", AdUnits[i].ad_name);
 			//// incidence
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s", AdUnits[i].ad_name);
@@ -3365,6 +3367,9 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARIP_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCriticalP_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecovP_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s", AdUnits[i].ad_name);
 
 			//// cumulative incidence
@@ -3402,6 +3407,9 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				//// prevalance
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].SARI_adunit[j] - SARI_a[j]));
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].Critical_adunit[j] - Critical_a[j]));
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_adunit[j] - CritRecov_a[j]));
@@ -3410,6 +3418,9 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incMild_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incSARI_a[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incCritical_a[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
