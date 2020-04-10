@@ -969,8 +969,8 @@ void DigitalContactTracingSweep(double t)
 							{
 								dct_start_time = USHRT_MAX - 1; //for contacts of asymptomatic cases - they won't get added as their index case won't know that they are infected (unless explicitly tested)
 								//but we keep them in the queue in case their index case is detected as the contact of someone else and gets their trigger time set
-								//calculate speculative end time of isolation based on contact time, in order to remove from queue if their host isn't detected.
-								dct_end_time = contact_time + (unsigned short int) ((P.DigitalContactTracingDelay + P.LengthDigitalContactIsolation) * P.TimeStepsPerDay);
+								//set dct_end_time to recovery time of infector, in order to remove from queue if their host isn't detected before they recover.
+								dct_end_time = Hosts[infector].recovery_time;
 							}
 						}
 
