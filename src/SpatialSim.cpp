@@ -1393,11 +1393,12 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(dat, dat2, "Delay before digital contacts self-isolate", "%lf", (void*) & (P.DigitalContactTracingDelay), 1, 1, 0)) P.DigitalContactTracingDelay = 0;
 		if (!GetInputParameter2(dat, dat2, "Length of self-isolation for digital contacts", "%lf", (void*) & (P.LengthDigitalContactIsolation), 1, 1, 0)) P.LengthDigitalContactIsolation = 0;
 		if (!GetInputParameter2(dat, dat2, "Spatial scaling factor - digital contact tracing", "%lf", (void*) & (P.ScalingFactorSpatialDigitalContacts), 1, 1, 0)) P.ScalingFactorSpatialDigitalContacts = 1;
+		if (!GetInputParameter2(dat, dat2, "Place scaling factor - digital contact tracing", "%lf", (void*)&(P.ScalingFactorPlaceDigitalContacts), 1, 1, 0)) P.ScalingFactorPlaceDigitalContacts = 1;
 		if (!GetInputParameter2(dat, dat2, "Digital contact tracing start time", "%lf", (void*) & (P.DigitalContactTracingTimeStartBase), 1, 1, 0)) P.DigitalContactTracingTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 		if (!GetInputParameter2(dat, dat2, "Duration of digital contact tracing policy", "%lf", (void*) & (P.DigitalContactTracingPolicyDuration), 1, 1, 0)) P.DigitalContactTracingPolicyDuration = 7;
 		if (!GetInputParameter2(dat, dat2, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
-		if (!GetInputParameter2(dat, dat2, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
-		if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
+		//if (!GetInputParameter2(dat, dat2, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
+		//if (!GetInputParameter2(dat, dat2, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
 
 		//added admin unit specific delays by admin unit
 		if (P.DoInterventionDelaysByAdUnit)
@@ -1419,12 +1420,20 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		//initialise total number of users to 0
 		P.NDigitalContactUsers = 0;
 		P.NDigitalHouseholdUsers = 0;
+
+		if (!GetInputParameter2(dat, dat2, "Delay before index case self-isolates", "%lf", (void*)&(P.DelayFromIndexCaseDetectionToDCTIsolation), 1, 1, 0)) P.DelayFromIndexCaseDetectionToDCTIsolation = 0;
+		if (!GetInputParameter2(dat, dat2, "Delay to test DCT contacts", "%lf", (void*)&(P.DelayToTestDCTContacts), 1, 1, 0)) P.DelayToTestDCTContacts = 1;
+		if (!GetInputParameter2(dat, dat2, "Testing specificity - DCT", "%lf", (void*)&(P.SpecificityDCT), 1, 1, 0)) P.SpecificityDCT = 1;
+		if (!GetInputParameter2(dat, dat2, "Testing sensitivity - DCT", "%lf", (void*)&(P.SensitivityDCT), 1, 1, 0)) P.SensitivityDCT = 1;
+		if (!GetInputParameter2(dat, dat2, "Find contacts of digital contacts", "%i", (void*)&(P.FindContactsOfDCTContacts), 1, 1, 0)) P.FindContactsOfDCTContacts = 0;
+
 	}
 	else
 	{
 		//Set these to 1 so it doesn't interfere with code if we aren't using digital contact tracing.
 
 		P.ScalingFactorSpatialDigitalContacts = 1;
+		P.ScalingFactorPlaceDigitalContacts = 1;
 	}
 
 
@@ -2107,7 +2116,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			AdUnits[i].place_close_trig = 0;
 			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
 			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
-			AdUnits[i].ndct_queue = 0;
+			
 
 		}
 	for (j = 0; j < MAX_NUM_THREADS; j++)
@@ -2125,9 +2134,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
 		if (P.DoAdUnits)
 			for (i = 0; i <= P.NumAdunits; i++)
-				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
-				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = StateT[j].ncontacts[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
-
+				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] = 
+				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = StateT[j].ncontacts[i] = StateT[j].ncontact_time[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
+	
 		if (P.DoSeverity)
 		{
 			StateT[j].Mild		= StateT[j].ILI		= StateT[j].SARI	= StateT[j].Critical	= StateT[j].CritRecov		= 0;
@@ -2165,7 +2174,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
 					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  USHRT_MAX - 1;
+					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = USHRT_MAX - 1;
 					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
 					Hosts[k].quar_comply = 2;
 					Hosts[k].susc = 1.0;
@@ -2180,6 +2189,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 					Hosts[k].infector = -1;
 					Hosts[k].infect_type = 0;
+					Hosts[k].index_case_dct = 0;
 
 					if (P.DoSeverity)
 					{
