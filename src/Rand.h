@@ -1,5 +1,5 @@
-#ifndef SPATIALSIM_RAND_H_INCLUDED_
-#define SPATIALSIM_RAND_H_INCLUDED_
+#ifndef COVIDSIM_RAND_H_INCLUDED_
+#define COVIDSIM_RAND_H_INCLUDED_
 
 /* ranf defines */
 #define Xm1 2147483563
@@ -38,4 +38,4 @@ double sgamma(double);
 double sgamma_mt(double, int);
 void SampleWithoutReplacement(int, int, int);
 
-#endif // SPATIALSIM_RAND_H_INCLUDED_
+#endif // COVIDSIM_RAND_H_INCLUDED_

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SPATIALSIM_UPDATE_H_INCLUDED_
-#define SPATIALSIM_UPDATE_H_INCLUDED_
+#ifndef COVIDSIM_UPDATE_H_INCLUDED_
+#define COVIDSIM_UPDATE_H_INCLUDED_
 
 void DoImmune(int);
 void DoInfect(int, double, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
@@ -26,4 +26,4 @@ void DoRecoveringFromCritical(int, int);
 void DoRecover_FromSeverity(int, int);
 void DoDeath_FromCriticalorSARI(int, int);
 
-#endif // SPATIALSIM_UPDATE_H_INCLUDED_
+#endif // COVIDSIM_UPDATE_H_INCLUDED_

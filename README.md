@@ -1,9 +1,9 @@
-# COVID-19 SpatialSim Model
+# COVID-19 CovidSim Model
 
-This is the COVID-19 SpatialSim model developed by the MRC Centre for Global
+This is the COVID-19 CovidSim model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
 
-SpatialSim models the instances and severity of COVID-19 infections throughout
+CovidSim models the instances and severity of COVID-19 infections throughout
 a population over time.  It enables modelling of how intervention policies and
 healthcare provision affect the spread of COVID-19.
 
@@ -45,7 +45,7 @@ real-world situations.
 The directory [data](./data) contains sample data.
 
 The Python script [run_sample.py](./data/run_sample.py) demonstrates how to invoke
-SpatialSim to use this data.  See the [sample README](./data/README.md) for
+CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
 
 ## Documentation
@@ -69,7 +69,7 @@ may require a subscription to the appropriate publication to read.
 
 ## Copyright and Licensing
 
-The source code for SpatialSim is licensed under the GPLv3, see
+The source code for CovidSim is licensed under the GPLv3, see
 [LICENSE.md](LICENSE.md).
 
 It is Copyright Imperial College of Science, Technology and Medicine.
@@ -81,7 +81,7 @@ the authors.
 Licensing details for material from other projects may be found in
 [NOTICE.md](NOTICE.md). In summary:
 
-SpatialSim includes code modified from
+CovidSim includes code modified from
 [RANLIB](https://people.sc.fsu.edu/~jburkardt/c_src/ranlib/ranlib.html) which
 is licensed under the LGPLv3.
 

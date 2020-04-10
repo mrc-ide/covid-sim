@@ -184,11 +184,11 @@ typedef struct PARAM {
 	double KernelRadiusMax, KernelRadiusMax2, PropWithinCellTransmission;
 	double TimeToUpdateCaseDetection, UpdatedCaseDetectionRate;
 	int DoInterventionDelaysByAdUnit;
-	
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults; 
+
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults;
 } param;
 
 extern param P;
 
-#endif // SPATIALSIM_PARAM_H_INCLUDED_
+#endif // COVIDSIM_PARAM_H_INCLUDED_

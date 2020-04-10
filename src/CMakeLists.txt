@@ -16,7 +16,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Project initialisation
-project("SpatialSim")
+project("CovidSim")
 
 option(USE_OPENMP "Compile with OpenMP parallelism enabled" ON)
 
@@ -32,18 +32,18 @@ endif()
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
 
-# SpatialSim target
-add_executable(SpatialSim SpatialSim.cpp SpatialSim.h binio.cpp binio.h Rand.cpp Rand.h Constants.h Country.h MachineDefines.h Error.cpp Error.h Dist.cpp Dist.h Kernels.cpp Kernels.h Bitmap.cpp Bitmap.h Model.h Param.h SetupModel.cpp SetupModel.h SharedFuncs.h ModelMacros.h InfStat.h CalcInfSusc.cpp CalcInfSusc.h Sweep.cpp Sweep.h Update.cpp Update.h)
-target_include_directories(SpatialSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(SpatialSim PUBLIC  "COUNTRY_${COUNTRY}")
+# CovidSim target
+add_executable(CovidSim CovidSim.cpp CovidSim.h binio.cpp binio.h Rand.cpp Rand.h Constants.h Country.h MachineDefines.h Error.cpp Error.h Dist.cpp Dist.h Kernels.cpp Kernels.h Bitmap.cpp Bitmap.h Model.h Param.h SetupModel.cpp SetupModel.h SharedFuncs.h ModelMacros.h InfStat.h CalcInfSusc.cpp CalcInfSusc.h Sweep.cpp Sweep.h Update.cpp Update.h)
+target_include_directories(CovidSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(CovidSim PUBLIC  "COUNTRY_${COUNTRY}")
 if(USE_OPENMP)
-  target_link_libraries(SpatialSim PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
 endif()
 if(WIN32)
-  target_link_libraries(SpatialSim PUBLIC Gdiplus.lib Vfw32.lib)
-  target_compile_definitions(SpatialSim PUBLIC  "_CRT_SECURE_NO_WARNINGS")
+  target_link_libraries(CovidSim PUBLIC Gdiplus.lib Vfw32.lib)
+  target_compile_definitions(CovidSim PUBLIC  "_CRT_SECURE_NO_WARNINGS")
 elseif(UNIX)
-  target_compile_definitions(SpatialSim PUBLIC UNIX)
+  target_compile_definitions(CovidSim PUBLIC UNIX)
 else()
   message(FATAL_ERROR "Unknown operating system type: ${CMAKE_SYSTEM_NAME}")
 endif()

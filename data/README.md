@@ -31,7 +31,7 @@ For example:
 
 This will:
 
- 1. Build a copy of the SpatialSim executable configured for the appropriate
+ 1. Build a copy of the CovidSim executable configured for the appropriate
     country (in this case the UK)
 
  2. Do a no intervention base run.  This run also provides various `*.bin`
@@ -40,5 +40,5 @@ This will:
  3. Do a run with controls applied.  This is the step to be repeated when
     doing further tests/runs.
 
-The sample script has more command line options available.  See 
+The sample script has more command line options available.  See
 `./run_sample.py --help` for a list.

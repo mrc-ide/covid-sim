@@ -13,9 +13,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}</ProjectGuid>
-    <RootNamespace>covidspatialsim</RootNamespace>
+    <RootNamespace>covidsim</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>covid-19-spatial-sim</ProjectName>
+    <ProjectName>covid-sim</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -95,7 +95,7 @@
     <ClCompile Include="src\Kernels.cpp" />
     <ClCompile Include="src\Rand.cpp" />
     <ClCompile Include="src\SetupModel.cpp" />
-    <ClCompile Include="src\SpatialSim.cpp" />
+    <ClCompile Include="src\CovidSim.cpp" />
     <ClCompile Include="src\Sweep.cpp" />
     <ClCompile Include="src\Update.cpp" />
   </ItemGroup>
@@ -117,7 +117,7 @@
     <ClInclude Include="src\Rand.h" />
     <ClInclude Include="src\SetupModel.h" />
     <ClInclude Include="src\SharedFuncs.h" />
-    <ClInclude Include="src\SpatialSim.h" />
+    <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />
   </ItemGroup>

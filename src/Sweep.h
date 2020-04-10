@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SPATIALSIM_SWEEP_H_INCLUDED_
-#define SPATIALSIM_SWEEP_H_INCLUDED_
+#ifndef COVIDSIM_SWEEP_H_INCLUDED_
+#define COVIDSIM_SWEEP_H_INCLUDED_
 
 void TravelReturnSweep(double);
 void TravelDepartSweep(double);
@@ -11,4 +11,4 @@ int TreatSweep(double);
 //void HospitalSweep(double); //added hospital sweep function: ggilani - 10/11/14
 void DigitalContactTracingSweep(double); // added function to update contact tracing number
 
-#endif // SPATIALSIM_SWEEP_H_INCLUDED_
+#endif // COVIDSIM_SWEEP_H_INCLUDED_

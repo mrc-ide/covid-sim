@@ -337,4 +337,4 @@ extern double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
 
 extern int DoInitUpdateProbs;
 
-#endif // SPATIALSIM_MODEL_H_INCLUDED_
+#endif // COVIDSIM_MODEL_H_INCLUDED_

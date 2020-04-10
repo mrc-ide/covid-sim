@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Regression test for checking output of SpatialSim in US mode
+# Regression test for checking output of CovidSim in US mode
 # NOTE: This uses test data and is not a run reflective of real-world
 # situations.
 
@@ -94,13 +94,13 @@ subprocess.run(['cmake', src_dir, "-DCOUNTRY=US"])
 subprocess.run(['cmake', '--build', '.'])
 
 if os.name == 'nt':
-    spacialsim_exe = os.getcwd() + os.sep + 'Debug\SpatialSim.exe'
+    covidsim_exe = os.getcwd() + os.sep + 'Debug\CovidSim.exe'
 else:
-    spacialsim_exe = os.getcwd() + os.sep + 'SpatialSim'
-print(spacialsim_exe)
+    covidsim_exe = os.getcwd() + os.sep + 'CovidSim'
+print(covidsim_exe)
 
 # Population density file in gziped form, text file, and binary file as
-# processed by SpatialSim
+# processed by CovidSim
 wpop_file_gz = os.path.join(data_dir, "populations", "wpop_usacan.txt.gz")
 wpop_file = os.path.join(output_dir, "wpop_usacan.txt")
 wpop_bin = os.path.join(output_dir, "wpop-test.bin")
@@ -115,7 +115,7 @@ if not os.path.exists(wpop_file):
 # Run the simulation.
 print('=== Starting building network (no schools):')
 subprocess.run(
-    [spacialsim_exe, '/c:1',
+    [covidsim_exe, '/c:1',
      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
      '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
      '/O:' + os.path.join(output_dir, 'results-noint'),
@@ -128,7 +128,7 @@ subprocess.run(
     ])
 print('=== Starting running (no schools):')
 subprocess.run(
-    [spacialsim_exe, '/c:1',
+    [covidsim_exe, '/c:1',
      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
      '/P:' + os.path.join(input_dir, 'input-params.txt'),
      '/O:' + os.path.join(output_dir, 'results-int'),
@@ -142,7 +142,7 @@ subprocess.run(
 # Disable school testing for the moment.
 # print('=== Starting building network (schools):')
 # subprocess.run(
-#     [spacialsim_exe, '/c:1',
+#     [covidsim_exe, '/c:1',
 #      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
 #      '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
 #      '/O:' + os.path.join(output_dir, 'results-noint-schools'),
@@ -156,7 +156,7 @@ subprocess.run(
 #     ])
 # print('=== Starting running (schools):')
 # subprocess.run(
-#     [spacialsim_exe, '/c:1',
+#     [covidsim_exe, '/c:1',
 #      '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
 #      '/P:' + os.path.join(input_dir, 'input-params.txt'),
 #      '/O:' + os.path.join(output_dir, 'results-int-schools'),

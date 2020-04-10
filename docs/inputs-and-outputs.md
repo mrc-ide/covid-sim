@@ -1,4 +1,4 @@
-# The inputs and outputs of the `SpatialSim` model
+# The inputs and outputs of the `CovidSim` model
 
 This is WIP. Know something not documented here? Please add and open a PR!
 
@@ -16,25 +16,25 @@ This is WIP. Know something not documented here? Please add and open a PR!
 
 ## The geography
 
-`SpatialSim` simulates disease spread in a geographical region, which in principle can be at any scale, but in practice is a region or country.
+`CovidSim` simulates disease spread in a geographical region, which in principle can be at any scale, but in practice is a region or country.
 
 In consequence, the model must be told the geography of a region, such as its population density, plus other specific information. Right now this information is specified as a mixture of parameters, density files and compile-time flags.
 
 ### Warning: need to recompile
 
-Teh code currently *must* be recompiled for use with different countries:  it is insufficient to simply use country-specific network and population files. The UK and US are modelled respectively by ensuring the macros `#define COUNTRY_UK` and `#define COUNTRY_US` in the file `Country.h`. We plan to change this so different countries can be specified by the command line.
+The code currently *must* be recompiled for use with different countries:  it is insufficient to simply use country-specific network and population files. The UK and US are modelled respectively by ensuring the macros `#define COUNTRY_UK` and `#define COUNTRY_US` in the file `Country.h`. We plan to change this so different countries can be specified by the command line.
 
 ## Main command-line arguments
 
 A typical run specifies (i) files that contain simulation parameters (the `/P` and `/PP` option) , (ii) a population density file for the country we're simulating (the `/D` option) and (iii) the name of output files that summarise the results of the simulation (the `/O` option).
 ```
-SpatialSim 
+CovidSim
     /c:NumThreads
     /PP:PreParameterFile
-    /P:ParameterFile 
-    /O:OutputFilesPrefix 
-    [/D:PopulationDensityFile] 
-    [/L:NetworkFileToLoad | /S:NetworkFileToSave] 
+    /P:ParameterFile
+    /O:OutputFilesPrefix
+    [/D:PopulationDensityFile]
+    [/L:NetworkFileToLoad | /S:NetworkFileToSave]
     Seed1 Seed2 Seed3 Seed4
 ```
 
@@ -43,25 +43,25 @@ Explanation of the arguments with examples:
 - `/PP:preUS_R0=2.0_BM.txt` a file that defines pre-parameters for a specific run
 - `/P:p_NoInt.txt` a file that defines parameters for a specific run
 - `/O:./output/NoInt_R0=1` specifies the prefix pathname for a collection of output files that contain simulation data. The output files are tabular `tsv` data (but with the extension `.xls`)
-- `[/D:pop_usa_adm2.txt]` a population density file for a specific geography (e.g. a country) 
+- `[/D:pop_usa_adm2.txt]` a population density file for a specific geography (e.g. a country)
 - `[/L:NetworkFileToLoad | /S:NetworkFileToSave]`. For efficiency, we can run and, as a side-effect, generate a [network file](./model-glossary.md#Network\ file) that assigns [people](./model-glossary.md#People) to [places](./model-glossary.md#Places). The [network file](./model-glossary.md#Network\ file) may then be re-used for subsequent runs (with different input parameters for the same geography). The network file is a non-portable `.bin`. Generate this file with the `/S` option and re-use it (in a subsequent run) with the `/L` option.
 - `Seed1 Seed2 Seed3 Seed4` Random seeds.
 
 ## Additional command-line arguments
 
 ```
-SpatialSim 
+CovidSim
     /c:NumThreads
     /PP:PreParameterFile
-    /P:ParameterFile 
-    /O:OutputFilesPrefix 
-    [/D:PopulationDensityFile] 
-    /CLP1:100000 
-    /CLP2:0 
+    /P:ParameterFile
+    /O:OutputFilesPrefix
+    [/D:PopulationDensityFile]
+    /CLP1:100000
+    /CLP2:0
     /M:US_LS2018.bin
-    [/L:NetworkFileToLoad | /S:NetworkFileToSave] 
-    [/AP:AirTravelFile] 
-    [/s:SchoolFile] 
+    [/L:NetworkFileToLoad | /S:NetworkFileToSave]
+    [/AP:AirTravelFile]
+    [/s:SchoolFile]
     [/R:R0scaling]
     Seed1 Seed2 Seed3 Seed4
 ```
@@ -77,7 +77,7 @@ The main inputs files are parameter files and population density information (fo
 
 ### Parameters
 
-There are a very large number of parameters to `SpatialSim`. This repo is undergoing active development and rationalisation. The parameters are currently not self-documenting.
+There are a very large number of parameters to `CovidSim`. This repo is undergoing active development and rationalisation. The parameters are currently not self-documenting.
 
 Parameter values are read in from parameter files by function `ReadParams`, which matches up a parameter description string to the according variable in the source code. Absent proper documentation the only method to determine the precise meaning of a specific parameter is to read the code.
 
@@ -116,7 +116,7 @@ The information contained in this file includes:
 
 Physical geography data: each geography has a shape file (`.shp`) of polygons and meta-data (`.dbf`) with GPS coordinates. Admin units are a set of polygons.
 
-Human geography data specifies where people live on the same scale as a `SpatialSim`'s microcell (1/120th of a degree).
+Human geography data specifies where people live on the same scale as a `CovidSim`'s microcell (1/120th of a degree).
 
 Imperial College combines the physical and human data to calculate population densities per polygon. This process produces the population density file.
 
