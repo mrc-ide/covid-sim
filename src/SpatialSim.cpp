@@ -495,16 +495,16 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (!GetInputParameter2(dat, dat3, "Include households", "%i", (void*) & (P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
-	if (!GetInputParameter2(dat, dat3, "OutputAge"					, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
-	if (!GetInputParameter2(dat, dat3, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
-	if (!GetInputParameter2(dat, dat3, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputControls"				, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputCountry"				, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
-	if (!GetInputParameter2(dat, dat3, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
-  	if (!GetInputParameter2(dat, dat3, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputAge"					, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
+	if (!GetInputParameter2(dat, dat2, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
+	if (!GetInputParameter2(dat, dat2, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputControls"				, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputCountry"				, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
+	if (!GetInputParameter2(dat, dat2, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
+  	if (!GetInputParameter2(dat, dat2, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
 
 	if (P.DoHouseholds)
 	{
