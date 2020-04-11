@@ -1653,7 +1653,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 		- picks number of children (nc)
 		- tries to space them reasonably
 		- picks parental ages to be consistent with childrens' and each other
-		- other adults in large housholds are assumed to be grandparents
+		- other adults in large households are assumed to be grandparents
 		- for Thailand, 2 person households are 95% couples without children, 5% 1 parent families
 	*/
 	int i, j, k, l, nc, ad;
@@ -1687,11 +1687,11 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-				} while ((a[0] > YOUNG_AND_SINGLE) || (a[0] < MIN_ADULT_AGE)
-					|| (ranf_mt(tn) > 1 - YOUNG_AND_SINGLE_SLOPE * (((double)a[0]) - MIN_ADULT_AGE) / (YOUNG_AND_SINGLE - MIN_ADULT_AGE)));
+				} while ((a[0] > YOUNG_AND_SINGLE) || (a[0] < P.MinAdultAge)
+					|| (ranf_mt(tn) > 1 - YOUNG_AND_SINGLE_SLOPE * (((double)a[0]) - P.MinAdultAge) / (YOUNG_AND_SINGLE - P.MinAdultAge)));
 			}
 			else
-				while ((a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))]) < MIN_ADULT_AGE);
+				while ((a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))]) < P.MinAdultAge);
 		}
 		else if (n == 2)
 		{
@@ -1712,23 +1712,23 @@ void AssignHouseholdAges(int n, int pers, int tn)
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
 #else
-				while ((a[1] > a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < NOCHILD_PERS_AGE)
+				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < NOCHILD_PERS_AGE)
 					|| (ranf_mt(tn) > (((double)a[1]) - NOCHILD_PERS_AGE + 1) / (OLD_PERS_AGE - NOCHILD_PERS_AGE + 1)));
 #endif
 			}
 			else if (ranf_mt(tn) < ONE_CHILD_TWO_PERS_PROB / (1 - TWO_PERS_HOUSE_PROB_OLD))
 			{
-				while ((a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))]) > MAX_CHILD_AGE);
+				while ((a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))]) > P.MaxChildAge);
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + MAX_PARENT_AGE_GAP) || (a[1] < a[0] + MIN_PARENT_AGE_GAP));
+				while ((a[1] >= a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap));
 #else
-				while ((a[1] > a[0] + MAX_PARENT_AGE_GAP) || (a[1] < a[0] + MIN_PARENT_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] > a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap) || (a[1] < P.MinAdultAge));
 #endif
 			}
 			else if ((TWO_PERS_HOUSE_PROB_YOUNG > 0) && (ranf_mt(tn) < TWO_PERS_HOUSE_PROB_YOUNG / (1 - TWO_PERS_HOUSE_PROB_OLD - ONE_CHILD_TWO_PERS_PROB)))
@@ -1736,16 +1736,16 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-				} while ((a[0] < MIN_ADULT_AGE) || (a[0] > YOUNG_AND_SINGLE)
-					|| (ranf_mt(tn) > 1 - YOUNG_AND_SINGLE_SLOPE * (((double)a[0]) - MIN_ADULT_AGE) / (YOUNG_AND_SINGLE - MIN_ADULT_AGE)));
+				} while ((a[0] < P.MinAdultAge) || (a[0] > YOUNG_AND_SINGLE)
+					|| (ranf_mt(tn) > 1 - YOUNG_AND_SINGLE_SLOPE * (((double)a[0]) - P.MinAdultAge) / (YOUNG_AND_SINGLE - P.MinAdultAge)));
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
 #else
-				while ((a[1] > a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
 #endif
 			}
 			else
@@ -1753,15 +1753,15 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-				} while (a[0] < MIN_ADULT_AGE);
+				} while (a[0] < P.MinAdultAge);
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[1] > a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
 #else
-				while ((a[1] > a[0] + MAX_MF_PARTNER_AGE_GAP) || (a[1] < a[0] - MAX_FM_PARTNER_AGE_GAP) || (a[1] < MIN_ADULT_AGE));
+				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
 #endif
 			}
 
@@ -1796,19 +1796,19 @@ void AssignHouseholdAges(int n, int pers, int tn)
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[0] < MIN_ADULT_AGE) || (a[1] >= a[0] + MAX_PARENT_AGE_GAP)
-					|| (a[1] < a[0] + MIN_PARENT_AGE_GAP) || (a[1] > NOCHILD_PERS_AGE));
+				while ((a[0] < P.MinAdultAge) || (a[1] >= a[0] + P.MaxParentAgeGap)
+					|| (a[1] < a[0] + P.MinParentAgeGap) || (a[1] > NOCHILD_PERS_AGE));
 #else
-				while ((a[1] < MIN_ADULT_AGE) || (a[0] < MIN_ADULT_AGE));
+				while ((a[1] < P.MinAdultAge) || (a[0] < P.MinAdultAge));
 #endif
 				do
 				{
 					a[2] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
 #ifdef COUNTRY_THAILAND
-				while ((a[2] >= a[1] + MAX_MF_PARTNER_AGE_GAP) || (a[2] < a[1] - MAX_FM_PARTNER_AGE_GAP));
+				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
 #else
-				while ((a[2] >= a[1] + MAX_MF_PARTNER_AGE_GAP) || (a[2] < a[1] - MAX_FM_PARTNER_AGE_GAP));
+				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
 #endif
 			}
 			else
@@ -1816,28 +1816,28 @@ void AssignHouseholdAges(int n, int pers, int tn)
 #ifdef COUNTRY_THAILAND
 				a[0] = 0;
 				for (i = 1; i < nc; i++)
-					a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(MEAN_CHILD_AGE_GAP - 1, tn));
-				j = a[nc - 1] - (MAX_PARENT_AGE_GAP - MIN_PARENT_AGE_GAP);
+					a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
+				j = a[nc - 1] - (P.MaxParentAgeGap - P.MinParentAgeGap);
 				if (j > 0)
-					j += MAX_PARENT_AGE_GAP;
+					j += P.MaxParentAgeGap;
 				else
-					j = MAX_PARENT_AGE_GAP;
+					j = P.MaxParentAgeGap;
 				do
 				{
 					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					k = ((nc > 1) ? a[nc - 1] : 0) + a[0];
-					l = k - MAX_CHILD_AGE;
+					l = k - P.MaxChildAge;
 					if (ranf_mt(tn) < ONE_CHILD_PROB_YOUNGEST_CHILD_UNDER_FIVE) l = k - 5;
-				} while ((l > 0) || (a[nc] > a[0] + j) || (a[nc] < k + MIN_PARENT_AGE_GAP));
+				} while ((l > 0) || (a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap));
 				for (i = 1; i < nc; i++) a[i] += a[0];
 				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
 				{
 					do
 					{
 						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					} while ((a[nc + 1] >= a[nc] + MAX_MF_PARTNER_AGE_GAP)
-						|| (a[nc + 1] < a[nc] - MAX_FM_PARTNER_AGE_GAP));
+					} while ((a[nc + 1] >= a[nc] + P.MaxMFPartnerAgeGap)
+						|| (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap));
 					l = nc + 2;
 				}
 				else
@@ -1847,30 +1847,30 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[0] = 0;
 					for (i = 1; i < nc; i++)
-						a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(MEAN_CHILD_AGE_GAP - 1, tn));
+						a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))] - a[(int)(ranf_mt(tn) * ((double)nc))];
 					for (i = 1; i < nc; i++) a[i] += a[0];
 					k = (((nc == 1) && (ranf_mt(tn) < ONE_CHILD_PROB_YOUNGEST_CHILD_UNDER_FIVE)) || ((nc == 2) && (ranf_mt(tn) < TWO_CHILDREN_PROB_YOUNGEST_UNDER_FIVE))
-						|| ((nc > 2) && (ranf_mt(tn) < PROB_YOUNGEST_CHILD_UNDER_FIVE))) ? 5 : MAX_CHILD_AGE;
-				} while ((a[0] < 0) || (a[0] > k) || (a[nc - 1] > MAX_CHILD_AGE));
-				j = a[nc - 1] - a[0] - (MAX_PARENT_AGE_GAP - MIN_PARENT_AGE_GAP);
+						|| ((nc > 2) && (ranf_mt(tn) < PROB_YOUNGEST_CHILD_UNDER_FIVE))) ? 5 : P.MaxChildAge;
+				} while ((a[0] < 0) || (a[0] > k) || (a[nc - 1] > P.MaxChildAge));
+				j = a[nc - 1] - a[0] - (P.MaxParentAgeGap - P.MinParentAgeGap);
 				if (j > 0)
-					j += MAX_PARENT_AGE_GAP;
+					j += P.MaxParentAgeGap;
 				else
-					j = MAX_PARENT_AGE_GAP;
+					j = P.MaxParentAgeGap;
 				do
 				{
 					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					k = a[nc - 1];
-					l = k - MAX_CHILD_AGE;
-				} while ((a[nc] > a[0] + j) || (a[nc] < k + MIN_PARENT_AGE_GAP) || (a[nc] < MIN_ADULT_AGE));
+					l = k - P.MaxChildAge;
+				} while ((a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap) || (a[nc] < P.MinAdultAge));
 				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
 				{
 					do
 					{
 						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					} while ((a[nc + 1] > a[nc] + MAX_MF_PARTNER_AGE_GAP) || (a[nc + 1] < a[nc] - MAX_FM_PARTNER_AGE_GAP)
-						|| (a[nc + 1] > a[0] + j) || (a[nc + 1] < k + MIN_PARENT_AGE_GAP) || (a[nc + 1] < MIN_ADULT_AGE));
+					} while ((a[nc + 1] > a[nc] + P.MaxMFPartnerAgeGap) || (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap)
+						|| (a[nc + 1] > a[0] + j) || (a[nc + 1] < k + P.MinParentAgeGap) || (a[nc + 1] < P.MinAdultAge));
 					l = nc + 2;
 				}
 				else
@@ -1879,7 +1879,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				if (n > nc + 2)
 				{
 #ifdef COUNTRY_THAILAND
-					j = a[nc] + MIN_PARENT_AGE_GAP;
+					j = a[nc] + P.MinParentAgeGap;
 #else
 					j = ((a[nc + 1] > a[nc]) ? a[nc + 1] : a[nc]) + OLDER_GEN_GAP;
 #endif

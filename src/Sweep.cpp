@@ -427,7 +427,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 										{
 											ad = Mcells[Hosts[i3].mcell].adunit;
 											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
@@ -537,7 +537,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 										{
 											ad = Mcells[Hosts[i3].mcell].adunit;
 											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
@@ -724,7 +724,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//scale down susceptibility so we don't over accept
 									s /= P.ScalingFactorSpatialDigitalContacts;
 									//if infectee is also a user, add them as a contact
-									if (Hosts[i3].digitalContactTracingUser)
+									if (Hosts[i3].digitalContactTracingUser && (ranf_mt(tn) < P.ProportionDigitalContactsIsolate))
 									{
 										ad = Mcells[Hosts[i3].mcell].adunit;
 										if((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
@@ -818,7 +818,7 @@ void IncubRecoverySweep(double t, int run)
 		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
 		if ((t + P.TimeStep >= ht) && (t < ht))
 		{
-//#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
+#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (b = tn; b < P.N; b += P.NumThreads)
@@ -881,16 +881,16 @@ void IncubRecoverySweep(double t, int run)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
-						DoRecover(ci, run, tn);
+						DoRecover(ci, tn, run);
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
-					}
+					} 
 					else /// if they die and this timestep is after they've died.
 					{	// si->to_die
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							DoRecover(ci, run, tn);
+							DoRecover(ci, tn, run);
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 						else
-							DoDeath(ci, run, tn);
+							DoDeath(ci, tn, run);
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 				}
@@ -920,7 +920,7 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-//#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
+#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
