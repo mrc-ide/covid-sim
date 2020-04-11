@@ -8,8 +8,8 @@
 # 1. Clone two copies of the git repo (one called "good" and
 #    one called "bad"):
 #
-#    git clone https://github.com/mrc-ide/covid-19-spatial-sim.git good
-#    git clone https://github.com/mrc-ide/covid-19-spatial-sim.git bad
+#    git clone https://github.com/mrc-ide/covid-sim.git good
+#    git clone https://github.com/mrc-ide/covid-sim.git bad
 #    cd bad
 #    git checkout mybranch
 #    cd ..

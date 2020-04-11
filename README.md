@@ -102,11 +102,11 @@ https://creativecommons.org/licenses/by/4.0/legalcode
 ## Contributing, Reporting Issues and Code of Conduct
 
 Due to time pressure on the development team we are not currently accepting
-contributions to this repository.  You are free to [fork it]
-(https://github.com/mrc-ide/covid-19-spatial-sim/fork).
+contributions to this repository.  You are free to
+[fork it](https://github.com/mrc-ide/covid-sim/fork).
 
-If you do find issues with the code please raise them in our [Issue
-Tracker](https://github.com/mrc-ide/covid-19-spatial-sim/issues).
+If you do find issues with the code please raise them in our
+[Issue Tracker](https://github.com/mrc-ide/covid-sim/issues).
 
 This repository has a code of conduct which is detailed in
 [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).  When raising an issue in this
