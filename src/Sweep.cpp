@@ -818,7 +818,7 @@ void IncubRecoverySweep(double t, int run)
 		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
 		if ((t + P.TimeStep >= ht) && (t < ht))
 		{
-//#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
+#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (b = tn; b < P.N; b += P.NumThreads)
@@ -920,7 +920,7 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-//#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
+#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
