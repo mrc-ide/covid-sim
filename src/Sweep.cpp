@@ -896,8 +896,8 @@ void IncubRecoverySweep(double t, int run)
 				}
 			}
 
-			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], run, tn);
-			//for (j = 0; j < StateT[tn].n_queue[1]; j++) DoDeath(StateT[tn].inf_queue[1][j], run, tn);
+			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], tn, run);
+			//for (j = 0; j < StateT[tn].n_queue[1]; j++) DoDeath(StateT[tn].inf_queue[1][j], tn, run);
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 		}
 }
