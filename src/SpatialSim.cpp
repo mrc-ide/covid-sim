@@ -4158,7 +4158,7 @@ void RecordSample(double t, int n)
 		}
 		else
 		{
-		  DoOrDontAmendStartTime(&P.TreatTimeStart			, t + P.TreatTimeStartBase			);
+		    DoOrDontAmendStartTime(&P.TreatTimeStart			, t + P.TreatTimeStartBase			);
 			DoOrDontAmendStartTime(&P.VaccTimeStart				, t + P.VaccTimeStartBase			);
 			DoOrDontAmendStartTime(&P.SocDistTimeStart			, t + P.SocDistTimeStartBase		);
 			DoOrDontAmendStartTime(&P.PlaceCloseTimeStart		, t + P.PlaceCloseTimeStartBase		);
