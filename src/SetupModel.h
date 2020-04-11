@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SPATIALSIM_SETUPMODEL_H_INCLUDED_
-#define SPATIALSIM_SETUPMODEL_H_INCLUDED_
+#ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
+#define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
 void SetupModel(char*, char*, char*, char*);
 void SetupPopulation(char*, char*, char*);
@@ -24,4 +24,4 @@ typedef struct BIN_FILE {
 
 extern char OutFile[1024],OutDensFile[1024];
 
-#endif // SPATIALSIM_SETUPMODEL_H_INCLUDED_
+#endif // COVIDSIM_SETUPMODEL_H_INCLUDED_

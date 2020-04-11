@@ -1,4 +1,4 @@
-# SpatialSim: how interventions and policies are implemented
+# CovidSim: how interventions and policies are implemented
 
 See [model overview](./model-overview.md) for further information.
 
@@ -6,29 +6,29 @@ The simulation models infections through time in a spatially explicit representa
 
 ## Intervention overview
 
-The model considers various interventions that alter either the infectiousness of infected people or the susceptibility of susceptible people (or both). Fundamentally, interventions are implemented by changing the person-specific period during which a person is subject to particular intervention (given in `#define` functions in `ModelMacros.h`). These values in turn toggle parameters in functions governing infectiousness and susceptibility in `CalcInfSusc.cpp`, and in function `InfectSweep` in `Update.cpp`. The interventions broadly fall into the following categories: 
+The model considers various interventions that alter either the infectiousness of infected people or the susceptibility of susceptible people (or both). Fundamentally, interventions are implemented by changing the person-specific period during which a person is subject to particular intervention (given in `#define` functions in `ModelMacros.h`). These values in turn toggle parameters in functions governing infectiousness and susceptibility in `CalcInfSusc.cpp`, and in function `InfectSweep` in `Update.cpp`. The interventions broadly fall into the following categories:
 - Case Isolation (CI),
 - Home/Household Quarantine (HQ),
-- Place Closure (PC), and 
+- Place Closure (PC), and
 - Social Distancing (SD).
 
-Importantly, the model distinguishes between the period during which a policy is implemented, and the period during which the actual intervention is implemented. 
+Importantly, the model distinguishes between the period during which a policy is implemented, and the period during which the actual intervention is implemented.
 
-If a policy is implemented from time `t`, the intervention will not be implemented until a user-specified threshold has been met by a particular “trigger” or count (see below). Further, CI and HQ policies have durations at the level of a person, which denote the length of time that a person would either self-isolate or be under home quarantine. These person-level durations are distinct from the duration of policy at the population level. For example, a policy could be implemented for a year, during which time people would home quarantine for 14 days if a member of their household sick. 
+If a policy is implemented from time `t`, the intervention will not be implemented until a user-specified threshold has been met by a particular “trigger” or count (see below). Further, CI and HQ policies have durations at the level of a person, which denote the length of time that a person would either self-isolate or be under home quarantine. These person-level durations are distinct from the duration of policy at the population level. For example, a policy could be implemented for a year, during which time people would home quarantine for 14 days if a member of their household sick.
 
 A trigger is defined flexibly, with reference to either the numbers (cumulative incidence) of confirmed cases, numbers of critical cases that require Intensive Care Units (ICU beds), or numbers of deaths (our simulations so far have only considered numbers of ICU beds). Numbers can be either absolute or per-capita (and the model may be refined so that the number is defined in relation to ICU bed capacity). The window over which cumulative incidence is calculated is specified by `P.TriggersSamplingInterval` days. Further, triggers may be specified at either admin unit (regional) or at country (global) level. So too can the start times for when each intervention is considered. Finally, each intervention has its own threshold value.
 
-Currently, all interventions must use the same epidemiological variable for their trigger (e.g. all using confirmed cases or all using ICU beds), and interventions do not differ in whether they consider absolute or per-capita triggers. 
+Currently, all interventions must use the same epidemiological variable for their trigger (e.g. all using confirmed cases or all using ICU beds), and interventions do not differ in whether they consider absolute or per-capita triggers.
 
-The steps below summarise the above process: 
+The steps below summarise the above process:
 
 - Simulation starts
-- Policy implemented 
-- Trigger (count) surpasses threshold for that intervention 
+- Policy implemented
+- Trigger (count) surpasses threshold for that intervention
 - Intervention implemented
 - infectiousness and/or susceptibility parameters turned on for individuals affected by intervention
 
-The following interventions are described with reference to particular functions and parameters in code, and the parameter descriptions in parameter files (`p_XX.txt`), which are read in through `ReadParams` function in `SpatialSim.c`. Functions `TreatSweep` in `Update.cpp` and `RecordSample` in `SpatialSim.c` determine whether thresholds have been exceeded. 
+The following interventions are described with reference to particular functions and parameters in code, and the parameter descriptions in parameter files (`p_XX.txt`), which are read in through `ReadParams` function in `CovidSim.cpp`. Functions `TreatSweep` in `Update.cpp` and `RecordSample` in `CovidSim.cpp` determine whether thresholds have been exceeded.
 
 Notes on variable naming: Parameters are collected in single structure `PARAMS`, of which there is a single, global instance `P`. Parameters with prefix `us` are unsigned short versions of their namesakes, that have been multiplied by parameter `P.TimeStepsPerDay` (e.g. `P.usHQuarantineHouseDuration = P.HQuarantineHouseDuration * P.TimeStepsPerDay`).
 
@@ -70,13 +70,13 @@ Note on levels of `P.DoSocDistOnceOnly`: not quite a boolean. Default value is 0
 
 Differences between this and social distancing are in parameter values, rather than source code.
 
-`ReadParams` in `SpatialSim.c` populates `P.ESocProportionCompliant` array by scanning first for “Proportion compliant with enhanced social distancing by age group”, and failing that the non-age-specific “Proportion compliant with enhanced social distancing”, in which case all values of array same for all age groups. If this is not found, values default to 0, i.e. zero compliance with enhanced social distancing.
+`ReadParams` in `CovidSim.cpp` populates `P.ESocProportionCompliant` array by scanning first for “Proportion compliant with enhanced social distancing by age group”, and failing that the non-age-specific “Proportion compliant with enhanced social distancing”, in which case all values of array same for all age groups. If this is not found, values default to 0, i.e. zero compliance with enhanced social distancing.
 
 ## PLACE CLOSURE (PC)
 
-Policy implemented after time `P.PlaceCloseTimeStartBase` (“Place closure start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P. PlaceCloseTimeStartBase` greater than simulation duration indicates that policy not implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration can alternatively be specified at admin unit level. 
+Policy implemented after time `P.PlaceCloseTimeStartBase` (“Place closure start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P. PlaceCloseTimeStartBase` greater than simulation duration indicates that policy not implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration can alternatively be specified at admin unit level.
 
-`RecordSample` in `SpatialSim.c` determines whether trigger has exceeded `P.PlaceCloseCellIncThresh`, and if so sets `P.PlaceCloseTimeStart`. A subsequent call to `TreatSweep` function in `Sweep.cpp`, determines whether incidence threshold `P.PlaceCloseCellIncThresh` exceeded. If so, then all places in microcell marked as closed (and trigger reset), and `DoPlaceClose` in `Update.cpp` is called. DoPlaceClose changes quantities `place.close_start_time` and `place.close_stop_time`, which are used in macro function `PLACE_CLOSED`.
+`RecordSample` in `CovidSim.cpp` determines whether trigger has exceeded `P.PlaceCloseCellIncThresh`, and if so sets `P.PlaceCloseTimeStart`. A subsequent call to `TreatSweep` function in `Sweep.cpp`, determines whether incidence threshold `P.PlaceCloseCellIncThresh` exceeded. If so, then all places in microcell marked as closed (and trigger reset), and `DoPlaceClose` in `Update.cpp` is called. DoPlaceClose changes quantities `place.close_start_time` and `place.close_stop_time`, which are used in macro function `PLACE_CLOSED`.
 
 Unlike other measures, place closure does not affect infectiousness and susceptibility functions in `CalcInfSusc.cpp`, but it does affect infectiousness and susceptibility indirectly in `InfectSweep` function in `Update.cpp` with calls to `PLACE_CLOSED`. If person has their places closed, their household infectiousness is scaled by `P.PlaceCloseHouseholdRelContact`. Similarly, infected people’s spatial infectiousness also scaled by `P.PlaceCloseSpatialRelContact`, and potential infectee’s susceptibility to spatial infections is also scaled by `P.PlaceCloseSpatialRelContact`. Further, infected people cannot infect anyone in their place (and therefore have zero Place infectiousness) when their place is closed.
 

@@ -1,5 +1,5 @@
 # Overview of the build system
-The COVID-19 SpatialSim model uses the [CMake](www.cmake.org) build tool to generate build files for other build systems. Currently, building using clang and gcc with Makefiles and MSVC with Visual Studio are supported.
+The COVID-19 CovidSim model uses the [CMake](www.cmake.org) build tool to generate build files for other build systems. Currently, building using clang and gcc with Makefiles and MSVC with Visual Studio are supported.
 
 # Building with Makefiles
 From the command line inside a git clone, run the following:

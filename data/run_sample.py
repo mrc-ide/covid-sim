@@ -23,7 +23,7 @@ def parse_args():
 
     On exit: Returns the result of calling argparse.parse()
 
-    args.spatialsim is the name of the spatial sim executable
+    args.covidsim is the name of the CovidSim executable
     args.datadir is the directory with the input data
     args.paramdir is the directory with the parameters in it
     args.outputdir is the directory where output will be stored
@@ -50,8 +50,8 @@ def parse_args():
             "country",
             help="Country to run sample for")
     parser.add_argument(
-            "--spatialsim",
-            help="Location of SpatialSim binary, if none specified will build")
+            "--covidsim",
+            help="Location of CovidSim binary, if none specified will build")
     parser.add_argument(
             "--datadir",
             help="Directory at root of input data",
@@ -62,7 +62,7 @@ def parse_args():
             default=param_dir)
     parser.add_argument(
             "--srcdir",
-            help="Directory with source in - needed if --spatialsim isn't specified",
+            help="Directory with source in - needed if --covidsim isn't specified",
             default=src_dir)
     parser.add_argument(
             "--outputdir",
@@ -85,8 +85,8 @@ canada = [ "Canada" ]
 usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US", "Puerto_Rico", "American_Samoa"]
 
 # Determine whether we need to build the tool or use a user supplied one:
-if args.spatialsim is not None:
-    exe = args.spatialsim
+if args.covidsim is not None:
+    exe = args.covidsim
 else:
     build_dir = os.path.join(args.outputdir, "build")
 
@@ -108,9 +108,9 @@ else:
 
     # Where the exe ends up depends on the OS.
     if os.name == 'nt':
-        exe = os.path.join(build_dir, "Debug", "SpatialSim.exe")
+        exe = os.path.join(build_dir, "Debug", "CovidSim.exe")
     else:
-        exe = os.path.join(build_dir, "SpatialSim")
+        exe = os.path.join(build_dir, "CovidSim")
 
     os.chdir(cwd)
 
@@ -128,7 +128,7 @@ if not os.path.exists(admin_file):
     exit(1)
 
 # Population density file in gziped form, text file, and binary file as
-# processed by SpatialSim
+# processed by CovidSim
 if args.country in united_states + canada:
     wpop_file_root = "usacan"
 elif args.country in usa_territories:
@@ -181,7 +181,7 @@ if not os.path.exists(no_int_file):
     exit(1)
 
 # Configure an intervention (controls) parameter file.
-# In reality you will run SpatialSim many times with different parameter
+# In reality you will run CovidSim many times with different parameter
 # controls.
 control_roots = [ "PC7_CI_HQ_SD", "PC7_CI_HQ_SD_DCT" ]
 for root in control_roots:

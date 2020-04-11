@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SPATIALSIM_SPATIALSIM_H_INCLUDED_
-#define SPATIALSIM_SPATIALSIM_H_INCLUDED_
+#ifndef COVIDSIM_COVIDSIM_H_INCLUDED_
+#define COVIDSIM_COVIDSIM_H_INCLUDED_
 
 #include "MachineDefines.h"
 
@@ -31,4 +31,4 @@
 #define PlaceType_University			2
 #define PlaceType_Office				3
 
-#endif // SPATIALSIM_SPATIALSIM_H_INCLUDED_
+#endif // COVIDSIM_COVIDSIM_H_INCLUDED_

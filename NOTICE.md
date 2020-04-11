@@ -1,17 +1,17 @@
 # Licenses
 
-## SpatialSim
+## CovidSim
 
-Unless otherwise stated the source code and scripts in SpatialSim are
+Unless otherwise stated the source code and scripts in CovidSim are
 licensed under the GNU General Public License Version 3, see <LICENSE.md>.
 
-SpatialSim includes code modified from
+CovidSim includes code modified from
 [RANLIB](https://people.sc.fsu.edu/~jburkardt/c_src/ranlib/ranlib.html) which
 is licensed under the [LGPLv3](#gnu-lesser-general-public-license).
 
 ## Data Sources
 
-The sample data input for SpatialSim has been sourced from the following
+The sample data input for CovidSim has been sourced from the following
 locations:
 
 WorldPop (www.worldpop.org - School of Geography and Environmental Science,

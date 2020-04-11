@@ -10,7 +10,7 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: spatialsim
+  IMAGE_NAME: covidsim
 
 jobs:
   # Run tests.
