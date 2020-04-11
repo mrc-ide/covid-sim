@@ -563,9 +563,24 @@ assume average time to symptom onset is a day
 [CFR_SARI_ByAge]																				
 0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.013447578	0.014293732	0.016158969	0.020501748	0.029395403	0.044677032	0.073315052	0.112652243	0.159727019	0.21769897	0.620944315
 
-				
-																						
-	
+[Mean child age gap]
+2
 
+[Min adult age]
+19
 
+[Max MF partner age gap]
+5
+
+[Max FM partner age gap]
+5
+
+[Min parent age gap]
+19
+
+[Max parent age gap]
+45
+
+[Max child age]
+20
 

@@ -395,7 +395,24 @@ Also comparable with 1957 pandemic attack rates from Chin.
 [CFR_SARI_ByAge]
 0.226312082	0.223791701	0.233610099	0.245604322	0.259809065	0.2719935	0.280815263	0.289219773	0.295990052	0.306751134	0.322853972	0.336533156	0.354484333	0.366009776	0.377742364	0.387610355	0.4
 
-	
+[Mean child age gap]
+2
 
+[Min adult age]
+19
 
+[Max MF partner age gap]
+5
+
+[Max FM partner age gap]
+5
+
+[Min parent age gap]
+19
+
+[Max parent age gap]
+45
+
+[Max child age]
+20
 
