@@ -205,7 +205,7 @@ typedef struct INDEXLIST {
 typedef struct AIRPORT {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int country, adunit, num_connected, control, *conn_airports;
-	float int_traffic, total_traffic, loc_x, loc_y, control_start_time, control_end_time;
+	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
 	indexlist* DestMcells, *DestPlaces;
 } airport;
@@ -289,8 +289,7 @@ typedef struct INTERVENTION {
  * @brief A political entity that administers a geographical area.
  */
 typedef struct ADMINUNIT {
-	int id, cnt_id, NI, NIactive[MAX_INTERVENTION_TYPES], n; //added n - number of people in admin unit: ggilani 05/01/15
-	int ActiveInterv[MAX_INTERVENTION_TYPES][MAX_INTERVENTIONS_PER_ADUNIT];
+	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
 	intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
 	char cnt_name[100], ad_name[200];
 	int NP, place_close_trig;
@@ -301,7 +300,6 @@ typedef struct ADMINUNIT {
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
-	double caseDetectInit;
 } adminunit;
 
 #pragma pack(pop)
