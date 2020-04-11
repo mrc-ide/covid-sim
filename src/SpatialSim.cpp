@@ -403,7 +403,7 @@ int main(int argc, char* argv[])
 		if (P.DoLoadSnapshot) LoadSnapshot();
 		if (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			setall(P.newseed1, P.newseed2);  // reset random number seeds to generate same run again after calibration. 
+			setall(P.newseed1, P.newseed2);  // reset random number seeds to generate same run again after calibration.
 			InitModel(i);
 			RunModel(i);
 		}
@@ -1622,7 +1622,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max MF partner age gap", "%i", (void*) & (P.MaxMFPartnerAgeGap), 1, 1, 0)) P.MaxMFPartnerAgeGap = 5;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max FM partner age gap", "%i", (void*) & (P.MaxFMPartnerAgeGap), 1, 1, 0)) P.MaxFMPartnerAgeGap = 5;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Min parent age gap", "%i", (void*) & (P.MinParentAgeGap), 1, 1, 0)) P.MinParentAgeGap = 19;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max parent age gap", "%i", (void*) & (P.MinParentAgeGap), 1, 1, 0)) P.MinParentAgeGap = 44;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max parent age gap", "%i", (void*) & (P.MaxParentAgeGap), 1, 1, 0)) P.MaxParentAgeGap = 45;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max child age", "%i", (void*) & (P.MaxChildAge), 1, 1, 0)) P.MaxChildAge = 20;
 
 	// Close input files.
@@ -2124,7 +2124,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			AdUnits[i].place_close_trig = 0;
 			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
 			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
-			
+
 
 		}
 	for (j = 0; j < MAX_NUM_THREADS; j++)
@@ -2142,9 +2142,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
 		if (P.DoAdUnits)
 			for (i = 0; i <= P.NumAdunits; i++)
-				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] = 
+				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
 				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = StateT[j].ncontacts[i] = StateT[j].ncontact_time[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
-	
+
 		if (P.DoSeverity)
 		{
 			StateT[j].Mild		= StateT[j].ILI		= StateT[j].SARI	= StateT[j].Critical	= StateT[j].CritRecov		= 0;
