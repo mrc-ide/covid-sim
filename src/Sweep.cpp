@@ -1075,7 +1075,7 @@ void DigitalContactTracingSweep(double t)
 					//first of all do some kind of testing of contacts of index cases
 					if ((Hosts[contact].index_case_dct == 0) && ((Hosts[contact].dct_start_time + (unsigned short int) (P.DelayToTestDCTContacts * P.TimeStepsPerDay)) == ts))
 					{
-						if (abs(Hosts[contact].inf) == 2 || Hosts[contact].inf == -1) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
+						if (abs(Hosts[contact].inf) == InfStat_InfectiousAsymptomaticNotCase || Hosts[contact].inf == InfStat_InfectiousAlmostSymptomatic) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
 						{
 							//if they are false negative remove from contact tracing list
 							if (ranf_mt(tn) >= P.SensitivityDCT)

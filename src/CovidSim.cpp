@@ -3319,7 +3319,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		printf("\nFilename: %s", outname);
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
-		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
+		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
