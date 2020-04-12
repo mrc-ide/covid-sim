@@ -1,4 +1,4 @@
-# Editor config for SpatialSim
+# Editor config for CovidSim
 
 # Set this as the topmost editorconfig
 root = true
@@ -17,6 +17,11 @@ indent_size = 4
 # Makefiles
 [Makefile]
 indent_style = tab
+
+# CMakeLists.txt
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
 
 # C++ source
 [*.c,*.cpp,*.h]

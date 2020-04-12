@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef SPATIALSIM_MODEL_H_INCLUDED_
-#define SPATIALSIM_MODEL_H_INCLUDED_
+#ifndef COVIDSIM_MODEL_H_INCLUDED_
+#define COVIDSIM_MODEL_H_INCLUDED_
 
 #include "Country.h"
 #include "MachineDefines.h"
 #include "Constants.h"
 
 
-//// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero. 
+//// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
 
 #pragma pack(push, 2)
@@ -337,4 +337,4 @@ extern double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
 
 extern int DoInitUpdateProbs;
 
-#endif // SPATIALSIM_MODEL_H_INCLUDED_
+#endif // COVIDSIM_MODEL_H_INCLUDED_

@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef SPATIALSIM_PARAM_H_INCLUDED_
-#define SPATIALSIM_PARAM_H_INCLUDED_
+#ifndef COVIDSIM_PARAM_H_INCLUDED_
+#define COVIDSIM_PARAM_H_INCLUDED_
 
 #include "Country.h"
 #include "Constants.h"
 
 /**
  * @brief Stores the parameters for the simulation.
- * 
+ *
  */
 typedef struct PARAM {
 
@@ -59,7 +59,7 @@ typedef struct PARAM {
 
 	double MildToRecovery_icdf[CDF_RES + 1], ILIToRecovery_icdf[CDF_RES + 1], SARIToRecovery_icdf[CDF_RES + 1], CriticalToCritRecov_icdf[CDF_RES + 1], CritRecovToRecov_icdf[CDF_RES + 1];
 	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
-	/// means for above icdf's. 
+	/// means for above icdf's.
 	double Mean_MildToRecovery, Mean_ILIToRecovery, Mean_SARIToRecovery, Mean_CriticalToCritRecov, Mean_CritRecovToRecov, Mean_TimeToTest, Mean_TimeToTestOffset;
 	double Mean_ILIToSARI, Mean_SARIToCritical, Mean_CriticalToDeath;
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
@@ -116,7 +116,7 @@ typedef struct PARAM {
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
 	double ColourPeriod, BoundingBox[4], BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
-	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh; 
+	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;
 	double TreatPropCases, TreatPropCaseHouseholds, TreatHouseholdsDuration;
 	double TreatPlaceProbCaseId[NUM_PLACE_TYPES], TreatPlaceTotalProp[NUM_PLACE_TYPES];
@@ -124,7 +124,7 @@ typedef struct PARAM {
 	double VaccSuscDrop, VaccSuscDrop2, VaccInfDrop, VaccMortDrop, VaccSympDrop, VaccDelayMean, VaccTimeStart, VaccTimeEfficacySwitch, VaccTimeStartGeo;
 	double VaccTimeToEfficacy, VaccProp, VaccRadius, VaccRadius2, VaccMinRadius, VaccMinRadius2, VaccPropCaseHouseholds, VaccHouseholdsDuration, VaccMaxCoursesBase;
 	double VaccNewCoursesRate, VaccNewCoursesStartTime, VaccMaxCourses, VaccNewCoursesEndTime, VaccEfficacyDecay, VaccCellIncThresh, VaccCampaignInterval, VaccCoverageIncreasePeriod;
-	int VaccDosePerDay; 
+	int VaccDosePerDay;
 	double PreAlertControlPropCasesId, PostAlertControlPropCasesId, ControlPropCasesId;
 	double MoveRestrRadius, MoveRestrRadius2;
 	double MoveDelayMean, MoveRestrEffect, MoveRestrDuration, MoveRestrTimeStart;
@@ -184,9 +184,9 @@ typedef struct PARAM {
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	int DoInterventionDelaysByAdUnit;
-	
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults; 
+
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults;
 
 	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
 	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult
@@ -199,4 +199,4 @@ typedef struct PARAM {
 
 extern param P;
 
-#endif // SPATIALSIM_PARAM_H_INCLUDED_
+#endif // COVIDSIM_PARAM_H_INCLUDED_

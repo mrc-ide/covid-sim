@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SPATIALSIM_KERNELS_H_INCLUDED_
-#define SPATIALSIM_KERNELS_H_INCLUDED_
+#ifndef COVIDSIM_KERNELS_H_INCLUDED_
+#define COVIDSIM_KERNELS_H_INCLUDED_
 
 extern double *nKernel, *nKernelHR;
 
@@ -15,4 +15,4 @@ double GaussianKernel(double);
 double StepKernel(double);
 double numKernel(double);
 
-#endif // SPATIALSIM_KERNELS_H_INCLUDED_
+#endif // COVIDSIM_KERNELS_H_INCLUDED_

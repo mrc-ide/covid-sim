@@ -24,10 +24,10 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /src/build/SpatialSim /usr/bin/.
+COPY --from=build /src/build/CovidSim /usr/bin/.
 COPY data /data/input
 
-ENTRYPOINT ["/usr/bin/SpatialSim"]
+ENTRYPOINT ["/usr/bin/CovidSim"]
 
 FROM build AS test
 

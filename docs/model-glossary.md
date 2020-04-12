@@ -36,7 +36,7 @@ Mild illness, assumed to require no medical intervention
 
 # Network file
 
-A cached file, representing the allocation of people and places to a geography, which can be re-used between runs of `SpatialSim` that share the same subset of consistent parameters.
+A cached file, representing the allocation of people and places to a geography, which can be re-used between runs of `CovidSim` that share the same subset of consistent parameters.
 
 # People
 

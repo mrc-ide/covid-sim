@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Regression test for checking output of SpatialSim
+# Regression test for checking output of CovidSim
 # NOTE: This uses test data and is not a run reflective of real-world
 # situations.
 
@@ -92,13 +92,13 @@ subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2 + 'src
 subprocess.check_call(['cmake', '--build', '.'])
 
 if os.name == 'nt':
-    spacialsim_exe = os.getcwd() + os.sep + 'Debug\SpatialSim.exe'
+    covidsim_exe = os.getcwd() + os.sep + 'Debug\CovidSim.exe'
 else:
-    spacialsim_exe = os.getcwd() + os.sep + 'SpatialSim'
-print(spacialsim_exe)
+    covidsim_exe = os.getcwd() + os.sep + 'CovidSim'
+print(covidsim_exe)
 
 # Population density file in gziped form, text file, and binary file as
-# processed by SpatialSim
+# processed by CovidSim
 wpop_file_gz = os.path.join(datadir, "populations", "wpop_eur.txt.gz")
 wpop_file = "wpop_eur.txt"
 wpop_bin = "wpop_test.bin"
@@ -112,8 +112,8 @@ if not os.path.exists(wpop_file):
 # Run the simulation.
 print('=== Starting building network:')
 subprocess.check_call(
-    [spacialsim_exe, '/c:1',
-     '/PP:' +  updir1 + 'preUK_R0=2.0.txt', 
+    [covidsim_exe, '/c:1',
+     '/PP:' +  updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1  + 'p_NoInt.txt', '/CLP1:100000',
      '/CLP2:0', '/O:NoInt_R0=2.2', '/D:' + wpop_file, '/M:' + wpop_bin,
      '/A:' + updir1 + 'sample_admin.txt',
@@ -122,7 +122,7 @@ subprocess.check_call(
     ])
 print('=== Starting running:')
 subprocess.check_call(
-    [spacialsim_exe, '/c:1',
+    [covidsim_exe, '/c:1',
      '/PP:' + updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1 + 'p_PC7_CI_HQ_SDbad.txt', '/CLP1:100',
      '/CLP2:91', '/CLP3:121', '/CLP4:121', '/O:CI_100_91_R0=2.2',

@@ -275,7 +275,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// After loop 1a) over infectious people, spatial infections are doled out. 
 
 	int i, j, k, l, m,ad;
-	int n, n_unscaled; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
+	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
 	int i2, b, i3, f, f2,fct, tn, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
@@ -299,7 +299,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled,n_unscaled) schedule(static,1)
+#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -365,8 +365,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 							l = si->PlaceLinks[k];
 							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed). 
 							{
-								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
-								
+								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);		
 								mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
@@ -386,41 +385,26 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									{
 										s4 = s3;
 										s4_scaled = s4 *P.ScalingFactorPlaceDigitalContacts;
-
-										if (s4_scaled < 0)
-										{
-											fprintf(stderr, "@@@ %lg\n", s4_scaled);
-											exit(1);
-										}
-										else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
-
-										//also keep track of unscaled values of n to to get the correct downscaling later.
-										if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n_unscaled = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n_unscaled = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-										if (n_unscaled > 0) SampleWithoutReplacement(tn, n_unscaled, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+										if (s4 > 1) s4 = 1;
+										if (s4_scaled > 1) s4_scaled = 1;
 									}
 									else
 									{
 										s4 = s3;
-										//s4=s3*(1-P.PlaceTypePropBetweenGroupLinks[k]*P.PlaceTypeGroupSizeParam1[k]/((double) Places[k][l].n));
-										if (s4 < 0)
-										{
-											fprintf(stderr, "@@@ %lg\n", s4);
-											exit(1);
-										}
-										else if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+										if (s4 > 1) s4 = 1;
+										s4_scaled = s4;
 									}
 
+									if (s4_scaled < 0)
+										{
+											fprintf(stderr, "@@@ %lg\n", s4_scaled);
+											exit(1);
+										}
+									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
+										n = Places[k][l].group_size[i2];
+									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
+										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
+									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
@@ -450,7 +434,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										{
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
-											s = CalcPlaceSusc(i3, k, ts, ci, tn);
+											//downscale s if it has been scaled up do to digital contact tracing
+											s = CalcPlaceSusc(i3, k, ts, ci, tn)* s4 / s4_scaled;
 											
 											if (bm)
 											{
@@ -460,19 +445,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-
-											//downscale s if it has been scaled up do to digital contact tracing
-											if (fct)
-											{
-												if (s4_scaled >= 1) //i.e. if s4_scaled was so large that we reached the ceiling for contacts we could sample, we want to scale down susceptibility to take this into account
-												{
-													s /= (((double)n_unscaled) / ((double)n));
-												}
-												else
-												{
-													s /= P.ScalingFactorPlaceDigitalContacts;
-												}
-											}
 
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
@@ -495,42 +467,17 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if ((k == P.HotelPlaceType) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
-
-									if (fct)
+									if (s3 > 1) s3 = 1;
+									s3_scaled = (fct) ? (s3 * P.ScalingFactorPlaceDigitalContacts) : s3;
+									if (s3_scaled < 0)
 									{
-										s3_scaled = s3 * P.ScalingFactorPlaceDigitalContacts;
-
-										if (s3_scaled < 0)
-										{
-											ERR_CRITICAL_FMT("@@@ %lg\n", s3);
-										}
-										else if (s3_scaled >= 1)
-											n = Places[k][l].n;
-										else
-											n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
-
-										//also keep track of what unscaled versions of n would have been just in case it's needed for later downscaling on
-										if (s3 >= 1)
-											n_unscaled = Places[k][l].n;
-										else
-											n_unscaled = (int)ignbin_mt((long)Places[k][l].n, s3, tn);
-										if (n_unscaled > 0) SampleWithoutReplacement(tn, n_unscaled, Places[k][l].n);
-
+										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
 									}
+									else if (s3_scaled >= 1)
+										n = Places[k][l].n;
 									else
-									{
-										if (s3 < 0)
-										{
-											ERR_CRITICAL_FMT("@@@ %lg\n", s3);
-										}
-										else if (s3 >= 1)
-											n = Places[k][l].n;
-										else
-											n = (int)ignbin_mt((long)Places[k][l].n, s3, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
-									}
-
+										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
+									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[SamplingQueue[tn][m]];
@@ -560,7 +507,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										{
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
-											s = CalcPlaceSusc(i3, k, ts, ci, tn);
+											//if doing digital contact tracing, scale down susceptibility here
+											s = CalcPlaceSusc(i3, k, ts, ci, tn)*s3/s3_scaled;
 
 											if (bm)
 											{
@@ -570,20 +518,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-
-											//if doing digital contact tracing, scale down susceptibility here
-											if (fct)
-											{
-												if (s3_scaled >= 1) //i.e. if s3_scaled was so large that we reached the ceiling for contacts we could sample, we want to scale down susceptibility to take this into account
-												{
-													s /= (((double)n_unscaled) / ((double)n));
-												}
-												else
-												{
-													s /= P.ScalingFactorPlaceDigitalContacts;
-												}
-											}
-
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												cq = Hosts[i3].pcell % P.NumThreads;
@@ -1075,7 +1009,7 @@ void DigitalContactTracingSweep(double t)
 					//first of all do some kind of testing of contacts of index cases
 					if ((Hosts[contact].index_case_dct == 0) && ((Hosts[contact].dct_start_time + (unsigned short int) (P.DelayToTestDCTContacts * P.TimeStepsPerDay)) == ts))
 					{
-						if (abs(Hosts[contact].inf) == 2 || Hosts[contact].inf == -1) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
+						if (abs(Hosts[contact].inf) == InfStat_InfectiousAsymptomaticNotCase || Hosts[contact].inf == InfStat_InfectiousAlmostSymptomatic) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
 						{
 							//if they are false negative remove from contact tracing list
 							if (ranf_mt(tn) >= P.SensitivityDCT)
