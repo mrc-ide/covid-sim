@@ -684,7 +684,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		}
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
 		if (P.DoBin == 1)
-			fprintf(stderr, "Binary density file contains %i cells.\n", (int)P.BinFileLen);
+			fprintf(stderr, "Binary density file contains %i mcells.\n", (int)P.BinFileLen);
 		else
 		{
 			fgets(buf, 2047, dat);
@@ -783,7 +783,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 		}
 		//		fclose(dat2);
-		fprintf(stderr, "%i valid cells read from density file.\n", mr);
+		fprintf(stderr, "%i valid mcells read from density file.\n", mr);
 		if ((P.OutputDensFile) && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
@@ -950,6 +950,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		}
 		State.InvAgeDist[0][1000 - 1] = NUM_AGE_GROUPS * AGE_GROUP_WIDTH - 1;
 	}
+	if (P.DoAdUnits)
+		for (i = 0; i < P.NumAdunits; i++) AdUnits[i].n = 0;
 	if ((P.DoAdUnits) && (P.DoAdunitDemog) && (P.DoCorrectAdunitPop))
 	{
 		for (i = 0; i < P.NumAdunits; i++)
@@ -971,22 +973,27 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		P.N = (int)t;
 		fprintf(stderr, "Population size reset from %i to %i\n", i, P.N);
 	}
-	t = 1.0; m = 0;
-	P.NMCP = 0;
-	for (i = 0; i < (P.NMC - 1); i++)
+	t = 1.0;
+	for (i =m= 0; i < (P.NMC - 1); i++)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
 		m += (Mcells[i].n = (int)ignbin_mt((long)(P.N - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
-      P.NMCP++;
-      if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
-	  	AdUnits[mcell_adunits[i]].n += Mcells[i].n;
-    }
+			P.NMCP++;
+			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+		}
 	}
 	Mcells[P.NMC - 1].n = P.N - m;
-	if (Mcells[P.NMC - 1].n > 0) P.NMCP++;
+	if (Mcells[P.NMC - 1].n > 0)
+	{
+		P.NMCP++;
+		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
+	}
+
+	free(mcell_dens);
 	free(mcell_num);
 	free(mcell_country);
 	free(mcell_adunits);
@@ -1244,16 +1251,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
 	}
 	fprintf(stderr, "Checking cells...\n");
-	maxd = 0; last_i = 0;
+	maxd = ((double)P.N);
+	last_i = 0;
 	for (i = 0; i < P.NMC; i++)
-	{
-		l = ((i / P.nmch) / P.NMCL) * P.nch + ((i % P.nmch) / P.NMCL);
-		if (Cells[l].n == 0)
-			mcell_dens[i] = 0;
-		else
-			last_i = i;
-		maxd += mcell_dens[i];
-	}
+		if (Mcells[i].n > 0) last_i = i;
 	fprintf(stderr, "Allocating place/age groups...\n");
 	for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 	{
@@ -1364,13 +1365,13 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				t = 1.0;
 				for (m = i = k = 0; i < P.NMC; i++)
 				{
-					s = mcell_dens[i] / maxd / t;
+					s = ((double) Mcells[i].n) / maxd / t;
 					if (s > 1.0) s = 1.0;
 					if (i == last_i)
 						m += (Mcells[last_i].np[j2] = P.Nplace[j2] - m);
 					else
 						m += (Mcells[i].np[j2] = (int)ignbin_mt((long)(P.Nplace[j2] - m), s, tn));
-					t -= mcell_dens[i] / maxd;
+					t -= ((double)Mcells[i].n) / maxd;
 					if (Mcells[i].np[j2] > 0)
 					{
 						if (!(Mcells[i].places[j2] = (int*)malloc(Mcells[i].np[j2] * sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
@@ -1394,7 +1395,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 		for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 			for (l = 1; l < P.PlaceTypeNum; l++)
-				if (l != P.HotelPlaceType)
+				if (l != P.HotelPlaceType) 
 				{
 					if (PropPlacesC[k][l - 1] < 1)
 						PropPlaces[k][l] /= (1 - PropPlacesC[k][l - 1]);
@@ -1403,7 +1404,6 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				}
 		fprintf(stderr, "Places assigned\n");
 	}
-	free(mcell_dens);
 	l = 0;
 	for (j = 0; j < P.NC; j++)
 		if (l < Cells[j].n) l = Cells[j].n;
