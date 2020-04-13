@@ -1072,7 +1072,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*) & (P.Mean_SARIToCritical), 1, 1, 0);
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*) & (P.Mean_CriticalToDeath), 1, 1, 0);
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest=0.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 0.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCriticalOffset", "%lf", (void*)&(P.Mean_TimeToTestCriticalOffset), 1, 1, 0)) P.Mean_TimeToTestCriticalOffset = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCritRecovOffset", "%lf", (void*)&(P.Mean_TimeToTestCritRecovOffset), 1, 1, 0)) P.Mean_TimeToTestCritRecovOffset = 1.0;
 		//// Get ICDFs
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
 			{
@@ -3320,26 +3322,28 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
-		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
+		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+		sc3 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
+		sc4 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 		incSARI = incCritical = incCritRecov = 0;
 		for (i = 0; i < P.NumSamples; i++)
 		{
 			if (i > 0)
 			{
 				SARI = (TSMean[i].SARI - TSMean[i - 1].SARI) * sc2 + SARI * sc1;
-				Critical = (TSMean[i].Critical - TSMean[i - 1].Critical) * sc2 + Critical * sc1;
-				CritRecov = (TSMean[i].CritRecov - TSMean[i - 1].CritRecov) * sc2 + CritRecov * sc1;
+				Critical = (TSMean[i].Critical - TSMean[i - 1].Critical) * sc3 + Critical * sc1;
+				CritRecov = (TSMean[i].CritRecov - TSMean[i - 1].CritRecov) * sc4 + CritRecov * sc1;
 				incSARI = TSMean[i].incSARI * (1.0 - sc2) + incSARI * sc1;
-				incCritical = TSMean[i].incCritical * (1.0 - sc2) + incCritical * sc1;
-				incCritRecov = TSMean[i].incCritRecov * (1.0 - sc2) + incCritRecov * sc1;
+				incCritical = TSMean[i].incCritical * (1.0 - sc3) + incCritical * sc1;
+				incCritRecov = TSMean[i].incCritRecov * (1.0 - sc4) + incCritRecov * sc1;
 			}
 			else
 			{
 				SARI = TSMean[i].SARI * sc2;
-				Critical = TSMean[i].Critical * sc2;
-				CritRecov = TSMean[i].CritRecov * sc2;
+				Critical = TSMean[i].Critical * sc3;
+				CritRecov = TSMean[i].CritRecov * sc4;
 			}
 
 			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
@@ -3352,7 +3356,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 		if ((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
-			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
+			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
 			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
@@ -3362,6 +3366,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
+			sc4a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
 			sprintf(outname, "%s.severity.adunit.xls", OutFile);
@@ -3408,17 +3414,17 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 					if (i > 0)
 					{
 						SARI_a[j] = (TSMean[i].SARI_adunit[j] - TSMean[i - 1].SARI_adunit[j]) * sc2a + SARI_a[j] * sc1a;
-						Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc2a + Critical_a[j] * sc1a;
-						CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc2a + CritRecov_a[j] * sc1a;
+						Critical_a[j] = (TSMean[i].Critical_adunit[j] - TSMean[i - 1].Critical_adunit[j]) * sc3a + Critical_a[j] * sc1a;
+						CritRecov_a[j] = (TSMean[i].CritRecov_adunit[j] - TSMean[i - 1].CritRecov_adunit[j]) * sc4a + CritRecov_a[j] * sc1a;
 						incSARI_a[j] = TSMean[i].incSARI_adunit[j] * (1.0 - sc2a) + incSARI_a[j] * sc1a;
-						incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc2a) + incCritical_a[j] * sc1a;
-						incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc2a) + incCritRecov_a[j] * sc1a;
+						incCritical_a[j] = TSMean[i].incCritical_adunit[j] * (1.0 - sc3a) + incCritical_a[j] * sc1a;
+						incCritRecov_a[j] = TSMean[i].incCritRecov_adunit[j] * (1.0 - sc4a) + incCritRecov_a[j] * sc1a;
 					}
 					else
 					{
 						SARI_a[j] = TSMean[i].SARI_adunit[j] * sc2a;
-						Critical_a[j] = TSMean[i].Critical_adunit[j] * sc2a;
-						CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc2a;
+						Critical_a[j] = TSMean[i].Critical_adunit[j] * sc3a;
+						CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc4a;
 					}
 				}
 				fprintf(dat, "%.10f", c*TSMean[i].t);

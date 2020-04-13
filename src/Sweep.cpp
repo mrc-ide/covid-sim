@@ -1009,7 +1009,14 @@ void DigitalContactTracingSweep(double t)
 					//first of all do some kind of testing of contacts of index cases
 					if ((Hosts[contact].index_case_dct == 0) && ((Hosts[contact].dct_start_time + (unsigned short int) (P.DelayToTestDCTContacts * P.TimeStepsPerDay)) == ts))
 					{
-						if (abs(Hosts[contact].inf) == InfStat_InfectiousAsymptomaticNotCase || Hosts[contact].inf == InfStat_InfectiousAlmostSymptomatic) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
+						if (P.FindContactsOfDCTContacts)
+						{
+							//set them to be an index case
+							Hosts[contact].index_case_dct = 1;
+							//set trigger time to pick up their contacts in the next time step
+							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
+						}
+/*						if (abs(Hosts[contact].inf) == InfStat_Latent || abs(Hosts[contact].inf) == InfStat_InfectiousAsymptomaticNotCase || Hosts[contact].inf == InfStat_InfectiousAlmostSymptomatic) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
 						{
 							//if they are false negative remove from contact tracing list
 							if (ranf_mt(tn) >= P.SensitivityDCT)
@@ -1034,6 +1041,7 @@ void DigitalContactTracingSweep(double t)
 								Hosts[contact].dct_end_time = ts;
 							}
 						}
+*/
 					}
 
 					if (Hosts[AdUnits[i].dct[j]].dct_end_time == ts)
