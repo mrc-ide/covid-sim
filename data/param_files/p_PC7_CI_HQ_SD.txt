@@ -135,7 +135,7 @@
 [Residual household contacts after case isolation]
 1
 
-===================================		SOCIAL DISTANCINT PARAMETERS
+===================================		SOCIAL DISTANCING PARAMETERS
 
 [Social distancing start time]
 0
