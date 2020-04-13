@@ -422,6 +422,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
 													StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
 													StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
+
+													Hosts[ci].ncontacts++;
 												}
 											}
 											else
@@ -495,6 +497,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
 													StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
 													StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
+
+													Hosts[ci].ncontacts++;
 												}
 											}
 											else
@@ -669,6 +673,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
 												StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
 												StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
+
+												Hosts[ci].ncontacts++;
 											}
 										}
 										else
@@ -827,7 +833,18 @@ void IncubRecoverySweep(double t, int run)
 							DoDeath(ci, tn, run);
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
+
+					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case is an index case, increment state vector
+					if ((P.DoDigitalContactTracing) && (Hosts[ci].index_case_dct == 1) && (P.OutputDigitalContactDist))
+					{
+						if (Hosts[ci].ncontacts > MAX_CONTACTS) Hosts[ci].ncontacts = MAX_CONTACTS;
+						//increment bin in State corresponding to this number of contacts
+						StateT[tn].contact_dist[Hosts[ci].ncontacts]++;
+					}
+
 				}
+
+
 			}
 
 			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], run, tn);

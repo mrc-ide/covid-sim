@@ -1399,6 +1399,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Digital contact tracing start time", "%lf", (void*) & (P.DigitalContactTracingTimeStartBase), 1, 1, 0)) P.DigitalContactTracingTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of digital contact tracing policy", "%lf", (void*) & (P.DigitalContactTracingPolicyDuration), 1, 1, 0)) P.DigitalContactTracingPolicyDuration = 7;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output digital contact distribution", "%i", (void*)&(P.OutputDigitalContactDist), 1, 1, 0)) P.OutputDigitalContactDist = 0;
+
 		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
 		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
 
@@ -2129,6 +2131,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 
 		}
+
+	//update state variables for storing contact distribution
+	for (i = 0; i < MAX_CONTACTS; i++) State.contact_dist[i] = 0;
+
 	for (j = 0; j < MAX_NUM_THREADS; j++)
 	{
 		StateT[j].L = StateT[j].I = StateT[j].R = StateT[j].D = 0;
@@ -2158,6 +2164,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumMild_adunit[AdminUnit] = StateT[j].cumILI_adunit[AdminUnit] =
 				StateT[j].cumSARI_adunit[AdminUnit] = StateT[j].cumCritical_adunit[AdminUnit] = StateT[j].cumCritRecov_adunit[AdminUnit] = StateT[j].cumD_adunit[AdminUnit] = 0;
 		}
+		//resetting thread specific parameters for storing contact distribution
+		for (i = 0; i < MAX_CONTACTS; i++) StateT[j].contact_dist[i] = 0;
 
 	}
 	nim = 0;
@@ -2823,6 +2831,19 @@ void SaveResults(void)
 		}
 		fclose(dat);
 
+	}
+
+	if ((P.DoDigitalContactTracing) && (P.OutputDigitalContactDist))
+	{
+		sprintf(outname, "%s.digitalcontactdist.xls", OutFile); //modifying to csv file
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		//print headers
+		fprintf(dat, "nContacts\tFrequency\n");
+		for (i = 0; i < (MAX_CONTACTS + 1); i++)
+		{
+			fprintf(dat, "%i\t%i\n", i, State.contact_dist[i]);
+		}
+		fclose(dat);
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
@@ -4072,9 +4093,15 @@ void RecordSample(double t, int n)
 	for (i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
-
-
-
+	//update contact number distribution in State
+	for (i = 0; i < (MAX_CONTACTS+1); i++)
+	{
+		for (j = 0; j < P.NumThreads; j++)
+		{
+			State.contact_dist[i] += StateT[j].contact_dist[i];
+			StateT[j].contact_dist[i] = 0;
+		}
+	}
 
 	if (P.PreControlClusterIdUseDeaths)
 	{

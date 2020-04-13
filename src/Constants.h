@@ -25,7 +25,7 @@
 #define MAX_INFECTIOUS_STEPS 2550
 
 // define maximum number of contacts
-#define MAX_CONTACTS 250
+#define MAX_CONTACTS 500
 
 #define MAX_DUR_IMPORT_PROFILE 10245
 
