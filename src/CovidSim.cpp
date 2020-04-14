@@ -495,15 +495,15 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Include households", "%i", (void*) & (P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"					, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"				, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"				, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType"				, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity"			, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType"			, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity"		, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
   	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
 
 	if (P.DoHouseholds)
@@ -529,7 +529,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*) & (P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 	if (P.DoAdUnits)
 	{
-    char** AdunitNames, * AdunitNamesBuf;
+		char** AdunitNames, * AdunitNamesBuf;
 		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 
@@ -552,7 +552,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.NumAdunits = 0;
 			for (i = 0; i < na; i++)
 				for (j = 0; j < nc; j++)
-				{
 					if ((AdunitNames[3 * i + 1][0]) && (!strcmp(AdunitNames[3 * i + 1], CountryNames[j])) && (atoi(AdunitNames[3 * i]) != 0))
 					{
 						AdUnits[P.NumAdunits].id = atoi(AdunitNames[3 * i]);
@@ -562,7 +561,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 						//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
 						P.NumAdunits++;
 					}
-				}
 		}
 		else
 		{
@@ -1061,7 +1059,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*) & (P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
 	if(P.DoSeverity == 1)
 	{
-
 		//// Means for icdf's.
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*) & (P.Mean_MildToRecovery), 1, 1, 0);
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*) & (P.Mean_ILIToRecovery), 1, 1, 0);
@@ -1077,67 +1074,67 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCritRecovOffset", "%lf", (void*)&(P.Mean_TimeToTestCritRecovOffset), 1, 1, 0)) P.Mean_TimeToTestCritRecovOffset = 1.0;
 		//// Get ICDFs
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.MildToRecovery_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.MildToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.ILIToRecovery_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.ILIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToRecovery_icdf[i] = exp(-P.ILIToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.SARIToRecovery_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.SARIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToRecovery_icdf[i] = exp(-P.SARIToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.CriticalToCritRecov_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.CriticalToCritRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToCritRecov_icdf[i] = exp(-P.CriticalToCritRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.CritRecovToRecov_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.CritRecovToRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.CritRecovToRecov_icdf[i] = exp(-P.CritRecovToRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.ILIToSARI_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.ILIToSARI_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToSARI_icdf[i] = exp(-P.ILIToSARI_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.SARIToCritical_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.SARIToCritical_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToCritical_icdf[i] = exp(-P.SARIToCritical_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf, CDF_RES + 1, 1, 0))
-			{
+		{
 			P.CriticalToDeath_icdf[CDF_RES] = 100;
 			for(i = 0; i < CDF_RES; i++)
 				P.CriticalToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
-			}
+		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToDeath_icdf[i] = exp(-P.CriticalToDeath_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
@@ -1163,7 +1160,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_Critical_ByAge", "%lf", (void*)P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for(i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_Critical_ByAge[i] = 0.50;
-
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
@@ -1582,8 +1578,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative houshold contact rates over time given social distancing", "%lf", (void*)P.SocDistHouseholdEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
 		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistHouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
-
-
 
 	if (P.DoHouseholds)
 	{
@@ -4233,17 +4227,35 @@ void RecordSample(double t, int n)
 	}
 	if ((P.PlaceCloseIndepThresh > 0) && (((double)State.cumDC) >= P.PlaceCloseIndepThresh))
 		DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
-	if (t > P.SocDistTimeStart + P.SocDistChangeDelay)
+
+
+	//// reset social distancing levels
+	if (P.VaryEfficaciesOverTime)
 	{
-		P.SocDistDurationCurrent = P.SocDistDuration2;
-		P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffect2;
-		P.SocDistSpatialEffectCurrent=P.SocDistSpatialEffect2;
-		P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
-		P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
-		for (i = 0; i < P.PlaceTypeNum; i++)
+		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
+			if (t >= P.SocDistChangeTimes[ChangeTime])
+			{
+				P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffects_OverTime[ChangeTime];	//// at household level
+				P.SocDistSpatialEffectCurrent	= P.SocDistSpatialEffects_OverTime[ChangeTime];		//// at spatial level
+
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.SocDistPlaceEffectCurrent[PlaceType] = P.SocDistPlaceEffects_OverTime[PlaceType][ChangeTime]; ///// at place level. 
+			}
+	}
+	else
+	{
+		if (t > P.SocDistTimeStart + P.SocDistChangeDelay)
 		{
-			P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
-			P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];
+			P.SocDistDurationCurrent = P.SocDistDuration2;
+			P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffect2;
+			P.SocDistSpatialEffectCurrent = P.SocDistSpatialEffect2;
+			P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
+			P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
+			for (i = 0; i < P.PlaceTypeNum; i++)
+			{
+				P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
+				P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];
+			}
 		}
 	}
 
