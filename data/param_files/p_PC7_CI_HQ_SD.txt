@@ -156,7 +156,7 @@
 [Relative place contact rate given social distancing by place type]
 1	1	0.75	0.75
 
-[Relative houshold contact rate given social distancing]
+[Relative household contact rate given social distancing]
 1.25
 
 [Relative spatial contact rate given social distancing]
@@ -171,7 +171,7 @@
 [Relative place contact rate given enhanced social distancing by place type]
 0.25	0.25	0.25	0.25
 
-[Relative houshold contact rate given enhanced social distancing]
+[Relative household contact rate given enhanced social distancing]
 1
 
 [Relative spatial contact rate given enhanced social distancing]
