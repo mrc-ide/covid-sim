@@ -155,7 +155,7 @@ typedef struct PARAM {
 	int SocDistChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SocDistSpatialEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SocDistHouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double SocDistPlaceEffects_OverTime[NUM_PLACE_TYPES][MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// indexed by i) place type; ii) change time
+	double SocDistPlaceEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES]; //// indexed by i) change time; ii) place type; 
 
 	double SocDistRadius, SocDistRadius2;
 
