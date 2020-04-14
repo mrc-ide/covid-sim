@@ -11,7 +11,6 @@ double *nKernel, *nKernelHR;
 void InitKernel(int DoPlaces, double norm)
 {
 	int i, j;
-	std::ptrdiff_t l, m;
 
 	if (P.KernelType == 1)
 		Kernel = ExpKernel;
@@ -34,15 +33,15 @@ void InitKernel(int DoPlaces, double norm)
 		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / NK_HR) / norm;
 	}
 
-#pragma omp parallel for schedule(static,500) private(i,j,l,m)
+#pragma omp parallel for schedule(static,500) private(i,j)
 	for (i = 0; i < P.NCP; i++)
 	{
-		l = CellLookup[i] - Cells;
-		Cells[l].tot_prob = 0;
+		cell *l = CellLookup[i];
+		l->tot_prob = 0;
 		for (j = 0; j < P.NCP; j++)
 		{
-			m = CellLookup[j] - Cells;
-			Cells[l].tot_prob += (Cells[l].max_trans[j] = (float)numKernel(dist2_cc_min(Cells + l, Cells + m))) * Cells[m].n;
+			cell *m = CellLookup[j];
+			l->tot_prob += (l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m))) * m->n;
 		}
 	}
 }
