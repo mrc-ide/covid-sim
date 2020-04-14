@@ -178,6 +178,12 @@
 [Relative spatial contact rates over time given social distancing]
 0.25 0.3 0.4 0.5 0.6 0.7
 
+/////  Ideally want this to supercede [Relative spatial contact rate given social distancing], but need to preserved backwards compatibility for now. 
+[Relative houshold contact rates over time given social distancing]
+1.25 0.3 0.4 0.5 0.6 0.7
+
+
+
 [Minimum radius for social distancing]
 1
 

@@ -137,13 +137,13 @@ typedef struct PARAM {
 	double HQuarantinePropHouseCompliant, HQuarantinePlaceEffect[NUM_PLACE_TYPES], HQuarantineSpatialEffect, HQuarantineHouseEffect;
 
 	double SocDistTimeStart, SocDistDuration, SocDistHouseholdEffect, SocDistPlaceEffect[NUM_PLACE_TYPES], SocDistSpatialEffect;
-	double ESocDistHouseholdEffect, ESocDistPlaceEffect[NUM_PLACE_TYPES], ESocDistSpatialEffect, ESocProportionCompliant[NUM_AGE_GROUPS];
+	double EnhancedSocDistHouseholdEffect, EnhancedSocDistPlaceEffect[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect, EnhancedSocDistProportionCompliant[NUM_AGE_GROUPS];
 
 	double SocDistChangeDelay, SocDistDuration2, SocDistHouseholdEffect2, SocDistPlaceEffect2[NUM_PLACE_TYPES], SocDistSpatialEffect2;
-	double ESocDistHouseholdEffect2, ESocDistPlaceEffect2[NUM_PLACE_TYPES], ESocDistSpatialEffect2;
+	double EnhancedSocDistHouseholdEffect2, EnhancedSocDistPlaceEffect2[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect2;
 
 	double SocDistDurationCurrent, SocDistHouseholdEffectCurrent, SocDistPlaceEffectCurrent[NUM_PLACE_TYPES], SocDistSpatialEffectCurrent;
-	double ESocDistHouseholdEffectCurrent, ESocDistPlaceEffectCurrent[NUM_PLACE_TYPES], ESocDistSpatialEffectCurrent;
+	double EnhancedSocDistHouseholdEffectCurrent, EnhancedSocDistPlaceEffectCurrent[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffectCurrent;
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 	///// **** VARIABLE EFFICACIES OVER TIME
