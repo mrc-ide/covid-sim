@@ -1439,7 +1439,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure", "%i", (void*) & (P.PlaceCloseCellIncThresh), 1, 1, 0)) P.PlaceCloseCellIncThresh = 1000000000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure", "%i", (void*) & (P.PlaceCloseCellIncThresh1), 1, 1, 0)) P.PlaceCloseCellIncThresh1 = 1000000000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for second place closure", "%i", (void*)&(P.PlaceCloseCellIncThresh2), 1, 1, 0)) P.PlaceCloseCellIncThresh2 = 1000000000;
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for end of place closure", "%i", (void*) & (P.PlaceCloseCellIncStopThresh), 1, 1, 0)) P.PlaceCloseCellIncStopThresh = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start place closure", "%lf", (void*) & (P.PlaceCloseDelayMean), 1, 1, 0)) P.PlaceCloseDelayMean = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place closure", "%lf", (void*) & (P.PlaceCloseDurationBase), 1, 1, 0)) P.PlaceCloseDurationBase = 7;
@@ -1476,7 +1477,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second start time", "%lf", (void*) & (P.PlaceCloseTimeStartBase2), 1, 1, 0)) P.PlaceCloseTimeStartBase2 = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Places close only once", "%i", (void*) & (P.DoPlaceCloseOnceOnly), 1, 1, 0)) P.DoPlaceCloseOnceOnly = 0;
 	if (P.DoPlaceCloseOnceOnly) P.DoPlaceCloseOnceOnly = 4;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold", "%i", (void*) & (P.PlaceCloseIncTrig), 1, 1, 0)) P.PlaceCloseIncTrig = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold", "%i", (void*) & (P.PlaceCloseIncTrig1), 1, 1, 0)) P.PlaceCloseIncTrig1 = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second incidence threshold", "%i", (void*)&(P.PlaceCloseIncTrig2), 1, 1, 0)) P.PlaceCloseIncTrig2 = P.PlaceCloseIncTrig1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure fractional incidence threshold", "%lf", (void*) & (P.PlaceCloseFracIncTrig), 1, 1, 0)) P.PlaceCloseFracIncTrig = 0;
 	if ((P.DoAdUnits) && (P.DoPlaces))
 	{
@@ -2099,7 +2101,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		= State.cumAPC = State.cumAPA = State.cumAPCS = 0;
 	State.cumT = State.cumUT = State.cumTP = State.cumV = State.sumRad2 = State.maxRad2 = State.cumV_daily = State.cumVG = 0; //added State.cumVG
 	State.mvacc_cum = 0;
-
 	if (P.DoSeverity)
 	{
 		State.Mild		= State.ILI			= State.SARI	= State.Critical	= State.CritRecov		= 0;
@@ -2347,6 +2348,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.TreatMaxCourses = P.TreatMaxCoursesBase;
 	P.VaccMaxCourses = P.VaccMaxCoursesBase;
 	P.PlaceCloseDuration = P.PlaceCloseDurationBase;
+	P.PlaceCloseIncTrig = P.PlaceCloseIncTrig1;
+	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
 
 	fprintf(stderr, "Finished InitModel.\n");
@@ -2592,7 +2595,7 @@ int RunModel(int run) //added run number as parameter
 	{
 		fs = TreatSweep(t2);
 		t2 += P.SampleStep;
-	}
+	} 
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
@@ -3315,10 +3318,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.DoSeverity)
 	{
-		printf("\nSaveResults: writing Severity");
 		//// output separate severity file (can integrate with main if need be)
 		sprintf(outname, "%s.severity.xls", OutFile);
-		printf("\nFilename: %s", outname);
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
@@ -4073,9 +4074,6 @@ void RecordSample(double t, int n)
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
 
-
-
-
 	if (P.PreControlClusterIdUseDeaths)
 	{
 		trigAlert = (int)TimeSeries[n].D;
@@ -4156,11 +4154,6 @@ void RecordSample(double t, int n)
 			if (TriggerValue >= P.PlaceCloseCellIncThresh)
 			{
 				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
-				if ((P.PlaceCloseTimeStart2 >= 1e10) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart))
-				{
-					P.PlaceCloseTimeStart	= t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
-					P.PlaceCloseDuration	= P.PlaceCloseDuration2;
-				}
 				if (P.DoInterventionDelaysByAdUnit)
 					for (i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t + AdUnits[i].PlaceCloseDelay);
@@ -4196,8 +4189,13 @@ void RecordSample(double t, int n)
 			P.ESocDistPlaceEffectC[i] = P.ESocDistPlaceEffect2[i];
 		}
 	}
-
-
+	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStart) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart)&& (t>=t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))
+	{
+		P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
+		P.PlaceCloseDuration = P.PlaceCloseDuration2;
+		P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
+		P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
+	}
 
 
 
