@@ -419,10 +419,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
 												if (ci != i3)
 												{
-													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
-													StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
-													StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
-
+													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { i3,ci,ts };
 													Hosts[ci].ncontacts++;
 												}
 											}
@@ -494,10 +491,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
 												if (ci != i3)
 												{
-													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
-													StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
-													StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
-
+													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = {i3,ci,ts};
 													Hosts[ci].ncontacts++;
 												}
 											}
@@ -670,10 +664,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
 											if (ci != i3)
 											{
-												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = i3;
-												StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ci;
-												StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
-
+												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = {i3,ci,ts};
 												Hosts[ci].ncontacts++;
 											}
 										}
@@ -834,8 +825,8 @@ void IncubRecoverySweep(double t, int run)
 							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 
-					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case is an index case, increment state vector
-					if ((P.DoDigitalContactTracing) && (Hosts[ci].index_case_dct == 1) && (P.OutputDigitalContactDist))
+					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector
+					if ((P.DoDigitalContactTracing) && (Hosts[ci].latent_time>= AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart) && (Hosts[ci].recovery_time < AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (P.OutputDigitalContactDist))
 					{
 						if (Hosts[ci].ncontacts > MAX_CONTACTS) Hosts[ci].ncontacts = MAX_CONTACTS;
 						//increment bin in State corresponding to this number of contacts
@@ -884,21 +875,21 @@ void DigitalContactTracingSweep(double t)
 					for (k = 0; k < StateT[j].ndct_queue[i];)
 					{
 						//start by finding theoretical start and end isolation times for each contact;
-						infector = StateT[j].contacts[i][k];
-						contact = StateT[j].dct_queue[i][k];
- 						contact_time = StateT[j].contact_time[i][k];
+						infector = StateT[j].dct_queue[i][k].infector;
+						contact = StateT[j].dct_queue[i][k].contact;
+ 						contact_time = StateT[j].dct_queue[i][k].contact_time;
 
-						if (contact == infector)
+						if (contact == infector) //this condition is only ever met when a symptomatic case is detected and chosen to isolate due to DCT
 						{
 							if (Hosts[contact].index_case_dct == 0)
 							{
-								//i.e. this is an index case that has been detected and added to the digital contact tracing queue
-								dct_start_time = Hosts[infector].dct_trigger_time;
+								//i.e. this is an index case that has been detected by becoming symptomatic and added to the digital contact tracing queue
+								dct_start_time = Hosts[infector].dct_trigger_time; //trigger time for these cases is set in DoIncub and already accounts for delay between onset and isolation
 								dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 							}
 							else
 							{
-								//This case has already been set as an index case because they tested positive as a contact and had their contacts traced.
+								//This case has already been set as an index case because they tested positive as a contact and had their contacts traced before they became symptomatic.
 								//No need to extend their isolation time beyond the period specified by their trigger time, but set dct_start_time to current
 								//start time here to ensure they get processed properly
 								dct_start_time = ts;
@@ -907,7 +898,7 @@ void DigitalContactTracingSweep(double t)
 						}
 						else
 						{
-							if (Hosts[infector].dct_trigger_time != (USHRT_MAX - 1)) //to account for asymptomatic cases who won't have been detected and assigned a trigger time
+							if (Hosts[infector].dct_trigger_time < (USHRT_MAX - 1)) //to account for contacts betwwen symptomatic cases who have been detected and assigned a trigger time and their contacts
 							{
 								if (contact_time > Hosts[infector].dct_trigger_time)
 								{
@@ -917,7 +908,7 @@ void DigitalContactTracingSweep(double t)
 								else
 								{
 									//if the contact time was made before or at the same time as detection, use the trigger time instead
-									dct_start_time = Hosts[infector].dct_trigger_time + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay); //should probably be the max of this or the time at which they were added
+									dct_start_time = Hosts[infector].dct_trigger_time + (unsigned short int) (P.DigitalContactTracingDelay * P.TimeStepsPerDay); 
 								}
 								dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 							}
@@ -936,8 +927,7 @@ void DigitalContactTracingSweep(double t)
 							//if the host is an index case, regardless of whether they are already being contact traced because of another contact, set their trigger time in order to detect their contacts
 							if ((contact == infector) && (Hosts[contact].index_case_dct == 0))
 							{
-								//Hosts[contact].dct_trigger_time = ts; <-- this is now set either in the next loop or in DoDetectedCase
-								Hosts[contact].index_case_dct = 1; //they won't be tested and cause a cascade for contacts of contacts
+								Hosts[contact].index_case_dct = 1; //assign them as an index case
 							}
 
 							//if contact is not being traced at all
@@ -958,16 +948,8 @@ void DigitalContactTracingSweep(double t)
 
 									//now remove this case from the queues
 									StateT[j].dct_queue[i][k] = StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1];
-									StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = contact;
+									StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = { contact,infector,contact_time };
 									StateT[j].ndct_queue[i]--;
-
-									StateT[j].contacts[i][k] = StateT[j].contacts[i][StateT[j].ncontacts[i] - 1];
-									StateT[j].contacts[i][StateT[j].ncontacts[i] - 1] = infector;
-									StateT[j].ncontacts[i]--;
-
-									StateT[j].contact_time[i][k] = StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1];
-									StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1] = contact_time;
-									StateT[j].ncontact_time[i]--;
 								}
 								else
 								{
@@ -983,16 +965,8 @@ void DigitalContactTracingSweep(double t)
 								Hosts[contact].dct_end_time = dct_end_time;
 								//now remove this case from the queue
 								StateT[j].dct_queue[i][k] = StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1];
-								StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = contact;
+								StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = { contact,infector,contact_time };
 								StateT[j].ndct_queue[i]--;
-
-								StateT[j].contacts[i][k] = StateT[j].contacts[i][StateT[j].ncontacts[i] - 1];
-								StateT[j].contacts[i][StateT[j].ncontacts[i] - 1] = infector;
-								StateT[j].ncontacts[i]--;
-
-								StateT[j].contact_time[i][k] = StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1];
-								StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1] = contact_time;
-								StateT[j].ncontact_time[i]--;
 							}
 						}
 						//if contact of an asymptomatic host has reached the theoretical end of their isolation time, remove from the queue so they don't stay here forever
@@ -1000,16 +974,8 @@ void DigitalContactTracingSweep(double t)
 						{
 							//now remove this case from the queue
 							StateT[j].dct_queue[i][k] = StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1];
-							StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = contact;
+							StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1] = { contact,infector,contact_time };
 							StateT[j].ndct_queue[i]--;
-
-							StateT[j].contacts[i][k] = StateT[j].contacts[i][StateT[j].ncontacts[i] - 1];
-							StateT[j].contacts[i][StateT[j].ncontacts[i] - 1] = infector;
-							StateT[j].ncontacts[i]--;
-
-							StateT[j].contact_time[i][k] = StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1];
-							StateT[j].contact_time[i][StateT[j].ncontact_time[i] - 1] = contact_time;
-							StateT[j].ncontact_time[i]--;
 						}
 						else
 						{
@@ -1022,6 +988,8 @@ void DigitalContactTracingSweep(double t)
 				for (j = 0; j < AdUnits[i].ndct;)
 				{
 					contact = AdUnits[i].dct[j];
+
+					//
 
 					//first of all do some kind of testing of contacts of index cases
 					if ((Hosts[contact].index_case_dct == 0) && ((Hosts[contact].dct_start_time + (unsigned short int) (P.DelayToTestDCTContacts * P.TimeStepsPerDay)) == ts))
@@ -1067,7 +1035,7 @@ void DigitalContactTracingSweep(double t)
 						//stop contact tracing this host
 						Hosts[AdUnits[i].dct[j]].digitalContactTraced = 0;
 
-						//remove f
+						//remove from list
 						//k = contact;
 						AdUnits[i].dct[j] = AdUnits[i].dct[AdUnits[i].ndct - 1];
 						AdUnits[i].dct[AdUnits[i].ndct - 1] = contact;

@@ -46,7 +46,7 @@ typedef struct PERSON {
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 1;
 	unsigned int digitalContactTracingUser : 1;
-	unsigned short int dct_start_time, dct_end_time, dct_trigger_time; //digital contact tracing start and end time: ggilani 10/03/20
+	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc. 
 
@@ -89,7 +89,8 @@ typedef struct POPVAR {
 	int dum[CACHE_LINE_SIZE];
 	int* h_queue[MAX_ADUNITS], nh_queue[MAX_ADUNITS], *hd_queue[MAX_ADUNITS], nhd_queue[MAX_ADUNITS]; //queues for hospitalisation by admin unit: ggilani 30/10/14. h_queue and hd_queue actually 2D. Weirdly one dimension allocated on stack and other is pointer. d refers to discharge. n to length of queue. 
 	int* ct_queue[MAX_ADUNITS], nct_queue[MAX_ADUNITS]; // queues for contact tracing: ggilani 12/06/17
-	int* dct_queue[MAX_ADUNITS], ndct_queue[MAX_ADUNITS], *contacts[MAX_ADUNITS], ncontacts[MAX_ADUNITS], ncontact_time[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
+	contact* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
+	int ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
 	unsigned short int* contact_time[MAX_ADUNITS]; //added some more queues to store time contact is made: ggilani 07/04/20
 	int contact_dist[MAX_CONTACTS+1]; //added this to store contact distribution: ggilani 13/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
@@ -110,6 +111,18 @@ typedef struct POPVAR {
 
 
 } popvar;
+
+/**
+ * @brief Contact event used for tracking contact tracing events
+ *
+ * Currently stores: contact and index case (both ints) and contact time (unsigned short int)
+ * Thanks to igfoo
+ */
+typedef struct CONTACT {
+	int contact;
+	int index;
+	unsigned short int contact_time;
+} contact;
 
 /**
  * @brief Recorded time-series variables (typically populated from the `POPVAR` state) 

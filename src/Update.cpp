@@ -691,16 +691,6 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = ai;
 				StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
 				StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
-
-				//Hosts[ai].digitalContactTraced = 2;
-				//Hosts[ai].dct_start_time = ts + P.usCaseIsolationDelay;
-				//Hosts[ai].dct_end_time = Hosts[ai].dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
-//#pragma omp critical (indexDCT)
-				//{
-					//Commented this out and switched to state queues as otherwise they will be counted in the digital contact tracing numbers before their start time.
-					//AdUnits[j].dct[AdUnits[j].ndct] = ai;
-					//AdUnits[j].ndct++;
-				//}
 			}
 			else
 			{
