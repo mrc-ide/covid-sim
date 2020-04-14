@@ -1588,9 +1588,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
-		P.SocDistSpatialEffects_OverTime		[ChangeTime] = 0;
+		P.SocDistSpatialEffects_OverTime[ChangeTime] = 0;
 		if (P.DoHouseholds)
-			P.SocDistHouseholdEffects_OverTime		[ChangeTime] = 0;
+			P.SocDistHouseholdEffects_OverTime[ChangeTime] = 0;
 
 		for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
 			P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
@@ -1610,7 +1610,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	if (P.DoHouseholds)
 	{
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Retrigger household quarantine with each new case in quarantine window", "%i", (void*) & (P.DoHQretrigger), 1, 1, 0)) P.DoHQretrigger =0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Retrigger household quarantine with each new case in quarantine window", "%i", (void*) & (P.DoHQretrigger), 1, 1, 0)) P.DoHQretrigger =0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine start time", "%lf", (void*) & (P.HQuarantineTimeStartBase), 1, 1, 0)) P.HQuarantineTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start household quarantine", "%lf", (void*) & (P.HQuarantineHouseDelay), 1, 1, 0)) P.HQuarantineHouseDelay = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of time households are quarantined", "%lf", (void*) & (P.HQuarantineHouseDuration), 1, 1, 0)) P.HQuarantineHouseDuration = 0;
