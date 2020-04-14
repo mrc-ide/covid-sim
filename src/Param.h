@@ -195,6 +195,23 @@ typedef struct PARAM {
 	int MinParentAgeGap; // The minimum number of years older than a child that a parent must be
 	int MaxParentAgeGap; // The maximum number of years older than a child that a parent can be
 	int MaxChildAge; // The maximum age, in years, of a child
+	double OneChildTwoPersProb;
+	double TwoChildThreePersProb;
+	double OnePersHouseProbOld;
+	double TwoPersHouseProbOld;
+	double OnePersHouseProbYoung;
+	double TwoPersHouseProbYoung;
+	double OneChildProbYoungestChildUnderFive;
+	double TwoChildrenProbYoungestUnderFive;
+	double ProbYoungestChildUnderFive;
+	double ZeroChildThreePersProb;
+	double OneChildFourPersProb;
+	double YoungAndSingleSlope;
+	int YoungAndSingle;
+	int NoChildPersAge;
+	int OldPersAge;
+	double ThreeChildFivePersProb;
+	int OlderGenGap;
 } param;
 
 extern param P;
