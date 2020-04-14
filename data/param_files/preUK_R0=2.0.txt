@@ -368,3 +368,54 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 [Max child age]
 20
 
+[One Child Two Pers Prob]
+0.08
+
+[Two Child Three Pers Prob]
+0.11
+
+[One Pers House Prob Old]
+0.5
+
+[Two Pers House Prob Old]
+0.5
+
+[One Pers House Prob Young]
+0.23
+
+[Two Pers House Prob Young]
+0.23
+
+[One Child Prob Youngest Child Under Five]
+0.5
+
+[Two Children Prob Youngest Under Five]
+0.0
+
+[Prob Youngest Child Under Five]
+0
+
+[Zero Child Three Pers Prob]
+0.25
+
+[One Child Four Pers Prob]
+0.2
+
+[Young And Single Slope]
+0.7
+
+[Young And Single]
+36
+
+[No Child Pers Age]
+44
+
+[Old Pers Age]
+60
+
+[Three Child Five Pers Prob]
+0.5
+
+[Older Gen Gap]
+19
+
