@@ -342,13 +342,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
 									{
 										if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-											Hosts[i3].infector = Hosts[i3].infect_type = -1;
+											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 										else
 										{
 											Hosts[i3].infector = ci; //// assign person ci as infector of peron i3
-											Hosts[i3].infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+											short int infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
-										StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = i3; //// .... add i3 to queue.
 									}
 								}
 							}
@@ -451,13 +451,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
 												{
 													if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-														Hosts[i3].infector = Hosts[i3].infect_type = -1;
+														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 													else
 													{
-														Hosts[i3].infector = ci;
-														Hosts[i3].infect_type = 2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+														short int infect_type = 2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 													}
-													StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = i3;
 												}
 											}
 										}
@@ -522,13 +521,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength))//(Hosts[i3].infector==-1)&&
 												{
 													if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-														Hosts[i3].infector = Hosts[i3].infect_type = -1;
+														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 													else
 													{
-														Hosts[i3].infector = ci;
-														Hosts[i3].infect_type = 2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+														short int infect_type = 2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 													}
-													StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = i3;
 												}
 											}
 										}
@@ -698,13 +696,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									if ((Hosts[i3].inf == InfStat_Susceptible) && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
 									{
 										if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-											Hosts[i3].infector = Hosts[i3].infect_type = -1;
+											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 										else
 										{
-											Hosts[i3].infector = ci;
-											Hosts[i3].infect_type = 2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+											short int infect_type = 2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
-										StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = i3;
 									}
 								}
 							}
@@ -722,10 +719,15 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		{
 			for (i = 0; i < StateT[k].n_queue[j]; i++)
 			{
-				if (Hosts[StateT[k].inf_queue[j][i]].infect_type == -1) //// i.e. if host doesn't have an infector
-					DoFalseCase(StateT[k].inf_queue[j][i], t, ts, j);
+				int infector = StateT[k].inf_queue[j][i].infector;
+				int infectee = StateT[k].inf_queue[j][i].infectee;
+				short int infect_type = StateT[k].inf_queue[j][i].infect_type;
+				Hosts[infectee].infector = infector;
+				Hosts[infectee].infect_type = infect_type;
+				if (infect_type == -1) //// i.e. if host doesn't have an infector
+					DoFalseCase(infectee, t, ts, j);
 				else
-					DoInfect(StateT[k].inf_queue[j][i], t, j, run);
+					DoInfect(infectee, t, j, run);
 			}
 			StateT[k].n_queue[j] = 0;
 		}
