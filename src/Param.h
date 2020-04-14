@@ -142,8 +142,20 @@ typedef struct PARAM {
 	double SocDistChangeDelay, SocDistDuration2, SocDistHouseholdEffect2, SocDistPlaceEffect2[NUM_PLACE_TYPES], SocDistSpatialEffect2;
 	double ESocDistHouseholdEffect2, ESocDistPlaceEffect2[NUM_PLACE_TYPES], ESocDistSpatialEffect2;
 
-	double SocDistDurationC, SocDistHouseholdEffectC, SocDistPlaceEffectC[NUM_PLACE_TYPES], SocDistSpatialEffectC;
-	double ESocDistHouseholdEffectC, ESocDistPlaceEffectC[NUM_PLACE_TYPES], ESocDistSpatialEffectC;
+	double SocDistDurationCurrent, SocDistHouseholdEffectCurrent, SocDistPlaceEffectCurrent[NUM_PLACE_TYPES], SocDistSpatialEffectCurrent;
+	double ESocDistHouseholdEffectCurrent, ESocDistPlaceEffectCurrent[NUM_PLACE_TYPES], ESocDistSpatialEffectCurrent;
+
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** VARIABLE EFFICACIES OVER TIME
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+
+
+	bool VaryEfficaciesOverTime; 
+	int NumSocDistChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int SocDistChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double SocDistSpatialEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double SocDistHouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double SocDistPlaceEffects_OverTime[NUM_PLACE_TYPES][MAX_NUM_INTERVENTION_CHANGE_TIMES]; 
 
 	double SocDistRadius, SocDistRadius2;
 

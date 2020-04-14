@@ -137,6 +137,9 @@
 
 ===================================		SOCIAL DISTANCING PARAMETERS
 
+[Vary efficacies over time]
+0
+
 [Social distancing start time]
 0
 ^ i.e. it will start as soon as we reach the trigger.
@@ -144,14 +147,23 @@
 [Delay to social distancing by admin unit]
 0	0	0
 
+[Duration of social distancing]
+121
+
+//// Note: numbers here must match [Number of change times for levels of social distancing]; that any times listed here that are before [Social distancing start time] and after [Duration of social distancing] are irrelevant. 
+[Change times for level of social distancing]
+0 31 61 91 121 151
+
+//// Must match [Change times for level of social distancing]
+[Number of change times for levels of social distancing]
+6
+
 [Duration of social distancing by admin unit]
 121	121	121
 
 [Trigger incidence per cell for social distancing]
 100
 
-[Duration of social distancing]
-121
 
 [Relative place contact rate given social distancing by place type]
 1	1	0.75	0.75
@@ -161,6 +173,10 @@
 
 [Relative spatial contact rate given social distancing]
 0.25
+
+/////  Ideally want this to supercede [Relative spatial contact rate given social distancing], but need to preserved backwards compatibility for now. 
+[Relative spatial contact rates over time given social distancing]
+0.25 0.3 0.4 0.5 0.6 0.7
 
 [Minimum radius for social distancing]
 1
@@ -176,6 +192,7 @@
 
 [Relative spatial contact rate given enhanced social distancing]
 0.25
+
 
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
