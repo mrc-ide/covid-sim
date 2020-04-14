@@ -150,7 +150,7 @@
 [Duration of social distancing]
 121
 
-//// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before [Social distancing start time] and after [Duration of social distancing] are irrelevant. 
+//// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before "Social distancing start time" and after "Duration of social distancing" are irrelevant. 
 [Change times for level of social distancing]
 0 31 61 91 121 151
 
