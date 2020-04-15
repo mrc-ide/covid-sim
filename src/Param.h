@@ -150,12 +150,13 @@ typedef struct PARAM {
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
 
-	bool VaryEfficaciesOverTime; 
+	int VaryEfficaciesOverTime; 
 	int NumSocDistChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
 	int SocDistChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SocDistSpatialEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SocDistHouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SocDistPlaceEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES]; //// indexed by i) change time; ii) place type; 
+	double SocDistPlaceEffects_OverTime_dummy		[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES]; //// Hack as can't read in matrix above. Will read this in then populate the above. 
 
 	double SocDistRadius, SocDistRadius2;
 

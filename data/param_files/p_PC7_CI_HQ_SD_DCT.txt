@@ -138,7 +138,7 @@
 ===================================		SOCIAL DISTANCING PARAMETERS
 
 [Vary efficacies over time]
-0
+1
 
 [Social distancing start time]
 0
@@ -164,9 +164,8 @@
 [Trigger incidence per cell for social distancing]
 100
 
-
 [Relative place contact rate given social distancing by place type]
-1	1	0.75	0.75
+1 1 0.75 0.75 
 
 [Relative household contact rate given social distancing]
 1.25
@@ -174,23 +173,22 @@
 [Relative spatial contact rate given social distancing]
 0.25
 
-////  Ideally want this to supercede "Relative spatial contact rate given social distancing", but need to preserved backwards compatibility for now. 
-[Relative spatial contact rates over time given social distancing]
-0.25 0.25 0.25 0.25 0.25 0.25 
+//// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
+[Relative place contact rates over time given social distancing by place type]
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
 
 ////  Ideally want this to supercede "Relative household contact rate given social distancing", but need to preserved backwards compatibility for now. 
 [Relative household contact rates over time given social distancing]
 1.25 1.25 1.25 1.25 1.25 1.25 
 
-//// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
-[Relative place contact rates over time given social distancing by place type]
-1	1	0.75	0.75
-1	1	0.75	0.75
-1	1	0.75	0.75
-1	1	0.75	0.75
-1	1	0.75	0.75
-1	1	0.75	0.75
-
+////  Ideally want this to supercede "Relative spatial contact rate given social distancing", but need to preserved backwards compatibility for now. 
+[Relative spatial contact rates over time given social distancing]
+0.25 0.25 0.25 0.25 0.25 0.25 
 
 [Minimum radius for social distancing]
 1

@@ -1489,15 +1489,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.PlaceCloseAdminUnitDivisor = 1; P.PlaceCloseByAdminUnit = 0;
 	}
 
-
-	//if (P.NMeanTimeToHosp > 0)
-	//{
-	//	if (P.NMeanTimeToHosp >= MAX_CHANGE_POINTS) ERR_CRITICAL("MAX_CHANGE_POINTS too small\n");
-	//	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Change points times to hospitalisation", "%lg", (void*)P.ChangePointMeanTimeToHosp, P.NMeanTimeToHosp, 1, 0);
-	//	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Times to hospitalisation", "%lg", (void*)P.MeanTimeToHosp, P.NMeanTimeToHosp, 1, 0);
-	//}
-	//P.CurrIndMeanTimeToHosp = 0;
-
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for social distancing", "%i", (void*) & (P.SocDistCellIncThresh), 1, 1, 0)) P.SocDistCellIncThresh = 1000000000;
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for end of social distancing", "%i", (void*) & (P.SocDistCellIncStopThresh), 1, 1, 0)) P.SocDistCellIncStopThresh = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of social distancing", "%lf", (void*) & (P.SocDistDuration), 1, 1, 0)) P.SocDistDuration = 7;
@@ -1553,10 +1544,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Vary efficacies over time", "%i", (void*) & (P.VaryEfficaciesOverTime), 1, 1, 0)) P.VaryEfficaciesOverTime = 0;
-
-	fprintf(stderr, "VaryEfficaciesOverTime %i \n", P.VaryEfficaciesOverTime);
-
-
 	if (!P.VaryEfficaciesOverTime)
 	{
 		//// add in various quantities for PC, CI, HQ
@@ -1568,28 +1555,20 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of social distancing", "%i", (void*) & (P.NumSocDistChangeTimes), 1, 1, 0)) P.NumSocDistChangeTimes = 1;
 	}
 
+	//// initialize all to zero (regardless of whether P.DoPlaces)
+	//for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
+	//	for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
+	//		P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
+	//for (int index = 0; index < NUM_PLACE_TYPES * MAX_NUM_INTERVENTION_CHANGE_TIMES; index++)
+	//	P.SocDistPlaceEffects_OverTime_dummy[index] = 0;
 
-	if (P.DoPlaces)
-		if (!P.VaryEfficaciesOverTime ||
-			!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rates over time given social distancing by place type", "%lg", (void*)P.SocDistPlaceEffects_OverTime, P.NumSocDistChangeTimes, NUM_PLACE_TYPES, 0))
-			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
-				for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
-					P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = P.SocDistPlaceEffect[PlaceType];
-	//GetInputParameter(ParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0); //changed from P.PlaceTypeNum,P.PlaceTypeNum,0);
 
-	fprintf(stderr, "\nPrint Values of SocDistPlaceEffects_OverTime\n");
-	for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
-	{
-		for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
-			fprintf(stderr, "Time %i PlaceType %i Value %lg\t", ChangeTime, PlaceType, P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType]);
-		fprintf(stderr, "\n");
-	}
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value of efficacy for social distancing. 
 	P.SocDistChangeTimes[0] = 0;
 	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++) P.SocDistChangeTimes[ChangeTime] = 100000;
 	//// Get real values from (pre)param file
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates over time given social distancing", "%lf", (void*)P.SocDistChangeTimes, P.NumSocDistChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing", "%i", (void*)P.SocDistChangeTimes, P.NumSocDistChangeTimes, 1, 0);
 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
@@ -1600,17 +1579,58 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
 			P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
 	}
-	
+
+	///// spatial contact rates rates over time
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates over time given social distancing", "%lf", (void*)P.SocDistSpatialEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
 		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistSpatialEffects_OverTime[ChangeTime] = P.SocDistSpatialEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
 
+	///// Household contact rates over time
 	if (P.DoHouseholds)
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time given social distancing", "%lf", (void*)P.SocDistHouseholdEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
 			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistHouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
 
+	if (P.DoPlaces)
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time given social distancing", "%lf", (void*)P.SocDistHouseholdEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistHouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
+
+	///// place contact rates over time
+	if (P.DoPlaces)
+	{
+		//// populate dummy array
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rates over time given social distancing by place type", "%lf", (void*)P.SocDistPlaceEffects_OverTime_dummy, P.NumSocDistChangeTimes * NUM_PLACE_TYPES, 1, 0))
+		{
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) //// by default populate to values of P.SocDistPlaceEffect
+				for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
+					P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = P.SocDistPlaceEffect[PlaceType];
+		}
+		else //// i.e. if P.VaryEfficaciesOverTime and parameter recognized...
+		{
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) //// then translate 1d array into 2D array.
+				for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
+					P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = P.SocDistPlaceEffects_OverTime_dummy[(ChangeTime * NUM_PLACE_TYPES) + PlaceType];
+		}
+	}
 
 
-
+	//// Checks: print to console
+	fprintf(stderr, "\nVaryEfficaciesOverTime %i ", P.VaryEfficaciesOverTime);
+	fprintf(stderr, "\nNumSocDistChangeTimes %i ", P.NumSocDistChangeTimes);
+	fprintf(stderr, "\nSocDistChangeTimes:\t");
+	for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
+		fprintf(stderr, "%i\t", P.SocDistChangeTimes[ChangeTime]);
+	fprintf(stderr, "\nSocDistSpatialEffects_OverTime:\t");
+	for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.SocDistSpatialEffects_OverTime[ChangeTime]);
+	fprintf(stderr, "SocDistHouseholdEffects_OverTime: \t");
+	for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.SocDistHouseholdEffects_OverTime[ChangeTime]);
+	fprintf(stderr, "\nSocDistPlaceEffects_OverTime:\n");
+	for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
+	{
+		for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
+			fprintf(stderr, "%lf\t", P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType]);
+		fprintf(stderr, "\n");
+	}
 
 
 	if (P.DoHouseholds)
@@ -2369,13 +2389,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.SocDistDurationCurrent			= P.SocDistDuration;
 	P.SocDistSpatialEffectCurrent		= P.SocDistSpatialEffects_OverTime[0];
 	P.SocDistHouseholdEffectCurrent		= P.SocDistHouseholdEffects_OverTime[0];
+	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+		P.SocDistPlaceEffectCurrent[PlaceType] = P.SocDistPlaceEffects_OverTime[0][PlaceType];
 
-	P.EnhancedSocDistHouseholdEffectCurrent	= P.EnhancedSocDistHouseholdEffect;
+
+
+	P.EnhancedSocDistHouseholdEffectCurrent		= P.EnhancedSocDistHouseholdEffect;
 	P.EnhancedSocDistSpatialEffectCurrent		= P.EnhancedSocDistSpatialEffect;
 
 	for (i = 0; i < P.PlaceTypeNum; i++)
 	{
-		P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect[i];
+		//P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect[i];
 		P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect[i];
 	}
 
@@ -4263,35 +4287,36 @@ void RecordSample(double t, int n)
 		DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
 
 
-	//// reset social distancing levels
+	if (t > P.SocDistTimeStart + P.SocDistChangeDelay)
+	{
+		P.SocDistDurationCurrent				= P.SocDistDuration2;
+		P.SocDistHouseholdEffectCurrent			= P.SocDistHouseholdEffect2;
+		P.SocDistSpatialEffectCurrent			= P.SocDistSpatialEffect2;
+		P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
+		P.EnhancedSocDistSpatialEffectCurrent	= P.EnhancedSocDistSpatialEffect2;
+		for (i = 0; i < P.PlaceTypeNum; i++)
+		{
+			P.SocDistPlaceEffectCurrent[i]			= P.SocDistPlaceEffect2[i];
+			P.EnhancedSocDistPlaceEffectCurrent[i]	= P.EnhancedSocDistPlaceEffect2[i];
+		}
+	}
+
+	//// reset social distancing levels. For now leave this as an overide to the above. Later fix it so consistent. 
 	if (P.VaryEfficaciesOverTime)
 	{
 		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
 			if (t >= P.SocDistChangeTimes[ChangeTime])
 			{
 				P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffects_OverTime[ChangeTime];	//// at household level
-				P.SocDistSpatialEffectCurrent	= P.SocDistSpatialEffects_OverTime[ChangeTime];		//// at spatial level
+				P.SocDistSpatialEffectCurrent	= P.SocDistSpatialEffects_OverTime	[ChangeTime];	//// at spatial level
 
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.SocDistPlaceEffectCurrent[PlaceType] = P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level. 
 			}
 	}
-	else
-	{
-		if (t > P.SocDistTimeStart + P.SocDistChangeDelay)
-		{
-			P.SocDistDurationCurrent = P.SocDistDuration2;
-			P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffect2;
-			P.SocDistSpatialEffectCurrent = P.SocDistSpatialEffect2;
-			P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
-			P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
-			for (i = 0; i < P.PlaceTypeNum; i++)
-			{
-				P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
-				P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];
-			}
-		}
-	}
+	//else
+	//{
+	//}
 
 
 
