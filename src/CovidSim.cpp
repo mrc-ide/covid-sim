@@ -1553,6 +1553,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Vary efficacies over time", "%i", (void*) & (P.VaryEfficaciesOverTime), 1, 1, 0)) P.VaryEfficaciesOverTime = 0;
+
+	fprintf(stderr, "VaryEfficaciesOverTime %i \n", P.VaryEfficaciesOverTime);
+
+
 	if (!P.VaryEfficaciesOverTime)
 	{
 		//// add in various quantities for PC, CI, HQ
@@ -1566,7 +1570,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 
 	if (P.DoPlaces)
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rates over time given social distancing by place type", "%lg", (void*)P.SocDistPlaceEffects_OverTime, P.NumSocDistChangeTimes, NUM_PLACE_TYPES, 0))
+		if (!P.VaryEfficaciesOverTime ||
+			!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rates over time given social distancing by place type", "%lg", (void*)P.SocDistPlaceEffects_OverTime, P.NumSocDistChangeTimes, NUM_PLACE_TYPES, 0))
 			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
 				for (int PlaceType = 0; PlaceType < NUM_PLACE_TYPES; PlaceType++)
 					P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = P.SocDistPlaceEffect[PlaceType];
