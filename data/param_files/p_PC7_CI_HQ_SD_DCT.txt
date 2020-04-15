@@ -205,6 +205,20 @@
 [Relative spatial contact rate given enhanced social distancing]
 0.25
 
+[Relative household contact rates over time given enhanced social distancing]
+1 1 1 1 1 1 
+
+[Relative spatial contact rates over time given enhanced social distancing]
+0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Relative place contact rates over time given enhanced social distancing by place type]
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+
 
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
