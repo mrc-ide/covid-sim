@@ -1214,6 +1214,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
 	}
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Alert trigger starts after interventions", "%i", (void*)&(P.DoAlertTriggerAfterInterv), 1, 1, 0)) P.DoAlertTriggerAfterInterv = 0;
+	if (P.DoAlertTriggerAfterInterv)
+	{
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year trigger interventions start", "%lf", (void*)&(P.PreIntervIdCalTime), 1, 1, 0);
+		P.AlertTriggerAfterIntervThreshold = P.PreControlClusterIdCaseThreshold;
+		P.PreControlClusterIdCaseThreshold = 1;
+	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.PreControlClusterIdCalTime), 1, 1, 0)) P.PreControlClusterIdCalTime = -1;
 	P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime = 0;
@@ -2338,7 +2345,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.VaccTimeStart = 1e10;
 	P.MoveRestrTimeStart = 1e10;
 	P.PlaceCloseTimeStart = 1e10;
-	P.PlaceCloseTimeStart2 = 1e10;
+	P.PlaceCloseTimeStart2 = 2e10;
 	P.SocDistTimeStart = 1e10;
 	P.AirportCloseTimeStart = 1e10;
 	P.CaseIsolationTimeStart = 1e10;
@@ -4189,8 +4196,9 @@ void RecordSample(double t, int n)
 			P.ESocDistPlaceEffectC[i] = P.ESocDistPlaceEffect2[i];
 		}
 	}
-	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStart) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart)&& (t>=t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))
+	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStart) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart)&& (t+ P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase>0))
 	{
+		fprintf(stderr, "\nSecond place closure period\n");
 		P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
 		P.PlaceCloseDuration = P.PlaceCloseDuration2;
 		P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
