@@ -1431,7 +1431,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		{
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				if (!(StateT[i].dct_queue[j] = (contact*)malloc(AdUnits[j].n * sizeof(contact)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].dct_queue[j] = (contactevent*)malloc(AdUnits[j].n * sizeof(contactevent)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
 		

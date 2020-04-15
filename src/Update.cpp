@@ -679,18 +679,16 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//add contacts to digital contact tracing, but only if considering contact tracing, we are within the window of the policy and the detected case is a user
 	if ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart) && (t < AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ai].digitalContactTracingUser))
 	{
-		
+	
 		// allow for DCT to isolate index cases
-		if (P.DCTIsolateIndexCases) //(Hosts[ai].digitalContactTraced == 0)&& - currently removed this condition as it would mean that someone already under isolation wouldn't have their isolation extended
+		if ((P.DCTIsolateIndexCases) && (Hosts[ai].index_case_dct==0))//(Hosts[ai].digitalContactTraced == 0)&& - currently removed this condition as it would mean that someone already under isolation wouldn't have their isolation extended
 		{
 			ad = Mcells[Hosts[ai].mcell].adunit;
 			//if (AdUnits[j].ndct < AdUnits[j].n)
 			if(StateT[tn].ndct_queue[ad] < AdUnits[ad].n)
 			{
 				//if we are isolating an index case, we set their infector as themselves in order to get the timings consistent.
-				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = ai;
-				StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
-				StateT[tn].contact_time[ad][StateT[tn].ncontact_time[ad]++] = ts;
+				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { ai,ai,ts };
 			}
 			else
 			{
