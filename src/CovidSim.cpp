@@ -1365,6 +1365,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 	}
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** DIGITAL CONTACT TRACING
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+
 	//New code for digital contact tracing - ggilani: 09/03/20
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include digital contact tracing", "%i", (void*) & (P.DoDigitalContactTracing), 1, 1, 0)) P.DoDigitalContactTracing = 0;
 	if (P.DoDigitalContactTracing)
@@ -1434,6 +1438,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.ScalingFactorPlaceDigitalContacts = 1;
 	}
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** PLACE CLOSURE
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure", "%i", (void*) & (P.PlaceCloseCellIncThresh), 1, 1, 0)) P.PlaceCloseCellIncThresh = 1000000000;
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for end of place closure", "%i", (void*) & (P.PlaceCloseCellIncStopThresh), 1, 1, 0)) P.PlaceCloseCellIncStopThresh = 0;
@@ -1489,6 +1497,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.PlaceCloseAdminUnitDivisor = 1; P.PlaceCloseByAdminUnit = 0;
 	}
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** SOCIAL DISTANCING
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for social distancing", "%i", (void*) & (P.SocDistCellIncThresh), 1, 1, 0)) P.SocDistCellIncThresh = 1000000000;
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for end of social distancing", "%i", (void*) & (P.SocDistCellIncStopThresh), 1, 1, 0)) P.SocDistCellIncStopThresh = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of social distancing", "%lf", (void*) & (P.SocDistDuration), 1, 1, 0)) P.SocDistDuration = 7;
@@ -1533,43 +1545,84 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Airport closure start time", "%lf", (void*) & (P.AirportCloseTimeStartBase), 1, 1, 0)) P.AirportCloseTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Airport closure duration", "%lf", (void*) & (P.AirportCloseDuration), 1, 1, 0)) P.AirportCloseDuration = USHRT_MAX / P.TimeStepsPerDay;
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** HOUSEHOLD QUARANTINE
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
-
-
-
-
+	if (P.DoHouseholds)
+	{
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Retrigger household quarantine with each new case in quarantine window", "%i", (void*) & (P.DoHQretrigger), 1, 1, 0)) P.DoHQretrigger =0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine start time", "%lf", (void*) & (P.HQuarantineTimeStartBase), 1, 1, 0)) P.HQuarantineTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start household quarantine", "%lf", (void*) & (P.HQuarantineHouseDelay), 1, 1, 0)) P.HQuarantineHouseDelay = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of time households are quarantined", "%lf", (void*) & (P.HQuarantineHouseDuration), 1, 1, 0)) P.HQuarantineHouseDuration = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of household quarantine policy", "%lf", (void*) & (P.HQuarantinePolicyDuration), 1, 1, 0)) P.HQuarantinePolicyDuration = USHRT_MAX / P.TimeStepsPerDay;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after quarantine", "%lf", (void*) & (P.HQuarantineHouseEffect), 1, 1, 0)) P.HQuarantineHouseEffect = 1;
+		if (P.DoPlaces)
+		{
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual place contacts after household quarantine by place type", "%lf", (void*)P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++) P.HQuarantinePlaceEffect[i] = 1;
+		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual spatial contacts after household quarantine", "%lf", (void*) & (P.HQuarantineSpatialEffect), 1, 1, 0)) P.HQuarantineSpatialEffect = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household level compliance with quarantine", "%lf", (void*) & (P.HQuarantinePropHouseCompliant), 1, 1, 0)) P.HQuarantinePropHouseCompliant = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Individual level compliance with quarantine", "%lf", (void*) & (P.HQuarantinePropIndivCompliant), 1, 1, 0)) P.HQuarantinePropIndivCompliant = 1;
+	}
+	else
+		P.HQuarantineTimeStartBase = 1e10;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation start time", "%lf", (void*) & (P.CaseIsolationTimeStartBase), 1, 1, 0)) P.CaseIsolationTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of detected cases isolated", "%lf", (void*) & (P.CaseIsolationProp), 1, 1, 0)) P.CaseIsolationProp = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start case isolation", "%lf", (void*) & (P.CaseIsolationDelay), 1, 1, 0)) P.CaseIsolationDelay = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of case isolation", "%lf", (void*) & (P.CaseIsolationDuration), 1, 1, 0)) P.CaseIsolationDuration = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of case isolation policy", "%lf", (void*) & (P.CaseIsolationPolicyDuration), 1, 1, 0)) P.CaseIsolationPolicyDuration = 1e10;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual contacts after case isolation", "%lf", (void*) & (P.CaseIsolationEffectiveness), 1, 1, 0)) P.CaseIsolationEffectiveness = 1;
+	if (P.DoHouseholds)
+	{
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual household contacts after case isolation", "%lf", (void*) & (P.CaseIsolationHouseEffectiveness), 1, 1, 0))
+			P.CaseIsolationHouseEffectiveness = P.CaseIsolationEffectiveness;
+	}
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Vary efficacies over time", "%i", (void*) & (P.VaryEfficaciesOverTime), 1, 1, 0)) P.VaryEfficaciesOverTime = 0;
+
 	if (!P.VaryEfficaciesOverTime)
 	{
-		//// add in various quantities for PC, CI, HQ
-		P.NumSocDistChangeTimes = 1;
+		//// add in various quantities for PC, HQ
+		P.NumSocDistChangeTimes			= 1;
+		P.NumCaseIsolationChangeTimes	= 1;
 	}
 	else
 	{
-		//// add in various quantities for PC, CI, HQ
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of social distancing", "%i", (void*) & (P.NumSocDistChangeTimes), 1, 1, 0)) P.NumSocDistChangeTimes = 1;
+		//// add in various quantities for PC, HQ
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of social distancing"	, "%i", (void*) & (P.NumSocDistChangeTimes)			, 1, 1, 0)) P.NumSocDistChangeTimes = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of case isolation"		, "%i", (void*) & (P.NumCaseIsolationChangeTimes)	, 1, 1, 0)) P.NumCaseIsolationChangeTimes = 1;
 	}
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value of efficacy for social distancing. 
-	P.SocDistChangeTimes[0] = 0;
-	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++) P.SocDistChangeTimes[ChangeTime] = 100000;
+	P.SocDistChangeTimes		[0] = 0;
+	P.CaseIsolationChangeTimes	[0] = 0;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
+	{
+		P.SocDistChangeTimes		[ChangeTime] = 100000;
+		P.CaseIsolationChangeTimes	[ChangeTime] = 100000;
+	}
 	//// Get real values from (pre)param file
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing", "%i", (void*)P.SocDistChangeTimes, P.NumSocDistChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing"	, "%i", (void*)P.SocDistChangeTimes			, P.NumSocDistChangeTimes		, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of case isolation"		, "%i", (void*)P.CaseIsolationChangeTimes	, P.NumCaseIsolationChangeTimes	, 1, 0);
 
 	// initialize to zero 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
 		P.SocDistSpatialEffects_OverTime				[ChangeTime] = 0;
 		P.EnhancedSocDistSpatialEffects_OverTime		[ChangeTime] = 0;
+		P.CaseIsoSpatialAndPlaceEffects_OverTime		[ChangeTime] = 0;
+
 		if (P.DoHouseholds)
 		{
 			P.SocDistHouseholdEffects_OverTime			[ChangeTime] = 0;
 			P.EnhancedSocDistHouseholdEffects_OverTime	[ChangeTime] = 0;
+			P.CaseIsoHouseholdEffects_OverTime			[ChangeTime] = 0;
 		}
 		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		{
@@ -1577,25 +1630,32 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.EnhancedSocDistPlaceEffects_OverTime	[ChangeTime][PlaceType] = 0;
 		}
 	}
+
 	for (int index = 0; index < P.PlaceTypeNum * MAX_NUM_INTERVENTION_CHANGE_TIMES; index++)
 	{
 		P.SocDistPlaceEffects_OverTime_dummy		[index] = 0;
 		P.EnhancedSocDistPlaceEffects_OverTime_dummy[index] = 0;
 	}
 
+	//// by default, initialize to values read in previously. 
+
 	///// spatial contact rates rates over time
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates over time given social distancing", "%lf", (void*)P.SocDistSpatialEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
-		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistSpatialEffects_OverTime[ChangeTime] = P.SocDistSpatialEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
+		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistSpatialEffects_OverTime[ChangeTime] = P.SocDistSpatialEffect; //// by default, initialize to Relative spatial contact rate given social distancing
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates over time given enhanced social distancing", "%lf", (void*)P.EnhancedSocDistSpatialEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
-		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.EnhancedSocDistSpatialEffects_OverTime[ChangeTime] = P.EnhancedSocDistSpatialEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
+		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.EnhancedSocDistSpatialEffects_OverTime[ChangeTime] = P.EnhancedSocDistSpatialEffect; //// by default, initialize to Relative spatial contact rate given enhanced social distancing
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual contacts after case isolation over time", "%lf", (void*)P.CaseIsoSpatialAndPlaceEffects_OverTime, P.NumCaseIsolationChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.CaseIsoSpatialAndPlaceEffects_OverTime[ChangeTime] = P.CaseIsolationEffectiveness; 
 
 	///// Household contact rates over time
 	if (P.DoHouseholds)
 	{
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time given social distancing", "%lf", (void*)P.SocDistHouseholdEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
-			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistHouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.SocDistHouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect; 
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time given enhanced social distancing", "%lf", (void*)P.EnhancedSocDistHouseholdEffects_OverTime, P.NumSocDistChangeTimes, 1, 0))
-			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.EnhancedSocDistHouseholdEffects_OverTime[ChangeTime] = P.EnhancedSocDistHouseholdEffect; //// by default, initialize to social distancing Relative spatial contact rate given social distancing
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.EnhancedSocDistHouseholdEffects_OverTime[ChangeTime] = P.EnhancedSocDistHouseholdEffect; 
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual household contacts after case isolation over time", "%lf", (void*)P.CaseIsoHouseholdEffects_OverTime, P.NumCaseIsolationChangeTimes, 1, 0))
+			for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.CaseIsoHouseholdEffects_OverTime[ChangeTime] = P.CaseIsolationHouseEffectiveness; 
 	}
 
 	///// place contact rates over time
@@ -1651,36 +1711,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 
 
-	if (P.DoHouseholds)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Retrigger household quarantine with each new case in quarantine window", "%i", (void*) & (P.DoHQretrigger), 1, 1, 0)) P.DoHQretrigger =0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine start time", "%lf", (void*) & (P.HQuarantineTimeStartBase), 1, 1, 0)) P.HQuarantineTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start household quarantine", "%lf", (void*) & (P.HQuarantineHouseDelay), 1, 1, 0)) P.HQuarantineHouseDelay = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of time households are quarantined", "%lf", (void*) & (P.HQuarantineHouseDuration), 1, 1, 0)) P.HQuarantineHouseDuration = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of household quarantine policy", "%lf", (void*) & (P.HQuarantinePolicyDuration), 1, 1, 0)) P.HQuarantinePolicyDuration = USHRT_MAX / P.TimeStepsPerDay;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after quarantine", "%lf", (void*) & (P.HQuarantineHouseEffect), 1, 1, 0)) P.HQuarantineHouseEffect = 1;
-		if (P.DoPlaces)
-		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual place contacts after household quarantine by place type", "%lf", (void*)P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++) P.HQuarantinePlaceEffect[i] = 1;
-		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual spatial contacts after household quarantine", "%lf", (void*) & (P.HQuarantineSpatialEffect), 1, 1, 0)) P.HQuarantineSpatialEffect = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household level compliance with quarantine", "%lf", (void*) & (P.HQuarantinePropHouseCompliant), 1, 1, 0)) P.HQuarantinePropHouseCompliant = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Individual level compliance with quarantine", "%lf", (void*) & (P.HQuarantinePropIndivCompliant), 1, 1, 0)) P.HQuarantinePropIndivCompliant = 1;
-	}
-	else
-		P.HQuarantineTimeStartBase = 1e10;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation start time", "%lf", (void*) & (P.CaseIsolationTimeStartBase), 1, 1, 0)) P.CaseIsolationTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of detected cases isolated", "%lf", (void*) & (P.CaseIsolationProp), 1, 1, 0)) P.CaseIsolationProp = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start case isolation", "%lf", (void*) & (P.CaseIsolationDelay), 1, 1, 0)) P.CaseIsolationDelay = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of case isolation", "%lf", (void*) & (P.CaseIsolationDuration), 1, 1, 0)) P.CaseIsolationDuration = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of case isolation policy", "%lf", (void*) & (P.CaseIsolationPolicyDuration), 1, 1, 0)) P.CaseIsolationPolicyDuration = 1e10;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual contacts after case isolation", "%lf", (void*) & (P.CaseIsolationEffectiveness), 1, 1, 0)) P.CaseIsolationEffectiveness = 1;
-	if (P.DoHouseholds)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual household contacts after case isolation", "%lf", (void*) & (P.CaseIsolationHouseEffectiveness), 1, 1, 0))
-			P.CaseIsolationHouseEffectiveness = P.CaseIsolationEffectiveness;
-	}
+	fprintf(stderr, "\nNumCaseIsolationChangeTimes %i ", P.NumCaseIsolationChangeTimes);
+	fprintf(stderr, "\nCaseIsolationChangeTimes:\t");
+	for (int ChangeTime = 0; ChangeTime < P.NumCaseIsolationChangeTimes; ChangeTime++)
+		fprintf(stderr, "%i\t", P.CaseIsolationChangeTimes[ChangeTime]);
+	fprintf(stderr, "\nCaseIsoSpatialAndPlaceEffects_OverTime:\t");
+	for (int ChangeTime = 0; ChangeTime < P.NumCaseIsolationChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.CaseIsoSpatialAndPlaceEffects_OverTime[ChangeTime]);
+	fprintf(stderr, "\nCaseIsoHouseholdEffects_OverTime:\t");
+	for (int ChangeTime = 0; ChangeTime < P.NumCaseIsolationChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.CaseIsoHouseholdEffects_OverTime[ChangeTime]);
+
+
 	if (P.DoPlaces)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers randomly distributed in the population", "%i", (void*) & (P.KeyWorkerPopNum), 1, 1, 0)) P.KeyWorkerPopNum = 0;

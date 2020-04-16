@@ -1,6 +1,9 @@
 [Include intervention delays by admin unit]
 0
 
+[Vary efficacies over time]
+1
+
 ======== PLACE CLOSURE PARAMETERS
 
 [Place closure start time]
@@ -123,6 +126,7 @@
 [Delay to start case isolation]
 1
 
+///// i.e. how long will given case self-isolate? Different from "Duration of case isolation policy"
 [Duration of case isolation]
 7
 
@@ -135,10 +139,21 @@
 [Residual household contacts after case isolation]
 1
 
-===================================		SOCIAL DISTANCING PARAMETERS
+//// Note: numbers here must match "Number of change times for levels of case isolation"; that any times listed here that are before "Case isolation start time" and after "Duration of case isolation policy" are irrelevant. 
+[Change times for level of case isolation]
+0 31 61 91 121
 
-[Vary efficacies over time]
-1
+[Number of change times for levels of case isolation]
+5
+
+[Residual contacts after case isolation over time]
+0.25 0.25 0.25 0.25 0.25
+
+[Residual household contacts after case isolation over time]
+1 1 1 1 1 
+
+
+===================================		SOCIAL DISTANCING PARAMETERS
 
 [Social distancing start time]
 0
