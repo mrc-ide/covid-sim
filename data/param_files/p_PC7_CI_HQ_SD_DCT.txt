@@ -282,6 +282,27 @@
 
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
+//// Must match "Change times for levels of digital contact tracing"
+[Number of change times for levels of digital contact tracing]
+7
+
+//// Note: numbers here must match "Change times for levels of digital contact tracing"; that any times listed here that are before "Digital contact tracing start time" and after "Duration of digital contact tracing policy" are irrelevant. 
+[Change times for levels of digital contact tracing]
+0 31 41 51 61 84 91
+
+[Proportion of population or households covered by digital contact tracing over time]
+0.75 0.75 0.75 0.75 0.75 0.75 0.75 
+
+[Proportion of digital contacts who self-isolate over time]
+0.9 0.9 0.9 0.9 0.9 0.9 0.9 
+
+[Residual contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Residual household contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
+
+
 [Include digital contact tracing]
 1
 
@@ -306,9 +327,7 @@
 
 [Proportion of smartphone users by age]
 0 0 0 0.96 0.96 0.96 0.96 0.91 0.91 0.91 0.91 0.55 0.55 0.55 0.55 0.55 0.55
-
 (Taken from p. 189 here: https://www.ofcom.org.uk/__data/assets/pdf_file/0026/143981/technology-tracker-2019-uk-data-tables.pdf)
-
 ^^ This mobile phone data would be used specifically for the digital app. For households, we select x% of households and assign users according to probabilities by age. If we don't cluster by household, we multiply the probability of being a user by the probability of being a smart phone user by age. NOTE: if we set the proportion of users by age to 1 for all age groups, this means everyone can be tracked and is more similar to standard contact tracing.
 
 [Proportion of digital contacts who self-isolate]
@@ -357,5 +376,4 @@
 
 [Output digital contact tracing]
 1
-
 ^Output the a file showing the number of people under isolation due to contact tracing in each admin unit at any given time
