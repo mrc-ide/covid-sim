@@ -1614,6 +1614,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	// initialize to zero 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
+		//// efficacies
 		P.SocDistSpatialEffects_OverTime				[ChangeTime] = 0;
 		P.EnhancedSocDistSpatialEffects_OverTime		[ChangeTime] = 0;
 		P.CaseIsoSpatialAndPlaceEffects_OverTime		[ChangeTime] = 0;
@@ -1629,6 +1630,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.SocDistPlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
 			P.EnhancedSocDistPlaceEffects_OverTime	[ChangeTime][PlaceType] = 0;
 		}
+
+		//// compliance
+		P.CaseIsolationProp_OverTime[ChangeTime] = 0;
 	}
 
 	for (int index = 0; index < P.PlaceTypeNum * MAX_NUM_INTERVENTION_CHANGE_TIMES; index++)
@@ -1689,6 +1693,11 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 					P.EnhancedSocDistPlaceEffects_OverTime[ChangeTime][PlaceType] = P.EnhancedSocDistPlaceEffects_OverTime_dummy[(ChangeTime * P.PlaceTypeNum) + PlaceType];
 		}
 	}
+
+	//// compliance
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of detected cases isolated over time", "%lf", (void*)P.CaseIsolationProp_OverTime, P.NumCaseIsolationChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++) P.CaseIsolationProp_OverTime[ChangeTime] = P.CaseIsolationProp;
+
 
 	//// Checks: print to console
 	fprintf(stderr, "\nVaryEfficaciesOverTime %i ", P.VaryEfficaciesOverTime);
@@ -2446,22 +2455,27 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				}
 	}
 
+	//// Initialize Current effects
+	// soc dist
 	P.SocDistDurationCurrent			= P.SocDistDuration;
 	P.SocDistSpatialEffectCurrent		= P.SocDistSpatialEffects_OverTime[0];
 	P.SocDistHouseholdEffectCurrent		= P.SocDistHouseholdEffects_OverTime[0];
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.SocDistPlaceEffectCurrent[PlaceType] = P.SocDistPlaceEffects_OverTime[0][PlaceType];
 
+	// enhanced soc dist
 	P.EnhancedSocDistSpatialEffectCurrent		= P.EnhancedSocDistSpatialEffects_OverTime[0];
 	P.EnhancedSocDistHouseholdEffectCurrent		= P.EnhancedSocDistHouseholdEffects_OverTime[0];
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.EnhancedSocDistPlaceEffects_OverTime[0][PlaceType];
 
-	for (i = 0; i < P.PlaceTypeNum; i++)
-	{
-		//P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect[i];
-		P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect[i];
-	}
+	// case isolation
+	P.CaseIsolationEffectiveness		= P.CaseIsoSpatialAndPlaceEffects_OverTime	[0];
+	P.CaseIsolationHouseEffectiveness	= P.CaseIsoHouseholdEffects_OverTime		[0];
+
+	//// compliance
+	P.CaseIsolationProp = P.CaseIsolationProp_OverTime[0];
+
 
 	for (i = 0; i < MAX_NUM_THREADS; i++)
 	{
@@ -4353,30 +4367,29 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	//// update (enhanced) social distancing levels. For now leave this as an overide to the above. Later fix it so consistent. 
-	if (P.VaryEfficaciesOverTime)
-	{
+	//// update "efficacies". For now leave this as an overide to the above. Later fix it so consistent. 
+	if (P.VaryEfficaciesOverTime) //// should be set up so that this statement unneccsary - check later. 
 		for (int ChangeTime = 0; ChangeTime < P.NumSocDistChangeTimes; ChangeTime++)
-			if (t >= P.SocDistChangeTimes[ChangeTime])
+			if (t == P.SocDistChangeTimes[ChangeTime])
 			{
-				//// update non-enhanced
+				//// update non-enhanced social distancing 
 				P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffects_OverTime[ChangeTime];	//// at household level
 				P.SocDistSpatialEffectCurrent	= P.SocDistSpatialEffects_OverTime	[ChangeTime];	//// at spatial level
-
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.SocDistPlaceEffectCurrent[PlaceType] = P.SocDistPlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level.
 
-				//// update enhanced
+				//// update enhanced social distancing 
 				P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffects_OverTime[ChangeTime];	//// at household level
 				P.EnhancedSocDistSpatialEffectCurrent	= P.EnhancedSocDistSpatialEffects_OverTime	[ChangeTime];	//// at spatial level
-
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-					P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.EnhancedSocDistPlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level. 
+					P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.EnhancedSocDistPlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level.
+
+				//// update case isolation
+				P.CaseIsolationEffectiveness		= P.CaseIsoSpatialAndPlaceEffects_OverTime	[ChangeTime]; //// at place & spatial level
+				P.CaseIsolationHouseEffectiveness	= P.CaseIsoHouseholdEffects_OverTime		[ChangeTime]; //// at household level
+				//// compliance 
+				P.CaseIsolationProp = P.CaseIsolationProp_OverTime[ChangeTime];
 			}
-	}
-	//else
-	//{
-	//}
 
 
 

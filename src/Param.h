@@ -173,7 +173,7 @@ typedef struct PARAM {
 	int CaseIsolationChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double CaseIsoSpatialAndPlaceEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double CaseIsoHouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-
+	double CaseIsolationProp_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	
 
 
