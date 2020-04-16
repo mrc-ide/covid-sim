@@ -2665,7 +2665,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// **** case isolation
 	P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
 	P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[0];	//// household
-	P.CaseIsolationProp = P.CI_Prop_OverTime[0]; //// compliance
+	P.CaseIsolationProp					= P.CI_Prop_OverTime					[0];	//// compliance
 
 	//// **** household quarantine
 	P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[0];	//// spatial
@@ -2680,6 +2680,14 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];	//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[0][PlaceType];	//// place
+
+	//// **** digital contact tracing
+	P.DCTCaseIsolationEffectiveness			= P.DCT_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
+	P.DCTCaseIsolationHouseEffectiveness	= P.DCT_HouseholdEffects_OverTime		[0];	//// household
+	P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[0];	//// compliance
+
+
+
 
 	for (i = 0; i < MAX_NUM_THREADS; i++)
 	{
@@ -4593,7 +4601,7 @@ void RecordSample(double t, int n)
 		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++)
 			if (t == P.CI_ChangeTimes[ChangeTime])
 			{
-				P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// place & spatial
+				P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// spatial / place
 				P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[ChangeTime]; //// household
 				//// compliance
 				P.CaseIsolationProp = P.CI_Prop_OverTime[ChangeTime];
@@ -4619,7 +4627,16 @@ void RecordSample(double t, int n)
 				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];	//// spatial
 				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];	//// household
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType];	//// place
+					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
+			}
+
+		//// **** digital contact tracing
+		for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++)
+			if (t == P.DCT_ChangeTimes[ChangeTime])
+			{
+				P.DCTCaseIsolationEffectiveness			= P.DCT_SpatialAndPlaceEffects_OverTime	[ChangeTime];	//// spatial / place
+				P.DCTCaseIsolationHouseEffectiveness	= P.DCT_HouseholdEffects_OverTime		[ChangeTime];	//// household
+				P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[ChangeTime];	//// compliance
 			}
 	}
 
