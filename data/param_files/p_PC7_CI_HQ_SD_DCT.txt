@@ -105,6 +105,32 @@
 [Individual level compliance with quarantine]
 1
 
+//// Note: numbers here must match "Number of change times for levels of household quarantine"; that any times listed here that are before "Household quarantine start time" and after "Duration of household quarantine policy" are irrelevant. 
+[Change times for level of household quarantine]
+0 31 121
+
+[Number of change times for levels of household quarantine]
+3
+
+[Relative household contact rates over time after quarantine]
+2 2 2
+
+[Residual place contacts over time after household quarantine by place type]
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+
+[Residual spatial contacts over time after household quarantine]
+0.25 0.25 0.25 
+
+[Household level compliance with quarantine over time]
+0.5 0.5 0.5 
+
+[Individual level compliance with quarantine over time]
+1 1 1 
+
+
+
 ===================================		CASE ISOLATION PARAMETERS
 
 [Case isolation start time]

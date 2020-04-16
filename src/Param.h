@@ -154,27 +154,36 @@ typedef struct PARAM {
 	int VaryEfficaciesOverTime;
 
 	/**< SOCIAL DISTANCING	*/
-	/**< non-enhanced soc dist	*/
-	int NumSocDistChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	int SocDistChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double SocDistSpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double SocDistHouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double SocDistPlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
-	double SocDistPlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
+	/**< non-enhanced	*/
+	int Num_SD_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int SD_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of (enhanced) social distancing */
+	double SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double SD_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double SD_PlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
+	double SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
 
-	/**< enhanced soc dist	*/
-	double EnhancedSocDistSpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double EnhancedSocDistHouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double EnhancedSocDistPlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
-	double EnhancedSocDistPlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
+	/**< enhanced	*/
+	double Enhanced_SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double Enhanced_SD_PlaceEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
+	double Enhanced_SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
 
 	/**< CASE ISOLATION	*/
-	int NumCaseIsolationChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	int CaseIsolationChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double CaseIsoSpatialAndPlaceEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double CaseIsoHouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES];
-	double CaseIsolationProp_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	int Num_CI_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int CI_ChangeTimes							[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of case isolation */
+	double CI_SpatialAndPlaceEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double CI_HouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double CI_Prop_OverTime						[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	
+	/**< HOUSEHOLD QUARANTINE	*/
+	int Num_HQ_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int HQ_ChangeTimes							[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of household quarantine */
+	double HQ_SpatialEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double HQ_HouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double HQ_PlaceEffects_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
+	double HQ_PlaceEffects_OverTime_dummy		[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
+	double HQ_Individual_PropComply_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double HQ_Household_PropComply_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 
 
 	double KeyWorkerProphTimeStart, KeyWorkerProphDuration, KeyWorkerPropInKeyPlaces[NUM_PLACE_TYPES], KeyWorkerHouseProp;
