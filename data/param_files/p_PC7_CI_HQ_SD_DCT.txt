@@ -169,7 +169,7 @@
 [Delay to start case isolation]
 1
 
-///// i.e. how long will given case self-isolate? Different from "Duration of case isolation policy"
+///// i.e. for how many days will given case self-isolate? Different from "Duration of case isolation policy"
 [Duration of case isolation]
 7
 
@@ -282,27 +282,6 @@
 
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
-//// Must match "Change times for levels of digital contact tracing"
-[Number of change times for levels of digital contact tracing]
-7
-
-//// Note: numbers here must match "Change times for levels of digital contact tracing"; that any times listed here that are before "Digital contact tracing start time" and after "Duration of digital contact tracing policy" are irrelevant. 
-[Change times for levels of digital contact tracing]
-0 31 41 51 61 84 91
-
-[Proportion of population or households covered by digital contact tracing over time]
-0.75 0.75 0.75 0.75 0.75 0.75 0.75 
-
-[Proportion of digital contacts who self-isolate over time]
-0.9 0.9 0.9 0.9 0.9 0.9 0.9 
-
-[Residual contacts after digital contact tracing isolation over time]
-0.25 0.25 0.25 0.25 0.25 0.25 0.25 
-
-[Residual household contacts after digital contact tracing isolation over time]
-0.25 0.25 0.25 0.25 0.25 0.25 0.25 
-
-
 [Include digital contact tracing]
 1
 
@@ -341,7 +320,6 @@
 
 [Place scaling factor - digital contact tracing]
 3
-
 ^^ These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't all result in infection)
 
 [Isolate index cases in digital contact tracing]
@@ -377,3 +355,25 @@
 [Output digital contact tracing]
 1
 ^Output the a file showing the number of people under isolation due to contact tracing in each admin unit at any given time
+
+//// Must match "Change times for levels of digital contact tracing"
+[Number of change times for levels of digital contact tracing]
+7
+
+//// Note: numbers here must match "Change times for levels of digital contact tracing"; that any times listed here that are before "Digital contact tracing start time" and after "Duration of digital contact tracing policy" are irrelevant. 
+[Change times for levels of digital contact tracing]
+0 31 41 51 61 84 91
+
+[Proportion of population or households covered by digital contact tracing over time]
+0.75 0.75 0.75 0.75 0.75 0.75 0.75 
+
+[Proportion of digital contacts who self-isolate over time]
+0.9 0.9 0.9 0.9 0.9 0.9 0.9 
+
+[Residual contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Residual household contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
+
+

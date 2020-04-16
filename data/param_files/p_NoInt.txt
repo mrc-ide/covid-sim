@@ -1,6 +1,9 @@
 [Include intervention delays by admin unit]
 0
 
+[Vary efficacies over time]
+1
+
 ======== PLACE CLOSURE PARAMETERS
 
 [Place closure start time]
@@ -50,23 +53,41 @@
 
 [Place closure incidence threshold]
 0
-
  ^^ needs to be 0 for global triggers	
 
 [Place closure fractional incidence threshold]
 0
-
  ^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
 10000000000
-
 *** ^^^ change this for global too ***	
+
+[Number of change times for levels of place closure]
+4
+
+//// Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant. 
+[Change times for levels of place closure]
+0 31 61 91 
+
+[Proportion of places remaining open after closure by place type over time]
+0	0	0.25	1
+0	0	0.25	1
+0	0	0.25	1
+0	0	0.25	1
+
+[Relative household contact rates over time after place closure]
+2 2 2 2 
+
+[Relative spatial contact rates over time after place closure]
+1.5 1.5 1.5 1.5 
+
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
 
 [Household quarantine start time]
 100000
+
 
 [Delay to start household quarantine]
 1
@@ -101,10 +122,37 @@
 [Individual level compliance with quarantine]
 1
 
+[Number of change times for levels of household quarantine]
+3
+
+//// Note: numbers here must match "Number of change times for levels of household quarantine"; that any times listed here that are before "Household quarantine start time" and after "Duration of household quarantine policy" are irrelevant. 
+[Change times for levels of household quarantine]
+0 31 121
+
+[Relative household contact rates over time after quarantine]
+2 2 2
+
+[Residual place contacts over time after household quarantine by place type]
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+
+[Residual spatial contacts over time after household quarantine]
+0.25 0.25 0.25 
+
+[Household level compliance with quarantine over time]
+0.5 0.5 0.5 
+
+[Individual level compliance with quarantine over time]
+1 1 1 
+
+
+
 ===================================		CASE ISOLATION PARAMETERS
 
 [Case isolation start time]
 100000
+
 
 [Delay to case isolation by admin unit]
 0	0	0
@@ -121,6 +169,7 @@
 [Delay to start case isolation]
 1
 
+///// i.e. for how many days will given case self-isolate? Different from "Duration of case isolation policy"
 [Duration of case isolation]
 7
 
@@ -133,10 +182,27 @@
 [Residual household contacts after case isolation]
 1
 
+[Number of change times for levels of case isolation]
+5
+
+//// Note: numbers here must match "Number of change times for levels of case isolation"; that any times listed here that are before "Case isolation start time" and after "Duration of case isolation policy" are irrelevant. 
+[Change times for levels of case isolation]
+0 31 61 91 121
+
+[Residual contacts after case isolation over time]
+0.25 0.25 0.25 0.25 0.25
+
+[Residual household contacts after case isolation over time]
+1 1 1 1 1 
+
+[Proportion of detected cases isolated over time]
+0.7 0.7 0.7 0.7 0.7 
+
 ===================================		SOCIAL DISTANCING PARAMETERS
 
 [Social distancing start time]
 100000
+
 
 [Delay to social distancing by admin unit]
 0	0	0
@@ -174,6 +240,46 @@
 [Relative spatial contact rate given enhanced social distancing]
 0.25
 
+//// Must match "Change times for levels of social distancing"
+[Number of change times for levels of social distancing]
+6
+
+//// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before "Social distancing start time" and after "Duration of social distancing" are irrelevant. 
+[Change times for levels of social distancing]
+0 31 61 91 121 151
+
+//// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
+[Relative place contact rates over time given social distancing by place type]
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+1 1 0.75 0.75 
+
+////  Ideally want this to supercede "Relative household contact rate given social distancing", but need to preserved backwards compatibility for now. 
+[Relative household contact rates over time given social distancing]
+1.25 1.25 1.25 1.25 1.25 1.25 
+
+////  Ideally want this to supercede "Relative spatial contact rate given social distancing", but need to preserved backwards compatibility for now. 
+[Relative spatial contact rates over time given social distancing]
+0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Relative household contact rates over time given enhanced social distancing]
+1 1 1 1 1 1 
+
+[Relative spatial contact rates over time given enhanced social distancing]
+0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Relative place contact rates over time given enhanced social distancing by place type]
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+0.25	0.25	0.25	0.25
+
+
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 
 [Include digital contact tracing]
@@ -196,14 +302,11 @@
 
 [Proportion of population or households covered by digital contact tracing]
 0.75
-
 ^If we cluster by household, then we select a proportion of households to be potential app users, if not then we select people over the whole population
 
 [Proportion of smartphone users by age]
 0 0 0 0.96 0.96 0.96 0.96 0.91 0.91 0.91 0.91 0.55 0.55 0.55 0.55 0.55 0.55
-
 (Taken from p. 189 here: https://www.ofcom.org.uk/__data/assets/pdf_file/0026/143981/technology-tracker-2019-uk-data-tables.pdf)
-
 ^^ This mobile phone data would be used specifically for the digital app. For households, we select x% of households and assign users according to probabilities by age. If we don't cluster by household, we multiply the probability of being a user by the probability of being a smart phone user by age. NOTE: if we set the proportion of users by age to 1 for all age groups, this means everyone can be tracked and is more similar to standard contact tracing.
 
 [Proportion of digital contacts who self-isolate]
@@ -217,7 +320,6 @@
 
 [Place scaling factor - digital contact tracing]
 3
-
 ^^ These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't all result in infection)
 
 [Isolate index cases in digital contact tracing]
@@ -252,8 +354,27 @@
 
 [Output digital contact tracing]
 1
-
 ^Output the a file showing the number of people under isolation due to contact tracing in each admin unit at any given time
+
+//// Must match "Change times for levels of digital contact tracing"
+[Number of change times for levels of digital contact tracing]
+7
+
+//// Note: numbers here must match "Change times for levels of digital contact tracing"; that any times listed here that are before "Digital contact tracing start time" and after "Duration of digital contact tracing policy" are irrelevant. 
+[Change times for levels of digital contact tracing]
+0 31 41 51 61 84 91
+
+[Proportion of population or households covered by digital contact tracing over time]
+0.75 0.75 0.75 0.75 0.75 0.75 0.75 
+
+[Proportion of digital contacts who self-isolate over time]
+0.9 0.9 0.9 0.9 0.9 0.9 0.9 
+
+[Residual contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
+
+[Residual household contacts after digital contact tracing isolation over time]
+0.25 0.25 0.25 0.25 0.25 0.25 0.25 
 
 
 
