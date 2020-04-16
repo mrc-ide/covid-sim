@@ -1616,7 +1616,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing"	, "%i", (void*)P.SD_ChangeTimes, P.Num_SD_ChangeTimes, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of case isolation"		, "%i", (void*)P.CI_ChangeTimes, P.Num_CI_ChangeTimes, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine", "%i", (void*)P.HQ_ChangeTimes, P.Num_HQ_ChangeTimes, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine", "%i", (void*)P.PC_ChangeTimes, P.Num_PC_ChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of place closure"		, "%i", (void*)P.PC_ChangeTimes, P.Num_PC_ChangeTimes, 1, 0);
 
 	// initialize to zero (regardless of whether doing places or households). 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
@@ -1695,7 +1695,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time after quarantine"					, "%lf", (void*)P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes, 1, 0))
 			for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_HouseholdEffects_OverTime[ChangeTime] = P.HQuarantineHouseEffect;
 		//// place closure
-		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time after closure"					, "%lf", (void*)P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time after place closure"				, "%lf", (void*)P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, 1, 0))
 			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_HouseholdEffects_OverTime[ChangeTime] = P.PlaceCloseHouseholdRelContact;
 	}
 
@@ -1803,7 +1803,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P.PC_PlaceEffects_OverTime[P.Num_PC_ChangeTimes - 1][PlaceType];
 		}
-
 	}
 
 
@@ -2638,6 +2637,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[0]; //// individual compliance
 	P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[0]; //// household compliance
 
+	//// **** place closure
+	P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[0];	//// spatial
+	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];	//// household
+	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+		P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[0][PlaceType];	//// place
 
 	for (i = 0; i < MAX_NUM_THREADS; i++)
 	{
@@ -4568,6 +4572,16 @@ void RecordSample(double t, int n)
 				//// compliance
 				P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
 				P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[ChangeTime]; //// household compliance
+			}
+
+		//// **** place closure
+		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
+			if (t == P.PC_ChangeTimes[ChangeTime])
+			{
+				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];	//// spatial
+				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];	//// household
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType];	//// place
 			}
 	}
 

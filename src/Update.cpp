@@ -1221,7 +1221,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 					//// set close_start_time and close_end_time
 					
-					if ((P.PlaceCloseEffect[i] == 0) || (ranf_mt(tn) >= P.PlaceCloseEffect[i])) //// if proportion of places of type i remaining open is 0 or happens to be closed with prob PlaceCloseEffect[i]...
+					if ((P.PlaceCloseEffect[i] == 0) || (ranf_mt(tn) >= P.PlaceCloseEffect[i])) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - PlaceCloseEffect[i]...
 					{
 						if (Places[i][j].close_start_time > t_start) Places[i][j].close_start_time = t_start;
 						Places[i][j].close_end_time = t_stop;
