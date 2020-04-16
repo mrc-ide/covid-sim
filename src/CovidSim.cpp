@@ -1617,9 +1617,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.DCT_ChangeTimes	[ChangeTime] = 100000;
 	}
 	//// Get real values from (pre)param file
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing"		, "%i", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of case isolation"			, "%i", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine"	, "%i", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of social distancing"		, "%i", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of case isolation"			, "%i", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of household quarantine"	, "%i", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of place closure"			, "%i", (void*)P.PC_ChangeTimes	, P.Num_PC_ChangeTimes	, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of digital contact tracing", "%i", (void*)P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes	, 1, 0);
 

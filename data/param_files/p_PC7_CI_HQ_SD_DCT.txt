@@ -126,7 +126,7 @@
 3
 
 //// Note: numbers here must match "Number of change times for levels of household quarantine"; that any times listed here that are before "Household quarantine start time" and after "Duration of household quarantine policy" are irrelevant. 
-[Change times for level of household quarantine]
+[Change times for levels of household quarantine]
 0 31 121
 
 [Relative household contact rates over time after quarantine]
@@ -186,7 +186,7 @@
 5
 
 //// Note: numbers here must match "Number of change times for levels of case isolation"; that any times listed here that are before "Case isolation start time" and after "Duration of case isolation policy" are irrelevant. 
-[Change times for level of case isolation]
+[Change times for levels of case isolation]
 0 31 61 91 121
 
 [Residual contacts after case isolation over time]
@@ -240,12 +240,12 @@
 [Relative spatial contact rate given enhanced social distancing]
 0.25
 
-//// Must match "Change times for level of social distancing"
+//// Must match "Change times for levels of social distancing"
 [Number of change times for levels of social distancing]
 6
 
 //// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before "Social distancing start time" and after "Duration of social distancing" are irrelevant. 
-[Change times for level of social distancing]
+[Change times for levels of social distancing]
 0 31 61 91 121 151
 
 //// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
