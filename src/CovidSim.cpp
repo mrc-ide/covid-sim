@@ -2520,34 +2520,38 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				}
 	}
 
-	//// Initialize Current effects
-	// soc dist
+	//// **** //// **** //// **** Initialize Current effects
+	//// **** soc dist
 	P.SocDistDurationCurrent			= P.SocDistDuration;
-	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime[0];
-	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];
+	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];	//// spatial
+	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];	//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-		P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[0][PlaceType];
+		P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[0][PlaceType];	//// place
 
-	// enhanced soc dist
-	P.EnhancedSocDistSpatialEffectCurrent		= P.Enhanced_SD_SpatialEffects_OverTime[0];
-	P.EnhancedSocDistHouseholdEffectCurrent		= P.Enhanced_SD_HouseholdEffects_OverTime[0];
+	//// **** enhanced soc dist
+	P.EnhancedSocDistSpatialEffectCurrent		= P.Enhanced_SD_SpatialEffects_OverTime		[0];	//// spatial
+	P.EnhancedSocDistHouseholdEffectCurrent		= P.Enhanced_SD_HouseholdEffects_OverTime	[0];	//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-		P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[0][PlaceType];
+		P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[0][PlaceType];	//// place
 
-	// case isolation
-	P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[0];
-	P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[0];
+	//// **** case isolation
+	P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
+	P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[0];	//// household
+	P.CaseIsolationProp = P.CI_Prop_OverTime[0]; //// compliance
 
-	//// compliance
-	P.CaseIsolationProp = P.CI_Prop_OverTime[0];
+	//// **** household quarantine
+	P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[0];	//// spatial
+	P.HQuarantineHouseEffect	= P.HQ_HouseholdEffects_OverTime[0];	//// household
+	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+		P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[0][PlaceType];	//// place
+	P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[0]; //// individual compliance
+	P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[0]; //// household compliance
 
 
 	for (i = 0; i < MAX_NUM_THREADS; i++)
 	{
-		for (j = 0; j < MAX_NUM_THREADS; j++)
-			StateT[i].n_queue[j] = 0;
-		for (j = 0; j < P.PlaceTypeNum; j++)
-			StateT[i].np_queue[j] = 0;
+		for (j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
+		for (j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
 	}
 	if (DoInitUpdateProbs)
 	{
@@ -4434,28 +4438,46 @@ void RecordSample(double t, int n)
 
 	//// update "efficacies". For now leave this as an overide to the above. Later fix it so consistent. 
 	if (P.VaryEfficaciesOverTime) //// should be set up so that this statement unneccsary - check later. 
+	{
+		//// **** social distancing 
 		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++)
 			if (t == P.SD_ChangeTimes[ChangeTime])
 			{
-				//// update non-enhanced social distancing 
-				P.SocDistHouseholdEffectCurrent = P.SD_HouseholdEffects_OverTime[ChangeTime];	//// at household level
-				P.SocDistSpatialEffectCurrent	= P.SD_SpatialEffects_OverTime	[ChangeTime];	//// at spatial level
+				//// **** non-enhanced
+				P.SocDistHouseholdEffectCurrent = P.SD_HouseholdEffects_OverTime[ChangeTime];	//// household
+				P.SocDistSpatialEffectCurrent	= P.SD_SpatialEffects_OverTime	[ChangeTime];	//// spatial
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-					P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level.
+					P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
 
-				//// update enhanced social distancing 
-				P.EnhancedSocDistHouseholdEffectCurrent = P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime];	//// at household level
-				P.EnhancedSocDistSpatialEffectCurrent	= P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime];	//// at spatial level
+				//// **** enhanced
+				P.EnhancedSocDistHouseholdEffectCurrent = P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime];	//// household
+				P.EnhancedSocDistSpatialEffectCurrent	= P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime];	//// spatial
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-					P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// at place level.
+					P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
+			}
 
-				//// update case isolation
-				P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// at place & spatial level
-				P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[ChangeTime]; //// at household level
+		//// **** case isolation
+		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++)
+			if (t == P.CI_ChangeTimes[ChangeTime])
+			{
+				P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// place & spatial
+				P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[ChangeTime]; //// household
 				//// compliance 
 				P.CaseIsolationProp = P.CI_Prop_OverTime[ChangeTime];
 			}
 
+		////// **** household quarantine
+		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++)
+			if (t == P.HQ_ChangeTimes[ChangeTime])
+			{
+				P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[ChangeTime];	//// spatial
+				P.HQuarantineHouseEffect	= P.HQ_HouseholdEffects_OverTime[ChangeTime];	//// household
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
+				P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
+				P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[ChangeTime]; //// household compliance
+			}
+	}
 
 
 
