@@ -53,18 +53,35 @@
 
 [Place closure incidence threshold]
 0
-
  ^^ needs to be 0 for global triggers	
 
 [Place closure fractional incidence threshold]
 0
-
- ^^ needs to be 0 for global triggers or if abs incidence threshold used	
+^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
 100
-
 *** ^^^ change this for global too ***	
+
+[Number of change times for levels of place closure]
+4
+
+//// Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant. 
+[Change times for levels of place closure]
+0 31 61 91 121
+
+[Proportion of places remaining open after closure by place type over time]
+0	0	0.25	1
+0	0	0.25	1
+0	0	0.25	1
+0	0	0.25	1
+
+[Relative household contact rates over time after closure]
+2 2 2 2 
+
+[Relative spatial contact rates over time after closure]
+1.5 1.5 1.5 1.5 
+
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
 
@@ -105,12 +122,12 @@
 [Individual level compliance with quarantine]
 1
 
+[Number of change times for levels of household quarantine]
+3
+
 //// Note: numbers here must match "Number of change times for levels of household quarantine"; that any times listed here that are before "Household quarantine start time" and after "Duration of household quarantine policy" are irrelevant. 
 [Change times for level of household quarantine]
 0 31 121
-
-[Number of change times for levels of household quarantine]
-3
 
 [Relative household contact rates over time after quarantine]
 2 2 2
@@ -165,12 +182,12 @@
 [Residual household contacts after case isolation]
 1
 
+[Number of change times for levels of case isolation]
+5
+
 //// Note: numbers here must match "Number of change times for levels of case isolation"; that any times listed here that are before "Case isolation start time" and after "Duration of case isolation policy" are irrelevant. 
 [Change times for level of case isolation]
 0 31 61 91 121
-
-[Number of change times for levels of case isolation]
-5
 
 [Residual contacts after case isolation over time]
 0.25 0.25 0.25 0.25 0.25
@@ -193,14 +210,6 @@
 [Duration of social distancing]
 121
 
-//// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before "Social distancing start time" and after "Duration of social distancing" are irrelevant. 
-[Change times for level of social distancing]
-0 31 61 91 121 151
-
-//// Must match "Change times for level of social distancing"
-[Number of change times for levels of social distancing]
-6
-
 [Duration of social distancing by admin unit]
 121	121	121
 
@@ -215,6 +224,29 @@
 
 [Relative spatial contact rate given social distancing]
 0.25
+
+[Minimum radius for social distancing]
+1
+
+[Proportion compliant with enhanced social distancing]
+0
+
+[Relative place contact rate given enhanced social distancing by place type]
+0.25	0.25	0.25	0.25
+
+[Relative household contact rate given enhanced social distancing]
+1
+
+[Relative spatial contact rate given enhanced social distancing]
+0.25
+
+//// Must match "Change times for level of social distancing"
+[Number of change times for levels of social distancing]
+6
+
+//// Note: numbers here must match "Number of change times for levels of social distancing"; that any times listed here that are before "Social distancing start time" and after "Duration of social distancing" are irrelevant. 
+[Change times for level of social distancing]
+0 31 61 91 121 151
 
 //// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
 [Relative place contact rates over time given social distancing by place type]
@@ -232,21 +264,6 @@
 ////  Ideally want this to supercede "Relative spatial contact rate given social distancing", but need to preserved backwards compatibility for now. 
 [Relative spatial contact rates over time given social distancing]
 0.25 0.25 0.25 0.25 0.25 0.25 
-
-[Minimum radius for social distancing]
-1
-
-[Proportion compliant with enhanced social distancing]
-0
-
-[Relative place contact rate given enhanced social distancing by place type]
-0.25	0.25	0.25	0.25
-
-[Relative household contact rate given enhanced social distancing]
-1
-
-[Relative spatial contact rate given enhanced social distancing]
-0.25
 
 [Relative household contact rates over time given enhanced social distancing]
 1 1 1 1 1 1 
@@ -285,7 +302,6 @@
 
 [Proportion of population or households covered by digital contact tracing]
 0.75
-
 ^If we cluster by household, then we select a proportion of households to be potential app users, if not then we select people over the whole population
 
 [Proportion of smartphone users by age]

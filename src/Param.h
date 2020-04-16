@@ -161,7 +161,6 @@ typedef struct PARAM {
 	double SD_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double SD_PlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
 	double SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
-
 	/**< enhanced	*/
 	double Enhanced_SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
@@ -185,6 +184,13 @@ typedef struct PARAM {
 	double HQ_Individual_PropComply_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 	double HQ_Household_PropComply_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 
+	/**< PLACE CLOSURE	*/
+	int Num_PC_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int PC_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of place closure */
+	double PC_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double PC_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES];
+	double PC_PlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type; 
+	double PC_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
 
 	double KeyWorkerProphTimeStart, KeyWorkerProphDuration, KeyWorkerPropInKeyPlaces[NUM_PLACE_TYPES], KeyWorkerHouseProp;
 	double KeyWorkerProphRenewalDuration, KeyWorkerProphRadius, KeyWorkerProphRadius2;

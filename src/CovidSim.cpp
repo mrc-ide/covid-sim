@@ -1455,10 +1455,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (P.DoHouseholds)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after closure", "%lf", (void*)& P.PlaceCloseHouseholdRelContact, 1, 1, 0)) P.PlaceCloseHouseholdRelContact = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate after closure", "%lf", (void*)& P.PlaceCloseSpatialRelContact, 1, 1, 0))
-	{
-		P.PlaceCloseSpatialRelContact = 1;
-	}
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate after closure", "%lf", (void*)& P.PlaceCloseSpatialRelContact, 1, 1, 0)) P.PlaceCloseSpatialRelContact = 1;
 
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Include holidays", "%i", (void*) & (P.DoHolidays), 1, 1, 0)) P.DoHolidays = 0;
 	if (P.DoHolidays)
@@ -1589,60 +1586,66 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	//// ****  number of change times
 	if (!P.VaryEfficaciesOverTime)
 	{
-		//// add in various quantities for PC, HQ
 		P.Num_SD_ChangeTimes = 1;
 		P.Num_CI_ChangeTimes = 1;
 		P.Num_HQ_ChangeTimes = 1;
+		P.Num_PC_ChangeTimes = 1;
 	}
 	else
 	{
-		//// add in various quantities for PC, HQ
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of social distancing"	, "%i", (void*) & (P.Num_SD_ChangeTimes), 1, 1, 0)) P.Num_SD_ChangeTimes = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of case isolation"		, "%i", (void*) & (P.Num_CI_ChangeTimes), 1, 1, 0)) P.Num_CI_ChangeTimes = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of household quarantine", "%i", (void*) & (P.Num_HQ_ChangeTimes), 1, 1, 0)) P.Num_HQ_ChangeTimes = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of change times for levels of place closure"		, "%i", (void*) & (P.Num_PC_ChangeTimes), 1, 1, 0)) P.Num_PC_ChangeTimes = 1;
 	}
-
 
 	//// **** change times: 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value of efficacy for social distancing. 
 	P.SD_ChangeTimes[0] = 0;
 	P.CI_ChangeTimes[0] = 0;
 	P.HQ_ChangeTimes[0] = 0;
+	P.PC_ChangeTimes[0] = 0;
 	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
 		P.SD_ChangeTimes	[ChangeTime] = 100000;
 		P.CI_ChangeTimes	[ChangeTime] = 100000;
 		P.HQ_ChangeTimes	[ChangeTime] = 100000;
+		P.PC_ChangeTimes	[ChangeTime] = 100000;
 	}
 	//// Get real values from (pre)param file
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing"	, "%i", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of case isolation"		, "%i", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine", "%i", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of social distancing"	, "%i", (void*)P.SD_ChangeTimes, P.Num_SD_ChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of case isolation"		, "%i", (void*)P.CI_ChangeTimes, P.Num_CI_ChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine", "%i", (void*)P.HQ_ChangeTimes, P.Num_HQ_ChangeTimes, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for level of household quarantine", "%i", (void*)P.PC_ChangeTimes, P.Num_PC_ChangeTimes, 1, 0);
 
-	// initialize to zero 
+	// initialize to zero (regardless of whether doing places or households). 
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
-		//// "efficacies"
+		//// **** "efficacies"
+		//// spatial
 		P.SD_SpatialEffects_OverTime				[ChangeTime] = 0;
 		P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime] = 0;
 		P.CI_SpatialAndPlaceEffects_OverTime		[ChangeTime] = 0;
 		P.HQ_SpatialEffects_OverTime				[ChangeTime] = 0;
+		P.PC_SpatialEffects_OverTime				[ChangeTime] = 0;
 
-		if (P.DoHouseholds)
-		{
-			P.SD_HouseholdEffects_OverTime			[ChangeTime] = 0;
-			P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime] = 0;
-			P.CI_HouseholdEffects_OverTime			[ChangeTime] = 0;
-			P.HQ_HouseholdEffects_OverTime			[ChangeTime] = 0;
-		}
+		//// Household
+		P.SD_HouseholdEffects_OverTime			[ChangeTime] = 0;
+		P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime] = 0;
+		P.CI_HouseholdEffects_OverTime			[ChangeTime] = 0;
+		P.HQ_HouseholdEffects_OverTime			[ChangeTime] = 0;
+		P.PC_HouseholdEffects_OverTime			[ChangeTime] = 0;
+
+		//// place
 		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		{
 			P.SD_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
 			P.Enhanced_SD_PlaceEffects_OverTime	[ChangeTime][PlaceType] = 0;
 			P.HQ_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
+			P.PC_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
 		}
 
-		//// compliance
+		//// **** compliance
 		P.CI_Prop_OverTime					[ChangeTime] = 0;
 		P.HQ_Individual_PropComply_OverTime	[ChangeTime] = 0;
 		P.HQ_Household_PropComply_OverTime	[ChangeTime] = 0;
@@ -1654,7 +1657,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.SD_PlaceEffects_OverTime_dummy			[index] = 0;
 		P.Enhanced_SD_PlaceEffects_OverTime_dummy	[index] = 0;
 		P.HQ_PlaceEffects_OverTime_dummy			[index] = 0;
+		P.PC_PlaceEffects_OverTime_dummy			[index] = 0;
 	}
+
 
 	//// **** "efficacies": by default, initialize to values read in previously. 
 	///// spatial contact rates rates over time
@@ -1670,6 +1675,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	//// household quarantine
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual spatial contacts over time after household quarantine"				, "%lf", (void*)P.HQ_SpatialEffects_OverTime, P.Num_HQ_ChangeTimes, 1, 0))
 		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_SpatialEffects_OverTime[ChangeTime] = P.HQuarantineSpatialEffect;
+	//// place closure
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates over time after place closure"				, "%lf", (void*)P.PC_SpatialEffects_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_SpatialEffects_OverTime[ChangeTime] = P.PlaceCloseSpatialRelContact;
 
 	///// Household contact rates over time
 	if (P.DoHouseholds)
@@ -1686,6 +1694,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		//// household quarantine
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time after quarantine"					, "%lf", (void*)P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes, 1, 0))
 			for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_HouseholdEffects_OverTime[ChangeTime] = P.HQuarantineHouseEffect;
+		//// place closure
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rates over time after closure"					, "%lf", (void*)P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_HouseholdEffects_OverTime[ChangeTime] = P.PlaceCloseHouseholdRelContact;
 	}
 
 	///// place contact rates over time
@@ -1722,7 +1733,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) //// then translate 1d array into 2D array.
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.HQ_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.HQ_PlaceEffects_OverTime_dummy[(ChangeTime * P.PlaceTypeNum) + PlaceType];
+
+		//// place closure
+		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of places remaining open after closure by place type over time", "%lf", (void*)P.PC_PlaceEffects_OverTime_dummy, P.Num_PC_ChangeTimes * P.PlaceTypeNum, 1, 0))
+			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P.PlaceCloseEffect
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.PlaceCloseEffect[PlaceType];
+		else //// i.e. if P.VaryEfficaciesOverTime and parameter recognized...
+			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// then translate 1d array into 2D array.
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.PC_PlaceEffects_OverTime_dummy[(ChangeTime * P.PlaceTypeNum) + PlaceType];
 	}
+
 
 	//// ****  compliance
 	//// case isolation
@@ -1772,12 +1794,23 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.HQ_Individual_PropComply_OverTime	[HQ_ChangeTime] = P.HQ_Individual_PropComply_OverTime	[P.Num_HQ_ChangeTimes - 1];
 			P.HQ_Household_PropComply_OverTime	[HQ_ChangeTime] = P.HQ_Household_PropComply_OverTime	[P.Num_HQ_ChangeTimes - 1];
 		}
+
+		//// place closure
+		for (int PC_ChangeTime = P.Num_PC_ChangeTimes; PC_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; PC_ChangeTime++)
+		{
+			P.PC_SpatialEffects_OverTime	[PC_ChangeTime] = P.PC_SpatialEffects_OverTime	[P.Num_PC_ChangeTimes - 1];
+			P.PC_HouseholdEffects_OverTime	[PC_ChangeTime] = P.PC_HouseholdEffects_OverTime[P.Num_PC_ChangeTimes - 1];
+			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				P.PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P.PC_PlaceEffects_OverTime[P.Num_PC_ChangeTimes - 1][PlaceType];
+		}
+
 	}
 
 
 	//// Checks: print to console
 	fprintf(stderr, "\nVaryEfficaciesOverTime %i ", P.VaryEfficaciesOverTime);
-	fprintf(stderr, "\nNumSocDistChangeTimes %i ", P.Num_SD_ChangeTimes);
+
+	fprintf(stderr, "\nNum_SD_ChangeTimes %i ", P.Num_SD_ChangeTimes);
 	fprintf(stderr, "\nSD_ChangeTimes:\t");
 	for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++)
 		fprintf(stderr, "%i\t", P.SD_ChangeTimes[ChangeTime]);
@@ -1834,6 +1867,25 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	fprintf(stderr, "\nHQ_Household_PropComply_OverTime:\t");
 	for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++)
 		fprintf(stderr, "%lf\t", P.HQ_Household_PropComply_OverTime[ChangeTime]);
+
+	fprintf(stderr, "\nNum_PC_ChangeTimes %i ", P.Num_PC_ChangeTimes);
+	fprintf(stderr, "\nPC_ChangeTimes:\t");
+	for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
+		fprintf(stderr, "%i\t", P.PC_ChangeTimes[ChangeTime]);
+	fprintf(stderr, "\nPC_SpatialEffects_OverTime:\t");
+	for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.PC_SpatialEffects_OverTime[ChangeTime]);
+	fprintf(stderr, "\nPC_HouseholdEffects_OverTime: \t");
+	for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
+		fprintf(stderr, "%lf\t", P.PC_HouseholdEffects_OverTime[ChangeTime]);
+	fprintf(stderr, "\nPC_PlaceEffects_OverTime:\n");
+	for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
+	{
+		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+			fprintf(stderr, "%lf\t", P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType]);
+		fprintf(stderr, "\n");
+	}
+
 
 
 	if (P.DoPlaces)
