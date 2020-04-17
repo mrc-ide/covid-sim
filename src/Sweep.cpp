@@ -935,6 +935,11 @@ void DigitalContactTracingSweep(double t)
 									Hosts[contact].dct_start_time = dct_start_time;
 									Hosts[contact].dct_end_time = dct_end_time;
 									Hosts[contact].digitalContactTraced = 1;
+									//At this point, we do testing on index cases who have been picked up on symptoms alone, in order to figure out whether and when
+									//to remove their contacts (if P.RemoveContactsOfNegativeIndexCase). It's much harder to do it in the next loop as we don't have all
+									//the information about the contact event there and would need to loop over all contacts again to look for their index case
+									//This would cause race conditions due to having a loop over adunits within threaded loop over admin units
+									//Only set test times if P.DoDCTTest. If P.DoDCTTest==0, but we are finding contacts of contacts, we check to see if contacts should become index cases every day they are in isolation.
 									if (P.DoDCTTest)
 									{
 										if (Hosts[contact].index_case_dct == 1)
@@ -943,24 +948,24 @@ void DigitalContactTracingSweep(double t)
 											Hosts[contact].dct_test_time = dct_start_time + (unsigned short int)(P.DelayToTestIndexCase * P.TimeStepsPerDay);
 											//if host is infectious at test time
 											if ((Hosts[contact].dct_test_time >= Hosts[contact].latent_time) && (Hosts[contact].dct_test_time < Hosts[contact].recovery_time))
-											{
-												//if false negative, remove from 
-												if (ranf_mt(tn) >= P.SensitivityDCT)
+											{ 
+												//if false negative, remove from queue by setting the end time to the test time
+												if ((P.SensitivityDCT == 0) ||((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
 												{
 													Hosts[contact].dct_end_time = Hosts[contact].dct_test_time;
-													//set index_dct_flag to 2 to indicate that contacts should be removed
-													Hosts[contact].index_case_dct = 2;
+													//set index_dct_flag to 2 to indicate that contacts should be removed, if we are removing based on negative test result of index case
+													if(P.RemoveContactsOfNegativeIndexCase) Hosts[contact].index_case_dct = 2;
 												}
 											}
-											//if host is non-infectious
+											//if host is non-infectious)
 											else
 											{
 												//if true negative, remove from list
-												if (ranf_mt(tn) < P.SpecificityDCT)
+												if ((P.SpecificityDCT == 1) || ((P.SpecificityDCT > 0) && (ranf_mt(tn) < P.SpecificityDCT)))
 												{
 													//again mark them to be removed from list at test time rather than end_time, and change index_case_dct flag
 													Hosts[contact].dct_end_time = Hosts[contact].dct_test_time;
-													Hosts[contact].index_case_dct = 2;
+													if(P.RemoveContactsOfNegativeIndexCase) Hosts[contact].index_case_dct = 2;
 												}
 											}
 										}
@@ -974,15 +979,10 @@ void DigitalContactTracingSweep(double t)
 											}
 											else
 											{
-												//set testing time and index_case link
+												//set testing time
 												Hosts[contact].dct_test_time = dct_start_time + (unsigned short int)(P.DelayToTestDCTContacts * P.TimeStepsPerDay);
 											}
 										}
-									}
-									else if ((P.FindContactsOfDCTContacts)&&(Hosts[contact].index_case_dct == 0))
-									{
-										//else use dct_test_time to hold time at which we find contacts of contacts
-										Hosts[contact].dct_test_time = dct_start_time + (unsigned short int)(P.DelayToTestDCTContacts * P.TimeStepsPerDay);
 									}
 									
 									//actually put them in the queue
@@ -1011,30 +1011,32 @@ void DigitalContactTracingSweep(double t)
 								if (P.DoDCTTest)
 								{
 									//if case has been detected due to being symptomatic, then we will update their testing time if they would be tested earlier based on being an index case as opposed to being a contact of another case
-									if ((contact == infector) && (Hosts[contact].dct_test_time > (dct_start_time + (unsigned short int)(P.DelayToTestIndexCase * P.TimeStepsPerDay))))
+									//If they are already being contact traced and testing is on, they should have been set a test_time
+									if ((Hosts[contact].index_case_dct==1) && (Hosts[contact].dct_test_time > (dct_start_time + (unsigned short int)(P.DelayToTestIndexCase * P.TimeStepsPerDay))))
 									{
 										Hosts[contact].dct_test_time = dct_start_time + (unsigned short int)(P.DelayToTestIndexCase * P.TimeStepsPerDay);
-
+										//update end time (which is always at least equal to, but may be later that the current one)
+										Hosts[contact].dct_end_time = dct_end_time;
 										//check to see if test will be negative, if so, tag them for early removal and update index_dct_flag
 										if ((Hosts[contact].dct_test_time >= Hosts[contact].latent_time) && (Hosts[contact].dct_test_time < Hosts[contact].recovery_time))
 										{
 											//if false negative, remove from 
-											if (ranf_mt(tn) >= P.SensitivityDCT)
+											if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
 											{
 												Hosts[contact].dct_end_time = Hosts[contact].dct_test_time;
 												//set index_dct_flag to 2 to indicate that contacts should be removed
-												Hosts[contact].index_case_dct = 2;
+												if(P.RemoveContactsOfNegativeIndexCase) Hosts[contact].index_case_dct = 2;
 											}
 										}
 										//if host is non-infectious
 										else
 										{
 											//if true negative, remove from list
-											if (ranf_mt(tn) < P.SpecificityDCT)
+											if ((P.SpecificityDCT == 1) || ((P.SpecificityDCT > 0) && (ranf_mt(tn) < P.SpecificityDCT)))
 											{
 												//again mark them to be removed from list at test time rather than end_time, and change index_case_dct flag
 												Hosts[contact].dct_end_time = Hosts[contact].dct_test_time;
-												Hosts[contact].index_case_dct = 2;
+												if(P.RemoveContactsOfNegativeIndexCase) Hosts[contact].index_case_dct = 2;
 											}
 										}
 									}
@@ -1051,15 +1053,9 @@ void DigitalContactTracingSweep(double t)
 									}
 
 								}
-								else if ((P.FindContactsOfDCTContacts) && (Hosts[contact].index_case_dct == 0))
-								{
-									//else use dct_test_time to hold time at which we find contacts of contacts
-									Hosts[contact].dct_test_time = dct_start_time + (unsigned short int)(P.DelayToTestDCTContacts * P.TimeStepsPerDay);
-									Hosts[contact].dct_end_time = dct_end_time;
-								}
 								else
 								{
-									//just extend the isolation end time, but we're not going to update testing time or contact_id as we still want the testing time to be dependent on the earlier contact.
+									//just extend the isolation end time, but we're not going to update testing time or as we still want the testing time to be dependent on the earlier contact.
 									Hosts[contact].dct_end_time = dct_end_time; //we could choose to not extend the time for cases who are index cases. If they are tested and are negative, they'd be removed earlier anyway. If positive, they will stay isolated for a bit longer
 
 								}
@@ -1092,15 +1088,13 @@ void DigitalContactTracingSweep(double t)
 					//first do testing of index cases and their contacts
 					if (P.DoDCTTest)
 					{
-						if (Hosts[contact].dct_test_time == ts)
+						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
 						{
-							if (Hosts[contact].index_case_dct == 0)
-							{
 								//if host is positive
 								if ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
 								{
 									//if the test is a false negative
-									if (ranf_mt(tn) >= P.SensitivityDCT)
+									if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
 									{
 										Hosts[contact].dct_end_time = ts;
 									}
@@ -1112,36 +1106,47 @@ void DigitalContactTracingSweep(double t)
 										//set trigger time to pick up their contacts in the next time step
 										Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
 										//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-										if (Hosts[contact].inf == 2) DoDetectedCase(contact, t, ts, tn);
+										if (Hosts[contact].inf == 2)
+										{
+											DoDetectedCase(contact, t, ts, tn);
+											Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
+										}
 									}
 								}
 								//or if host is negative
 								else
 								{
 									//and is a true negative
-									if (ranf_mt(tn) < P.SpecificityDCT) Hosts[contact].dct_end_time = ts;
+									if ((P.SpecificityDCT == 1) || ((P.SpecificityDCT > 0) && (ranf_mt(tn) < P.SpecificityDCT)))
+									{
+										Hosts[contact].dct_end_time = ts;
+									}
 									//can't track contacts of false positives as they don't make any contacts in InfectSweep
 								}
-							}
 						}
 					}
 					else if (P.FindContactsOfDCTContacts)
 					{
-						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
+						//check every day to see if contacts become index cases - but they have to be infectious. Otherwise we could set the trigger time and cause their contacts to be traced when they are not being traced themselves.
+						if ((Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+						//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
 						{
 							//set them to be an index case
 							Hosts[contact].index_case_dct = 1;
 							//set trigger time to pick up their contacts in the next time step
 							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
 							//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-							if (Hosts[contact].inf == 2) DoDetectedCase(contact, t, ts, tn);
+							if (Hosts[contact].inf == 2)
+							{
+								DoDetectedCase(contact, t, ts, tn);
+								Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
+							}
 						}
 					}
 
 					//now remove hosts who have reached the end of their isolation time
 					if (Hosts[contact].dct_end_time == ts)
 					{
-
 						//stop contact tracing this host
 						Hosts[contact].digitalContactTraced = 0;
 						//remove index_case_dct flag to 0;
@@ -1161,58 +1166,8 @@ void DigitalContactTracingSweep(double t)
 			}
 		}
 	}
-}
 
-//							//if we are testing an index case
-//							if (Hosts[contact].index_case_dct == 1)
-//							{
-//								//if host is positive
-//								if ((abs(Hosts[contact].inf)==2) || (Hosts[contact].inf==-1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
-//								{ 
-//									//if the test is a false negative
-//									if (ranf_mt(tn) >= P.SensitivityDCT) remove_contact_flag=1;
-//								}
-//								//or if host is negative
-//								else
-//								{
-//									//and is a true negative
-//									if(ranf_mt(tn) < P.SpecificityDCT) remove_contact_flag = 1;
-//								}
-//
-//								//if remove_contact_flag, remove case and contacts from isolation
-//								if (remove_contact_flag)
-//								{
-//									//first set index_case to be remove - and remove index_case_dct flag, so the flag doesn't interfere if they get added again
-//									Hosts[contact].dct_end_time = ts;
-//									Hosts[contact].index_case_dct = 0;
-//
-//									//now remove their (non-index) contacts from isolation - need to loop over all contacts in all admin units to find their contacts.
-//#pragma omp parallel for private(thread,ad,n,temp_contact) schedule(static,1)
-//									for (thread = 0; thread < P.NumThreads; thread++)
-//									{
-//										for (ad = thread; ad < P.NumAdunits; ad += P.NumThreads)
-//										{
-//											for (n = 0; n < AdUnits[ad].ndct; n++)
-//											{
-//												if ((Hosts[AdUnits[ad].dct[n]].contact_id == contact) && (Hosts[AdUnits[ad].dct[n]].index_case_dct==0))
-//												{
-//													//actually need to remove them properly rather than just set the end time to now, as if their admin unit has
-//													//already been processed, they'll get missed until the next time step
-//													//stop contact tracing this host
-//													Hosts[AdUnits[ad].dct[n]].digitalContactTraced = 0;
-//
-//													temp_contact = AdUnits[ad].dct[n];
-//													//k = contact;
-//													AdUnits[ad].dct[j] = AdUnits[ad].dct[AdUnits[ad].ndct - 1];
-//													AdUnits[ad].dct[AdUnits[ad].ndct - 1] = temp_contact;
-//													AdUnits[ad].ndct--;
-//												}
-//											}
-//										}
-//									}
-//								}
-//
-//							}
+}
 
 
 int TreatSweep(double t)

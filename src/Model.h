@@ -47,7 +47,7 @@ typedef struct PERSON {
 	unsigned int index_case_dct : 1;
 	unsigned int digitalContactTracingUser : 1;
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
-	int ncontacts, contact_id; //added this in to record total number of contacts each index case records: ggilani 13/04/20
+	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc. 
 
 } person;

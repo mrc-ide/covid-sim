@@ -457,12 +457,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
 
-			//if (ai == 857676)
-			//{
-			//	fprintf(stderr, "stop\n");
-			//}
 
-			if (P.DoDigitalContactTracing)
+			if ((P.DoDigitalContactTracing) && (Hosts[ai].detected_time >= (unsigned short int)(AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart * P.TimeStepsPerDay)) && (Hosts[ai].detected_time < (unsigned short int)((AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration)*P.TimeStepsPerDay)) && (Hosts[ai].digitalContactTracingUser))
 			{
 				//set dct_trigger_time for index case
 				if (Hosts[ai].dct_trigger_time == (USHRT_MAX - 1)) //if this hasn't been set in DigitalContactTracingSweep due to detection of contact of contacts, set it here
@@ -696,7 +692,8 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				fprintf(stderr, "Error!\n");
 			}
 		}
-		//currently commenting this out as household members will likely be picked up by hou
+		//currently commenting this out as household members will likely be picked up by household quarantine.
+		//can add back in if needed, but would need to re-add a couple more local variables.
 
 		//if(P.IncludeHouseholdDigitalContactTracing)
 		//{
