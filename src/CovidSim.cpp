@@ -2196,7 +2196,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Hosts[k].detected_time = 0;
 		Hosts[k].digitalContactTraced = 0;
 		Hosts[k].inf = InfStat_Susceptible;
-		Hosts[k].listpos = j;
 		Hosts[k].num_treats = 0;
 		Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 		Hosts[k].infector = -1;
@@ -2230,6 +2229,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
+					Hosts[k].listpos = j;
 				}
 				// Next loop needs to count down for DoImmune host list reordering to work
 				for (j = Cells[i].n - 1; j >= 0; j--)
