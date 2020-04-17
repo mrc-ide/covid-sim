@@ -231,6 +231,9 @@
 [Proportion compliant with enhanced social distancing]
 0
 
+[Proportion compliant with enhanced social distancing by age group]
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+
 [Relative place contact rate given enhanced social distancing by place type]
 0.25	0.25	0.25	0.25
 

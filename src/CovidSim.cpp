@@ -4544,7 +4544,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	//// update "efficacies". This should supercede social distancing code above. For now leave this as an overide. Later fix it so consistent. 
+	//// update "efficacies". This should supersede social distancing code above. For now leave this as an overide. Later fix it so consistent. 
 	if (P.VaryEfficaciesOverTime) //// Set up so that this statement unneccsary but avoids unneccessary updates if not doing. 
 		UpdateEfficaciesAndComplianceProportions(t);
 
