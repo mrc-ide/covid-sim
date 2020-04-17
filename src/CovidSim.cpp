@@ -2179,7 +2179,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	}
 	nim = 0;
-	
+
 #pragma omp parallel for private(k) schedule(static,10000)
 	for (k = 0; k < P.N; k++)
 	{
@@ -2212,7 +2212,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].inf = InfStat_Susceptible;
 		}
 	}
-	
+
 #pragma omp parallel for private(i,j,k,l,m,tn,stt,stp) reduction(+:nim) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
@@ -2304,7 +2304,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Places[m][l].treat = Places[m][l].control_trig = 0;
 				Places[m][l].treat_end_time = Places[m][l].close_end_time = 0;
 	#ifdef ABSENTEEISM_PLACE_CLOSURE
-				Places[m][l]].AbsentLastUpdateTime = 0;
+				Places[m][l].AbsentLastUpdateTime = 0;
 				for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[m][l].Absent[i2] = 0;
 	#endif
 			}
@@ -2617,7 +2617,7 @@ int RunModel(int run) //added run number as parameter
 		{
 			fs = TreatSweep(t2);
 			t2 += P.SampleStep;
-		} 
+		}
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
