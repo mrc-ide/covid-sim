@@ -515,7 +515,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 #ifdef PLACE_CLOSE_ROUND_HOUSEHOLD
 	if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
 #endif
-	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
+	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 			{
@@ -593,19 +593,10 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
-				Hosts[j1].quar_comply = ((k == 0) ?	0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0)); 
-				if ((Hosts[j1].quar_comply) && (!HOST_ABSENT(j1))) //// If first person compliant and not already absent, increment absences
-				{
-					if (HOST_AGE_YEAR(j1) >= P.CaseAbsentChildAgeCutoff)
-					{
-						if (Hosts[j1].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) StateT[tn].cumAH++;
-					}
-					else		StateT[tn].cumACS++;
-				}
 				///// cycle through remaining household members and repeat the above steps
-				for (j = j1 + 1; j < j2; j++)
+				for (j = j1; j < j2; j++)
 				{
-					Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
+					if(j>j1) Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
 					Hosts[j].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
 					if ((Hosts[j].quar_comply) && (!HOST_ABSENT(j)))
 					{
@@ -704,7 +695,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 			else
 			{
-				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, StateT[tn].ndct_queue, AdUnits[ad].n);
+				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[j].ndct, AdUnits[ad].n);
 				fprintf(stderr, "Error!\n");
 			}
 		}
@@ -1179,6 +1170,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 		{
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
+				Places[i][j].control_trig++; 
 #ifdef ABSENTEEISM_PLACE_CLOSURE
 				t_old = Places[i][j].AbsentLastUpdateTime;
 				if (t_new >= t_old + MAX_ABSENT_TIME)
