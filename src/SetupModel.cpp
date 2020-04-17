@@ -1402,7 +1402,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					else if (PropPlaces[k][l] != 0)
 						PropPlaces[k][l] = 1.0;
 				}
-		fprintf(stderr, "Places assigned\n");
+/*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+			for (i =0; i < P.NMC; i++)
+				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
+					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
+*/		fprintf(stderr, "Places assigned\n");
 	}
 	l = 0;
 	for (j = 0; j < P.NC; j++)

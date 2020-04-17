@@ -747,37 +747,37 @@ void IncubRecoverySweep(double t, int run)
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-	for (i = 0; i < P.NumHolidays; i++)
-	{
-		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
-		if ((t + P.TimeStep >= ht) && (t < ht))
+	if (P.DoPlaces)
+		for (i = 0; i < P.NumHolidays; i++)
 		{
-#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
-			for (tn = 0; tn < P.NumThreads; tn++)
+			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
-				for (b = tn; b < P.N; b += P.NumThreads)
+//#pragma omp parallel for private(ci,j,k,l,b,tn) schedule(static,1)
+				for (j = 0; j < P.PlaceTypeNum; j++)
 				{
-					for (j = 0; j < P.PlaceTypeNum; j++)
-					{
-						l = Hosts[b].PlaceLinks[j];
-						if (l >= 0)
+//					tn = j;
+#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1)
+					for(tn=0;tn<P.NumThreads;tn++)
+						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
+					for (k = 0; k < P.Nplace[j]; k ++)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
-								k = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short) k;
-								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short) k;
-
-								k = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short) k;
-								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short) k;
+								l = (int)(ht * P.TimeStepsPerDay);
+								if (Places[j][k].close_start_time > l)	Places[j][k].close_start_time = (unsigned short) l;
+								b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
+								if (Places[j][k].close_end_time < b)	Places[j][k].close_end_time = (unsigned short) b;
+								for (ci = 0; ci < Places[j][k].n;ci++)
+								{
+									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
+									if (Hosts[Places[j][k].members[ci]].absent_stop_time < b) Hosts[Places[j][k].members[ci]].absent_stop_time = (unsigned short)b;
+								}
 							}
 						}
-					}
 				}
 			}
 		}
-	}
 
 #pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
