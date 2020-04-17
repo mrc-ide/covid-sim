@@ -826,7 +826,7 @@ void IncubRecoverySweep(double t, int run)
 					}
 
 					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector
-					if ((P.DoDigitalContactTracing) && (Hosts[ci].latent_time>= AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart) && (Hosts[ci].recovery_time < AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (P.OutputDigitalContactDist))
+					if ((P.DoDigitalContactTracing) && (Hosts[ci].latent_time>= AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart) && (Hosts[ci].recovery_time < AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (P.OutputDigitalContactDist))
 					{
 						if (Hosts[ci].ncontacts > MAX_CONTACTS) Hosts[ci].ncontacts = MAX_CONTACTS;
 						//increment bin in State corresponding to this number of contacts
@@ -862,7 +862,7 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-	//currently removed this pragma as we need to loop over admin units later in order to find and remove contacts. If threads over admin units start accessing other admin units' memory, we'll be in trouble...
+	
 #pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
