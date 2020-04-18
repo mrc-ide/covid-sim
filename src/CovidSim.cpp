@@ -2078,7 +2078,7 @@ void ReadAirTravel(char* AirTravelFile)
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int i, i2, j, k, l, m, j2, tn, nim, stt, stp;
+	int i, j, k, l, m, j2, tn, nim, stt, stp;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
@@ -2105,10 +2105,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		= State.cumAPC = State.cumAPA = State.cumAPCS = 0;
 	State.cumT = State.cumUT = State.cumTP = State.cumV = State.sumRad2 = State.maxRad2 = State.cumV_daily = State.cumVG = 0; //added State.cumVG
 	State.mvacc_cum = 0;
+
 	if (P.DoSeverity)
 	{
-		State.Mild = State.ILI = State.SARI = State.Critical = State.CritRecov = 0;
-		State.cumMild = State.cumILI = State.cumSARI = State.cumCritical = State.cumCritRecov = 0;
+		State.Mild		= State.ILI			= State.SARI	= State.Critical	= State.CritRecov		= 0;
+		State.cumMild	= State.cumILI		= State.cumSARI = State.cumCritical = State.cumCritRecov	= 0;
 		for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
 			State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
 			State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] = 0;
@@ -2134,13 +2135,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 
 		}
+
+	//update state variables for storing contact distribution
+	for (i = 0; i < MAX_CONTACTS; i++) State.contact_dist[i] = 0;
+
 	for (j = 0; j < MAX_NUM_THREADS; j++)
 	{
 		StateT[j].L = StateT[j].I = StateT[j].R = StateT[j].D = 0;
 		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumH = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC
 			= StateT[j].cumInf_h = StateT[j].cumInf_n = StateT[j].cumInf_s = StateT[j].cumHQ = StateT[j].cumAC = StateT[j].cumACS
 			= StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
-		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily = 0;
+		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
 		for (i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
 		for (i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
@@ -2150,12 +2155,12 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		if (P.DoAdUnits)
 			for (i = 0; i <= P.NumAdunits; i++)
 				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
-				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = 0;// StateT[j].ncontacts[i] = StateT[j].ncontact_time[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
+				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 
 		if (P.DoSeverity)
 		{
-			StateT[j].Mild = StateT[j].ILI = StateT[j].SARI = StateT[j].Critical = StateT[j].CritRecov = 0;
-			StateT[j].cumMild = StateT[j].cumILI = StateT[j].cumSARI = StateT[j].cumCritical = StateT[j].cumCritRecov = 0;
+			StateT[j].Mild		= StateT[j].ILI		= StateT[j].SARI	= StateT[j].Critical	= StateT[j].CritRecov		= 0;
+			StateT[j].cumMild	= StateT[j].cumILI	= StateT[j].cumSARI = StateT[j].cumCritical = StateT[j].cumCritRecov	= 0;
 			for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
 				StateT[j].Mild_adunit[AdminUnit] = StateT[j].ILI_adunit[AdminUnit] =
 				StateT[j].SARI_adunit[AdminUnit] = StateT[j].Critical_adunit[AdminUnit] = StateT[j].CritRecov_adunit[AdminUnit] = 0;
@@ -2163,47 +2168,20 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumMild_adunit[AdminUnit] = StateT[j].cumILI_adunit[AdminUnit] =
 				StateT[j].cumSARI_adunit[AdminUnit] = StateT[j].cumCritical_adunit[AdminUnit] = StateT[j].cumCritRecov_adunit[AdminUnit] = StateT[j].cumD_adunit[AdminUnit] = 0;
 		}
+		//resetting thread specific parameters for storing contact distribution
+		for (i = 0; i < MAX_CONTACTS; i++) StateT[j].contact_dist[i] = 0;
 
 	}
 	nim = 0;
 
-#pragma omp parallel for private(k) schedule(static,10000)
-	for (k = 0; k < P.N; k++)
-	{
-		Hosts[k].absent_start_time = USHRT_MAX - 1;
-		Hosts[k].absent_stop_time = 0;
-		if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-		Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = Hosts[k].dct_test_time = USHRT_MAX - 1;
-		Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-		Hosts[k].quar_comply = 2;
-		Hosts[k].susc = 1.0;
-		Hosts[k].to_die = 0;
-		Hosts[k].Travelling = 0;
-		Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
-		Hosts[k].detected_time = 0;
-		Hosts[k].digitalContactTraced = 0;
-		Hosts[k].inf = InfStat_Susceptible;
-		Hosts[k].num_treats = 0;
-		Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
-		Hosts[k].infector = -1;
-		Hosts[k].infect_type = 0;
-		Hosts[k].index_case_dct = Hosts[k].ncontacts = 0;
-
-		if (P.DoSeverity)
-		{
-			Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-			Hosts[k].Critical_time = USHRT_MAX - 1;
-			Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
-			Hosts[k].Severity_Current = Severity_Asymptomatic;
-			Hosts[k].Severity_Final = Severity_Asymptomatic;
-			Hosts[k].inf = InfStat_Susceptible;
-		}
-	}
 
 #pragma omp parallel for private(i,j,k,l,m,tn,stt,stp) reduction(+:nim) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NC; i += P.NumThreads)
+		stp = P.NC / P.NumThreads + 1;
+		stt = (tn + 1) * stp;
+		if (stt > P.NC) stt = P.NC;
+		for (i = tn * stp; i < stt; i++)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
@@ -2217,7 +2195,32 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
+					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
+					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = Hosts[k].dct_test_time = USHRT_MAX - 1;
+					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
+					Hosts[k].quar_comply = 2;
+					Hosts[k].susc = 1.0;
+					Hosts[k].to_die = 0;
+					Hosts[k].Travelling = 0;
+					Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
+					Hosts[k].detected_time = 0;
+					Hosts[k].digitalContactTraced = 0;
+					Hosts[k].inf = InfStat_Susceptible;
 					Hosts[k].listpos = j;
+					Hosts[k].num_treats = 0;
+					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
+					Hosts[k].infector = -1;
+					Hosts[k].infect_type = 0;
+					Hosts[k].index_case_dct = Hosts[k].ncontacts = 0;
+
+					if (P.DoSeverity)
+					{
+						Hosts[k].SARI_time						= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
+						Hosts[k].Critical_time					= USHRT_MAX - 1;
+						Hosts[k].RecoveringFromCritical_time	= USHRT_MAX - 1;
+						Hosts[k].Severity_Current				= Severity_Asymptomatic;
+						Hosts[k].Severity_Final					= Severity_Asymptomatic;
+					}
 				}
 				// Next loop needs to count down for DoImmune host list reordering to work
 				for (j = Cells[i].n - 1; j >= 0; j--)
@@ -2229,12 +2232,15 @@ void InitModel(int run) // passing run number so we can save run number in the i
 						{
 							if (Households[Hosts[k].hh].FirstPerson == k)
 							{
+								for (m = 0; m < Households[Hosts[k].hh].nh; m++)
+									Hosts[k + m].inf = InfStat_Susceptible;
 								if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
 									for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
 										DoImmune(k + m);
 							}
 						}
 					}
+					Hosts[k].inf = InfStat_Susceptible;
 					if (P.DoInitEquilib)
 					{
 						if (P.DoSIS)
@@ -2242,7 +2248,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 							if (P.SuscReductionFactorPerInfection > 0)
 								Hosts[k].susc = (float)exp(-P.MeanAnnualDeathRate * HOST_AGE_YEAR(k));
 							else
-								Hosts[k].susc = (float)((ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k)))) ? 0.0 : 1.0);
+								Hosts[k].susc = (float)( (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k)))) ? 0.0 : 1.0);
 						}
 						else if (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k))))
 							DoImmune(k);
@@ -2266,7 +2272,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 	}
-	//	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
+	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
 
 
 #pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
@@ -2281,22 +2287,20 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Mcells[i].move_start_time = USHRT_MAX - 1;
 		Mcells[i].place_end_time = Mcells[i].move_end_time =
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
-	}
-	if (P.DoPlaces)
-#pragma omp parallel for private(m,l,i2) schedule(static,1)
-		for (m = 0; m < P.PlaceTypeNum; m++)
-		{
-			for (l = 0; l < P.Nplace[m]; l++)
-			{
-				Places[m][l].close_start_time = USHRT_MAX - 1;
-				Places[m][l].treat = Places[m][l].control_trig = 0;
-				Places[m][l].treat_end_time = Places[m][l].close_end_time = 0;
+		if (P.DoPlaces)
+			for (j = 0; j < P.PlaceTypeNum; j++)
+				for (k = 0; k < Mcells[i].np[j]; k++)
+				{
+					j2 = Mcells[i].places[j][k];
+					Places[j][j2].treat = Places[j][j2].control_trig = 0;
+					Places[j][j2].treat_end_time = Places[j][j2].close_end_time = 0;
+					Places[j][j2].close_start_time = USHRT_MAX - 1;
 #ifdef ABSENTEEISM_PLACE_CLOSURE
-				Places[m][l].AbsentLastUpdateTime = 0;
-				for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[m][l].Absent[i2] = 0;
+					Places[j][j2].AbsentLastUpdateTime = 0;
+					for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[j][j2].Absent[i2] = 0;
 #endif
-			}
-		}
+				}
+	}
 
 	P.SocDistDurationC = P.SocDistDuration;
 	P.SocDistHouseholdEffectC = P.SocDistHouseholdEffect;
@@ -2333,7 +2337,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int)(((double)P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]);// *P.SeedingScaling + 0.5);
+	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]+0.5);
 	SeedInfection(0, nsi, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -2345,7 +2349,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.VaccTimeStart = 1e10;
 	P.MoveRestrTimeStart = 1e10;
 	P.PlaceCloseTimeStart = 1e10;
-	P.PlaceCloseTimeStart2 = 2e10;
+	P.PlaceCloseTimeStart2 = 1e10;
 	P.SocDistTimeStart = 1e10;
 	P.AirportCloseTimeStart = 1e10;
 	P.CaseIsolationTimeStart = 1e10;
@@ -2355,303 +2359,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.TreatMaxCourses = P.TreatMaxCoursesBase;
 	P.VaccMaxCourses = P.VaccMaxCoursesBase;
 	P.PlaceCloseDuration = P.PlaceCloseDurationBase;
-	//P.PlaceCloseIncTrig = P.PlaceCloseIncTrig1;
-	//P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
-	//if (!P.StopCalibration) P.PreControlClusterIdTime = 0;
 
 	fprintf(stderr, "Finished InitModel.\n");
 }
-
-
-
-//void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
-//{
-//	int i, j, k, l, m, j2, tn, nim, stt, stp;
-//	int nsi[MAX_NUM_SEED_LOCATIONS];
-//
-//	if (P.OutputBitmap)
-//	{
-//#ifdef WIN32_BM
-//		//if (P.OutputBitmap == 1)
-//		//{
-//		//	char buf[200];
-//		//	sprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
-//		//	avi = CreateAvi(buf, P.BitmapMovieFrame, NULL);
-//		//}
-//#endif
-//		for (unsigned p = 0; p < bmh->imagesize; p++)
-//		{
-//			bmInfected[p] = bmRecovered[p] = bmTreated[p] = 0;
-//		}
-//	}
-//	ns = 0;
-//	State.S = P.N;
-//	State.L = State.I = State.R = State.D = 0;
-//	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumH = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDC = State.DCT = State.cumDCT
-//		= State.cumInf_h = State.cumInf_n = State.cumInf_s = State.cumHQ
-//		= State.cumAC = State.cumAH = State.cumAA = State.cumACS
-//		= State.cumAPC = State.cumAPA = State.cumAPCS = 0;
-//	State.cumT = State.cumUT = State.cumTP = State.cumV = State.sumRad2 = State.maxRad2 = State.cumV_daily = State.cumVG = 0; //added State.cumVG
-//	State.mvacc_cum = 0;
-//
-//	if (P.DoSeverity)
-//	{
-//		State.Mild		= State.ILI			= State.SARI	= State.Critical	= State.CritRecov		= 0;
-//		State.cumMild	= State.cumILI		= State.cumSARI = State.cumCritical = State.cumCritRecov	= 0;
-//		for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-//			State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
-//			State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] = 0;
-//		for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-//			State.cumMild_adunit[AdminUnit] = State.cumILI_adunit[AdminUnit] =
-//			State.cumSARI_adunit[AdminUnit] = State.cumCritical_adunit[AdminUnit] = State.cumCritRecov_adunit[AdminUnit] = State.cumD_adunit[AdminUnit] = 0;
-//	}
-//
-//	for (i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
-//	for (i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
-//	for (i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
-//	for (i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
-//	//initialise cumulative case counts per country to zero: ggilani 12/11/14
-//	for (i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
-//	if (P.DoAdUnits)
-//		for (i = 0; i <= P.NumAdunits; i++)
-//		{
-//			State.cumI_adunit[i] = State.cumC_adunit[i] = State.cumD_adunit[i] = State.cumT_adunit[i] = State.cumH_adunit[i] =
-//				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
-//			AdUnits[i].place_close_trig = 0;
-//			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
-//			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
-//
-//
-//		}
-//
-//	//update state variables for storing contact distribution
-//	for (i = 0; i < MAX_CONTACTS; i++) State.contact_dist[i] = 0;
-//
-//	for (j = 0; j < MAX_NUM_THREADS; j++)
-//	{
-//		StateT[j].L = StateT[j].I = StateT[j].R = StateT[j].D = 0;
-//		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumH = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC
-//			= StateT[j].cumInf_h = StateT[j].cumInf_n = StateT[j].cumInf_s = StateT[j].cumHQ = StateT[j].cumAC = StateT[j].cumACS
-//			= StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
-//		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
-//		for (i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
-//		for (i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
-//		for (i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
-//		for (i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
-//		//initialise cumulative case counts per country per thread to zero: ggilani 12/11/14
-//		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
-//		if (P.DoAdUnits)
-//			for (i = 0; i <= P.NumAdunits; i++)
-//				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
-//				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
-//
-//		if (P.DoSeverity)
-//		{
-//			StateT[j].Mild		= StateT[j].ILI		= StateT[j].SARI	= StateT[j].Critical	= StateT[j].CritRecov		= 0;
-//			StateT[j].cumMild	= StateT[j].cumILI	= StateT[j].cumSARI = StateT[j].cumCritical = StateT[j].cumCritRecov	= 0;
-//			for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-//				StateT[j].Mild_adunit[AdminUnit] = StateT[j].ILI_adunit[AdminUnit] =
-//				StateT[j].SARI_adunit[AdminUnit] = StateT[j].Critical_adunit[AdminUnit] = StateT[j].CritRecov_adunit[AdminUnit] = 0;
-//			for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-//				StateT[j].cumMild_adunit[AdminUnit] = StateT[j].cumILI_adunit[AdminUnit] =
-//				StateT[j].cumSARI_adunit[AdminUnit] = StateT[j].cumCritical_adunit[AdminUnit] = StateT[j].cumCritRecov_adunit[AdminUnit] = StateT[j].cumD_adunit[AdminUnit] = 0;
-//		}
-//		//resetting thread specific parameters for storing contact distribution
-//		for (i = 0; i < MAX_CONTACTS; i++) StateT[j].contact_dist[i] = 0;
-//
-//	}
-//	nim = 0;
-//
-//
-//#pragma omp parallel for private(i,j,k,l,m,tn,stt,stp) reduction(+:nim) schedule(static,1)
-//	for (tn = 0; tn < P.NumThreads; tn++)
-//	{
-//		stp = P.NC / P.NumThreads + 1;
-//		stt = (tn + 1) * stp;
-//		if (stt > P.NC) stt = P.NC;
-//		for (i = tn * stp; i < stt; i++)
-//		{
-//			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
-//			{
-//				Cells[i].S = Cells[i].n;
-//				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
-//				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
-//				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
-//
-//				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
-//				for (j = 0; j < Cells[i].n; j++)
-//				{
-//					k = Cells[i].members[j];
-//					Cells[i].susceptible[j] = k; //added this in here instead
-//					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-//					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = Hosts[k].dct_test_time = USHRT_MAX - 1;
-//					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-//					Hosts[k].quar_comply = 2;
-//					Hosts[k].susc = 1.0;
-//					Hosts[k].to_die = 0;
-//					Hosts[k].Travelling = 0;
-//					Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
-//					Hosts[k].detected_time = 0;
-//					Hosts[k].digitalContactTraced = 0;
-//					Hosts[k].inf = InfStat_Susceptible;
-//					Hosts[k].listpos = j;
-//					Hosts[k].num_treats = 0;
-//					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
-//					Hosts[k].infector = -1;
-//					Hosts[k].infect_type = 0;
-//					Hosts[k].index_case_dct = Hosts[k].ncontacts = 0;
-//
-//					if (P.DoSeverity)
-//					{
-//						Hosts[k].SARI_time						= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-//						Hosts[k].Critical_time					= USHRT_MAX - 1;
-//						Hosts[k].RecoveringFromCritical_time	= USHRT_MAX - 1;
-//						Hosts[k].Severity_Current				= Severity_Asymptomatic;
-//						Hosts[k].Severity_Final					= Severity_Asymptomatic;
-//					}
-//				}
-//				// Next loop needs to count down for DoImmune host list reordering to work
-//				for (j = Cells[i].n - 1; j >= 0; j--)
-//				{
-//					k = Cells[i].members[j];
-//					if (P.DoWholeHouseholdImmunity)
-//					{
-//						if (P.InitialImmunity[0] != 0)
-//						{
-//							if (Households[Hosts[k].hh].FirstPerson == k)
-//							{
-//								for (m = 0; m < Households[Hosts[k].hh].nh; m++)
-//									Hosts[k + m].inf = InfStat_Susceptible;
-//								if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
-//									for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
-//										DoImmune(k + m);
-//							}
-//						}
-//					}
-//					Hosts[k].inf = InfStat_Susceptible;
-//					if (P.DoInitEquilib)
-//					{
-//						if (P.DoSIS)
-//						{
-//							if (P.SuscReductionFactorPerInfection > 0)
-//								Hosts[k].susc = (float)exp(-P.MeanAnnualDeathRate * HOST_AGE_YEAR(k));
-//							else
-//								Hosts[k].susc = (float)( (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k)))) ? 0.0 : 1.0);
-//						}
-//						else if (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k))))
-//							DoImmune(k);
-//					}
-//					else
-//					{
-//						m = HOST_AGE_GROUP(k);
-//						if (P.DoSIS)
-//						{
-//							if (P.SuscReductionFactorPerInfection > 0)
-//								Hosts[k].susc = (float)(1.0 - P.InitialImmunity[m]);
-//							else
-//								nim += (int)(Hosts[k].susc = (ranf_mt(tn) < P.InitialImmunity[m]) ? 0.0f : 1.0f);
-//						}
-//						else
-//						{
-//							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m]))) { DoImmune(k); nim += 1; }
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-//	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
-//
-//
-//#pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
-//	for (l = 0; l < P.NMCP; l++)
-//	{
-//		i = (int)(McellLookup[l] - Mcells);
-//		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
-//		Mcells[i].treat_end_time = 0;
-//		Mcells[i].treat_trig = Mcells[i].vacc_trig = Mcells[i].vacc = Mcells[i].treat = 0;
-//		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
-//			Mcells[i].placeclose = Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
-//		Mcells[i].move_start_time = USHRT_MAX - 1;
-//		Mcells[i].place_end_time = Mcells[i].move_end_time =
-//			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
-//		if (P.DoPlaces)
-//			for (j = 0; j < P.PlaceTypeNum; j++)
-//				for (k = 0; k < Mcells[i].np[j]; k++)
-//				{
-//					j2 = Mcells[i].places[j][k];
-//					Places[j][j2].treat = Places[j][j2].control_trig = 0;
-//					Places[j][j2].treat_end_time = Places[j][j2].close_end_time = 0;
-//					Places[j][j2].close_start_time = USHRT_MAX - 1;
-//#ifdef ABSENTEEISM_PLACE_CLOSURE
-//					Places[j][j2].AbsentLastUpdateTime = 0;
-//					for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[j][j2].Absent[i2] = 0;
-//#endif
-//				}
-//	}
-//
-//	P.SocDistDurationC = P.SocDistDuration;
-//	P.SocDistHouseholdEffectC = P.SocDistHouseholdEffect;
-//	P.SocDistSpatialEffectC = P.SocDistSpatialEffect;
-//	P.ESocDistHouseholdEffectC = P.ESocDistHouseholdEffect;
-//	P.ESocDistSpatialEffectC = P.ESocDistSpatialEffect;
-//	for (i = 0; i < P.PlaceTypeNum; i++)
-//	{
-//		P.SocDistPlaceEffectC[i] = P.SocDistPlaceEffect[i];
-//		P.ESocDistPlaceEffectC[i] = P.ESocDistPlaceEffect[i];
-//	}
-//
-//	for (i = 0; i < MAX_NUM_THREADS; i++)
-//	{
-//		for (j = 0; j < MAX_NUM_THREADS; j++)
-//			StateT[i].n_queue[j] = 0;
-//		for (j = 0; j < P.PlaceTypeNum; j++)
-//			StateT[i].np_queue[j] = 0;
-//	}
-//	if (DoInitUpdateProbs)
-//	{
-//		UpdateProbs(0);
-//		DoInitUpdateProbs = 0;
-//	}
-//	//initialise event log to zero at the beginning of every run: ggilani - 10/10/2014. UPDATE: 15/10/14 - we are now going to store all events from all realisations in one file
-//	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun))
-//	{
-//		*nEvents = 0;
-//		for (i = 0; i < P.MaxInfEvents; i++)
-//		{
-//			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
-//			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
-//			InfEventLog[i].infectee_adunit = InfEventLog[i].listpos = InfEventLog[i].infectee_cell = InfEventLog[i].infector_cell = InfEventLog[i].thread = 0;
-//		}
-//	}
-//
-//	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]+0.5);
-//	SeedInfection(0, nsi, 0, run);
-//	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
-//	P.TreatTimeStart = 1e10;
-//
-//	//  Mass Vacc now starts after outbreak alert trigger
-//	//	if(P.DoMassVacc)
-//	//		P.VaccTimeStart=P.VaccTimeStartBase;
-//	//	else
-//	P.VaccTimeStart = 1e10;
-//	P.MoveRestrTimeStart = 1e10;
-//	P.PlaceCloseTimeStart = 1e10;
-//	P.PlaceCloseTimeStart2 = 1e10;
-//	P.SocDistTimeStart = 1e10;
-//	P.AirportCloseTimeStart = 1e10;
-//	P.CaseIsolationTimeStart = 1e10;
-//	//P.DigitalContactTracingTimeStart = 1e10;
-//	P.HQuarantineTimeStart = 1e10;
-//	P.KeyWorkerProphTimeStart = 1e10;
-//	P.TreatMaxCourses = P.TreatMaxCoursesBase;
-//	P.VaccMaxCourses = P.VaccMaxCoursesBase;
-//	P.PlaceCloseDuration = P.PlaceCloseDurationBase;
-//	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
-//
-//	fprintf(stderr, "Finished InitModel.\n");
-//}
 
 void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to pass it to event log
 {

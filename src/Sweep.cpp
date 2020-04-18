@@ -1150,7 +1150,11 @@ void DigitalContactTracingSweep(double t)
 						//stop contact tracing this host
 						Hosts[contact].digitalContactTraced = 0;
 						//remove index_case_dct flag to 0;
-						if(Hosts[contact].index_case_dct) Hosts[contact].index_case_dct = 0;
+						if (Hosts[contact].index_case_dct)
+						{
+							Hosts[contact].index_case_dct = 0;
+							//Hosts[contact].dct_trigger_time = USHRT_MAX - 1;
+						}
 
 						//remove from list
 						//k = contact;
