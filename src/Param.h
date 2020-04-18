@@ -32,7 +32,7 @@ typedef struct PARAM {
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, nmcw, nmch, DoUTM_coords, nsp, DoSIS, DoInitEquilib, DoSeasonality,DoCorrectAgeDist;
+	int NMCP, ncw, nch, nmcw, nmch, DoUTM_coords, nsp, DoSeasonality,DoCorrectAgeDist,DoPartialImmunity;
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;

@@ -884,82 +884,35 @@ void DoRecover(int ai, int tn, int run)
 	a = Hosts + ai;
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
 	{
-		i = a->listpos;
-		Cells[a->pcell].I--;
-		if (P.DoSIS)
+	i = a->listpos;
+	Cells[a->pcell].I--;
+
+		Cells[a->pcell].R++;
+		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
+		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			if (Cells[a->pcell].I > 0)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].infected[0];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-				if (Cells[a->pcell].L > 0)
-				{
-					Cells[a->pcell].latent[Cells[a->pcell].L] = Cells[a->pcell].latent[0];
-					Hosts[Cells[a->pcell].latent[Cells[a->pcell].L]].listpos = Cells[a->pcell].S + Cells[a->pcell].L;
-				}
-			}
-			else if (Cells[a->pcell].L > 0)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].latent[0];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-			}
-			Cells[a->pcell].susceptible[Cells[a->pcell].S] = ai;
-			a->listpos = Cells[a->pcell].S;
-			Cells[a->pcell].S++;
-			Cells[a->pcell].latent++;
-			Cells[a->pcell].infected++;
-			a->susc = (float)(a->susc * P.SuscReductionFactorPerInfection);
-			a->inf = InfStat_Susceptible;
-			a->infector = -1;
-			if (P.OutputBitmap)
-			{
-				if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
-				{
-
-					x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-					y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
-					{
-						unsigned j = y * bmh->width + x;
-						if (j < bmh->imagesize)
-						{
-#pragma omp atomic
-							bmInfected[j]--;
-						}
-					}
-				}
-			}
-
+			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
+			Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+			a->listpos = j;
+			Cells[a->pcell].susceptible[j] = ai;
 		}
-		else
-		{
-			Cells[a->pcell].R++;
-			j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
-			if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-				a->listpos = j;
-				Cells[a->pcell].susceptible[j] = ai;
-			}
-			a->inf = InfStat_Recovered * a->inf / abs(a->inf);
+		a->inf = InfStat_Recovered * a->inf / abs(a->inf);
 
-			if (P.OutputBitmap)
+		if (P.OutputBitmap)
+		{
+			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
+				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
+				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
+				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 				{
-					x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-					y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					unsigned j = y * bmh->width + x;
+					if (j < bmh->imagesize)
 					{
-						unsigned j = y * bmh->width + x;
-						if (j < bmh->imagesize)
-						{
 #pragma omp atomic
-							bmRecovered[j]++;
+						bmRecovered[j]++;
 #pragma omp atomic
-							bmInfected[j]--;
-						}
+						bmInfected[j]--;
 					}
 				}
 			}
