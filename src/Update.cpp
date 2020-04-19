@@ -418,12 +418,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (((a->Severity_Final == Severity_Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age])) || ((a->Severity_Final == Severity_SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age])))
+			if (	((a->Severity_Final == Severity_Critical)	&& (ranf_mt(tn) < P.CFR_Critical_ByAge	[age]))		||
+					((a->Severity_Final == Severity_SARI	)	&& (ranf_mt(tn) < P.CFR_SARI_ByAge		[age]))		||
+					((a->Severity_Final == Severity_ILI		)	&& (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]))		)
 				a->to_die = 1;
-
-			//// re-define Final severity to Severity_Critical if person dies. 
-			// #### Neil - don't want this ///
-//			if (a->to_die) a->Severity_Final = Severity_Critical;
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
@@ -449,7 +447,14 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 					a->recovery_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf, P.Mean_SARIToRecovery, tn);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
-				a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
+			{
+				if (a->to_die)
+					a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
+				else
+					a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
+
+			} 
+				
 		}
 
 		if ((a->inf== InfStat_InfectiousAlmostSymptomatic) && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
