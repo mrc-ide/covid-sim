@@ -325,19 +325,34 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		if (a->Severity_Current == Severity_Critical)  
 		{
 			StateT[tn].Critical--;
-			if (P.DoAdUnits)	StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
+			StateT[tn].cumDeath_Critical++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_Critical_adunit	[Mcells[a->mcell].adunit]++;
+			}
 		}
 		else if (a->Severity_Current == Severity_SARI)
 		{
 			StateT[tn].SARI--;
-			if (P.DoAdUnits)	StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+			StateT[tn].cumDeath_SARI++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_SARI_adunit	[Mcells[a->mcell].adunit]++;
+			}
 		}
 		else if (a->Severity_Current == Severity_ILI)
 		{
 			StateT[tn].ILI--;
-			if (P.DoAdUnits)	StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+			StateT[tn].cumDeath_ILI++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_ILI_adunit	[Mcells[a->mcell].adunit]++;
+			}
 		}
-		//// change current status so that flags work. 
+		//// change current status (so that flags work if function called again for same person). 
 		a->Severity_Current = Severity_Dead;
 	}
 }

@@ -92,20 +92,22 @@ typedef struct POPVAR {
 	unsigned short int* contact_time[MAX_ADUNITS]; //added some more queues to store time contact is made: ggilani 07/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
 
-									  ///// Prevalence quantities (+ by admin unit)
+	///// Prevalence quantities (+ by admin unit)
 	int Mild, ILI, SARI, Critical, CritRecov, /*cumulative incidence*/ cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;
 	int Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];
 	/// cum incidence quantities. (+ by admin unit)
 	int cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS];
 
+	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
+	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+
 	//// above quantities need to be amended in following parts of code: 
 	//// i) InitModel (set to zero); Done
 	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
+	//// iii) RecordSample: add to incidence / Timeseries).
+	//// iv) SaveResults
+	//// v) SaveSummaryResults
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } popvar;
 
@@ -150,17 +152,13 @@ typedef struct RESULTS {
 	double cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
 	/////// possibly need quantities by age (later)
-	//// state varialbes (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
+	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
 
 	//// above quantities need to be amended in following parts of code: 
-	//// i) InitModel (set to zero); Done
-	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
-	///// SaveResults and SaveSummary results. 
+	//// i) SetUpModel (set to zero); 
+	//// ii) RecordSample: add to incidence / Timeseries). 
+	//// iii) SaveResults and SaveSummary results. 
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } results;
 
