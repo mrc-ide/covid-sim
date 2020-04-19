@@ -515,7 +515,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 #ifdef PLACE_CLOSE_ROUND_HOUSEHOLD
 	if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
 #endif
-	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
+	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 			{
@@ -593,19 +593,10 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
-				Hosts[j1].quar_comply = ((k == 0) ?	0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0)); 
-				if ((Hosts[j1].quar_comply) && (!HOST_ABSENT(j1))) //// If first person compliant and not already absent, increment absences
-				{
-					if (HOST_AGE_YEAR(j1) >= P.CaseAbsentChildAgeCutoff)
-					{
-						if (Hosts[j1].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) StateT[tn].cumAH++;
-					}
-					else		StateT[tn].cumACS++;
-				}
 				///// cycle through remaining household members and repeat the above steps
-				for (j = j1 + 1; j < j2; j++)
+				for (j = j1; j < j2; j++)
 				{
-					Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
+					if(j>j1) Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
 					Hosts[j].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
 					if ((Hosts[j].quar_comply) && (!HOST_ABSENT(j)))
 					{
@@ -704,7 +695,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 			else
 			{
-				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, StateT[tn].ndct_queue, AdUnits[ad].n);
+				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[j].ndct, AdUnits[ad].n);
 				fprintf(stderr, "Error!\n");
 			}
 		}
@@ -893,82 +884,35 @@ void DoRecover(int ai, int tn, int run)
 	a = Hosts + ai;
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
 	{
-		i = a->listpos;
-		Cells[a->pcell].I--;
-		if (P.DoSIS)
+	i = a->listpos;
+	Cells[a->pcell].I--;
+
+		Cells[a->pcell].R++;
+		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
+		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			if (Cells[a->pcell].I > 0)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].infected[0];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-				if (Cells[a->pcell].L > 0)
-				{
-					Cells[a->pcell].latent[Cells[a->pcell].L] = Cells[a->pcell].latent[0];
-					Hosts[Cells[a->pcell].latent[Cells[a->pcell].L]].listpos = Cells[a->pcell].S + Cells[a->pcell].L;
-				}
-			}
-			else if (Cells[a->pcell].L > 0)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].latent[0];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-			}
-			Cells[a->pcell].susceptible[Cells[a->pcell].S] = ai;
-			a->listpos = Cells[a->pcell].S;
-			Cells[a->pcell].S++;
-			Cells[a->pcell].latent++;
-			Cells[a->pcell].infected++;
-			a->susc = (float)(a->susc * P.SuscReductionFactorPerInfection);
-			a->inf = InfStat_Susceptible;
-			a->infector = -1;
-			if (P.OutputBitmap)
-			{
-				if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
-				{
-
-					x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-					y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
-					{
-						unsigned j = y * bmh->width + x;
-						if (j < bmh->imagesize)
-						{
-#pragma omp atomic
-							bmInfected[j]--;
-						}
-					}
-				}
-			}
-
+			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
+			Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+			a->listpos = j;
+			Cells[a->pcell].susceptible[j] = ai;
 		}
-		else
-		{
-			Cells[a->pcell].R++;
-			j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
-			if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
-			{
-				Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
-				Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
-				a->listpos = j;
-				Cells[a->pcell].susceptible[j] = ai;
-			}
-			a->inf = InfStat_Recovered * a->inf / abs(a->inf);
+		a->inf = InfStat_Recovered * a->inf / abs(a->inf);
 
-			if (P.OutputBitmap)
+		if (P.OutputBitmap)
+		{
+			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
+				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
+				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
+				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 				{
-					x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-					y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					unsigned j = y * bmh->width + x;
+					if (j < bmh->imagesize)
 					{
-						unsigned j = y * bmh->width + x;
-						if (j < bmh->imagesize)
-						{
 #pragma omp atomic
-							bmRecovered[j]++;
+						bmRecovered[j]++;
 #pragma omp atomic
-							bmInfected[j]--;
-						}
+						bmInfected[j]--;
 					}
 				}
 			}
@@ -1179,6 +1123,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 		{
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
+				Places[i][j].control_trig++; 
 #ifdef ABSENTEEISM_PLACE_CLOSURE
 				t_old = Places[i][j].AbsentLastUpdateTime;
 				if (t_new >= t_old + MAX_ABSENT_TIME)

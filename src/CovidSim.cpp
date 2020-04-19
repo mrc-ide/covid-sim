@@ -401,11 +401,10 @@ int main(int argc, char* argv[])
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
 		if (P.DoLoadSnapshot) LoadSnapshot();
-		if (RunModel(i))
+		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 			setall(P.newseed1, P.newseed2);  // reset random number seeds to generate same run again after calibration.
 			InitModel(i);
-			RunModel(i);
 		}
 		if (P.OutputNonSummaryResults)
 		{
@@ -462,9 +461,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
 	char* AdunitListNames[MAX_ADUNITS];
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
-	if (!(ParamFile_dat = fopen(ParamFile, "r"))) ERR_CRITICAL("Unable to open parameter file\n");
-	PreParamFile_dat = fopen(PreParamFile, "r");
-	if (!(AdminFile_dat = fopen(AdunitFile, "r"))) AdminFile_dat = PreParamFile_dat;
+	if (!(ParamFile_dat = fopen(ParamFile, "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
+	PreParamFile_dat = fopen(PreParamFile, "rb");
+	if (!(AdminFile_dat = fopen(AdunitFile, "rb"))) AdminFile_dat = PreParamFile_dat;
 	AgeSuscScale = 1.0;
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*) & (P.TimeStep), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*) & (P.SampleStep), 1, 1, 0);
@@ -488,7 +487,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Keep same seeds for every run", "%i", (void*) & (P.KeepSameSeeds), 1, 1, 0)) P.KeepSameSeeds = 0; //added this to control which seeds are used: ggilani 27/11/19
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds after intervention", "%i", (void*) & (P.ResetSeedsPostIntervention), 1, 1, 0)) P.ResetSeedsPostIntervention = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds after intervention", "%i", (void*) & (P.ResetSeedsPostIntervention), 1, 1, 0)) P.ResetSeedsPostIntervention = 0;
 	if (P.ResetSeedsPostIntervention)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time to reset seeds after intervention", "%i", (void*) & (P.TimeToResetSeeds), 1, 1, 0)) P.TimeToResetSeeds = 1000000;
@@ -631,7 +630,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	else
 	{
 
-		if (P.DoHouseholds)
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity acts as partial immunity", "%i", (void*)&(P.DoPartialImmunity), 1, 1, 0)) P.DoPartialImmunity = 1;
+		if ((P.DoHouseholds)&&(!P.DoPartialImmunity))
 		{
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity applied to all household members", "%i", (void*) & (P.DoWholeHouseholdImmunity), 1, 1, 0)) P.DoWholeHouseholdImmunity = 0;
 		}
@@ -935,19 +935,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Reproduction number", "%lf", (void*) & (P.R0), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Infectious period", "%lf", (void*) & (P.InfectiousPeriod), 1, 1, 0);
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Assume SIS model", "%i", (void*) & (P.DoSIS), 1, 1, 0)) P.DoSIS = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in infectiousness", "%lf", (void*) & (P.InfectiousnessSD), 1, 1, 0)) P.InfectiousnessSD = 0;
 	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k of individual variation in infectiousness", "%lf", (void*)& s, 1, 1, 0)) P.InfectiousnessSD = 1.0 / sqrt(s);
 	if (P.InfectiousnessSD > 0)
 	{
 		P.InfectiousnessGamA = P.InfectiousnessGamR = 1 / (P.InfectiousnessSD * P.InfectiousnessSD);
 	}
-	if (P.DoSIS)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor by which susceptibility is multiplied per infection", "%lf", (void*) & (P.SuscReductionFactorPerInfection), 1, 1, 0)) P.SuscReductionFactorPerInfection = 1;
-	}
-	else
-		P.SuscReductionFactorPerInfection = 0;
+	P.SuscReductionFactorPerInfection = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model time varying infectiousness", "%i", (void*) & (P.DoInfectiousnessProfile), 1, 1, 0)) P.DoInfectiousnessProfile = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power of scaling of spatial R0 with density", "%lf", (void*) & (P.R0DensityScalePower), 1, 1, 0)) P.R0DensityScalePower = 0;
 	if (P.DoInfectiousnessProfile)
@@ -1210,9 +1204,27 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Alert trigger starts after interventions", "%i", (void*)&(P.DoAlertTriggerAfterInterv), 1, 1, 0)) P.DoAlertTriggerAfterInterv = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.PreControlClusterIdCalTime), 1, 1, 0)) P.PreControlClusterIdCalTime = -1;
-	P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime = 0;
+	if (P.DoAlertTriggerAfterInterv)
+	{
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year interventions start", "%lf", (void*)&(P.PreIntervIdCalTime), 1, 1, 0);
+		if (P.PreControlClusterIdCalTime <= P.PreIntervIdCalTime)
+			P.DoAlertTriggerAfterInterv = 0;
+		else
+		{
+			P.AlertTriggerAfterIntervThreshold = P.PreControlClusterIdCaseThreshold;
+			P.PreControlClusterIdCaseThreshold = 1000;
+
+		}
+	}
+	P.StopCalibration = P.ModelCalibIteration=0;
+	P.SeedingScaling = 1.0;
+	P.PreControlClusterIdTime = 0;
+	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
+
+	P.PreControlClusterIdHolOffset = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only use confirmed cases to trigger alert", "%i", (void*) & (P.DoEarlyCaseDiagnosis), 1, 1, 0)) P.DoEarlyCaseDiagnosis = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
 
@@ -1443,7 +1455,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
 
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure", "%i", (void*) & (P.PlaceCloseCellIncThresh), 1, 1, 0)) P.PlaceCloseCellIncThresh = 1000000000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure", "%i", (void*) & (P.PlaceCloseCellIncThresh1), 1, 1, 0)) P.PlaceCloseCellIncThresh1 = 1000000000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for second place closure", "%i", (void*)&(P.PlaceCloseCellIncThresh2), 1, 1, 0)) P.PlaceCloseCellIncThresh2 = 1000000000;
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for end of place closure", "%i", (void*) & (P.PlaceCloseCellIncStopThresh), 1, 1, 0)) P.PlaceCloseCellIncStopThresh = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start place closure", "%lf", (void*) & (P.PlaceCloseDelayMean), 1, 1, 0)) P.PlaceCloseDelayMean = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place closure", "%lf", (void*) & (P.PlaceCloseDurationBase), 1, 1, 0)) P.PlaceCloseDurationBase = 7;
@@ -1477,7 +1490,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second start time", "%lf", (void*) & (P.PlaceCloseTimeStartBase2), 1, 1, 0)) P.PlaceCloseTimeStartBase2 = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Places close only once", "%i", (void*) & (P.DoPlaceCloseOnceOnly), 1, 1, 0)) P.DoPlaceCloseOnceOnly = 0;
 	if (P.DoPlaceCloseOnceOnly) P.DoPlaceCloseOnceOnly = 4;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold", "%i", (void*) & (P.PlaceCloseIncTrig), 1, 1, 0)) P.PlaceCloseIncTrig = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold", "%i", (void*) & (P.PlaceCloseIncTrig1), 1, 1, 0)) P.PlaceCloseIncTrig1 = 1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second incidence threshold", "%i", (void*)&(P.PlaceCloseIncTrig2), 1, 1, 0)) P.PlaceCloseIncTrig2 = P.PlaceCloseIncTrig1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure fractional incidence threshold", "%lf", (void*) & (P.PlaceCloseFracIncTrig), 1, 1, 0)) P.PlaceCloseFracIncTrig = 0;
 	if ((P.DoAdUnits) && (P.DoPlaces))
 	{
@@ -1951,7 +1965,7 @@ void ReadInterventions(char* IntFile)
 	intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
-	if (!(dat = fopen(IntFile, "r"))) ERR_CRITICAL("Unable to open intervention file\n");
+	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
 	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
         ERR_CRITICAL("fscanf failed in ReadInterventions\n");
     }
@@ -2195,7 +2209,7 @@ void ReadAirTravel(char* AirTravelFile)
 	FILE* dat;
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
-	if (!(dat = fopen(AirTravelFile, "r"))) ERR_CRITICAL("Unable to open airport file\n");
+	if (!(dat = fopen(AirTravelFile, "rb"))) ERR_CRITICAL("Unable to open airport file\n");
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
         ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
     }
@@ -2335,7 +2349,7 @@ void ReadAirTravel(char* AirTravelFile)
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int i, j, k, l, m, j2, tn, nim, stt, stp;
+	int i, i2,j, k, l, m, j2, tn, nim, stt, stp;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
@@ -2362,7 +2376,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		= State.cumAPC = State.cumAPA = State.cumAPCS = 0;
 	State.cumT = State.cumUT = State.cumTP = State.cumV = State.sumRad2 = State.maxRad2 = State.cumV_daily = State.cumVG = 0; //added State.cumVG
 	State.mvacc_cum = 0;
-
 	if (P.DoSeverity)
 	{
 		State.Mild		= State.ILI			= State.SARI	= State.Critical	= State.CritRecov		= 0;
@@ -2425,105 +2438,86 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 	nim = 0;
 
+#pragma omp parallel for private(k) schedule(static,10000)
+	for (k = 0; k < P.N; k++)
+	{
+		Hosts[k].absent_start_time = USHRT_MAX - 1;
+		Hosts[k].absent_stop_time = 0;
+		if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
+		Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
+		Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
+		Hosts[k].quar_comply = 2;
+		Hosts[k].susc = (P.DoPartialImmunity)?(1.0- P.InitialImmunity[HOST_AGE_GROUP(k)]):1.0;
+		Hosts[k].to_die = 0;
+		Hosts[k].Travelling = 0;
+		Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
+		Hosts[k].detected_time = 0;
+		Hosts[k].digitalContactTraced = 0;
+		Hosts[k].inf = InfStat_Susceptible;
+		Hosts[k].num_treats = 0;
+		Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
+		Hosts[k].infector = -1;
+		Hosts[k].infect_type = 0;
+		Hosts[k].index_case_dct = 0;
+		if (P.DoSeverity)
+		{
+			Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
+			Hosts[k].Critical_time = USHRT_MAX - 1;
+			Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
+			Hosts[k].Severity_Current = Severity_Asymptomatic;
+			Hosts[k].Severity_Final = Severity_Asymptomatic;
+			Hosts[k].inf = InfStat_Susceptible;
+		}
+	}
 
-#pragma omp parallel for private(i,j,k,l,m,tn,stt,stp) reduction(+:nim) schedule(static,1)
+#pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
-		stp = P.NC / P.NumThreads + 1;
-		stt = (tn + 1) * stp;
-		if (stt > P.NC) stt = P.NC;
-		for (i = tn * stp; i < stt; i++)
+		for (i = tn; i < P.NC; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
-				Cells[i].S = Cells[i].n;
-				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
-				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
-				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
-
-				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
 				for (j = 0; j < Cells[i].n; j++)
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
-					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = USHRT_MAX - 1;
-					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-					Hosts[k].quar_comply = 2;
-					Hosts[k].susc = 1.0;
-					Hosts[k].to_die = 0;
-					Hosts[k].Travelling = 0;
-					Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
-					Hosts[k].detected_time = 0;
-					Hosts[k].digitalContactTraced = 0;
-					Hosts[k].inf = InfStat_Susceptible;
 					Hosts[k].listpos = j;
-					Hosts[k].num_treats = 0;
-					Hosts[k].latent_time = Hosts[k].recovery_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
-					Hosts[k].infector = -1;
-					Hosts[k].infect_type = 0;
-					Hosts[k].index_case_dct = 0;
-
-					if (P.DoSeverity)
-					{
-						Hosts[k].SARI_time						= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-						Hosts[k].Critical_time					= USHRT_MAX - 1;
-						Hosts[k].RecoveringFromCritical_time	= USHRT_MAX - 1;
-						Hosts[k].Severity_Current				= Severity_Asymptomatic;
-						Hosts[k].Severity_Final					= Severity_Asymptomatic;
-					}
 				}
+				Cells[i].S = Cells[i].n;
+				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
+				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
+				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
+				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
+
 				// Next loop needs to count down for DoImmune host list reordering to work
-				for (j = Cells[i].n - 1; j >= 0; j--)
-				{
-					k = Cells[i].members[j];
-					if (P.DoWholeHouseholdImmunity)
+				if(!P.DoPartialImmunity)
+					for (j = Cells[i].n - 1; j >= 0; j--)
 					{
-						if (P.InitialImmunity[0] != 0)
+						k = Cells[i].members[j];
+						if (P.DoWholeHouseholdImmunity)
 						{
-							if (Households[Hosts[k].hh].FirstPerson == k)
+	// note that this breaks determinism of runs if executed due to reordering of Cell members list each realisation
+							if (P.InitialImmunity[0] != 0)
 							{
-								for (m = 0; m < Households[Hosts[k].hh].nh; m++)
-									Hosts[k + m].inf = InfStat_Susceptible;
-								if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
-									for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
-										DoImmune(k + m);
+								if (Households[Hosts[k].hh].FirstPerson == k)
+								{
+									if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
+										for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
+											DoImmune(k + m);
+								}
 							}
-						}
-					}
-					Hosts[k].inf = InfStat_Susceptible;
-					if (P.DoInitEquilib)
-					{
-						if (P.DoSIS)
-						{
-							if (P.SuscReductionFactorPerInfection > 0)
-								Hosts[k].susc = (float)exp(-P.MeanAnnualDeathRate * HOST_AGE_YEAR(k));
-							else
-								Hosts[k].susc = (float)( (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k)))) ? 0.0 : 1.0);
-						}
-						else if (ranf_mt(tn) > exp(-P.MeanAnnualDeathRate * ((double)HOST_AGE_YEAR(k))))
-							DoImmune(k);
-					}
-					else
-					{
-						m = HOST_AGE_GROUP(k);
-						if (P.DoSIS)
-						{
-							if (P.SuscReductionFactorPerInfection > 0)
-								Hosts[k].susc = (float)(1.0 - P.InitialImmunity[m]);
-							else
-								nim += (int)(Hosts[k].susc = (ranf_mt(tn) < P.InitialImmunity[m]) ? 0.0f : 1.0f);
 						}
 						else
 						{
-							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m]))) { DoImmune(k); nim += 1; }
+							m = HOST_AGE_GROUP(k);
+							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
+								DoImmune(k); nim += 1;
 						}
 					}
-				}
 			}
 		}
 	}
-	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
+//	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
 
 
 #pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
@@ -2538,20 +2532,22 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Mcells[i].move_start_time = USHRT_MAX - 1;
 		Mcells[i].place_end_time = Mcells[i].move_end_time =
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
-		if (P.DoPlaces)
-			for (j = 0; j < P.PlaceTypeNum; j++)
-				for (k = 0; k < Mcells[i].np[j]; k++)
-				{
-					j2 = Mcells[i].places[j][k];
-					Places[j][j2].treat = Places[j][j2].control_trig = 0;
-					Places[j][j2].treat_end_time = Places[j][j2].close_end_time = 0;
-					Places[j][j2].close_start_time = USHRT_MAX - 1;
-#ifdef ABSENTEEISM_PLACE_CLOSURE
-					Places[j][j2].AbsentLastUpdateTime = 0;
-					for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[j][j2].Absent[i2] = 0;
-#endif
-				}
 	}
+	if (P.DoPlaces)
+#pragma omp parallel for private(m,l,i2) schedule(static,1)
+		for (m = 0; m < P.PlaceTypeNum; m++)
+		{
+			for(l=0;l<P.Nplace[m];l++)
+			{
+				Places[m][l].close_start_time = USHRT_MAX - 1;
+				Places[m][l].treat = Places[m][l].control_trig = 0;
+				Places[m][l].treat_end_time = Places[m][l].close_end_time = 0;
+	#ifdef ABSENTEEISM_PLACE_CLOSURE
+				Places[m][l].AbsentLastUpdateTime = 0;
+				for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[m][l].Absent[i2] = 0;
+	#endif
+			}
+		}
 
 	//// **** //// **** //// **** Initialize Current effects
 	//// **** soc dist
@@ -2616,7 +2612,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]+0.5);
+	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
 	SeedInfection(0, nsi, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -2628,7 +2624,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.VaccTimeStart = 1e10;
 	P.MoveRestrTimeStart = 1e10;
 	P.PlaceCloseTimeStart = 1e10;
-	P.PlaceCloseTimeStart2 = 1e10;
+	P.PlaceCloseTimeStart2 = 2e10;
 	P.SocDistTimeStart = 1e10;
 	P.AirportCloseTimeStart = 1e10;
 	P.CaseIsolationTimeStart = 1e10;
@@ -2638,7 +2634,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.TreatMaxCourses = P.TreatMaxCoursesBase;
 	P.VaccMaxCourses = P.VaccMaxCoursesBase;
 	P.PlaceCloseDuration = P.PlaceCloseDurationBase;
+	P.PlaceCloseIncTrig = P.PlaceCloseIncTrig1;
+	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
+	if (!P.StopCalibration) P.PreControlClusterIdTime = 0;
 
 	fprintf(stderr, "Finished InitModel.\n");
 }
@@ -2793,97 +2792,99 @@ int RunModel(int run) //added run number as parameter
 	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
 		RecordSample(t, ns - 1);
-
-		//Only run to a certain number of infections: ggilani 28/10/14
-		if (P.LimitNumInfections) continueEvents = (State.cumI < P.MaxNumInfections);
-
 		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
-			State.S, State.L, State.I, State.R, State.D, State.S+State.L+State.I+State.R+State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
-
-		for (j = 0; ((j < P.UpdatesPerSample) && (!InterruptRun) && (continueEvents)); j++)
+			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
+		if (!InterruptRun)
 		{
-			ts = (unsigned short int) (P.TimeStepsPerDay * t);
+			//Only run to a certain number of infections: ggilani 28/10/14
+			if (P.LimitNumInfections) continueEvents = (State.cumI < P.MaxNumInfections);
 
-			//if we are to reset random numbers after an intervention event, specific time
-			if (P.ResetSeedsPostIntervention)
-				if ((P.ResetSeedsFlag == 0) && (ts >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
-				{
-					P.newseed1 = (int)(ranf() * 1e8);
-					P.newseed2 = (int)(ranf() * 1e8);
-					setall(P.newseed1, P.newseed2);
-					P.ResetSeedsFlag = 1;
-				}
-
-			if (fs)
+			for (j = 0; ((j < P.UpdatesPerSample) && (!InterruptRun) && (continueEvents)); j++)
 			{
-				if (P.DoAirports) TravelDepartSweep(t);
-				k = (int)t;
-				if (P.DurImportTimeProfile > 0)
-				{
-					if (k < P.DurImportTimeProfile)
-						ir = P.ImportInfectionTimeProfile[k] * ((t > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
-					else
-						ir = 0;
-				}
-				else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
-				if (ir > 0) //// if infection import rate > 0, seed some infections
-				{
-					for(k=ni=0;k<P.NumSeedLocations;k++) ni+=(nsi[k] = (int)ignpoi(P.TimeStep * ir*P.InitialInfectionsAdminUnitWeight[k])); //// sample number imported infections from Poisson distribution.
-					if (ni > 0)		SeedInfection(t, nsi, 1, run);
-				}
-				if (P.FalsePositivePerCapitaIncidence > 0)
-				{
-					ni = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.N));
-					if (ni > 0)
+				ts = (unsigned short int) (P.TimeStepsPerDay * t);
+
+				//if we are to reset random numbers after an intervention event, specific time
+				if (P.ResetSeedsPostIntervention)
+					if ((P.ResetSeedsFlag == 0) && (ts >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
 					{
-						for (k = 0; k < ni; k++)
+						P.newseed1 = (int)(ranf() * 1e8);
+						P.newseed2 = (int)(ranf() * 1e8);
+						setall(P.newseed1, P.newseed2);
+						P.ResetSeedsFlag = 1;
+					}
+
+				if (fs)
+				{
+					if (P.DoAirports) TravelDepartSweep(t);
+					k = (int)t;
+					if (P.DurImportTimeProfile > 0)
+					{
+						if (k < P.DurImportTimeProfile)
+							ir = P.ImportInfectionTimeProfile[k] * ((t > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
+						else
+							ir = 0;
+					}
+					else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
+					if (ir > 0) //// if infection import rate > 0, seed some infections
+					{
+						for(k=ni=0;k<P.NumSeedLocations;k++) ni+=(nsi[k] = (int)ignpoi(P.TimeStep * ir*P.InitialInfectionsAdminUnitWeight[k]*P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
+						if (ni > 0)		SeedInfection(t, nsi, 1, run);
+					}
+					if (P.FalsePositivePerCapitaIncidence > 0)
+					{
+						ni = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.N));
+						if (ni > 0)
 						{
-							do
+							for (k = 0; k < ni; k++)
 							{
-								l = (int)(((double)P.N) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
-							} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
-							DoFalseCase(l, t, ts, 0);
+								do
+								{
+									l = (int)(((double)P.N) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
+								} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
+								DoFalseCase(l, t, ts, 0);
+							}
 						}
 					}
+					InfectSweep(t, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
+					//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If t is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
+					if (!P.DoSI) IncubRecoverySweep(t, run);
+					// If doing new contact tracing, update numbers of people under contact tracing after each time step
+
+					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
+
+					nu++;
+					fs2 = ((P.DoDeath) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));
+					///// TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
+					if (!TreatSweep(t))
+					{
+						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) { if ((ir == 0) && (((int)t) > P.DurImportTimeProfile)) fs = 0; }
+					}
+					if (P.DoAirports) TravelReturnSweep(t);
 				}
-				InfectSweep(t, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
-				//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If t is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
-				if (!P.DoSI) IncubRecoverySweep(t, run);
-				// If doing new contact tracing, update numbers of people under contact tracing after each time step
-
-				if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
-
-				nu++;
-				fs2 = ((P.DoDeath) || (P.DoSIS) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));
-				///// TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
-				if (!TreatSweep(t))
+				t += P.TimeStep;
+				if (P.DoDeath) P.ts_age++;
+				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
+				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
+				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
+				cI = ((double)(State.S)) / ((double)P.N);
+				if ((lcI - cI) > 0.2)
 				{
-					if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) { if ((ir == 0) && (((int)t) > P.DurImportTimeProfile)) fs = 0; }
+					lcI = cI;
+					UpdateProbs(0);
+					DoInitUpdateProbs = 1;
 				}
-				if (P.DoAirports) TravelReturnSweep(t);
-			}
-			t += P.TimeStep;
-			if (P.DoDeath) P.ts_age++;
-			if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
-			if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
-			if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
-			cI = ((double)(State.S)) / ((double)P.N);
-			if (((lcI - cI) > 0.2) && (!P.DoSIS))
-			{
-				lcI = cI;
-				UpdateProbs(0);
-				DoInitUpdateProbs = 1;
 			}
 		}
 	}
-	RecordSample(t, P.NumSamples - 1);
+	if (!InterruptRun) RecordSample(t, P.NumSamples - 1);
 	fprintf(stderr, "\nEnd of run\n");
 	t2 = t + P.SampleTime;
-	while (fs)
-	{
-		fs = TreatSweep(t2);
-		t2 += P.SampleStep;
-	}
+//	if(!InterruptRun)
+		while (fs)
+		{
+			fs = TreatSweep(t2);
+			t2 += P.SampleStep;
+		}
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
@@ -3606,10 +3607,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.DoSeverity)
 	{
-		printf("\nSaveResults: writing Severity");
 		//// output separate severity file (can integrate with main if need be)
 		sprintf(outname, "%s.severity.xls", OutFile);
-		printf("\nFilename: %s", outname);
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
@@ -3776,6 +3775,7 @@ void SaveRandomSeeds(void)
 	fprintf(dat, "%li\t%li\n", P.newseed1, P.newseed2);
 	fclose(dat);
 }
+
 void SaveEvents(void)
 {
 	/* function: SaveEvents(void)
@@ -3947,7 +3947,7 @@ void UpdateProbs(int DoPlace)
 		{
 			CellLookup[j]->tot_prob = 0;
 			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
-			if ((P.DoDeath) && (!P.DoSIS))
+			if (P.DoDeath)
 			{
 				CellLookup[j]->S0 += CellLookup[j]->n / 5;
 				if ((CellLookup[j]->n < 100) || (CellLookup[j]->S0 > CellLookup[j]->n)) CellLookup[j]->S0 = CellLookup[j]->n;
@@ -4091,11 +4091,12 @@ void RecordSample(double t, int n)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	cell* ct;
 	unsigned short int ts;
 	float nsy;
+	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;
@@ -4426,9 +4427,8 @@ void RecordSample(double t, int n)
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
 
-
-
-
+	trigAlertC = State.cumDC;
+	if (n >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
 	if (P.PreControlClusterIdUseDeaths)
 	{
 		trigAlert = (int)TimeSeries[n].D;
@@ -4436,19 +4436,89 @@ void RecordSample(double t, int n)
 	}
 	else
 	{
-		trigAlert = State.cumDC;
-		if (n >= P.PreControlClusterIdDuration) trigAlert -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
+		trigAlert = trigAlertC;
 	}
-	if (trigAlert >= P.PreControlClusterIdCaseThreshold)
-	{
-		if (P.PreControlClusterIdTime == 0)
-		{
-			P.PreControlClusterIdTime = t;
-			if (P.PreControlClusterIdCalTime >= 0)
-			{
 
-				P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreControlClusterIdCalTime;
+	if(((!P.DoAlertTriggerAfterInterv)&&(trigAlert >= P.PreControlClusterIdCaseThreshold))|| ((P.DoAlertTriggerAfterInterv) &&
+		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<=4)) ||((t>=P.PreIntervTime) && (P.ModelCalibIteration > 4)))))
+	{
+		if((!P.StopCalibration)&&(!InterruptRun))
+		{
+			if (P.PreControlClusterIdTime == 0)
+			{
+				P.PreIntervTime=P.PreControlClusterIdTime = t;
+				if (P.PreControlClusterIdCalTime >= 0)
+				{
+					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreControlClusterIdCalTime;
+					//fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
+				}
+			}
+			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
+			{
+				P.StopCalibration = 1;
 				InterruptRun = 1;
+			}
+			if ((P.DoAlertTriggerAfterInterv) && (t == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
+			{
+				if ((trigAlert > 0)&&(P.ModelCalibIteration<15))
+				{
+					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
+					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
+					if (thr < 0.05) thr = 0.05;
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
+					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+					if (P.ModelCalibIteration == 1)
+					{
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						{
+							P.ModelCalibIteration = 15;
+							P.StopCalibration = 1;
+						}
+						else
+						{
+							s = pow(s, 1.0);
+							k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
+							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
+						}
+					}
+					else if ((P.ModelCalibIteration >= 4) && ((P.ModelCalibIteration) % 2 == 0))
+					{
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						{
+							//P.ModelCalibIteration=15;
+							//P.StopCalibration = 1;
+						}
+						else if (s > 1)
+						{
+							P.PreIntervTime--;
+							P.PreControlClusterIdHolOffset--;
+						}
+						else if (s < 1)
+						{
+							P.PreIntervTime++;
+							P.PreControlClusterIdHolOffset++;
+						}
+					}
+					else if ((P.ModelCalibIteration >= 4) && ((P.ModelCalibIteration) % 2 == 1))
+					{
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						{
+							P.ModelCalibIteration = 15;
+							P.StopCalibration = 1;
+							fprintf(stderr, "Calibration ended.\n");
+						}
+						else
+							P.SeedingScaling /=pow(s, 0.4);
+					}
+					P.ModelCalibIteration++;
+					InterruptRun = 1;
+					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
+				}
+				else
+				{
+					P.StopCalibration = 1;
+					InterruptRun = 1;
+				}
 			}
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
@@ -4501,11 +4571,6 @@ void RecordSample(double t, int n)
 			if (TriggerValue >= P.PlaceCloseCellIncThresh)
 			{
 				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
-				if ((P.PlaceCloseTimeStart2 >= 1e10) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart))
-				{
-					P.PlaceCloseTimeStart	= t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
-					P.PlaceCloseDuration	= P.PlaceCloseDuration2;
-				}
 				if (P.DoInterventionDelaysByAdUnit)
 					for (i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t + AdUnits[i].PlaceCloseDelay);
@@ -4544,9 +4609,19 @@ void RecordSample(double t, int n)
 		}
 	}
 
+
 	//// update "efficacies". This should supersede social distancing code above. For now leave this as an overide. Later fix it so consistent. 
 	if (P.VaryEfficaciesOverTime) //// Set up so that this statement unneccsary but avoids unneccessary updates if not doing. 
 		UpdateEfficaciesAndComplianceProportions(t);
+
+	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStart) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart)&& (t+ P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase>0))
+	{
+		fprintf(stderr, "\nSecond place closure period\n");
+		P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
+		P.PlaceCloseDuration = P.PlaceCloseDuration2;
+		P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
+		P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
+	}
 
 	if (P.OutputBitmap >= 1)
 	{
@@ -4660,10 +4735,10 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
+	k = P.PreIntervIdCalTime - P.PreControlClusterIdTime;
 	for (n = 0; n < P.NumSamples; n++)
 	{
-		TimeSeries[n].t -= P.PreControlClusterIdTime;
-		if (TimeSeries[n].t == 0) lc = n;
+		TimeSeries[n].t += k;
 		s = 0;
 		if (TimeSeries[n].Rdenom == 0) TimeSeries[n].Rdenom = 1e-10;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -4683,8 +4758,7 @@ void RecordInfTypes(void)
 	{
 		TSMean = TSMeanNE; TSVar = TSVarNE; P.NRactNE++;
 	}
-	s = 0;
-	lc -= 70;
+	lc = -k;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		if ((n + lc >= 0) && (n + lc < P.NumSamples))
@@ -4701,7 +4775,7 @@ void RecordInfTypes(void)
 			if (TSMean[n].cumTmax < TimeSeries[n + lc].cumT) TSMean[n].cumTmax = TimeSeries[n + lc].cumT;
 			if (TSMean[n].cumVmax < TimeSeries[n + lc].cumV) TSMean[n].cumVmax = TimeSeries[n + lc].cumV;
 		}
-		TSMean[n].t += ((double)(n - 70)) * P.SampleStep;
+		TSMean[n].t += ((double) n )* P.SampleStep;
 	}
 	PeakHeightSum += s;
 	PeakHeightSS += s * s;

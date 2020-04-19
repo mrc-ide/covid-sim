@@ -57,7 +57,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			{
 				P.DoBin = 0;
 				fclose(dat);
-				if (!(dat = fopen(DensityFile, "r"))) ERR_CRITICAL("Unable to open density file\n");
+				if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
 				P.BinFileLen = UINT_MAX - 1;
 			}
 			// We will compute a precise spatial bounding box using the population locations.
@@ -680,7 +680,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		{
 			P.BinFileLen = UINT_MAX - 1;
 			fprintf(stderr, "Reading ASCII population density file...\n");
-			if (!(dat = fopen(DensityFile, "r"))) ERR_CRITICAL("Unable to open density file\n");
+			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
 		}
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
 		if (P.DoBin == 1)
@@ -855,7 +855,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (!(State.InvAgeDist = (int**)malloc(P.NumAdunits * sizeof(int*)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
 		for (i = 0; i < P.NumAdunits; i++)
 			if (!(State.InvAgeDist[i] = (int*)malloc(1000 * sizeof(int)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
-		if (!(dat = fopen(RegDemogFile, "r"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		if (!(dat = fopen(RegDemogFile, "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
 		for (k = 0; k < P.NumAdunits; k++)
 		{
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1290,7 +1290,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(SchoolFile, "r"))) ERR_CRITICAL("Unable to open school file\n");
+		if (!(dat = fopen(SchoolFile, "rb"))) ERR_CRITICAL("Unable to open school file\n");
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -1402,7 +1402,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					else if (PropPlaces[k][l] != 0)
 						PropPlaces[k][l] = 1.0;
 				}
-		fprintf(stderr, "Places assigned\n");
+/*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+			for (i =0; i < P.NMC; i++)
+				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
+					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
+*/		fprintf(stderr, "Places assigned\n");
 	}
 	l = 0;
 	for (j = 0; j < P.NC; j++)
