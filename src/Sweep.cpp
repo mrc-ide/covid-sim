@@ -792,9 +792,12 @@ void IncubRecoverySweep(double t, int run)
 			{
 				ci = c->infected[j];	//// person index
 				si = Hosts + ci;		//// person
-				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
+
+				/* Following line not 100% with DoIncub*/
+
+				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)... 
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
+					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
 
 				if (P.DoSeverity)
 				{
@@ -804,7 +807,7 @@ void IncubRecoverySweep(double t, int run)
 					if (ts >= si->recovery_time)
 					{
 						if (si->to_die)
-							DoDeath_FromCriticalorSARI(ci, tn);
+							DoDeath_FromCriticalorSARIorILI(ci, tn);
 						else
 							DoRecover_FromSeverity(ci, tn);
 					}
