@@ -120,7 +120,7 @@ typedef struct POPVAR {
  */
 typedef struct RESULTS {
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC; 
+	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC ; 
 	double H, incH; //added total hospitalisation and incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
@@ -138,12 +138,16 @@ typedef struct RESULTS {
 	double Mild, ILI, SARI, Critical, CritRecov;				// Prevalence				//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults iii) outputted in SaveSummaryResults
 	double incMild, incILI, incSARI, incCritical, incCritRecov;	// Incidence				//// Must be: i) initialised to zero in SetUpModel. ii) calculated in RecordSample iii) outputted in SaveResults. 
 	double cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;	// cumulative incidence		//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults
+	double incDeath_ILI, incDeath_SARI, incDeath_Critical;		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	///@}
 
 	/////// Severity States by admin unit
 	double Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];				// Prevalence by admin unit
 	double incMild_adunit[MAX_ADUNITS], incILI_adunit[MAX_ADUNITS], incSARI_adunit[MAX_ADUNITS], incCritical_adunit[MAX_ADUNITS], incCritRecov_adunit[MAX_ADUNITS];	// incidence by admin unit
 	double cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS]; // cumulative incidence by admin unit
+	double incDeath_ILI_adunit[MAX_ADUNITS], incDeath_SARI_adunit[MAX_ADUNITS], incDeath_Critical_adunit[MAX_ADUNITS];		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
 	/////// possibly need quantities by age (later)
 	//// state varialbes (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
