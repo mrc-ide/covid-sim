@@ -2274,15 +2274,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
 
-	for (i = 0; i < P.N; i++)
-	{
-		if ((Hosts[i].pcell == 0) || (Hosts[i].mcell == 0))
-		{
-			fprintf(stderr,"%i\n",i);
-		}
-	}
-
-
 #pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
 	for (l = 0; l < P.NMCP; l++)
 	{
