@@ -4520,8 +4520,8 @@ void RecordSample(double t, int n)
 		trigAlert = trigAlertC;
 	}
 
-	if(((!P.DoAlertTriggerAfterInterv)&&(trigAlert >= P.PreControlClusterIdCaseThreshold))|| ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<=4)) ||((t>=P.PreIntervTime) && (P.ModelCalibIteration > 4)))))
+	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
+		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<=4)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration > 4)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{

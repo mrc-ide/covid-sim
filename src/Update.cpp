@@ -372,33 +372,36 @@ void DoRecover_FromSeverity(int ai, int tn)
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice). 
 		{
-			//StateT[tn].R++; ///// Don't think you need this. variables .S, .I, .L, .R, .D (in popvar/StateT) aren't used during runtime (threads), these states used in unthreaded State, and kept track of during runtime through .S, .I etc. in cell. Same thing with death .D value. 
-
 			if (a->Severity_Current == Severity_Mild)
 			{
 				StateT[tn].Mild--;
 				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_ILI)
 			{
 				StateT[tn].ILI--;
 				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_SARI)
 			{
 				StateT[tn].SARI--;
 				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
 				StateT[tn].CritRecov--; //// decrement CritRecov, not critical. 
 				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
-			//// change current status so that flags work. 
-			a->Severity_Current = Severity_Recovered;
 		}
 }
-
 
 void DoIncub(int ai, unsigned short int ts, int tn, int run)
 {
@@ -435,6 +438,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		else
 		{
 			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
+
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
@@ -470,9 +474,9 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf	, P.Mean_ILIToDeath		, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath		, tn);
 				else
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery	, tn);
 			} 
 		}
 
