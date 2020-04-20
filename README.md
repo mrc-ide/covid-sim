@@ -65,6 +65,7 @@ may require a subscription to the appropriate publication to read.
 
  - https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf
  - https://www.nature.com/articles/nature04795
+ - https://www.nature.com/articles/nature04017
  - https://www.pnas.org/content/105/12/4639.short
 
 ## Copyright and Licensing
