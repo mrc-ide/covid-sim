@@ -434,6 +434,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		}
 		else
 		{
+			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
@@ -445,11 +446,11 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
+				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time		= a->latent_time	+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI		, tn);
-				a->Critical_time	= a->SARI_time		+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical	, tn);
+				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI		, tn);
+				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical	, tn);
 				if (a->to_die)
 					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath	, tn);
 				else
@@ -460,7 +461,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
-				a->SARI_time = a->latent_time + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
+				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
 				if (a->to_die)
 					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath	, tn); 
 				else
@@ -469,9 +470,9 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.ILIToDeath_icdf	, P.Mean_ILIToDeath		, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf	, P.Mean_ILIToDeath		, tn);
 				else
-					a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery	, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
 			} 
 		}
 
@@ -480,14 +481,9 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
 
-			if (P.DoDigitalContactTracing)
-			{
-				//set dct_trigger_time for index case
+			if (P.DoDigitalContactTracing)	//set dct_trigger_time for index case
 				if (Hosts[ai].dct_trigger_time == (USHRT_MAX - 1)) //if this hasn't been set in DigitalContactTracingSweep due to detection of contact of contacts, set it here
-				{
 					Hosts[ai].dct_trigger_time = Hosts[ai].detected_time + (unsigned short int) (P.DelayFromIndexCaseDetectionToDCTIsolation * P.TimeStepsPerDay);
-				}
-			}
 		}
 
 		//// update pointers
