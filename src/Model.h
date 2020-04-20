@@ -44,7 +44,7 @@ typedef struct PERSON {
 	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
-	unsigned int index_case_dct : 1;
+	unsigned int index_case_dct : 2;
 	unsigned int digitalContactTracingUser : 1;
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20

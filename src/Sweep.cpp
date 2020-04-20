@@ -645,7 +645,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, is not part of cell c and doesn't share a household with infector. 
 							{
-
 								mi = Mcells + si->mcell;
 								mt = Mcells + Hosts[i3].mcell;
 								s = CalcSpatialSusc(i3, ts, ci, tn);

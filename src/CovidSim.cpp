@@ -2137,7 +2137,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 
 	//update state variables for storing contact distribution
-	for (i = 0; i < MAX_CONTACTS; i++) State.contact_dist[i] = 0;
+	for (i = 0; i < MAX_CONTACTS+1; i++) State.contact_dist[i] = 0;
 
 	for (j = 0; j < MAX_NUM_THREADS; j++)
 	{
@@ -2169,7 +2169,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumSARI_adunit[AdminUnit] = StateT[j].cumCritical_adunit[AdminUnit] = StateT[j].cumCritRecov_adunit[AdminUnit] = StateT[j].cumD_adunit[AdminUnit] = 0;
 		}
 		//resetting thread specific parameters for storing contact distribution
-		for (i = 0; i < MAX_CONTACTS; i++) StateT[j].contact_dist[i] = 0;
+		for (i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
 
 	}
 	nim = 0;
@@ -2273,6 +2273,14 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
+
+	for (i = 0; i < P.N; i++)
+	{
+		if ((Hosts[i].pcell == 0) || (Hosts[i].mcell == 0))
+		{
+			fprintf(stderr,"%i\n",i);
+		}
+	}
 
 
 #pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
