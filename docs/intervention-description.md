@@ -8,7 +8,7 @@ The simulation models infections through time in a spatially explicit representa
 
 The model considers various interventions that alter either the infectiousness of infected people or the susceptibility of susceptible people (or both). Fundamentally, interventions are implemented by changing the person-specific period during which a person is subject to particular intervention (given in `#define` functions in `ModelMacros.h`). These values in turn toggle parameters in functions governing infectiousness and susceptibility in `CalcInfSusc.cpp`, and in function `InfectSweep` in `Update.cpp`. The interventions broadly fall into the following categories:
 - Case Isolation (CI),
-- Home/Household Quarantine (HQ),
+- Household Quarantine (HQ),
 - Place Closure (PC), and
 - Social Distancing (SD).
 
@@ -38,7 +38,7 @@ Notes on parameter wildcard parameters: Command line parameters (`/CLP1:`, `/CLP
 
 Policy implemented after time `P.CaseIsolationTimeStartBase` (“Case isolation start time”) for duration of `P.CaseIsolationPolicyDuration` days. A value of `P.CaseIsolationTimeStartBase` greater than simulation duration (`P.SampleTime` “Sampling time” in pre-parameter file) indicates that policy not implemented. (e.g. if simulation runs for 720 days and start time set to 1000 days). If threshold `P.CaseIsolation_CellIncThresh` exceeded, symptomatic cases stay home for period of `P.CaseIsolationDuration` days, starting after `P.CaseIsolationDelay` days. Duration and delay can alternatively be specified at admin unit level. 
 
-After infection and upon case detection (`DoDetectCase` function in `Update.cpp`), a case isolates with probability `P.CaseIsolationProp`. Their isolation_start_time is set  (`Isolation stop time is isolation_start_time + C P.usCaseIsolationDelay + P.usCaseIsolationDuration`). These values are relevant to `HOST_ISOLATED` macro, which returns true or false. `HOST_ISOLATED` affects every infectiousness function (at person, house, place, spatial levels) but not susceptibility functions in `CalcInfSusc.cpp`.
+After infection and upon case detection (`DoDetectCase` function in `Update.cpp`), a case isolates with probability `P.CaseIsolationProp`. Their isolation_start_time is set  (Isolation stop time is `isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration`). These values are relevant to `HOST_ISOLATED` macro, which returns true or false. `HOST_ISOLATED` affects every infectiousness function (at person, house, place, spatial levels) but not susceptibility functions in `CalcInfSusc.cpp`.
 
 If `HOST_ISOLATED`, place and spatial infectiousness scaled by `P.CaseIsolationEffectiveness`, whereas household infectiousness scaled by `P.CaseIsolationHouseEffectiveness`. 
 

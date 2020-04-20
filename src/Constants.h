@@ -36,4 +36,6 @@
 #define HOTELS_PER_1000PASSENGER 10
 #define PLACE_CLOSE_ROUND_HOUSEHOLD 1
 
+#define MAX_NUM_INTERVENTION_CHANGE_TIMES	100	//// may want to make this intervention-specifc, but keep simple for now. 
+
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_
