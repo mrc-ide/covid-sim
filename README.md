@@ -56,12 +56,13 @@ particular interest are:
  * [Model Overview](./docs/model-overview.md)
  * [Model Glossary](./docs/model-glossary.md)
  * [Model Inputs and Outputs](./docs/inputs-and-outputs.md)
+ * [Interventions description](./docs/intervention-description.md)
  * [R Scripts for Output Visualisation](./docs/inputs-and-outputs.md#r-summary-visualisations)
 
 ### Relevant papers
 
 The following papers are relevant to the model.  Please note that some of them
-may require a subscription to the appropriate publication to read.
+may require a subscription.
 
  - https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf
  - https://www.nature.com/articles/nature04795
