@@ -753,21 +753,21 @@ void IncubRecoverySweep(double t, int run)
 			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
 			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
-//#pragma omp parallel for private(ci,j,k,l,b,tn) schedule(static,1)
+//				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (j = 0; j < P.PlaceTypeNum; j++)
 				{
-//					tn = j;
 #pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1)
 					for(tn=0;tn<P.NumThreads;tn++)
 						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
-					for (k = 0; k < P.Nplace[j]; k ++)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
 								l = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][k].close_start_time > l)	Places[j][k].close_start_time = (unsigned short) l;
+								if (Places[j][k].close_start_time > l)
+									Places[j][k].close_start_time = (unsigned short) l;
 								b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][k].close_end_time < b)	Places[j][k].close_end_time = (unsigned short) b;
+								if (Places[j][k].close_end_time < b)
+									Places[j][k].close_end_time = (unsigned short) b;
 								for (ci = 0; ci < Places[j][k].n;ci++)
 								{
 									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;

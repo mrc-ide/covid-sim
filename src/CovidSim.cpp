@@ -1222,6 +1222,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 		}
 	}
+	else
+		P.PreIntervIdCalTime = P.PreControlClusterIdCalTime;
 	P.StopCalibration = P.ModelCalibIteration=0;
 	P.SeedingScaling = 1.0;
 	P.PreControlClusterIdTime = 0;
@@ -2344,6 +2346,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.VaccMaxCourses = P.VaccMaxCoursesBase;
 	P.PlaceCloseDuration = P.PlaceCloseDurationBase;
 	P.PlaceCloseIncTrig = P.PlaceCloseIncTrig1;
+	P.PlaceCloseTimeStartPrevious = 1e10;
 	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
 	if (!P.StopCalibration) P.PreControlClusterIdTime = 0;
@@ -4061,7 +4064,7 @@ void RecordSample(double t, int n)
 	if (P.DoDigitalContactTracing)
 		for (i = 0; i < P.NumAdunits; i++)
 			TimeSeries[n].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
-	if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart))
+	if (P.DoPlaces)
 		for (i = 0; i < NUM_PLACE_TYPES; i++)
 		{
 			numPC = 0;
@@ -4096,8 +4099,8 @@ void RecordSample(double t, int n)
 				P.PreIntervTime=P.PreControlClusterIdTime = t;
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
-					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreControlClusterIdCalTime;
-					//fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
+					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
+//					fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
 				}
 			}
 			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
@@ -4261,16 +4264,20 @@ void RecordSample(double t, int n)
 			P.ESocDistPlaceEffectC[i] = P.ESocDistPlaceEffect2[i];
 		}
 	}
-	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStart) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStart)&& (t+ P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase>0))
+	//fix to switch off first place closure after P.PlaceCloseDuration has elapsed, if there are no school or cell-based triggers set
+	if (t == P.PlaceCloseDuration + P.PlaceCloseTimeStart)
 	{
-		fprintf(stderr, "\nSecond place closure period\n");
-		P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase;
+		P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart;
+		if ((P.PlaceCloseIncTrig == 0) && (P.PlaceCloseFracIncTrig == 0) && (P.PlaceCloseCellIncThresh == 0)) P.PlaceCloseTimeStart = 9e9;
+	}
+	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStartPrevious) && (t >= P.PlaceCloseDuration + P.PlaceCloseTimeStartPrevious)&& (t>= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))
+	{
+		fprintf(stderr, "\nSecond place closure period (t=%lg)\n",t);
+		P.PlaceCloseTimeStartPrevious=P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
 		P.PlaceCloseDuration = P.PlaceCloseDuration2;
 		P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
 		P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
 	}
-
-
 
 	if (P.OutputBitmap >= 1)
 	{
