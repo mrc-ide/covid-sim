@@ -331,6 +331,8 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
 				StateT[tn].cumDeath_Critical_adunit	[Mcells[a->mcell].adunit]++;
 			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_SARI)
 		{
@@ -341,6 +343,8 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
 				StateT[tn].cumDeath_SARI_adunit	[Mcells[a->mcell].adunit]++;
 			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_ILI)
 		{
@@ -351,9 +355,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
 				StateT[tn].cumDeath_ILI_adunit	[Mcells[a->mcell].adunit]++;
 			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
 		}
-		//// change current status (so that flags work if function called again for same person). 
-		a->Severity_Current = Severity_Dead;
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
@@ -425,8 +429,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic. 
 		{
-			if (P.DoInfectiousnessProfile)	a->recovery_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
+			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
+			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
 		}
 		else
 		{
@@ -441,33 +445,33 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_time = a->latent_time + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
+				a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
 				a->SARI_time		= a->latent_time	+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI		, tn);
 				a->Critical_time	= a->SARI_time		+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical	, tn);
 				if (a->to_die)
-					a->recovery_time				= a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath	, tn);
+					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath	, tn);
 				else
 				{
 					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov, tn);
-					a->recovery_time				= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov	, tn);
+					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov	, tn);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
 				a->SARI_time = a->latent_time + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
 				if (a->to_die)
-					a->recovery_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf		, P.Mean_SARIToDeath	, tn); 
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath	, tn); 
 				else
-					a->recovery_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery	, tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery	, tn);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToDeath_icdf	, P.Mean_ILIToDeath		, tn);
+					a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.ILIToDeath_icdf	, P.Mean_ILIToDeath		, tn);
 				else
-					a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery	, tn);
+					a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery	, tn);
 			} 
 		}
 
@@ -931,7 +935,7 @@ void DoDeath(int ai, int tn, int run)
 	int i, x, y;
 	person* a = Hosts + ai;
 
-	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)) //added infection status of 6 as well, as this also needs to deal with 'dead' infectious individuals: ggilani 25/10/14
+	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
 		a->inf = InfStat_Dead * a->inf / abs(a->inf);
 		Cells[a->pcell].D++;

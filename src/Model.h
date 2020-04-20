@@ -41,7 +41,7 @@ typedef struct PERSON {
 	unsigned short int absent_start_time, absent_stop_time;
 	unsigned short int quar_start_time, isolation_start_time;
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
-	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
+	unsigned short int recovery_or_death_time;	// set in DoIncub function 
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 1;

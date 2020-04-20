@@ -793,8 +793,7 @@ void IncubRecoverySweep(double t, int run)
 				ci = c->infected[j];	//// person index
 				si = Hosts + ci;		//// person
 
-				/* Following line not 100% with DoIncub*/
-
+				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
 				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)... 
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
 					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
@@ -804,7 +803,7 @@ void IncubRecoverySweep(double t, int run)
 					if (ts >= si->SARI_time)					DoSARI(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
 					if (ts >= si->Critical_time)				DoCritical(ci, tn);
 					if (ts >= si->RecoveringFromCritical_time)	DoRecoveringFromCritical(ci, tn);
-					if (ts >= si->recovery_time)
+					if (ts >= si->recovery_or_death_time)
 					{
 						if (si->to_die)
 							DoDeath_FromCriticalorSARIorILI(ci, tn);
@@ -814,7 +813,7 @@ void IncubRecoverySweep(double t, int run)
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (ts >= si->recovery_time)
+				if (ts >= si->recovery_or_death_time)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
@@ -822,20 +821,14 @@ void IncubRecoverySweep(double t, int run)
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					} 
 					else /// if they die and this timestep is after they've died.
-					{	// si->to_die
+					{	
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
 							DoRecover(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 						else
 							DoDeath(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 				}
 			}
-
-			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], run, tn);
-			//for (j = 0; j < StateT[tn].n_queue[1]; j++) DoDeath(StateT[tn].inf_queue[1][j], run, tn);
-			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 		}
 }
 
@@ -912,7 +905,7 @@ void DigitalContactTracingSweep(double t)
 								dct_start_time = USHRT_MAX - 1; //for contacts of asymptomatic cases - they won't get added as their index case won't know that they are infected (unless explicitly tested)
 								//but we keep them in the queue in case their index case is detected as the contact of someone else and gets their trigger time set
 								//set dct_end_time to recovery time of infector, in order to remove from queue if their host isn't detected before they recover.
-								dct_end_time = Hosts[infector].recovery_time;
+								dct_end_time = Hosts[infector].recovery_or_death_time;
 							}
 						}
 
