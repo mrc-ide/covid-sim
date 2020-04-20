@@ -9,14 +9,14 @@ The simulation models infections through time in a spatially explicit representa
 The model considers various interventions that alter either the infectiousness of infected people or the susceptibility of susceptible people (or both). Fundamentally, interventions are implemented by changing the person-specific period during which a person is subject to particular intervention (given in `#define` functions in `ModelMacros.h`). These values in turn toggle parameters in functions governing infectiousness and susceptibility in `CalcInfSusc.cpp`, and in function `InfectSweep` in `Update.cpp`. The interventions broadly fall into the following categories:
 - Case Isolation (CI),
 - Household Quarantine (HQ),
-- Place Closure (PC), and
+- Place Closure (PC),
 - Social Distancing (SD).
 
 Importantly, the model distinguishes between the period during which a policy is implemented, and the period during which the actual intervention is implemented.
 
-If a policy is implemented from time `t`, the intervention will not be implemented until a user-specified threshold has been met by a particular “trigger” or count (see below). Further, CI and HQ policies have durations at the level of a person, which denote the length of time that a person would either self-isolate or be under home quarantine. These person-level durations are distinct from the duration of policy at the population level. For example, a policy could be implemented for a year, during which time people would home quarantine for 14 days if a member of their household sick.
+If a policy is implemented from time `t`, the intervention will not be implemented until a user-specified threshold has been met by a particular “trigger” or count (see below). Further, CI and HQ policies have durations at the level of a person, which denote the length of time that a person would either self-isolate or be under home quarantine. These person-level durations are distinct from the duration of policy at the population level. For example, a policy could be implemented for a year, during which time people would home quarantine for 14 days if a member of their household becomes sick.
 
-A trigger is defined flexibly, with reference to either the numbers (cumulative incidence) of confirmed cases, numbers of critical cases that require Intensive Care Units (ICU beds), or numbers of deaths (our simulations so far have only considered numbers of ICU beds). Numbers can be either absolute or per-capita (and the model may be refined so that the number is defined in relation to ICU bed capacity). The window over which cumulative incidence is calculated is specified by `P.TriggersSamplingInterval` days. Further, triggers may be specified at either admin unit (regional) or at country (global) level. So too can the start times for when each intervention is considered. Finally, each intervention has its own threshold value.
+A trigger is defined flexibly, with reference to either the numbers (cumulative incidence) of confirmed cases, numbers of critical cases that require Intensive Care Units (ICU beds), or numbers of deaths. Numbers can be either absolute or per-capita, and the model may be refined so that the number is defined in relation to ICU bed capacity. The window over which cumulative incidence is calculated is specified by `P.TriggersSamplingInterval` days. Further, triggers may be specified at either admin unit (regional) or at country (global) level. So too can the start times for when each intervention is considered. Finally, each intervention has its own threshold value.
 
 Currently, all interventions must use the same epidemiological variable for their trigger (e.g. all using confirmed cases or all using ICU beds), and interventions do not differ in whether they consider absolute or per-capita triggers.
 
@@ -32,11 +32,9 @@ The following interventions are described with reference to particular functions
 
 Notes on variable naming: Parameters are collected in single structure `PARAMS`, of which there is a single, global instance `P`. Parameters with prefix `us` are unsigned short versions of their namesakes, that have been multiplied by parameter `P.TimeStepsPerDay` (e.g. `P.usHQuarantineHouseDuration = P.HQuarantineHouseDuration * P.TimeStepsPerDay`).
 
-Notes on parameter wildcard parameters: Command line parameters (`/CLP1:`, `/CLP2:` etc.) interact with the parameter file (and less often the pre-parameter file). E.g. the value of `CLP3` on the command line and `c` code will give the value of any parameters with value `#3` in the parameter file (see also [model inputs and outputs](./inputs-and-outputs.md)).
-
 ## CASE ISOLATION (CI)
 
-Policy implemented after time `P.CaseIsolationTimeStartBase` (“Case isolation start time”) for duration of `P.CaseIsolationPolicyDuration` days. A value of `P.CaseIsolationTimeStartBase` greater than simulation duration (`P.SampleTime` “Sampling time” in pre-parameter file) indicates that policy not implemented. (e.g. if simulation runs for 720 days and start time set to 1000 days). If threshold `P.CaseIsolation_CellIncThresh` exceeded, symptomatic cases stay home for period of `P.CaseIsolationDuration` days, starting after `P.CaseIsolationDelay` days. Duration and delay can alternatively be specified at admin unit level. 
+Policy implemented after time `P.CaseIsolationTimeStartBase` (“Case isolation start time”) for duration of `P.CaseIsolationPolicyDuration` days. A value of `P.CaseIsolationTimeStartBase` greater than simulation duration (`P.SampleTime` “Sampling time” in pre-parameter file) indicates that policy will not be implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). If threshold `P.CaseIsolation_CellIncThresh` exceeded, symptomatic cases stay home for period of `P.CaseIsolationDuration` days, starting after `P.CaseIsolationDelay` days. Duration and delay can alternatively be specified at admin unit level. 
 
 After infection and upon case detection (`DoDetectCase` function in `Update.cpp`), a case isolates with probability `P.CaseIsolationProp`. Their isolation_start_time is set  (Isolation stop time is `isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration`). These values are relevant to `HOST_ISOLATED` macro, which returns true or false. `HOST_ISOLATED` affects every infectiousness function (at person, house, place, spatial levels) but not susceptibility functions in `CalcInfSusc.cpp`.
 
@@ -46,7 +44,7 @@ Additionally, case isolation amends absent start and stop time, in scenarios whe
 
 ## HOUSEHOLD/HOME QUARANTINE (HQ)
 
-Policy implemented after time `P.HQuarantineTimeStartBase` (“Household quarantine start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P.HQuarantineTimeStartBase` greater than simulation duration indicates that policy not implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). If threshold `P.HHQuar_CellIncThresh` exceeded, people who share household with a symptomatic case stay home for period of `P. HQuarantineHouseDuration days`, starting after `P.HQuarantineHouseDelay days`. Duration and delay can alternatively be specified at admin unit level. 
+Policy implemented after time `P.HQuarantineTimeStartBase` (“Household quarantine start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P.HQuarantineTimeStartBase` greater than simulation duration indicates that policy will not be implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). If threshold `P.HHQuar_CellIncThresh` exceeded, people who share household with a symptomatic case stay home for period of `P. HQuarantineHouseDuration days`, starting after `P.HQuarantineHouseDelay days`. Duration and delay can alternatively be specified at admin unit level. 
 
 Upon case detection (`DoDetectCase` function in `Update.cpp`), `quar_start_time` is set. A person’s quarantine stop time is `quar_start_time + P.usHQuarantineHouseDuration`. Compliance is set first at household and then at individual level, both of which are randomly determined with respective proportions `P.HQuarantinePropHouseCompliant` and `P.HQuarantinePropIndivCompliant`. Note that 50% compliance means that 50% of people are 100% compliant, and not that 100% of people are 50% compliant (although the latter probably more realistic).
 
@@ -54,17 +52,17 @@ Macro `HOST_QUARANTINED` asks whether host is a) compliant with HQ; b) currently
 
 ## SOCIAL DISTANCING (SD)
 
-Policy implemented after time `P.SocDistTimeStartBase` (“Social distancing start time”) for period of `P.SocDistDuration days`. Value of `P.SocDistTimeStartBase` greater than simulation duration indicates that policy not implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration and delay can alternatively be specified at admin unit level. 
+Policy implemented after time `P.SocDistTimeStartBase` (“Social distancing start time”) for period of `P.SocDistDuration days`. Value of `P.SocDistTimeStartBase` greater than simulation duration indicates that policy will not be implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration and delay can alternatively be specified at admin unit level. 
 
 Social distancing implemented mainly in `TreatSweep`, which determines whether `P.SocDistCellIncThresh` incidence threshold exceed. If so, then the susceptibility of all people residing in microcell currently undergoing social distancing is scaled, either by enhanced or non-enhanced effects (see below). Infectiousness functions are unaffected by social distancing.
 
-Distinction between social distancing and enhanced social distancing effect: at household level (`P.SocDistHouseholdEffect` vs. `P.ESocDistHouseholdEffect`); at place level (`P.SocDistPlaceEffect[k]` vs. `P.ESocDistPlaceEffect[k]`, for place type `k`); and at spatial level (`P.SocDistSpatialEffect` vs. `P.ESocDistSpatialEffect`). These scale a person’s contact rate at household, place and spatial level. 
+Distinction between social distancing and enhanced social distancing effect: at household level (`P.SocDistHouseholdEffect` vs. `P.EnhancedSocDistHouseholdEffect`); at place level (`P.SocDistPlaceEffect[k]` vs. `P.EnhancedSocDistPlaceEffect[k]`, for place type `k`); and at spatial level (`P.SocDistSpatialEffect` vs. `P.EnhancedSocDistSpatialEffect`). These scale a person’s contact rate at household, place and spatial level. 
 
-Both sets of parameters can implemented at the same time, in which case a given person is compliant with enhanced social distancing (so `person.esocdist_comply == 1`) with age-specific probability `P.ESocProportionCompliant[age]` (decided for each person in `SetupModel.cpp`).
+Both sets of parameters can implemented at the same time, in which case a given person is compliant with enhanced social distancing (so `person.esocdist_comply == 1`) with age-specific probability `P.EnhancedSocProportionCompliant[age]` (decided for each person in `SetupModel.cpp`).
 
 A social distancing policy can occur once only (if `P.DoSocDistOnceOnly`), or repeatedly.
 
-Note on levels of `P.DoSocDistOnceOnly`: not quite a boolean. Default value is 0. However, in pre-param file set to 1 (fine) in which case immediately reset to value 4 in ReadParams. 4 is just an arbitrary value greater than 2, where 0 and 2 respectively denote not-currently and currently undergoing social distancing. A flag in microcell.socdist that is set to 4 will not trigger any social distancing.
+Note on levels of `P.DoSocDistOnceOnly`. While its default value is 0, in pre-param file set to 1, in which case immediately reset to value 4 in ReadParams, where 4 is just an arbitrary value greater than 2, where 0 and 2 respectively denote not-currently and currently undergoing social distancing. A flag in microcell.socdist that is set to 4 will not trigger any social distancing.
 
 ## SOCIAL DISTANCING FOR OVER 70s (SDO/SDOL70)
 
@@ -74,7 +72,7 @@ Differences between this and social distancing are in parameter values, rather t
 
 ## PLACE CLOSURE (PC)
 
-Policy implemented after time `P.PlaceCloseTimeStartBase` (“Place closure start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P. PlaceCloseTimeStartBase` greater than simulation duration indicates that policy not implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration can alternatively be specified at admin unit level.
+Policy implemented after time `P.PlaceCloseTimeStartBase` (“Place closure start time”) for period of `P.HQuarantinePolicyDuration` days. Value of `P. PlaceCloseTimeStartBase` greater than simulation duration indicates that policy will not be implemented (e.g. if simulation runs for 720 days and start time set to 1000 days). Duration can alternatively be specified at admin unit level.
 
 `RecordSample` in `CovidSim.cpp` determines whether trigger has exceeded `P.PlaceCloseCellIncThresh`, and if so sets `P.PlaceCloseTimeStart`. A subsequent call to `TreatSweep` function in `Sweep.cpp`, determines whether incidence threshold `P.PlaceCloseCellIncThresh` exceeded. If so, then all places in microcell marked as closed (and trigger reset), and `DoPlaceClose` in `Update.cpp` is called. DoPlaceClose changes quantities `place.close_start_time` and `place.close_stop_time`, which are used in macro function `PLACE_CLOSED`.
 
@@ -82,4 +80,4 @@ Unlike other measures, place closure does not affect infectiousness and suscepti
 
 Like social distancing, place closure can occur intermittently if parameter `P.DoPlaceCloseOnceOnly` set to 0.
 
-Note on levels of `P.DoPlaceCloseOnceOnly`: not quite a boolean. Default value is 0. However, in pre-param file set to 1 (fine) in which case immediately reset to value 4 in `ReadParams`. 4 is just an arbitrary value greater than 2, where 0 and 2 respectively denote not-currently and currently undergoing place closure. A flag in microcell.placeclose that is set to 4 will not trigger any social distancing.
+Note on levels of `P.DoPlaceCloseOnceOnly`. While its default value is 0, in pre-param file set to 1, in which case immediately reset to value 4 in `ReadParams`, where 4 is just an arbitrary value greater than 2, where 0 and 2 respectively denote not-currently and currently undergoing place closure. A flag in microcell.placeclose that is set to 4 will not trigger any social distancing.
