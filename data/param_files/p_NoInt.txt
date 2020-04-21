@@ -2,7 +2,7 @@
 0
 
 [Vary efficacies over time]
-0
+1
 
 ======== PLACE CLOSURE PARAMETERS
 
@@ -81,6 +81,18 @@
 
 [Relative spatial contact rates over time after place closure]
 1.5 1.5 1.5 1.5 
+
+[Place closure incidence threshold over time]
+0 0 0 0
+^^ needs to be 0 for global triggers	
+
+[Place closure fractional incidence threshold over time]
+0 0 0 0 
+^^ needs to be 0 for global triggers or if abs incidence threshold used	
+
+[Trigger incidence per cell for place closure over time]
+10000000000 10000000000 10000000000 10000000000 
+*** ^^^ change these for global too ***	
 
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
