@@ -36,11 +36,11 @@ PNG_res <- 300
 # list the scenarios to compare (or set NULL to take all available)
 Scenarios <- NULL
 
-# Which comparison should we run?
-# The name will determine title and filename.
-ComparisonName 	 <- "Number ICU beds"
-# The severity variable is the variable to compare
-SeverityVariable <- "incCritical"
+## Which comparison should we run?
+## The name will determine title and filename.
+#ComparisonName 	 <- "Number ICU beds"
+## The severity variable is the variable to compare
+#SeverityVariable <- "incCritical"
 
 # consider the following R value:
 R <- 2.2
@@ -73,19 +73,15 @@ stopifnot(dir.exists(CompPlotDir))
 #### Hardcoded values about the simulation API ####
 
 # variables put out in the severity file
-SeverityVariables <- c("Mild", "ILI", "SARI", "Critical", "incMild", "incILI", "incSARI", "incCritical", "incDeath")
+SeverityVariables <- c("incI", "incMild", "incILI", "incSARI", "incCritical", "incDeath", 
+		"cumMild", "cumILI", "cumSARI", "cumCritical", "cumDeath")
 # severity output from c labelled as incidence of death, but it's actually cumulative deaths. correct here for now but will later fix in c code. 
 CORRECT_INC_DEATH <- TRUE #
 # filenames to look for
 Pattern 			    <- ".avNE.severity.xls"
 
 # where do we find the info we want?
-Suffix <-
-  if (SeverityVariable %in% SeverityVariables){
-    ".avNE.severity.xls" 
-  } else {
-    ".avNE.xls"
-  }
+Suffix <- ".avNE.severity.xls" 
 
 #### Define processing functions ####
 
@@ -120,10 +116,10 @@ CalcPlotWindow <- function(EpiCurves, Threshold = 0, PlotFromTo = NULL) {
 CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonName = "AllRuns", Names, 
                              Threshold = 0, PlotFromTo = NULL, YLAB = SeverityVariable, LWD = 4, LegendPosition = "topright"){
   if (!is.null(PlotFromTo) && length(PlotFromTo) != 2) stop("PlotFromTo must be of length 2")
-  #if (all(SeverityVariable != SeverityVariables)) Suffix = ".avNE.xls" 	else Suffix = ".avNE.severity.xls" 
   
   Index 	<- 1
   Flag    <- TRUE
+  cat(paste0(SeverityVariable, "\n"))
   for (Index in 1:length(Filenames)) {
     FileName	<- Filenames[Index]
     cat(paste0(Index, "/", length(Filenames), ": Scenario ", sub(InFolder, "", FileName), "\n"))
@@ -136,7 +132,7 @@ CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonNam
   }
   
   Cols 		    	<- bpy.colors(length(Filenames))
-  Dates 			  <- Day_0 + 0:(dim(Results)[1]-1)
+  Dates 			<- Day_0 + 0:(dim(Results)[1]-1)
   PlotWindow		<- CalcPlotWindow(EpiCurves, Threshold = Threshold, PlotFromTo = PlotFromTo)
   EpiCurves 		<- EpiCurves[PlotWindow,]
   Dates 		  	<- Dates[PlotWindow	]
@@ -197,13 +193,36 @@ if (0 == length(Scenarios)) {
   message("Found scenarios: ", length(intersect(PossibleScenarios, Scenarios)), " of ", length(Scenarios))
 }
 
-Filenames <- file.path(InFolder, paste0(Scenarios, "R0=", R, Suffix))
+Filenames <- file.path(InFolder, paste0(Scenarios, Suffix))
 if (!all(file.exists(Filenames))){
   stop("Aborted plot generation, because the following files were not found: ", Filenames[!file.exists(Filenames)])
 }
 
-OutFileName <- file.path(CompPlotDir, paste0(ComparisonName, ".png"))
-png(file = OutFileName, res = PNG_res, units = "in", width = 7, height = 7)
-CompareEpiCurves(Filenames, SeverityVariable, ComparisonName, 
-                 Names = GetVerboseScenarioName_Many(Scenarios), Threshold = 1, YLAB = "ICU beds", LWD = 6)
-invisible(dev.off())
+GetVerboseVariableString 	= function(InfVariableString)
+{
+	InfVariableStringLong = sub("inc", "", InfVariableString)
+	InfVariableStringLong = sub("cum", "", InfVariableStringLong)
+	return(InfVariableStringLong)
+}
+GetIncPrevOrCumIncString 	= function(InfVariableString)
+{
+	if (length(grep("inc", InfVariableString)) > 0) 
+		IncPrevOrCumIncString = "Incidence" 				else 
+	if (length(grep("cum", InfVariableString)) > 0) 
+		IncPrevOrCumIncString = "Cumulative Incidence" 		else 
+		IncPrevOrCumIncString = "Prevalence"
+	return(IncPrevOrCumIncString)
+}
+
+for (SeverityVariable in SeverityVariables)
+{
+	InfVariableStringLong 	<- GetVerboseVariableString	(SeverityVariable)
+	IncPrevOrCumIncString 	<- GetIncPrevOrCumIncString	(SeverityVariable)
+	ComparisonName 			<- paste(InfVariableStringLong, IncPrevOrCumIncString, "by model run")
+	OutFileName <- file.path(CompPlotDir, paste0(InfVariableStringLong, "_", IncPrevOrCumIncString, ".png"))
+	png(file = OutFileName, res = PNG_res, units = "in", width = 7, height = 7)
+	CompareEpiCurves(Filenames, SeverityVariable, ComparisonName, 
+			Names = Scenarios, Threshold = 1, YLAB = SeverityVariable, LWD = 6)
+	invisible(dev.off())
+}
+
