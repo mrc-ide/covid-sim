@@ -2,6 +2,15 @@
 
 This is WIP. Anything wrong or missing? Please improve and open a PR!
 
+The following papers are relevant to the model.  Please note that some of them
+may require a subscription to the appropriate publication to read.
+
+ - https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf
+ - https://www.nature.com/articles/nature04795
+ - https://www.nature.com/articles/nature04017
+ - https://www.pnas.org/content/105/12/4639.short
+
+
 # Basic conceptual structure
 
 ## Geographical space is divided into cells
@@ -28,3 +37,14 @@ Infections may be initially seeded in different ways. The simplest way is to see
 - spatial infections (e.g. when travelling around)
 
 Spatial infection uses spatial kernels to simulate infections across space (to avoid literally moving people around cells). A given cell accumulates a "spatial infectiousness" from the people in it (aggregate summary). This can then spread to other cells (as a kernel function that weights according to both spatial distance and population densities).
+
+## Further information
+
+For more information on the model and associated interventions, please visit: 
+
+ - https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf
+ - https://www.nature.com/articles/nature04795
+ - https://www.nature.com/articles/nature04017
+ - https://www.pnas.org/content/105/12/4639.short
+
+Please note that some of the above may require a subscription.
