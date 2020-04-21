@@ -245,7 +245,7 @@ void DoILI(int ai, int tn)
 			StateT[tn].cumILI++;
 			if (P.DoAdUnits)
 			{
-				StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]++;
+				StateT[tn].ILI_adunit	[Mcells[a->mcell].adunit]++;
 				StateT[tn].cumILI_adunit[Mcells[a->mcell].adunit]++;
 			}
 		}
@@ -265,9 +265,9 @@ void DoSARI(int ai, int tn)
 
 			if (P.DoAdUnits)
 			{
-				StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
-				StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumSARI_adunit[Mcells[a->mcell].adunit]++;
+				StateT[tn].ILI_adunit		[Mcells[a->mcell].adunit]--;
+				StateT[tn].SARI_adunit		[Mcells[a->mcell].adunit]++;
+				StateT[tn].cumSARI_adunit	[Mcells[a->mcell].adunit]++;
 			}
 		}
 	}
@@ -286,9 +286,9 @@ void DoCritical(int ai, int tn)
 
 			if (P.DoAdUnits)
 			{
-				StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
-				StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumCritical_adunit[Mcells[a->mcell].adunit]++;
+				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].Critical_adunit		[Mcells[a->mcell].adunit]++;
+				StateT[tn].cumCritical_adunit	[Mcells[a->mcell].adunit]++;
 			}
 		}
 	}
@@ -317,27 +317,47 @@ void DoRecoveringFromCritical(int ai, int tn)
 		}
 	}
 }
-void DoDeath_FromCriticalorSARI(int ai, int tn)
+void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 {
-	//// moved this from DoDeath as I think threading where DoRecover called from IncubRecoverySweep a little weird. May have been something else.
-
 	person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
-
-		if (a->Severity_Current == Severity_Critical)  //// second condition should be unnecessary but leave in for now. 
+		if (a->Severity_Current == Severity_Critical)  
 		{
 			StateT[tn].Critical--;
-			if (P.DoAdUnits)	StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
-			//// change current status so that flags work. 
+			StateT[tn].cumDeath_Critical++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_Critical_adunit	[Mcells[a->mcell].adunit]++;
+			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_SARI)
 		{
 			StateT[tn].SARI--;
-			if (P.DoAdUnits)	StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
-			//// change current status so that flags work. 
+			StateT[tn].cumDeath_SARI++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_SARI_adunit	[Mcells[a->mcell].adunit]++;
+			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
 		}
-		a->Severity_Current = Severity_Dead;
+		else if (a->Severity_Current == Severity_ILI)
+		{
+			StateT[tn].ILI--;
+			StateT[tn].cumDeath_ILI++;
+			if (P.DoAdUnits)
+			{
+				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
+				StateT[tn].cumDeath_ILI_adunit	[Mcells[a->mcell].adunit]++;
+			}
+			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+			a->Severity_Current = Severity_Dead;
+		}
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
@@ -352,33 +372,36 @@ void DoRecover_FromSeverity(int ai, int tn)
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice). 
 		{
-			//StateT[tn].R++; ///// Don't think you need this. variables .S, .I, .L, .R, .D (in popvar/StateT) aren't used during runtime (threads), these states used in unthreaded State, and kept track of during runtime through .S, .I etc. in cell. Same thing with death .D value. 
-
 			if (a->Severity_Current == Severity_Mild)
 			{
 				StateT[tn].Mild--;
 				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_ILI)
 			{
 				StateT[tn].ILI--;
 				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_SARI)
 			{
 				StateT[tn].SARI--;
 				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
 				StateT[tn].CritRecov--; //// decrement CritRecov, not critical. 
 				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
+				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't. 
+				a->Severity_Current = Severity_Recovered;
 			}
-			//// change current status so that flags work. 
-			a->Severity_Current = Severity_Recovered;
 		}
 }
-
 
 void DoIncub(int ai, unsigned short int ts, int tn, int run)
 {
@@ -409,47 +432,52 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic. 
 		{
-			if (P.DoInfectiousnessProfile)	a->recovery_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
+			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
+			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
 		}
 		else
 		{
+			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
+
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (((a->Severity_Final == Severity_Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age])) || ((a->Severity_Final == Severity_SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age])))
+			if (	((a->Severity_Final == Severity_Critical)	&& (ranf_mt(tn) < P.CFR_Critical_ByAge	[age]))		||
+					((a->Severity_Final == Severity_SARI	)	&& (ranf_mt(tn) < P.CFR_SARI_ByAge		[age]))		||
+					((a->Severity_Final == Severity_ILI		)	&& (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]))		)
 				a->to_die = 1;
-
-			//// re-define Final severity to Severity_Critical if person dies. 
-			// #### Neil - don't want this ///
-//			if (a->to_die) a->Severity_Final = Severity_Critical;
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_time = a->latent_time + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
+				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time = a->latent_time + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
-				a->Critical_time = a->SARI_time + ChooseFromICDF(P.SARIToCritical_icdf, P.Mean_SARIToCritical, tn);
+				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI		, tn);
+				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical	, tn);
 				if (a->to_die)
-					a->recovery_time = a->Critical_time + ChooseFromICDF(P.CriticalToDeath_icdf, P.Mean_CriticalToDeath, tn);
+					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath	, tn);
 				else
 				{
-					a->RecoveringFromCritical_time = a->Critical_time + ChooseFromICDF(P.CriticalToCritRecov_icdf, P.Mean_CriticalToCritRecov, tn);
-					a->recovery_time = a->RecoveringFromCritical_time + ChooseFromICDF(P.CritRecovToRecov_icdf, P.Mean_CritRecovToRecov, tn);
+					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov, tn);
+					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov	, tn);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
-				a->SARI_time = a->latent_time + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
+				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
 				if (a->to_die)
-					a->recovery_time = a->SARI_time + ChooseFromICDF(P.CriticalToDeath_icdf, P.Mean_CriticalToDeath, tn);  // update with its own time
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath	, tn); 
 				else
-					a->recovery_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf, P.Mean_SARIToRecovery, tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery	, tn);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
-				a->recovery_time = a->latent_time + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery, tn);
+			{
+				if (a->to_die)
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath		, tn);
+				else
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery	, tn);
+			} 
 		}
 
 		if ((a->inf== InfStat_InfectiousAlmostSymptomatic) && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
@@ -457,26 +485,15 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
 
-			//if (ai == 857676)
-			//{
-			//	fprintf(stderr, "stop\n");
-			//}
-
-			if (P.DoDigitalContactTracing)
-			{
-				//set dct_trigger_time for index case
+			if (P.DoDigitalContactTracing)	//set dct_trigger_time for index case
 				if (Hosts[ai].dct_trigger_time == (USHRT_MAX - 1)) //if this hasn't been set in DigitalContactTracingSweep due to detection of contact of contacts, set it here
-				{
 					Hosts[ai].dct_trigger_time = Hosts[ai].detected_time + (unsigned short int) (P.DelayFromIndexCaseDetectionToDCTIsolation * P.TimeStepsPerDay);
-				}
-			}
 		}
 
-
 		//// update pointers
-		Cells[a->pcell].L--; //// one fewer person latently infected. 
+		Cells[a->pcell].L--;		//// one fewer person latently infected. 
 		Cells[a->pcell].infected--; //// first infected person is now one index earlier in array. 
-		Cells[a->pcell].I++; //// one more infectious person. 
+		Cells[a->pcell].I++;		//// one more infectious person. 
 		if (Cells[a->pcell].L > 0)
 		{
 			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
@@ -484,14 +501,6 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L; //// change person a's listpos, which will now refer to their position among infectious people, not latent. 
 			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array? I think because the pointer was moved back one so now that bit of memory needs to refer to person ai. Alternative would be to move everyone back one which would take longer. 
 		}
-		////added this to record event if flag is set to 1 and if host isn't initial seed, i.e. if Hosts[ai].infector>=0: ggilani - 10/10/2014
-		//if(P.DoRecordInfEvents)
-		//	{
-		//		if(*nEvents<P.MaxInfEvents)
-		//		{
-		//			RecordEvent(((double)a->latent_time)/P.TimeStepsPerDay,ai,run,1); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
-		//		}
-		//	}
 	}
 }
 
@@ -859,7 +868,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 			if (a->Severity_Final == Severity_Mild)
 				DoMild(ai, tn);
 			else
-				DoILI(ai, tn); //// symptomatic cases either mild or ILI at symptom onset. 
+				DoILI(ai, tn); //// symptomatic cases either mild or ILI at symptom onset. SARI and Critical cases still onset with ILI.
 		}
 		if (P.DoAdUnits) StateT[tn].cumC_adunit[Mcells[a->mcell].adunit]++;
 	}
@@ -884,10 +893,9 @@ void DoRecover(int ai, int tn, int run)
 	a = Hosts + ai;
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
 	{
-	i = a->listpos;
-	Cells[a->pcell].I--;
-
-		Cells[a->pcell].R++;
+		i = a->listpos;
+		Cells[a->pcell].I--; //// one less infectious person
+		Cells[a->pcell].R++; //// one more recovered person
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
@@ -927,7 +935,7 @@ void DoDeath(int ai, int tn, int run)
 	int i, x, y;
 	person* a = Hosts + ai;
 
-	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)) //added infection status of 6 as well, as this also needs to deal with 'dead' infectious individuals: ggilani 25/10/14
+	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
 		a->inf = InfStat_Dead * a->inf / abs(a->inf);
 		Cells[a->pcell].D++;
@@ -963,23 +971,6 @@ void DoDeath(int ai, int tn, int run)
 				}
 			}
 		}
-
-		////add remove people from contact tracing if they die
-		//if ((P.DoDigitalContactTracing) && (Hosts[ai].digitalContactTracingUser))
-		//{
-		//	//if a case is detected, they will self-isolate as a case - don't want to have overlap between counting isolation of cases and contacts
-		//	if (Hosts[ai].digitalContactTraced == 2)
-		//	{
-		//		//if case is currently being contact traced, set end time of contact tracing to now
-		//		Hosts[ai].dct_end_time = Hosts[ai].recovery_time; //i.e. now - time of death
-		//	}
-		//	else if ((Hosts[ai].digitalContactTraced == 1) && (Hosts[ai].dct_start_time > Hosts[ai].recovery_time))
-		//	{
-		//		//i.e. if a host was due to be isolated as a contact, but has been identified as a case in the meantime - reset start time to default value
-		//		//and this will prompt them to be removed from the queue in the next DigitalContactTracingSweep
-		//		Hosts[ai].dct_start_time = USHRT_MAX - 1;
-		//	}			
-		//}
 	}
 }
 
@@ -1256,7 +1247,6 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 		}
 	}
 }
-
 
 int DoVacc(int ai, unsigned short int ts)
 {

@@ -24,6 +24,6 @@ void DoSARI(int, int);
 void DoCritical(int, int);
 void DoRecoveringFromCritical(int, int);
 void DoRecover_FromSeverity(int, int);
-void DoDeath_FromCriticalorSARI(int, int);
+void DoDeath_FromCriticalorSARIorILI(int, int);
 
 #endif // COVIDSIM_UPDATE_H_INCLUDED_
