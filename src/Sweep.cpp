@@ -882,10 +882,10 @@ void DigitalContactTracingSweep(double t)
 
 						//this condition is only ever met when a symptomatic case is detected in DoDetectedCase and is not already an index case. If they have already
 						//been made an index case due to testing, then this won't occur again for them.
-						if (contact == infector)
+						if (infector==-1)
 						{
 							//i.e. this is an index case that has been detected by becoming symptomatic and added to the digital contact tracing queue
-							dct_start_time = Hosts[infector].dct_trigger_time; //trigger time for these cases is set in DoIncub and already accounts for delay between onset and isolation
+							dct_start_time = Hosts[contact].dct_trigger_time; //trigger time for these cases is set in DoIncub and already accounts for delay between onset and isolation
 							dct_end_time = dct_start_time + (unsigned short int)(P.LengthDigitalContactIsolation * P.TimeStepsPerDay);
 
 						}
@@ -920,7 +920,7 @@ void DigitalContactTracingSweep(double t)
 						if (dct_start_time == ts)
 						{
 							//if the host has been detected due to being symptomatic, they are now an index case - set this variable now. For index cases detected by testing, this will be set on testing
-							if ((contact == infector) && (Hosts[contact].index_case_dct == 0)) //don't really need the second condition as the first should only be true when the second isn't (due to how this contact is logged in DoDetectedCase)
+							if ((infector==-1) && (Hosts[contact].index_case_dct == 0)) //don't really need the second condition as the first should only be true when the second isn't (due to how this contact is logged in DoDetectedCase)
 							{
 								Hosts[contact].index_case_dct = 1; //assign them as an index case
 							}

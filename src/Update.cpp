@@ -683,8 +683,8 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			//if (AdUnits[j].ndct < AdUnits[j].n)
 			if(StateT[tn].ndct_queue[ad] < AdUnits[ad].n)
 			{
-				//if we are isolating an index case, we set their infector as themselves in order to get the timings consistent.
-				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { ai,ai,ts };
+				//if we are isolating an index case, we set their infector as -1 in order to get the timings consistent.
+				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { ai,-1,ts };
 			}
 			else
 			{
