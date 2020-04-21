@@ -1814,6 +1814,26 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of digital contacts who self-isolate over time", "%lf", (void*)P.DCT_Prop_OverTime, P.Num_DCT_ChangeTimes, 1, 0))
 		for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++) P.DCT_Prop_OverTime[ChangeTime] = P.ProportionDigitalContactsIsolate;
 
+	//// ****  thresholds
+	//// place closure (global threshold)
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold over time", "%lf", (void*)P.PC_IncThresh_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_IncThresh_OverTime[ChangeTime] = P.PlaceCloseIncTrig1;
+	//// place closure (fractional global threshold)
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure fractional incidence threshold over time", "%lf", (void*)P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_FracIncThresh_OverTime[ChangeTime] = P.PlaceCloseFracIncTrig;
+	//// place closure (cell incidence threshold)
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for place closure over time", "%i", (void*)P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_CellIncThresh_OverTime[ChangeTime] = P.PlaceCloseCellIncThresh1;
+	//// household quarantine
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine trigger incidence per cell over time", "%lf", (void*)P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_CellIncThresh_OverTime[ChangeTime] = P.HHQuar_CellIncThresh;
+	//// case isolation
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation trigger incidence per cell over time", "%lf", (void*)P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_CellIncThresh_OverTime[ChangeTime] = P.CaseIsolation_CellIncThresh;
+	//// soc dists
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for social distancing over time", "%i", (void*)P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.SD_CellIncThresh_OverTime[ChangeTime] = P.SocDistCellIncThresh;
+
 	//// Guards: make unused change values in array equal to final used value
 	if (P.VaryEfficaciesOverTime)
 	{
@@ -1830,6 +1850,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.Enhanced_SD_HouseholdEffects_OverTime	[SD_ChangeTime] = P.Enhanced_SD_HouseholdEffects_OverTime	[P.Num_SD_ChangeTimes - 1];
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.Enhanced_SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[P.Num_SD_ChangeTimes - 1][PlaceType];
+
+			P.SD_CellIncThresh_OverTime				[SD_ChangeTime] = P.SD_CellIncThresh_OverTime				[P.Num_SD_ChangeTimes - 1];
 		}
 
 		//// case isolation
@@ -1838,6 +1860,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.CI_SpatialAndPlaceEffects_OverTime[CI_ChangeTime] = P.CI_SpatialAndPlaceEffects_OverTime	[P.Num_CI_ChangeTimes - 1];
 			P.CI_HouseholdEffects_OverTime		[CI_ChangeTime] = P.CI_HouseholdEffects_OverTime		[P.Num_CI_ChangeTimes - 1];
 			P.CI_Prop_OverTime					[CI_ChangeTime] = P.CI_Prop_OverTime					[P.Num_CI_ChangeTimes - 1];
+			P.CI_CellIncThresh_OverTime			[CI_ChangeTime] = P.CI_CellIncThresh_OverTime			[P.Num_CI_ChangeTimes - 1];
 		}
 
 		//// household quarantine
@@ -1850,6 +1873,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 			P.HQ_Individual_PropComply_OverTime	[HQ_ChangeTime] = P.HQ_Individual_PropComply_OverTime	[P.Num_HQ_ChangeTimes - 1];
 			P.HQ_Household_PropComply_OverTime	[HQ_ChangeTime] = P.HQ_Household_PropComply_OverTime	[P.Num_HQ_ChangeTimes - 1];
+
+			P.HQ_CellIncThresh_OverTime			[HQ_ChangeTime] = P.HQ_CellIncThresh_OverTime			[P.Num_HQ_ChangeTimes - 1];
 		}
 
 		//// place closure
@@ -1859,6 +1884,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.PC_HouseholdEffects_OverTime	[PC_ChangeTime] = P.PC_HouseholdEffects_OverTime[P.Num_PC_ChangeTimes - 1];
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P.PC_PlaceEffects_OverTime[P.Num_PC_ChangeTimes - 1][PlaceType];
+
+			P.PC_IncThresh_OverTime			[PC_ChangeTime]	= P.PC_IncThresh_OverTime		[P.Num_PC_ChangeTimes - 1];
+			P.PC_FracIncThresh_OverTime		[PC_ChangeTime]	= P.PC_FracIncThresh_OverTime	[P.Num_PC_ChangeTimes - 1];
+			P.PC_CellIncThresh_OverTime		[PC_ChangeTime]	= P.PC_CellIncThresh_OverTime	[P.Num_PC_ChangeTimes - 1];
 		}
 
 		//// digital contact tracing
@@ -2603,10 +2632,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// **** //// **** //// **** Initialize Current effects
 	//// **** soc dist
 	P.SocDistDurationCurrent			= P.SocDistDuration;
-	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];	//// spatial
-	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];	//// household
+	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];				//// spatial
+	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];				//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[0][PlaceType];	//// place
+	P.SocDistCellIncThresh				= P.SD_CellIncThresh_OverTime	[0];				//// cell incidence threshold
 
 	//// **** enhanced soc dist
 	P.EnhancedSocDistSpatialEffectCurrent		= P.Enhanced_SD_SpatialEffects_OverTime		[0];	//// spatial
@@ -2618,6 +2648,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
 	P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[0];	//// household
 	P.CaseIsolationProp					= P.CI_Prop_OverTime					[0];	//// compliance
+	P.CaseIsolation_CellIncThresh		= P.CI_CellIncThresh_OverTime			[0];	//// cell incidence threshold
+
 
 	//// **** household quarantine
 	P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[0];	//// spatial
@@ -2626,12 +2658,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[0][PlaceType];	//// place
 	P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[0]; //// individual compliance
 	P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[0]; //// household compliance
+	P.HHQuar_CellIncThresh			= P.HQ_CellIncThresh_OverTime			[0]; //// cell incidence threshold
+
 
 	//// **** place closure
-	P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[0];	//// spatial
-	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];	//// household
+	P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[0];			//// spatial
+	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];			//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[0][PlaceType];	//// place
+	P.PlaceCloseIncTrig1			= P.PC_IncThresh_OverTime		[0];			//// global incidence threshold
+	P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[0];			//// fractional incidence threshold
+	P.PlaceCloseCellIncThresh1		= P.PC_CellIncThresh_OverTime	[0];			//// cell incidence threshold
 
 	//// **** digital contact tracing
 	P.DCTCaseIsolationEffectiveness			= P.DCT_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
@@ -2668,10 +2705,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
 
-	//  Mass Vacc now starts after outbreak alert trigger
-	//	if(P.DoMassVacc)
-	//		P.VaccTimeStart=P.VaccTimeStartBase;
-	//	else
 	P.VaccTimeStart = 1e10;
 	P.MoveRestrTimeStart = 1e10;
 	P.PlaceCloseTimeStart = 1e10;
@@ -4118,6 +4151,8 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 			P.EnhancedSocDistSpatialEffectCurrent	= P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime];	//// spatial
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
+
+			P.SocDistCellIncThresh = P.SD_CellIncThresh_OverTime[ChangeTime];				//// cell incidence threshold
 		}
 
 	//// **** case isolation
@@ -4126,8 +4161,9 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		{
 			P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// spatial / place
 			P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[ChangeTime]; //// household
-			//// compliance
-			P.CaseIsolationProp = P.CI_Prop_OverTime[ChangeTime];
+			
+			P.CaseIsolationProp					= P.CI_Prop_OverTime					[ChangeTime]; //// compliance
+			P.CaseIsolation_CellIncThresh		= P.CI_CellIncThresh_OverTime			[ChangeTime]; //// cell incidence threshold
 		}
 
 	////// **** household quarantine
@@ -4138,19 +4174,25 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 			P.HQuarantineHouseEffect 	= P.HQ_HouseholdEffects_OverTime[ChangeTime];	//// household
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
-			//// compliance
+
 			P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
 			P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[ChangeTime]; //// household compliance
+
+			P.HHQuar_CellIncThresh			= P.HQ_CellIncThresh_OverTime			[ChangeTime]; //// cell incidence threshold
 		}
 
 	//// **** place closure
 	for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
 		if (t == P.PC_ChangeTimes[ChangeTime])
 		{
-			P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];	//// spatial
-			P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];	//// household
+			P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];				//// spatial
+			P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];				//// household
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
+
+			P.PlaceCloseIncTrig				= P.PC_IncThresh_OverTime		[ChangeTime];				//// global incidence threshold
+			P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[ChangeTime];				//// fractional incidence threshold
+			P.PlaceCloseCellIncThresh		= P.PC_CellIncThresh_OverTime	[ChangeTime];				//// cell incidence threshold
 		}
 
 	//// **** digital contact tracing

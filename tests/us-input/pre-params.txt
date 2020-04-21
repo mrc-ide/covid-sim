@@ -426,3 +426,75 @@ Also comparable with 1957 pandemic attack rates from Chin.
 [Max child age]
 20
 
+[One Child Two Pers Prob]
+0.08
+
+[Two Child Three Pers Prob]
+0.11
+
+[One Pers House Prob Old]
+0.55
+// 0.5
+// 0.42 From master merge conflict Neil_calib 20200401
+
+[Two Pers House Prob Old]
+0.6
+// 0.5
+// 0.42 From master merge conflict Neil_calib 20200401
+
+[One Pers House Prob Young]
+0.26
+// 0.23
+// 0.26 From master merge conflict Neil_calib 20200401
+
+[Two Pers House Prob Young]
+0.24
+// 0.23
+// 0.26 From master merge conflict Neil_calib 20200401
+
+[One Child Prob Youngest Child Under Five]
+0.55
+// 0.69 From master merge conflict Neil_calib 20200401
+
+[Two Children Prob Youngest Under Five]
+0.0
+// 0.0 From master merge conflict Neil_calib 20200401
+
+[Prob Youngest Child Under Five]
+0
+// 0 From master merge conflict Neil_calib 20200401
+
+[Zero Child Three Pers Prob]
+0.28
+// 0.25
+// 0.15 From master merge conflict Neil_calib 20200401
+
+[One Child Four Pers Prob]
+0.22
+// 0.2
+// 0.12 From master merge conflict Neil_calib 20200401
+
+[Young And Single Slope]
+0.7
+// 0.75 From master merge conflict Neil_calib 20200401
+
+[Young And Single]
+36
+// 36 From master merge conflict Neil_calib 20200401
+
+[No Child Pers Age]
+46
+// 44
+// 45 From master merge conflict Neil_calib 20200401
+
+[Old Pers Age]
+62
+// 60
+// 59 From master merge conflict Neil_calib 20200401
+
+[Three Child Five Pers Prob]
+0.5
+
+[Older Gen Gap]
+19
+
