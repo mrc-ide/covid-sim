@@ -233,6 +233,12 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 [Use ICU case triggers for interventions]
 1
 
+[Proportion of cases detected before outbreak alert]
+1
+
+[Number of detected cases needed before outbreak alert triggered]
+0
+
 ====================================
 
 [Number of realisations]

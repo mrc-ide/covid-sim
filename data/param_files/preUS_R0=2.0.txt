@@ -253,11 +253,23 @@ Also comparable with 1957 pandemic attack rates from Chin.
 [Divisor for per-capita area threshold (default 1000)]
 1000000
 
-[Proportion of cases detected before outbreak alert]
+[Trigger alert on deaths]
 1
 
-[Number of detected cases needed before outbreak alert triggered]
+[Number of deaths accummulated before alert]
+10000
+
+[Number of days to accummulate cases/deaths before alert]
 100
+
+[Day of year trigger is reached]
+100
+
+[Alert trigger starts after interventions]
+1
+
+[Day of year interventions start]
+76
 
 [Proportion of cases detected for treatment]
 1
@@ -273,6 +285,25 @@ Also comparable with 1957 pandemic attack rates from Chin.
 
 [Use ICU case triggers for interventions]
 1
+
+[Proportion of cases detected before outbreak alert]
+1
+
+[Number of detected cases needed before outbreak alert triggered]
+100
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ====================================
 
