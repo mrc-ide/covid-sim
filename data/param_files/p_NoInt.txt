@@ -100,6 +100,7 @@
 [Household quarantine start time]
 100000
 
+
 [Delay to start household quarantine]
 1
 
@@ -210,6 +211,10 @@
 
 [Proportion of detected cases isolated over time]
 0.7 0.7 0.7 0.7 0.7 
+
+[Case isolation trigger incidence per cell over time]
+0 0 0 0 0 
+
 
 ===================================		SOCIAL DISTANCING PARAMETERS
 
