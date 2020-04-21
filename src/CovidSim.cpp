@@ -1830,7 +1830,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	//// case isolation
 	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation trigger incidence per cell over time", "%i", (void*)P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes, 1, 0))
 		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_CellIncThresh_OverTime[ChangeTime] = P.CaseIsolation_CellIncThresh;
-
+	//// soc dists
+	if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for social distancing over time", "%i", (void*)P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.SD_CellIncThresh_OverTime[ChangeTime] = P.SocDistCellIncThresh;
 
 	//// Guards: make unused change values in array equal to final used value
 	if (P.VaryEfficaciesOverTime)
@@ -1848,6 +1850,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.Enhanced_SD_HouseholdEffects_OverTime	[SD_ChangeTime] = P.Enhanced_SD_HouseholdEffects_OverTime	[P.Num_SD_ChangeTimes - 1];
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.Enhanced_SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[P.Num_SD_ChangeTimes - 1][PlaceType];
+
+			P.SD_CellIncThresh_OverTime				[SD_ChangeTime] = P.SD_CellIncThresh_OverTime				[P.Num_SD_ChangeTimes - 1];
 		}
 
 		//// case isolation
@@ -2628,10 +2632,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// **** //// **** //// **** Initialize Current effects
 	//// **** soc dist
 	P.SocDistDurationCurrent			= P.SocDistDuration;
-	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];	//// spatial
-	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];	//// household
+	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];				//// spatial
+	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];				//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[0][PlaceType];	//// place
+	P.SocDistCellIncThresh				= P.SD_CellIncThresh_OverTime	[0];				//// cell incidence threshold
 
 	//// **** enhanced soc dist
 	P.EnhancedSocDistSpatialEffectCurrent		= P.Enhanced_SD_SpatialEffects_OverTime		[0];	//// spatial
@@ -4146,6 +4151,8 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 			P.EnhancedSocDistSpatialEffectCurrent	= P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime];	//// spatial
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
+
+			P.SocDistCellIncThresh = P.SD_CellIncThresh_OverTime[ChangeTime];				//// cell incidence threshold
 		}
 
 	//// **** case isolation

@@ -300,6 +300,9 @@
 0.25	0.25	0.25	0.25
 0.25	0.25	0.25	0.25
 
+[Trigger incidence per cell for social distancing over time]
+100 100 100 100 100 100 
+
 
 ===================================		DIGITAL CONTACT TRACING PARAMETERS
 

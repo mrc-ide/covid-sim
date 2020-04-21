@@ -159,7 +159,9 @@ typedef struct PARAM {
 	double SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistSpatialEffectCurrent
 	double SD_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistHouseholdEffectCurrent
 	double SD_PlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type;  //// time-varying equivalent of SocDistPlaceEffectCurrent
-	double SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above. 
+	double SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above.
+	int SD_CellIncThresh_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistCellIncThresh
+
 	/**< enhanced	*/
 	double Enhanced_SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistSpatialEffectCurrent
 	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistHouseholdEffectCurrent
