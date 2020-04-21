@@ -220,7 +220,6 @@ for (SubFolder in VariousSubFolders)
 			ScenarioPlotDir = makeScenarioPlotDir(PlotOutputSubDir, Scenario)
 			
 			CasesOrDeaths <- c("C", "D")
-			
 			AgeBandChar <- function(MinAge, MaxAge, Char = ".") paste0(MinAge, Char, MaxAge)
 			
 			### make stacked bar chart with indicence of cases or deaths by age group. 
@@ -243,12 +242,22 @@ for (SubFolder in VariousSubFolders)
 				CumCases_10yBands[, "70.80"] <- AgeResults[, paste0(CaseOrDeath, "70.75")] + AgeResults[, paste0(CaseOrDeath, "75.80")] 
 				CumCases_10yBands[, "80.85"] <- AgeResults[, paste0(CaseOrDeath, "80.85")] 
 				
-				NumWeeks  <- ceiling(dim(AgeResults)[1]/7)
-				WeeklyInc <- matrix(nrow = NumWeeks, ncol = 9)
-				colnames(WeeklyInc) <- colnames(CumCases_10yBands)
+				NumAgeBands = 9
+				NumWeeks 	= ceiling(dim(AgeResults)[1]/7)
 				
-				for (col in 1:9)  WeeklyInc[, col] <- diff(CumCases_10yBands[, col], lag = 7)[seq(7, dim(AgeResults)[1], by = 7)]
-				if (all(is.na(WeeklyInc[NumWeeks, ] ))) WeeklyInc[NumWeeks, ] = 0
+				FirstAgeBand = TRUE 
+				DaysToConsider = seq(1, dim(AgeResults)[1], by = 7)
+				for (ageband in 1:NumAgeBands)  
+				{
+					Vec = na.omit(diff(CumCases_10yBands[, ageband], lag = 7)[DaysToConsider])
+					if (FirstAgeBand) 
+					{
+						WeeklyInc = Vec 
+						FirstAgeBand = FALSE
+						
+					}	else WeeklyInc = cbind(WeeklyInc, Vec)
+				}
+				colnames(WeeklyInc) = colnames(CumCases_10yBands)
 				
 				### cut off low incidence weeks.
 				PlotWindow <- CalcPlotWindow(WeeklyInc, Threshold = 1)
@@ -275,7 +284,7 @@ for (SubFolder in VariousSubFolders)
 			SeverityVariable = "incCritical"
 			cat(paste0("Admin Level Plots: "))
 			
-			AdUnitFileName <- file.name(cur_path, Scenario, ".avNE.severity.adunit.xls" ) 
+			AdUnitFileName <- paste0(cur_path, Scenario, ".avNE.severity.adunit.xls" ) 
 			if (!file.exists(AdUnitFileName) ) next else
 				AdUnitResults <- read.delim(AdUnitFileName, header = TRUE)
 			## clean
@@ -285,7 +294,6 @@ for (SubFolder in VariousSubFolders)
 			### create subfolder so more organised. Don't want empty folders so wastefully include this within if statements.
 			ScenarioPlotDir = makeScenarioPlotDir(PlotOutputSubDir, Scenario)
 			
-			SeverityVariable = SeverityVariablesToPlot[1]
 			for (SeverityVariable in SeverityVariablesToPlot)
 			{
 				InfVariableStringLong 	= GetVerboseVariableString	(SeverityVariable)
@@ -307,8 +315,6 @@ for (SubFolder in VariousSubFolders)
 				MaxNumAdUnitsPerPlot = 20
 				NumAdminPlots		 = ceiling(NumAdminUnits / MaxNumAdUnitsPerPlot)
 				
-				AdPlot = 1
-				#AdPlot = 2
 				for (AdPlot in 1:NumAdminPlots)
 				{
 					MinAdUnit 	= (AdPlot - 1) * MaxNumAdUnitsPerPlot + 1
