@@ -3344,7 +3344,7 @@ void SaveResults(void)
 void SaveSummaryResults(void) //// calculates and saves summary results (called for average of extinct and non-extinct realisation time series - look in main)
 {
 	int i, j;
-	double c, t,s;
+	double c, t;
 	FILE* dat;
 	char outname[1024];
 
