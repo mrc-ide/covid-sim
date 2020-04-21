@@ -2,7 +2,7 @@
 0
 
 [Vary efficacies over time]
-1
+0
 
 ======== PLACE CLOSURE PARAMETERS
 

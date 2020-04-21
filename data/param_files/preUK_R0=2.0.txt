@@ -59,7 +59,7 @@
 1
 
 [Sampling time]
-720
+150
 
 [Grid size]	
 0.075
