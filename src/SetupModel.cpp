@@ -1050,12 +1050,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "sizeof(person)=%i\n", (int) sizeof(person));
 	for (i = 0; i < P.NCP; i++)
 	{
-		j = (int)(CellLookup[i] - Cells);
-		if (Cells[j].n > 0)
+		cell *c = CellLookup[i];
+		if (c->n > 0)
 		{
-			if (!(Cells[j].InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(Cells[j].max_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(Cells[j].cum_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->max_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->cum_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 		}
 	}
 	for (i = 0; i < P.NC; i++)
@@ -1939,34 +1939,34 @@ void AssignPeopleToPlaces(void)
 				cnt = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					i = (int)(CellLookup[a] - Cells);
-					Cells[i].n = 0;
-					for (j = 0; j < Cells[i].cumTC; j++)
+					cell *c = CellLookup[a];
+					c->n = 0;
+					for (j = 0; j < c->cumTC; j++)
 					{
-						k = HOST_AGE_YEAR(Cells[i].members[j]);
+						k = HOST_AGE_YEAR(c->members[j]);
 						f = ((PropPlaces[k][tp] > 0) && (ranf() < PropPlaces[k][tp]));
 						if (f)
 							for (k = 0; (k < tp) && (f); k++)
-								if (Hosts[Cells[i].members[j]].PlaceLinks[k] >= 0) f = 0; //(ranf()<P.PlaceExclusivityMatrix[tp][k]); 
+								if (Hosts[c->members[j]].PlaceLinks[k] >= 0) f = 0; //(ranf()<P.PlaceExclusivityMatrix[tp][k]); 
 						// Am assuming people can only belong to 1 place (and a hotel) at present
 						if (f)
 						{
-							Cells[i].susceptible[Cells[i].n] = Cells[i].members[j];
-							Cells[i].n++;
+							c->susceptible[c->n] = c->members[j];
+							(c->n)++;
 							cnt++;
 						}
 					}
-					Cells[i].S = Cells[i].n;
-					Cells[i].I = 0;
+					c->S = c->n;
+					c->I = 0;
 				}
 				if (!(PeopleArray = (int*)calloc(cnt, sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 				j2 = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					i = (int)(CellLookup[a] - Cells);
-					for (j = 0; j < Cells[i].n; j++)
+					cell *c = CellLookup[a];
+					for (j = 0; j < c->n; j++)
 					{
-						PeopleArray[j2] = Cells[i].susceptible[j];
+						PeopleArray[j2] = c->susceptible[j];
 						j2++;
 					}
 				}

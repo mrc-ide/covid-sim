@@ -72,7 +72,8 @@ param P;
 person* Hosts;
 household* Households;
 popvar State, StateT[MAX_NUM_THREADS];
-cell* Cells, ** CellLookup;
+cell* Cells; // Cells[i] is the i'th cell
+cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
 microcell* Mcells, ** McellLookup;
 place** Places;
 adminunit AdUnits[MAX_ADUNITS];
