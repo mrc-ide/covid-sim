@@ -65,7 +65,6 @@ typedef struct PARAM {
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
 
-	double T;
 	double TimeStep; // The length of a time step, in days
 	double SampleTime; // The number of days to run for
 	double SampleStep; // The length of a sampling step, in days
