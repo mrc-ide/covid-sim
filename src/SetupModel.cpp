@@ -1383,7 +1383,6 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 						y = (double)(i % P.nmch);
 						for (j = 0; j < Mcells[i].np[j2]; j++)
 						{
-							s = ranf_mt(tn);
 							xh = P.mcwidth * (ranf_mt(tn) + x);
 							yh = P.mcheight * (ranf_mt(tn) + y);
 							Places[j2][k].loc_x = (float)xh;
