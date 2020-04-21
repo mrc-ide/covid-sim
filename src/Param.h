@@ -58,14 +58,13 @@ typedef struct PARAM {
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
 	double MildToRecovery_icdf[CDF_RES + 1], ILIToRecovery_icdf[CDF_RES + 1], SARIToRecovery_icdf[CDF_RES + 1], CriticalToCritRecov_icdf[CDF_RES + 1], CritRecovToRecov_icdf[CDF_RES + 1];
-	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
+	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], ILIToDeath_icdf[CDF_RES + 1], SARIToDeath_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
 	/// means for above icdf's.
 	double Mean_MildToRecovery, Mean_ILIToRecovery, Mean_SARIToRecovery, Mean_CriticalToCritRecov, Mean_CritRecovToRecov, Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
-	double Mean_ILIToSARI, Mean_SARIToCritical, Mean_CriticalToDeath;
+	double Mean_ILIToSARI, Mean_SARIToCritical, Mean_CriticalToDeath, Mean_SARIToDeath, Mean_ILIToDeath;
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
-	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS];
+	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
 
-	double T;
 	double TimeStep; // The length of a time step, in days
 	double SampleTime; // The number of days to run for
 	double SampleStep; // The length of a sampling step, in days
@@ -251,6 +250,23 @@ typedef struct PARAM {
 	int MinParentAgeGap; // The minimum number of years older than a child that a parent must be
 	int MaxParentAgeGap; // The maximum number of years older than a child that a parent can be
 	int MaxChildAge; // The maximum age, in years, of a child
+	double OneChildTwoPersProb;
+	double TwoChildThreePersProb;
+	double OnePersHouseProbOld;
+	double TwoPersHouseProbOld;
+	double OnePersHouseProbYoung;
+	double TwoPersHouseProbYoung;
+	double OneChildProbYoungestChildUnderFive;
+	double TwoChildrenProbYoungestUnderFive;
+	double ProbYoungestChildUnderFive;
+	double ZeroChildThreePersProb;
+	double OneChildFourPersProb;
+	double YoungAndSingleSlope;
+	int YoungAndSingle;
+	int NoChildPersAge;
+	int OldPersAge;
+	double ThreeChildFivePersProb;
+	int OlderGenGap;
 } param;
 
 extern param P;
