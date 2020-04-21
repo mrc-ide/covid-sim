@@ -1446,8 +1446,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			double AdunitDelayToDCT[MAX_ADUNITS];
 			double AdunitDurationDCT[MAX_ADUNITS];
 
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to digital contact tracing by admin unit", "%lg", (void*)AdunitDelayToDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToDCT[i] = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of digital contact tracing by admin unit", "%lg", (void*)AdunitDurationDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationDCT[i] = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to digital contact tracing by admin unit", "%lf", (void*)AdunitDelayToDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToDCT[i] = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of digital contact tracing by admin unit", "%lf", (void*)AdunitDurationDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationDCT[i] = 0;
 			for (i = 0; i < P.NumAdunits; i++)
 			{
 				AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
