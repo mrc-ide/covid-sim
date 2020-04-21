@@ -13,7 +13,7 @@
 100000
 
 [Delay to place closure by admin unit]
-0	0	0
+1	1	1
 
 [Duration of place closure by admin unit]
 0	0	0
@@ -43,20 +43,20 @@
 0	0	0.25	1
 
 [Relative household contact rate after closure]
-2
+1.5
 
 [Relative spatial contact rate after closure]
-1.5
+1.25
 
 [Minimum radius for place closure]
 1
 
 [Place closure incidence threshold]
-0
+10000000000
  ^^ needs to be 0 for global triggers	
 
 [Place closure fractional incidence threshold]
-0
+10000000000
  ^^ needs to be 0 for global triggers or if abs incidence threshold used	
 
 [Trigger incidence per cell for place closure]
@@ -77,10 +77,10 @@
 0	0	0.25	1
 
 [Relative household contact rates over time after place closure]
-2 2 2 2 
+1.5 1.5 1.5 1.5 
 
 [Relative spatial contact rates over time after place closure]
-1.5 1.5 1.5 1.5 
+1.25 1.25 1.25 1.25 
 
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
@@ -88,12 +88,11 @@
 [Household quarantine start time]
 100000
 
-
 [Delay to start household quarantine]
 1
 
 [Delay to household quarantine by admin unit]
-0	0	0
+1	1	1
 
 [Duration of household quarantine by admin unit]
 0	0	0
@@ -108,7 +107,7 @@
 0
 
 [Relative household contact rate after quarantine]
-2
+1.5
 
 [Residual place contacts after household quarantine by place type]
 0.25	0.25	0.25	0.25
@@ -117,10 +116,10 @@
 0.25
 
 [Household level compliance with quarantine]
-0.5
+0.75
 
 [Individual level compliance with quarantine]
-1
+1.0
 
 [Number of change times for levels of household quarantine]
 3
@@ -130,7 +129,7 @@
 0 31 121
 
 [Relative household contact rates over time after quarantine]
-2 2 2
+1.5 1.5 1.5 
 
 [Residual place contacts over time after household quarantine by place type]
 0.25	0.25	0.25	0.25
@@ -141,10 +140,10 @@
 0.25 0.25 0.25 
 
 [Household level compliance with quarantine over time]
-0.5 0.5 0.5 
+0.75 0.75 0.75 
 
 [Individual level compliance with quarantine over time]
-1 1 1 
+1.0 1.0 1.0 
 
 
 
@@ -152,7 +151,6 @@
 
 [Case isolation start time]
 100000
-
 
 [Delay to case isolation by admin unit]
 0	0	0
@@ -164,7 +162,7 @@
 0
 
 [Proportion of detected cases isolated]
-0.7
+0.9
 
 [Delay to start case isolation]
 1
@@ -180,7 +178,7 @@
 0.25
 
 [Residual household contacts after case isolation]
-1
+0.5
 
 [Number of change times for levels of case isolation]
 5
@@ -193,19 +191,21 @@
 0.25 0.25 0.25 0.25 0.25
 
 [Residual household contacts after case isolation over time]
-1 1 1 1 1 
+0.5 0.5 0.5 0.5 0.5 
 
 [Proportion of detected cases isolated over time]
-0.7 0.7 0.7 0.7 0.7 
+0.9 0.9 0.9 0.9 0.9 
 
 ===================================		SOCIAL DISTANCING PARAMETERS
 
 [Social distancing start time]
 100000
 
-
 [Delay to social distancing by admin unit]
 0	0	0
+
+[Duration of social distancing]
+0
 
 [Duration of social distancing by admin unit]
 0	0	0
@@ -213,23 +213,20 @@
 [Trigger incidence per cell for social distancing]
 10000000000
 
-[Duration of social distancing]
-0
-
 [Relative place contact rate given social distancing by place type]
-1	1	0.75	0.75
+1 1 0.5 0.5 
 
 [Relative household contact rate given social distancing]
 1.25
 
 [Relative spatial contact rate given social distancing]
-0.25
+0.1
 
 [Minimum radius for social distancing]
 1
 
 [Proportion compliant with enhanced social distancing]
-0
+0.0
 
 [Proportion compliant with enhanced social distancing by age group]
 0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
@@ -243,6 +240,18 @@
 [Relative spatial contact rate given enhanced social distancing]
 0.25
 
+[Delay for change in effectiveness of social distancing]
+1000
+
+[Relative place contact rate given social distancing by place type after change]
+1	1	0.75	0.75
+
+[Relative household contact rate given social distancing after change]
+1.25
+
+[Relative spatial contact rate given social distancing after change]
+0.25
+
 //// Must match "Change times for levels of social distancing"
 [Number of change times for levels of social distancing]
 6
@@ -253,12 +262,12 @@
 
 //// Again, want this to supercede "Relative place contact rate given social distancing by place type". Should be matrix of dimension "Number of change times for levels of social distancing" by Number of place types. 
 [Relative place contact rates over time given social distancing by place type]
-1 1 0.75 0.75 
-1 1 0.75 0.75 
-1 1 0.75 0.75 
-1 1 0.75 0.75 
-1 1 0.75 0.75 
-1 1 0.75 0.75 
+1 1 0.5 0.5 
+1 1 0.5 0.5 
+1 1 0.5 0.5 
+1 1 0.5 0.5 
+1 1 0.5 0.5 
+1 1 0.5 0.5 
 
 ////  Ideally want this to supercede "Relative household contact rate given social distancing", but need to preserved backwards compatibility for now. 
 [Relative household contact rates over time given social distancing]
@@ -266,7 +275,7 @@
 
 ////  Ideally want this to supercede "Relative spatial contact rate given social distancing", but need to preserved backwards compatibility for now. 
 [Relative spatial contact rates over time given social distancing]
-0.25 0.25 0.25 0.25 0.25 0.25 
+0.1 0.1 0.1 0.1 0.1 0.1
 
 [Relative household contact rates over time given enhanced social distancing]
 1 1 1 1 1 1 
