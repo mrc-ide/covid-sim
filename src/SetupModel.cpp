@@ -57,7 +57,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			{
 				P.DoBin = 0;
 				fclose(dat);
-				if (!(dat = fopen(DensityFile, "r"))) ERR_CRITICAL("Unable to open density file\n");
+				if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
 				P.BinFileLen = UINT_MAX - 1;
 			}
 			// We will compute a precise spatial bounding box using the population locations.
@@ -236,6 +236,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				//// TSMean (each severity for prevalence, incidence and cumulative incidence)
 				TSMean[i].Mild = TSMean[i].ILI = TSMean[i].SARI = TSMean[i].Critical = TSMean[i].CritRecov =
 					TSMean[i].incMild = TSMean[i].incILI = TSMean[i].incSARI = TSMean[i].incCritical = TSMean[i].incCritRecov =
+					TSMean[i].incDeath_ILI = TSMean[i].incDeath_SARI = TSMean[i].incDeath_Critical =
+					TSMean[i].cumDeath_ILI = TSMean[i].cumDeath_SARI = TSMean[i].cumDeath_Critical =
 					TSMean[i].cumMild = TSMean[i].cumILI = TSMean[i].cumSARI = TSMean[i].cumCritical = TSMean[i].cumCritRecov = 0;
 
 				//// TSVar (each severity for prevalence, incidence and cumulative incidence)
@@ -248,6 +250,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					for (j = 0; j <= P.NumAdunits; j++)
 						TSMean[i].Mild_adunit[j] = TSMean[i].ILI_adunit[j] = TSMean[i].SARI_adunit[j] = TSMean[i].Critical_adunit[j] = TSMean[i].CritRecov_adunit[j] =
 						TSMean[i].incMild_adunit[j] = TSMean[i].incILI_adunit[j] = TSMean[i].incSARI_adunit[j] = TSMean[i].incCritical_adunit[j] = TSMean[i].incCritRecov_adunit[j] =
+						TSMean[i].incDeath_ILI_adunit[j] = TSMean[i].incDeath_SARI_adunit[j] = TSMean[i].incDeath_Critical_adunit[j] =
+						TSMean[i].cumDeath_ILI_adunit[j] = TSMean[i].cumDeath_SARI_adunit[j] = TSMean[i].cumDeath_Critical_adunit[j] =
 						TSMean[i].cumMild_adunit[j] = TSMean[i].cumILI_adunit[j] = TSMean[i].cumSARI_adunit[j] = TSMean[i].cumCritical_adunit[j] = TSMean[i].cumCritRecov_adunit[j] = 0;
 			}
 		}
@@ -463,23 +467,23 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
 			j = (int)floor((q = ranf_mt(tn) * CDF_RES)); //made this multi-threaded: 28/11/14
 			q -= ((double)j);
-			Hosts[i].recovery_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
+			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
 
 			if (P.DoHouseholds)
 			{
 				s2 = P.TimeStep * P.HouseholdTrans * fabs(Hosts[i].infectiousness) * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
-				d = 1.0; l = (int)Hosts[i].recovery_time;
+				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
 				for (k = 0; k < l; k++) { y = 1.0 - s2 * P.infectiousness[k]; d *= ((y < 0) ? 0 : y); }
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
 				for (k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
 			}
-			q = (P.LatentToSymptDelay > Hosts[i].recovery_time * P.TimeStep) ? Hosts[i].recovery_time * P.TimeStep : P.LatentToSymptDelay;
+			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
 			l = (int)(q / P.TimeStep);
 			for (k = 0; k < l; k++) t2 += s2 * P.infectiousness[k];
 			s2 *= ((Hosts[i].infectiousness < 0) ? P.SymptSpatialContactRate : 1);
-			l = (int)Hosts[i].recovery_time;
+			l = (int)Hosts[i].recovery_or_death_time;
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
 
 		}
@@ -498,14 +502,14 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					k = Hosts[i].PlaceLinks[j];
 					if (k >= 0)
 					{
-						q = (P.LatentToSymptDelay > Hosts[i].recovery_time * P.TimeStep) ? Hosts[i].recovery_time * P.TimeStep : P.LatentToSymptDelay;
+						q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 						s2 = fabs(Hosts[i].infectiousness) * P.TimeStep * P.PlaceTypeTrans[j];
 						x = s2 / P.PlaceTypeGroupSizeParam1[j];
 						d = 1.0; l = (int)(q / P.TimeStep);
 						for (m = 0; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
 						s3 = ((double)(Places[j][k].group_size[Hosts[i].PlaceGroupLinks[j]] - 1));
 						x *= ((Hosts[i].infectiousness < 0) ? (P.SymptPlaceTypeContactRate[j] * (1 - P.SymptPlaceTypeWithdrawalProp[j])) : 1);
-						l = (int)Hosts[i].recovery_time;
+						l = (int)Hosts[i].recovery_or_death_time;
 						for (; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
 
 						t3 = d;
@@ -513,7 +517,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 						d = 1.0; l = (int)(q / P.TimeStep);
 						for (m = 0; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
 						x *= ((Hosts[i].infectiousness < 0) ? (P.SymptPlaceTypeContactRate[j] * (1 - P.SymptPlaceTypeWithdrawalProp[j])) : 1);
-						l = (int)Hosts[i].recovery_time;
+						l = (int)Hosts[i].recovery_or_death_time;
 						for (; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
 						t += (1 - t3 * d) * s3 + (1 - d) * (((double)(Places[j][k].n - 1)) - s3);
 					}
@@ -526,9 +530,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 #pragma omp parallel for private(i) schedule(static,500) reduction(+:recovery_time_days,recovery_time_timesteps)
 		for (i = 0; i < P.N; i++)
 		{
-			recovery_time_days += Hosts[i].recovery_time * P.TimeStep;
-			recovery_time_timesteps += Hosts[i].recovery_time;
-			Hosts[i].recovery_time = 0;
+			recovery_time_days += Hosts[i].recovery_or_death_time * P.TimeStep;
+			recovery_time_timesteps += Hosts[i].recovery_or_death_time;
+			Hosts[i].recovery_or_death_time = 0;
 		}
 		t /= ((double)P.N);
 		recovery_time_days /= ((double)P.N);
@@ -560,7 +564,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	DoInitUpdateProbs = 1;
 	for (i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
-	for (i = 0; i < P.N; i++) Hosts[i].esocdist_comply = (ranf() < P.ESocProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
+	for (i = 0; i < P.N; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.OutputBitmap)
 	{
 		InitBMHead();
@@ -680,7 +684,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		{
 			P.BinFileLen = UINT_MAX - 1;
 			fprintf(stderr, "Reading ASCII population density file...\n");
-			if (!(dat = fopen(DensityFile, "r"))) ERR_CRITICAL("Unable to open density file\n");
+			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
 		}
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
 		if (P.DoBin == 1)
@@ -855,7 +859,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (!(State.InvAgeDist = (int**)malloc(P.NumAdunits * sizeof(int*)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
 		for (i = 0; i < P.NumAdunits; i++)
 			if (!(State.InvAgeDist[i] = (int*)malloc(1000 * sizeof(int)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
-		if (!(dat = fopen(RegDemogFile, "r"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		if (!(dat = fopen(RegDemogFile, "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
 		for (k = 0; k < P.NumAdunits; k++)
 		{
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1290,7 +1294,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(SchoolFile, "r"))) ERR_CRITICAL("Unable to open school file\n");
+		if (!(dat = fopen(SchoolFile, "rb"))) ERR_CRITICAL("Unable to open school file\n");
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -1401,7 +1405,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					else if (PropPlaces[k][l] != 0)
 						PropPlaces[k][l] = 1.0;
 				}
-		fprintf(stderr, "Places assigned\n");
+/*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+			for (i =0; i < P.NMC; i++)
+				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
+					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
+*/		fprintf(stderr, "Places assigned\n");
 	}
 	l = 0;
 	for (j = 0; j < P.NC; j++)
@@ -1415,7 +1423,6 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (k = 0; k < P.NumThreads; k++)
 			if (!(StateT[i].inf_queue[k] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		if (!(StateT[i].cell_inf = (float*)malloc((l + 1) * sizeof(float)))) ERR_CRITICAL("Unable to allocate state storage\n");
-		if (!(StateT[i].inv_cell_inf = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	}
 
 	//set up queues and storage for digital contact tracing

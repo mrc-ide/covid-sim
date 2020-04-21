@@ -81,7 +81,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '--accept':
     accept_results = True
 
 # Portable ../../
-updir2 = os.pardir + os.sep + os.pardir + os.sep 
+updir2 = os.pardir + os.sep + os.pardir + os.sep
 datadir = updir2 + "data" + os.sep
 updir1 = os.pardir + os.sep
 
@@ -124,7 +124,7 @@ print('=== Starting running:')
 subprocess.check_call(
     [covidsim_exe, '/c:1',
      '/PP:' + updir1 + 'preUK_R0=2.0.txt',
-     '/P:' + updir1 + 'p_PC7_CI_HQ_SDbad.txt', '/CLP1:100',
+     '/P:' + updir1 + 'p_PC7_CI_HQ_SD_DCT.txt', '/CLP1:100',
      '/CLP2:91', '/CLP3:121', '/CLP4:121', '/O:CI_100_91_R0=2.2',
      '/A:' + updir1 + 'sample_admin.txt',
      '/D:' + wpop_bin,

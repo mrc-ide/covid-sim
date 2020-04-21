@@ -747,37 +747,37 @@ void IncubRecoverySweep(double t, int run)
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-	for (i = 0; i < P.NumHolidays; i++)
-	{
-		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
-		if ((t + P.TimeStep >= ht) && (t < ht))
+	if (P.DoPlaces)
+		for (i = 0; i < P.NumHolidays; i++)
 		{
-#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
-			for (tn = 0; tn < P.NumThreads; tn++)
+			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
-				for (b = tn; b < P.N; b += P.NumThreads)
+//				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
+				for (j = 0; j < P.PlaceTypeNum; j++)
 				{
-					for (j = 0; j < P.PlaceTypeNum; j++)
-					{
-						l = Hosts[b].PlaceLinks[j];
-						if (l >= 0)
+#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1)
+					for(tn=0;tn<P.NumThreads;tn++)
+						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
-								k = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short) k;
-								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short) k;
-
-								k = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short) k;
-								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short) k;
+								l = (int)(ht * P.TimeStepsPerDay);
+								if (Places[j][k].close_start_time > l)
+									Places[j][k].close_start_time = (unsigned short) l;
+								b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
+								if (Places[j][k].close_end_time < b)
+									Places[j][k].close_end_time = (unsigned short) b;
+								for (ci = 0; ci < Places[j][k].n;ci++)
+								{
+									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
+									if (Hosts[Places[j][k].members[ci]].absent_stop_time < b) Hosts[Places[j][k].members[ci]].absent_stop_time = (unsigned short)b;
+								}
 							}
 						}
-					}
 				}
 			}
 		}
-	}
 
 #pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
@@ -792,26 +792,28 @@ void IncubRecoverySweep(double t, int run)
 			{
 				ci = c->infected[j];	//// person index
 				si = Hosts + ci;		//// person
-				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
+
+				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
+				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)... 
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
+					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
 
 				if (P.DoSeverity)
 				{
 					if (ts >= si->SARI_time)					DoSARI(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
 					if (ts >= si->Critical_time)				DoCritical(ci, tn);
 					if (ts >= si->RecoveringFromCritical_time)	DoRecoveringFromCritical(ci, tn);
-					if (ts >= si->recovery_time)
+					if (ts >= si->recovery_or_death_time)
 					{
 						if (si->to_die)
-							DoDeath_FromCriticalorSARI(ci, tn);
+							DoDeath_FromCriticalorSARIorILI(ci, tn);
 						else
 							DoRecover_FromSeverity(ci, tn);
 					}
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (ts >= si->recovery_time)
+				if (ts >= si->recovery_or_death_time)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
@@ -819,20 +821,14 @@ void IncubRecoverySweep(double t, int run)
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					} 
 					else /// if they die and this timestep is after they've died.
-					{	// si->to_die
+					{	
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
 							DoRecover(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 						else
 							DoDeath(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 				}
 			}
-
-			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], run, tn);
-			//for (j = 0; j < StateT[tn].n_queue[1]; j++) DoDeath(StateT[tn].inf_queue[1][j], run, tn);
-			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 		}
 }
 
@@ -909,7 +905,7 @@ void DigitalContactTracingSweep(double t)
 								dct_start_time = USHRT_MAX - 1; //for contacts of asymptomatic cases - they won't get added as their index case won't know that they are infected (unless explicitly tested)
 								//but we keep them in the queue in case their index case is detected as the contact of someone else and gets their trigger time set
 								//set dct_end_time to recovery time of infector, in order to remove from queue if their host isn't detected before they recover.
-								dct_end_time = Hosts[infector].recovery_time;
+								dct_end_time = Hosts[infector].recovery_or_death_time;
 							}
 						}
 
@@ -1165,7 +1161,6 @@ int TreatSweep(double t)
 				DoVacc(State.mvacc_queue[i], ts);
 			State.mvacc_cum = m;
 		}
-
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
 		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatProphCourseLength) - 1);
@@ -1174,7 +1169,7 @@ int TreatSweep(double t)
 		tspf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
 		tsmf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
 		tsmb = (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
-		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationC));
+		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationCurrent));
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
@@ -1368,7 +1363,6 @@ int TreatSweep(double t)
 						}
 					}
 					
-					
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
 					//// **** //// **** //// **** //// **** PLACE CLOSURE
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
@@ -1408,7 +1402,9 @@ int TreatSweep(double t)
 						///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold. 
 
 						if (P.DoGlobalTriggers)
+						{
 							f2 = (global_trig >= P.PlaceCloseCellIncThresh);
+						}
 						else if (P.DoAdminTriggers)
 						{
 							trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
@@ -1425,29 +1421,27 @@ int TreatSweep(double t)
 						{
 							//							if(P.PlaceCloseByAdminUnit) AdUnits[Mcells[b].adunit].place_close_trig=USHRT_MAX-1; // This means schools only close once
 							interventionFlag = 1;
-							if (P.DoInterventionDelaysByAdUnit)
-								if ((t <= AdUnits[Mcells[b].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[b].adunit].PlaceCloseTimeStart + AdUnits[Mcells[b].adunit].PlaceCloseDuration)))
+							if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[b].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[b].adunit].PlaceCloseTimeStart + AdUnits[Mcells[b].adunit].PlaceCloseDuration))))
 									interventionFlag = 0;
 
-							if (interventionFlag == 1)
-								if ((!P.PlaceCloseByAdminUnit) || (ad > 0))
+							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
+							{
+								ad2 = ad / P.PlaceCloseAdminUnitDivisor;
+								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
 								{
-									ad2 = ad / P.PlaceCloseAdminUnitDivisor;
-									if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
-									{
-										//if doing intervention delays and durations by admin unit based on global triggers
-										if (P.DoInterventionDelaysByAdUnit)
-											Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
-										else
-											Mcells[b].place_end_time = tspf;
-										Mcells[b].place_trig = 0;
-										Mcells[b].placeclose = 2;
-										for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-											if (j2 != P.HotelPlaceType)
-												for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
-													DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
-									}
+									//if doing intervention delays and durations by admin unit based on global triggers
+									if (P.DoInterventionDelaysByAdUnit)
+										Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
+									else
+										Mcells[b].place_end_time = tspf;
+									Mcells[b].place_trig = 0;
+									Mcells[b].placeclose = 2;
+									for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+										if (j2 != P.HotelPlaceType)
+											for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
+												DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
 								}
+							}
 						}
 					}
 					

@@ -40,8 +40,8 @@ typedef struct PERSON {
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
 	unsigned short int quar_start_time, isolation_start_time;
-	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is time at which you become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
-	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
+	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
+	unsigned short int recovery_or_death_time;	// set in DoIncub function 
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 1;
@@ -76,7 +76,6 @@ typedef struct POPVAR {
 	int cumCT_adunit[MAX_ADUNITS], CT_adunit[MAX_ADUNITS], cumCC_adunit[MAX_ADUNITS], CC_adunit[MAX_ADUNITS], trigDC_adunit[MAX_ADUNITS]; //added cumulative and CT per admin unit: ggilani 15/06/17
 	int cumDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added cumulative and overall digital contact tracing per adunit: ggilani 11/03/20
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
-	int* inv_cell_inf; //// think indexed by i) person. 
 	int *inf_queue[MAX_NUM_THREADS], n_queue[MAX_NUM_THREADS]; 	// n_queue is number of people in the queue, inf_queue is the actual queue (i.e. list) of people. 1st index is thread, 2nd is person.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
@@ -92,20 +91,22 @@ typedef struct POPVAR {
 	unsigned short int* contact_time[MAX_ADUNITS]; //added some more queues to store time contact is made: ggilani 07/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
 
-									  ///// Prevalence quantities (+ by admin unit)
+	///// Prevalence quantities (+ by admin unit)
 	int Mild, ILI, SARI, Critical, CritRecov, /*cumulative incidence*/ cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;
 	int Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];
 	/// cum incidence quantities. (+ by admin unit)
 	int cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS];
 
+	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
+	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+
 	//// above quantities need to be amended in following parts of code: 
 	//// i) InitModel (set to zero); Done
 	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
+	//// iii) RecordSample: add to incidence / Timeseries).
+	//// iv) SaveResults
+	//// v) SaveSummaryResults
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } popvar;
 
@@ -120,7 +121,7 @@ typedef struct POPVAR {
  */
 typedef struct RESULTS {
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC; 
+	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC ; 
 	double H, incH; //added total hospitalisation and incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
@@ -138,25 +139,25 @@ typedef struct RESULTS {
 	double Mild, ILI, SARI, Critical, CritRecov;				// Prevalence				//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults iii) outputted in SaveSummaryResults
 	double incMild, incILI, incSARI, incCritical, incCritRecov;	// Incidence				//// Must be: i) initialised to zero in SetUpModel. ii) calculated in RecordSample iii) outputted in SaveResults. 
 	double cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;	// cumulative incidence		//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults
+	double incDeath_ILI, incDeath_SARI, incDeath_Critical;		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	///@}
 
 	/////// Severity States by admin unit
 	double Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];				// Prevalence by admin unit
 	double incMild_adunit[MAX_ADUNITS], incILI_adunit[MAX_ADUNITS], incSARI_adunit[MAX_ADUNITS], incCritical_adunit[MAX_ADUNITS], incCritRecov_adunit[MAX_ADUNITS];	// incidence by admin unit
 	double cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS]; // cumulative incidence by admin unit
+	double incDeath_ILI_adunit[MAX_ADUNITS], incDeath_SARI_adunit[MAX_ADUNITS], incDeath_Critical_adunit[MAX_ADUNITS];		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
 	/////// possibly need quantities by age (later)
-	//// state varialbes (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
+	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
 
 	//// above quantities need to be amended in following parts of code: 
-	//// i) InitModel (set to zero); Done
-	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
-	///// SaveResults and SaveSummary results. 
+	//// i) SetUpModel (set to zero); 
+	//// ii) RecordSample: add to incidence / Timeseries). 
+	//// iii) SaveResults and SaveSummary results. 
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } results;
 
@@ -205,7 +206,7 @@ typedef struct INDEXLIST {
 typedef struct AIRPORT {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int country, adunit, num_connected, control, *conn_airports;
-	float int_traffic, total_traffic, loc_x, loc_y, control_start_time, control_end_time;
+	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
 	indexlist* DestMcells, *DestPlaces;
 } airport;
@@ -289,8 +290,7 @@ typedef struct INTERVENTION {
  * @brief A political entity that administers a geographical area.
  */
 typedef struct ADMINUNIT {
-	int id, cnt_id, NI, NIactive[MAX_INTERVENTION_TYPES], n; //added n - number of people in admin unit: ggilani 05/01/15
-	int ActiveInterv[MAX_INTERVENTION_TYPES][MAX_INTERVENTIONS_PER_ADUNIT];
+	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
 	intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
 	char cnt_name[100], ad_name[200];
 	int NP, place_close_trig;
@@ -301,7 +301,6 @@ typedef struct ADMINUNIT {
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
-	double caseDetectInit;
 } adminunit;
 
 #pragma pack(pop)
