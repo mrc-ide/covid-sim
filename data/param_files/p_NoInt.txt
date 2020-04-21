@@ -82,6 +82,18 @@
 [Relative spatial contact rates over time after place closure]
 1.25 1.25 1.25 1.25 
 
+[Place closure incidence threshold over time]
+0 0 0 0
+^^ needs to be 0 for global triggers	
+
+[Place closure fractional incidence threshold over time]
+0 0 0 0 
+^^ needs to be 0 for global triggers or if abs incidence threshold used	
+
+[Trigger incidence per cell for place closure over time]
+10000000000 10000000000 10000000000 10000000000 
+*** ^^^ change these for global too ***	
+
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS
 
@@ -145,6 +157,8 @@
 [Individual level compliance with quarantine over time]
 1.0 1.0 1.0 
 
+[Household quarantine trigger incidence per cell over time]
+0 0 0 
 
 
 ===================================		CASE ISOLATION PARAMETERS
@@ -195,6 +209,10 @@
 
 [Proportion of detected cases isolated over time]
 0.9 0.9 0.9 0.9 0.9 
+
+[Case isolation trigger incidence per cell over time]
+0 0 0 0 0 
+
 
 ===================================		SOCIAL DISTANCING PARAMETERS
 
@@ -290,5 +308,8 @@
 0.25	0.25	0.25	0.25
 0.25	0.25	0.25	0.25
 0.25	0.25	0.25	0.25
+
+[Trigger incidence per cell for social distancing over time]
+100 100 100 100 100 100 
 
 

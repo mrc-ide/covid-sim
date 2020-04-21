@@ -105,7 +105,7 @@ https://creativecommons.org/licenses/by/4.0/legalcode
 
 Due to time pressure on the development team we are not currently accepting
 contributions to this repository.  You are free to
-[fork it](https://github.com/mrc-ide/covid-sim/fork).
+[fork it](https://github.com/mrc-ide/covid-sim/fork). We are also unable to provide user support at this time.
 
 If you do find issues with the code please raise them in our
 [Issue Tracker](https://github.com/mrc-ide/covid-sim/issues).
