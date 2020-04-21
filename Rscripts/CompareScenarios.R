@@ -27,7 +27,7 @@ DefaultInFolder <- "."
 PlotOutputDirRelativeToBaseFolder <- c("Plots", "Comparisons")
 
 # Date range
-Day_0 <- as.Date("2020-01-06")
+Day_0 <- as.Date("2020-01-01")
 NumDaysToPlot <- 186
 
 # resolution of output files
@@ -77,7 +77,7 @@ SeverityVariables <- c("Mild", "ILI", "SARI", "Critical", "incMild", "incILI", "
 # severity output from c labelled as incidence of death, but it's actually cumulative deaths. correct here for now but will later fix in c code. 
 CORRECT_INC_DEATH <- TRUE #
 # filenames to look for
-Pattern 			    <- ".avNE.adunitVar.xls"
+Pattern 			    <- ".avNE.severity.xls"
 
 # where do we find the info we want?
 Suffix <-
@@ -186,9 +186,8 @@ GetVerboseScenarioName_Many 	= function(AbbreiviatedScenarioNames) {
 #### ==== Get list of scenarios / filenames to compare ####
 
 ## this should give every model run in folder (but will be too much info on one plot). 
-PatternWithR 		  <- paste0("R0=", R, Pattern)	
-FilesToCheck 	    <- list.files(path = InFolder, pattern = PatternWithR)
-PossibleScenarios <- sub(PatternWithR, "", FilesToCheck) 
+FilesToCheck 	    	<- list.files(path = InFolder, pattern = Pattern)
+PossibleScenarios 		<- sub(Pattern, "", FilesToCheck) 
 
 if (0 == length(Scenarios)) {
   # take all possible files
