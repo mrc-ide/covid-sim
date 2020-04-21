@@ -40,8 +40,8 @@ typedef struct PERSON {
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
 	unsigned short int quar_start_time, isolation_start_time;
-	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is time at which you become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
-	unsigned short int recovery_time;	// set in DoIncub function (note recovery_time can be death_time also) 
+	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease. 
+	unsigned short int recovery_or_death_time;	// set in DoIncub function 
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 1;
@@ -92,20 +92,22 @@ typedef struct POPVAR {
 	unsigned short int* contact_time[MAX_ADUNITS]; //added some more queues to store time contact is made: ggilani 07/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
 
-									  ///// Prevalence quantities (+ by admin unit)
+	///// Prevalence quantities (+ by admin unit)
 	int Mild, ILI, SARI, Critical, CritRecov, /*cumulative incidence*/ cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;
 	int Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];
 	/// cum incidence quantities. (+ by admin unit)
 	int cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS];
 
+	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
+	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+
 	//// above quantities need to be amended in following parts of code: 
 	//// i) InitModel (set to zero); Done
 	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
+	//// iii) RecordSample: add to incidence / Timeseries).
+	//// iv) SaveResults
+	//// v) SaveSummaryResults
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } popvar;
 
@@ -120,7 +122,7 @@ typedef struct POPVAR {
  */
 typedef struct RESULTS {
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC; 
+	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC ; 
 	double H, incH; //added total hospitalisation and incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
@@ -138,25 +140,25 @@ typedef struct RESULTS {
 	double Mild, ILI, SARI, Critical, CritRecov;				// Prevalence				//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults iii) outputted in SaveSummaryResults
 	double incMild, incILI, incSARI, incCritical, incCritRecov;	// Incidence				//// Must be: i) initialised to zero in SetUpModel. ii) calculated in RecordSample iii) outputted in SaveResults. 
 	double cumMild, cumILI, cumSARI, cumCritical, cumCritRecov;	// cumulative incidence		//// Must be: i) initialised to zero in SetUpModel. ii) outputted in SaveResults
+	double incDeath_ILI, incDeath_SARI, incDeath_Critical;		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	///@}
 
 	/////// Severity States by admin unit
 	double Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];				// Prevalence by admin unit
 	double incMild_adunit[MAX_ADUNITS], incILI_adunit[MAX_ADUNITS], incSARI_adunit[MAX_ADUNITS], incCritical_adunit[MAX_ADUNITS], incCritRecov_adunit[MAX_ADUNITS];	// incidence by admin unit
 	double cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS]; // cumulative incidence by admin unit
+	double incDeath_ILI_adunit[MAX_ADUNITS], incDeath_SARI_adunit[MAX_ADUNITS], incDeath_Critical_adunit[MAX_ADUNITS];		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
 	/////// possibly need quantities by age (later)
-	//// state varialbes (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
+	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii) 
 
 	//// above quantities need to be amended in following parts of code: 
-	//// i) InitModel (set to zero); Done
-	//// ii) RecordSample: (collate from threads); 
-	//// iii) RecordSample: add to incidence / Timeseries). 
-	//// iv) Print out statement in RunModel but you don't need to add to that yet. 
-	///// SaveResults and SaveSummary results. 
+	//// i) SetUpModel (set to zero); 
+	//// ii) RecordSample: add to incidence / Timeseries). 
+	//// iii) SaveResults and SaveSummary results. 
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement). 
-
-
 
 } results;
 

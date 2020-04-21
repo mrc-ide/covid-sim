@@ -275,7 +275,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// After loop 1a) over infectious people, spatial infections are doled out. 
 
 	int i, j, k, l, m,ad;
-	int n, n_unscaled; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
+	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells. 
 	int i2, b, i3, f, f2,fct, tn, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
@@ -299,7 +299,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled,n_unscaled) schedule(static,1)
+#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -365,8 +365,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 							l = si->PlaceLinks[k];
 							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed). 
 							{
-								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
-								
+								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);		
 								mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
@@ -386,41 +385,26 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									{
 										s4 = s3;
 										s4_scaled = s4 *P.ScalingFactorPlaceDigitalContacts;
-
-										if (s4_scaled < 0)
-										{
-											fprintf(stderr, "@@@ %lg\n", s4_scaled);
-											exit(1);
-										}
-										else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
-
-										//also keep track of unscaled values of n to to get the correct downscaling later.
-										if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n_unscaled = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n_unscaled = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-										if (n_unscaled > 0) SampleWithoutReplacement(tn, n_unscaled, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+										if (s4 > 1) s4 = 1;
+										if (s4_scaled > 1) s4_scaled = 1;
 									}
 									else
 									{
 										s4 = s3;
-										//s4=s3*(1-P.PlaceTypePropBetweenGroupLinks[k]*P.PlaceTypeGroupSizeParam1[k]/((double) Places[k][l].n));
-										if (s4 < 0)
-										{
-											fprintf(stderr, "@@@ %lg\n", s4);
-											exit(1);
-										}
-										else if (s4 >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
-											n = Places[k][l].group_size[i2];
-										else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
-											n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+										if (s4 > 1) s4 = 1;
+										s4_scaled = s4;
 									}
 
+									if (s4_scaled < 0)
+										{
+											fprintf(stderr, "@@@ %lg\n", s4_scaled);
+											exit(1);
+										}
+									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
+										n = Places[k][l].group_size[i2];
+									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place. 
+										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
+									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
@@ -450,7 +434,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										{
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
-											s = CalcPlaceSusc(i3, k, ts, ci, tn);
+											//downscale s if it has been scaled up do to digital contact tracing
+											s = CalcPlaceSusc(i3, k, ts, ci, tn)* s4 / s4_scaled;
 											
 											if (bm)
 											{
@@ -460,19 +445,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-
-											//downscale s if it has been scaled up do to digital contact tracing
-											if (fct)
-											{
-												if (s4_scaled >= 1) //i.e. if s4_scaled was so large that we reached the ceiling for contacts we could sample, we want to scale down susceptibility to take this into account
-												{
-													s /= (((double)n_unscaled) / ((double)n));
-												}
-												else
-												{
-													s /= P.ScalingFactorPlaceDigitalContacts;
-												}
-											}
 
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
@@ -495,42 +467,17 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if ((k == P.HotelPlaceType) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
-
-									if (fct)
+									if (s3 > 1) s3 = 1;
+									s3_scaled = (fct) ? (s3 * P.ScalingFactorPlaceDigitalContacts) : s3;
+									if (s3_scaled < 0)
 									{
-										s3_scaled = s3 * P.ScalingFactorPlaceDigitalContacts;
-
-										if (s3_scaled < 0)
-										{
-											ERR_CRITICAL_FMT("@@@ %lg\n", s3);
-										}
-										else if (s3_scaled >= 1)
-											n = Places[k][l].n;
-										else
-											n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
-
-										//also keep track of what unscaled versions of n would have been just in case it's needed for later downscaling on
-										if (s3 >= 1)
-											n_unscaled = Places[k][l].n;
-										else
-											n_unscaled = (int)ignbin_mt((long)Places[k][l].n, s3, tn);
-										if (n_unscaled > 0) SampleWithoutReplacement(tn, n_unscaled, Places[k][l].n);
-
+										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
 									}
+									else if (s3_scaled >= 1)
+										n = Places[k][l].n;
 									else
-									{
-										if (s3 < 0)
-										{
-											ERR_CRITICAL_FMT("@@@ %lg\n", s3);
-										}
-										else if (s3 >= 1)
-											n = Places[k][l].n;
-										else
-											n = (int)ignbin_mt((long)Places[k][l].n, s3, tn);
-										if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
-									}
-
+										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
+									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[SamplingQueue[tn][m]];
@@ -560,7 +507,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										{
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
-											s = CalcPlaceSusc(i3, k, ts, ci, tn);
+											//if doing digital contact tracing, scale down susceptibility here
+											s = CalcPlaceSusc(i3, k, ts, ci, tn)*s3/s3_scaled;
 
 											if (bm)
 											{
@@ -570,20 +518,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-
-											//if doing digital contact tracing, scale down susceptibility here
-											if (fct)
-											{
-												if (s3_scaled >= 1) //i.e. if s3_scaled was so large that we reached the ceiling for contacts we could sample, we want to scale down susceptibility to take this into account
-												{
-													s /= (((double)n_unscaled) / ((double)n));
-												}
-												else
-												{
-													s /= P.ScalingFactorPlaceDigitalContacts;
-												}
-											}
-
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												cq = Hosts[i3].pcell % P.NumThreads;
@@ -813,37 +747,37 @@ void IncubRecoverySweep(double t, int run)
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-	for (i = 0; i < P.NumHolidays; i++)
-	{
-		ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
-		if ((t + P.TimeStep >= ht) && (t < ht))
+	if (P.DoPlaces)
+		for (i = 0; i < P.NumHolidays; i++)
 		{
-#pragma omp parallel for private(j,k,l,b,tn) schedule(static,1)
-			for (tn = 0; tn < P.NumThreads; tn++)
+			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
-				for (b = tn; b < P.N; b += P.NumThreads)
+//				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
+				for (j = 0; j < P.PlaceTypeNum; j++)
 				{
-					for (j = 0; j < P.PlaceTypeNum; j++)
-					{
-						l = Hosts[b].PlaceLinks[j];
-						if (l >= 0)
+#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1)
+					for(tn=0;tn<P.NumThreads;tn++)
+						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
-								k = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][l].close_start_time > k)	Places[j][l].close_start_time = (unsigned short) k;
-								if (Hosts[b].absent_start_time > k)		Hosts[b].absent_start_time = (unsigned short) k;
-
-								k = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][l].close_end_time < k)	Places[j][l].close_end_time = (unsigned short) k;
-								if (Hosts[b].absent_stop_time < k)		Hosts[b].absent_stop_time = (unsigned short) k;
+								l = (int)(ht * P.TimeStepsPerDay);
+								if (Places[j][k].close_start_time > l)
+									Places[j][k].close_start_time = (unsigned short) l;
+								b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
+								if (Places[j][k].close_end_time < b)
+									Places[j][k].close_end_time = (unsigned short) b;
+								for (ci = 0; ci < Places[j][k].n;ci++)
+								{
+									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
+									if (Hosts[Places[j][k].members[ci]].absent_stop_time < b) Hosts[Places[j][k].members[ci]].absent_stop_time = (unsigned short)b;
+								}
 							}
 						}
-					}
 				}
 			}
 		}
-	}
 
 #pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
@@ -858,26 +792,28 @@ void IncubRecoverySweep(double t, int run)
 			{
 				ci = c->infected[j];	//// person index
 				si = Hosts + ci;		//// person
-				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
+
+				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
+				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)... 
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
+					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI. 
 
 				if (P.DoSeverity)
 				{
 					if (ts >= si->SARI_time)					DoSARI(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
 					if (ts >= si->Critical_time)				DoCritical(ci, tn);
 					if (ts >= si->RecoveringFromCritical_time)	DoRecoveringFromCritical(ci, tn);
-					if (ts >= si->recovery_time)
+					if (ts >= si->recovery_or_death_time)
 					{
 						if (si->to_die)
-							DoDeath_FromCriticalorSARI(ci, tn);
+							DoDeath_FromCriticalorSARIorILI(ci, tn);
 						else
 							DoRecover_FromSeverity(ci, tn);
 					}
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (ts >= si->recovery_time)
+				if (ts >= si->recovery_or_death_time)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
@@ -885,20 +821,14 @@ void IncubRecoverySweep(double t, int run)
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					} 
 					else /// if they die and this timestep is after they've died.
-					{	// si->to_die
+					{	
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
 							DoRecover(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 						else
 							DoDeath(ci, tn, run);
-							//StateT[tn].inf_queue[0][StateT[tn].n_queue[1]++] = ci;
 					}
 				}
 			}
-
-			//for (j = 0; j < StateT[tn].n_queue[0]; j++) DoRecover(StateT[tn].inf_queue[0][j], run, tn);
-			//for (j = 0; j < StateT[tn].n_queue[1]; j++) DoDeath(StateT[tn].inf_queue[1][j], run, tn);
-			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 		}
 }
 
@@ -975,7 +905,7 @@ void DigitalContactTracingSweep(double t)
 								dct_start_time = USHRT_MAX - 1; //for contacts of asymptomatic cases - they won't get added as their index case won't know that they are infected (unless explicitly tested)
 								//but we keep them in the queue in case their index case is detected as the contact of someone else and gets their trigger time set
 								//set dct_end_time to recovery time of infector, in order to remove from queue if their host isn't detected before they recover.
-								dct_end_time = Hosts[infector].recovery_time;
+								dct_end_time = Hosts[infector].recovery_or_death_time;
 							}
 						}
 
@@ -1075,7 +1005,14 @@ void DigitalContactTracingSweep(double t)
 					//first of all do some kind of testing of contacts of index cases
 					if ((Hosts[contact].index_case_dct == 0) && ((Hosts[contact].dct_start_time + (unsigned short int) (P.DelayToTestDCTContacts * P.TimeStepsPerDay)) == ts))
 					{
-						if (abs(Hosts[contact].inf) == 2 || Hosts[contact].inf == -1) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
+						if (P.FindContactsOfDCTContacts)
+						{
+							//set them to be an index case
+							Hosts[contact].index_case_dct = 1;
+							//set trigger time to pick up their contacts in the next time step
+							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
+						}
+/*						if (abs(Hosts[contact].inf) == InfStat_Latent || abs(Hosts[contact].inf) == InfStat_InfectiousAsymptomaticNotCase || Hosts[contact].inf == InfStat_InfectiousAlmostSymptomatic) //if contact is either infectious (symptomatic or asymptomatic or presymptomatic)
 						{
 							//if they are false negative remove from contact tracing list
 							if (ranf_mt(tn) >= P.SensitivityDCT)
@@ -1100,6 +1037,7 @@ void DigitalContactTracingSweep(double t)
 								Hosts[contact].dct_end_time = ts;
 							}
 						}
+*/
 					}
 
 					if (Hosts[AdUnits[i].dct[j]].dct_end_time == ts)
@@ -1223,7 +1161,6 @@ int TreatSweep(double t)
 				DoVacc(State.mvacc_queue[i], ts);
 			State.mvacc_cum = m;
 		}
-
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
 		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatProphCourseLength) - 1);
@@ -1232,7 +1169,7 @@ int TreatSweep(double t)
 		tspf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
 		tsmf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
 		tsmb = (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
-		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationC));
+		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationCurrent));
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
@@ -1426,7 +1363,6 @@ int TreatSweep(double t)
 						}
 					}
 					
-					
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
 					//// **** //// **** //// **** //// **** PLACE CLOSURE
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
@@ -1466,7 +1402,9 @@ int TreatSweep(double t)
 						///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold. 
 
 						if (P.DoGlobalTriggers)
+						{
 							f2 = (global_trig >= P.PlaceCloseCellIncThresh);
+						}
 						else if (P.DoAdminTriggers)
 						{
 							trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
@@ -1483,29 +1421,27 @@ int TreatSweep(double t)
 						{
 							//							if(P.PlaceCloseByAdminUnit) AdUnits[Mcells[b].adunit].place_close_trig=USHRT_MAX-1; // This means schools only close once
 							interventionFlag = 1;
-							if (P.DoInterventionDelaysByAdUnit)
-								if ((t <= AdUnits[Mcells[b].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[b].adunit].PlaceCloseTimeStart + AdUnits[Mcells[b].adunit].PlaceCloseDuration)))
+							if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[b].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[b].adunit].PlaceCloseTimeStart + AdUnits[Mcells[b].adunit].PlaceCloseDuration))))
 									interventionFlag = 0;
 
-							if (interventionFlag == 1)
-								if ((!P.PlaceCloseByAdminUnit) || (ad > 0))
+							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
+							{
+								ad2 = ad / P.PlaceCloseAdminUnitDivisor;
+								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
 								{
-									ad2 = ad / P.PlaceCloseAdminUnitDivisor;
-									if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
-									{
-										//if doing intervention delays and durations by admin unit based on global triggers
-										if (P.DoInterventionDelaysByAdUnit)
-											Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
-										else
-											Mcells[b].place_end_time = tspf;
-										Mcells[b].place_trig = 0;
-										Mcells[b].placeclose = 2;
-										for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-											if (j2 != P.HotelPlaceType)
-												for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
-													DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
-									}
+									//if doing intervention delays and durations by admin unit based on global triggers
+									if (P.DoInterventionDelaysByAdUnit)
+										Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
+									else
+										Mcells[b].place_end_time = tspf;
+									Mcells[b].place_trig = 0;
+									Mcells[b].placeclose = 2;
+									for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+										if (j2 != P.HotelPlaceType)
+											for (i2 = 0; i2 < Mcells[b].np[j2]; i2++)
+												DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
 								}
+							}
 						}
 					}
 					
