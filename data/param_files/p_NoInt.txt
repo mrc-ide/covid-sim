@@ -100,7 +100,6 @@
 [Household quarantine start time]
 100000
 
-
 [Delay to start household quarantine]
 1
 
@@ -158,6 +157,8 @@
 [Individual level compliance with quarantine over time]
 1 1 1 
 
+[Household quarantine trigger incidence per cell over time]
+0 0 0 
 
 
 ===================================		CASE ISOLATION PARAMETERS
