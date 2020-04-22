@@ -183,7 +183,7 @@ if not os.path.exists(no_int_file):
 # Configure an intervention (controls) parameter file.
 # In reality you will run CovidSim many times with different parameter
 # controls.
-control_roots = [ "PC7_CI_HQ_SD", "PC7_CI_HQ_SD_DCT" ]
+control_roots = [ "PC7_CI_HQ_SD" ]
 for root in control_roots:
     cf = os.path.join(args.paramdir, "p_{0}.txt".format(root))
     if not os.path.exists(cf):
