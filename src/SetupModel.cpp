@@ -1421,7 +1421,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		if (!(SamplingQueue[i] = (int*)malloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE) * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		for (k = 0; k < P.NumThreads; k++)
-			if (!(StateT[i].inf_queue[k] = (int*)malloc(P.InfQueuePeakLength * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+			if (!(StateT[i].inf_queue[k] = (infection*)malloc(P.InfQueuePeakLength * sizeof(infection)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		if (!(StateT[i].cell_inf = (float*)malloc((l + 1) * sizeof(float)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	}
 
