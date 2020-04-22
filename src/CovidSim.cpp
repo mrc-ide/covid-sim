@@ -1040,8 +1040,14 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of children at home for whom one adult also stays at home", "%lf", (void*)& P.CaseAbsentChildPropAdultCarers, 1, 1, 0)) P.CaseAbsentChildPropAdultCarers = 0;
 #ifdef ABSENTEEISM_PLACE_CLOSURE
 		P.CaseAbsenteeismDelay = 0;  // Set to zero for tracking absenteeism
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max absent time", "%i", (void*)&P.MaxAbsentTime, 1, 1, 0)) P.MaxAbsentTime = MAX_ABSENT_TIME;
+		if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
+		{
+			ERR_CRITICAL_FMT("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
+		}
 #else
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay in starting place absenteeism for cases who withdraw", "%lf", (void*)& P.CaseAbsenteeismDelay, 1, 1, 0)) P.CaseAbsenteeismDelay = 0;
+		P.MaxAbsentTime = 0; // Not used when ABSENTEEISM_PLACE_CLOSURE is not used.
 #endif
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place absenteeism for cases who withdraw", "%lf", (void*)& P.CaseAbsenteeismDuration, 1, 1, 0)) P.CaseAbsenteeismDuration = 7;
 
@@ -2660,7 +2666,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Places[m][l].treat_end_time = Places[m][l].close_end_time = 0;
 	#ifdef ABSENTEEISM_PLACE_CLOSURE
 				Places[m][l].AbsentLastUpdateTime = 0;
-				for (int i2 = 0; i2 < MAX_ABSENT_TIME; i2++) Places[m][l].Absent[i2] = 0;
+				for (int i2 = 0; i2 < P.MaxAbsentTime; i2++) Places[m][l].Absent[i2] = 0;
 	#endif
 			}
 		}

@@ -86,6 +86,7 @@ typedef struct PARAM {
 	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
+	int MaxAbsentTime; // In days.  Max number of days absent, range [0, MAX_ABSENT_TIME].  Default 0 if !ABSENTEEISM_PLACE_CLOSURE, otherwise MAX_ABSENT_TIME
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
@@ -146,9 +147,9 @@ typedef struct PARAM {
 
 	double SocDistRadius, SocDistRadius2;
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 	int VaryEfficaciesOverTime;
 
@@ -166,7 +167,7 @@ typedef struct PARAM {
 	double Enhanced_SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistSpatialEffectCurrent
 	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistHouseholdEffectCurrent
 	double Enhanced_SD_PlaceEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type;  time-varying equivalent of EnhancedSocDistPlaceEffectCurrent
-	double Enhanced_SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above.  
+	double Enhanced_SD_PlaceEffects_OverTime_dummy	[MAX_NUM_INTERVENTION_CHANGE_TIMES * NUM_PLACE_TYPES];	//// Hack as can't read in matrix above. Will read this in then populate the above.
 
 	/**< CASE ISOLATION	*/
 	int Num_CI_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
