@@ -59,6 +59,13 @@ typedef struct HOUSEHOLD {
 	unsigned short int nhr;
 } household;
 
+/*
+In the main InfectSweep loop, we cannot safely set
+Hosts[infectee].infector and Hosts[infectee].infect_type, as concurrent
+threads might be trying to set the values differently. We therefore
+make a queue of `infection`s in `inf_queue` containing the information
+we need, so that we can set the values after the main loop has finished.
+*/
 typedef struct INFECTION {
 	int infector;
 	int infectee;
