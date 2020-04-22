@@ -15,14 +15,6 @@ const int MAX_ADUNITS = 3200;
 const int MAX_ABSENT_TIME = 8;
 
 #ifdef COUNTRY_US
-#define ABSENTEEISM_PLACE_CLOSURE
-#else
-/*
-#define ABSENTEEISM_PLACE_CLOSURE
-*/
-#endif
-
-#ifdef COUNTRY_US
 #define MAX_DIST 2000
 #define NK_HR 2500
 #define NKR 4000000

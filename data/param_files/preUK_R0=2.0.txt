@@ -129,9 +129,12 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 [Duration of place absenteeism for cases who withdraw]
 7
 
+[Absenteeism Place Closure]
+0
+
 #[Max absent time]
 #0
-#Not used because ABSENTEEISM_PLACE_CLOSURE is 0.
+#Not used because [Absenteeism Place Closure] is 0.
 
 [Initial number of infecteds]
 1000
