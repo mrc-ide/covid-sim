@@ -1,0 +1,29 @@
+# Editor config for CovidSim
+
+# Set this as the topmost editorconfig
+root = true
+
+# Generic
+# Assume git/gitattributes will handle line endings
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Python
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Makefiles
+[Makefile]
+indent_style = tab
+
+# CMakeLists.txt
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
+
+# C++ source
+[*.c,*.cpp,*.h]
+indent_style = tab
+indent_size = 2

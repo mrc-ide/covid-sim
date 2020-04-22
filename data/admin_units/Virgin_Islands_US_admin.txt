@@ -1,0 +1,153 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+89050
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+0
+
+[List of names of countries to include]
+United_States
+
+[Number of level 1 administrative units to include]
+1
+
+[List of level 1 administrative units to include]
+Virgin_Islands_US
+
+[Codes and country/province names for admin units]
+560600	United_States	Virgin_Islands_US
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.057171313	0.066058244	0.069352537	0.064889919	0.0620936	0.059823985	0.044894324	0.048293958	0.053063023	0.059613304	0.067849037	0.070520862	0.071421047	0.062850138	0.060781629	0.043611082	0.037711998
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.34	0.2376	0.165	0.107	0.0642	0.03852	0.023112	0.0138672	0.00832032	0.00238048
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.92815323	0.974151532	0	0.34032516999999995
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0.562213735	0.916509428	0.65967483	0.08349057199999999
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.007468332	0.005238255	0.066708707	0.883441814
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+1
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+6
+
+[Holiday start times]
+116	168	357	480	532	721	
+
+
+[Holiday durations]
+4	77	10	4	77	10	
+
+===================================
+

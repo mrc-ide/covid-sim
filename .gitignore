@@ -1,0 +1,16 @@
+*~
+*.xls
+x64
+.vs
+*.opendb
+*.swp
+*.gdb_history
+*.bin
+wpop_*.txt
+out/
+build
+build-*/
+build_*/
+*.vcxproj.user
+tests/us-output/
+tests/regressiontest_UK_100th/

@@ -1,0 +1,3 @@
+# Windows messes with line endings, which causes the tests to fail
+# because the checksums don't match.
+*.checksums.txt text eol=lf
