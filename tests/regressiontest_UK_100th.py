@@ -124,7 +124,7 @@ print('=== Starting running:')
 subprocess.check_call(
     [covidsim_exe, '/c:1',
      '/PP:' + updir1 + 'preUK_R0=2.0.txt',
-     '/P:' + updir1 + 'p_PC7_CI_HQ_SD_DCT.txt', '/CLP1:100',
+     '/P:' + updir1 + 'p_PC7_CI_HQ_SD.txt', '/CLP1:100',
      '/CLP2:91', '/CLP3:121', '/CLP4:121', '/O:CI_100_91_R0=2.2',
      '/A:' + updir1 + 'sample_admin.txt',
      '/D:' + wpop_bin,
