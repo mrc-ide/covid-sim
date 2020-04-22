@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>covid-sim: CONTACTEVENT Struct Reference</title>
+<title>covid-sim: INFECTION Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,77 +63,72 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="struct_c_o_n_t_a_c_t_e_v_e_n_t-members.html">List of all members</a>  </div>
+<a href="struct_i_n_f_e_c_t_i_o_n-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">CONTACTEVENT Struct Reference</div>  </div>
+<div class="title">INFECTION Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p>Contact event used for tracking contact tracing events.  
- <a href="struct_c_o_n_t_a_c_t_e_v_e_n_t.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_model_8h_source.html">Model.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a3655761f85c2db54629612455fa7b18f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_c_o_n_t_a_c_t_e_v_e_n_t.html#a3655761f85c2db54629612455fa7b18f">contact</a></td></tr>
-<tr class="separator:a3655761f85c2db54629612455fa7b18f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e52c52f9aed04f1205c2092e15a2af9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_c_o_n_t_a_c_t_e_v_e_n_t.html#a3e52c52f9aed04f1205c2092e15a2af9">index</a></td></tr>
-<tr class="separator:a3e52c52f9aed04f1205c2092e15a2af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af03a93e3e7eff25be781088e9e962124"><td class="memItemLeft" align="right" valign="top">unsigned short int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_c_o_n_t_a_c_t_e_v_e_n_t.html#af03a93e3e7eff25be781088e9e962124">contact_time</a></td></tr>
-<tr class="separator:af03a93e3e7eff25be781088e9e962124"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada84825eaeb6edc7f64a702a455084db"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_i_n_f_e_c_t_i_o_n.html#ada84825eaeb6edc7f64a702a455084db">infector</a></td></tr>
+<tr class="separator:ada84825eaeb6edc7f64a702a455084db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56301ed469a8c53fb332af58e6887379"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_i_n_f_e_c_t_i_o_n.html#a56301ed469a8c53fb332af58e6887379">infectee</a></td></tr>
+<tr class="separator:a56301ed469a8c53fb332af58e6887379"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5adf4609a0dcf1bb7a614003ca22a8b7"><td class="memItemLeft" align="right" valign="top">short int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_i_n_f_e_c_t_i_o_n.html#a5adf4609a0dcf1bb7a614003ca22a8b7">infect_type</a></td></tr>
+<tr class="separator:a5adf4609a0dcf1bb7a614003ca22a8b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Contact event used for tracking contact tracing events. </p>
-<p>Currently stores: contact and index case (both ints) and contact time (unsigned short int) Thanks to igfoo </p>
-
-<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00081">81</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
+<div class="textblock">
+<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00069">69</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="a3655761f85c2db54629612455fa7b18f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3655761f85c2db54629612455fa7b18f">&#9670;&nbsp;</a></span>contact</h2>
+<a id="a5adf4609a0dcf1bb7a614003ca22a8b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5adf4609a0dcf1bb7a614003ca22a8b7">&#9670;&nbsp;</a></span>infect_type</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CONTACTEVENT::contact</td>
+          <td class="memname">short int INFECTION::infect_type</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00082">82</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00072">72</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
 
 </div>
 </div>
-<a id="af03a93e3e7eff25be781088e9e962124"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af03a93e3e7eff25be781088e9e962124">&#9670;&nbsp;</a></span>contact_time</h2>
+<a id="a56301ed469a8c53fb332af58e6887379"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56301ed469a8c53fb332af58e6887379">&#9670;&nbsp;</a></span>infectee</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned short int CONTACTEVENT::contact_time</td>
+          <td class="memname">int INFECTION::infectee</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00084">84</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00071">71</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
 
 </div>
 </div>
-<a id="a3e52c52f9aed04f1205c2092e15a2af9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3e52c52f9aed04f1205c2092e15a2af9">&#9670;&nbsp;</a></span>index</h2>
+<a id="ada84825eaeb6edc7f64a702a455084db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada84825eaeb6edc7f64a702a455084db">&#9670;&nbsp;</a></span>infector</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CONTACTEVENT::index</td>
+          <td class="memname">int INFECTION::infector</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00083">83</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_model_8h_source.html#l00070">70</a> of file <a class="el" href="_model_8h_source.html">Model.h</a>.</p>
 
 </div>
 </div>

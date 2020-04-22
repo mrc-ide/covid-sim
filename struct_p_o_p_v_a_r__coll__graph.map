@@ -1,4 +1,5 @@
 <map id="POPVAR" name="POPVAR">
-<area shape="rect" id="node1" title="The global state of the model." alt="" coords="31,95,108,121"/>
+<area shape="rect" id="node1" title="The global state of the model." alt="" coords="97,95,175,121"/>
 <area shape="rect" id="node2" href="$struct_c_o_n_t_a_c_t_e_v_e_n_t.html" title="Contact event used for tracking contact tracing events." alt="" coords="5,5,133,32"/>
+<area shape="rect" id="node3" href="$struct_i_n_f_e_c_t_i_o_n.html" title=" " alt="" coords="157,5,251,32"/>
 </map>
