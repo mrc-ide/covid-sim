@@ -536,7 +536,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 				{
 					DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
-					if (P.PlaceCloseRoundHousehold)
+					if (!P.PlaceCloseRoundHousehold)
 					{
 						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
 						{
