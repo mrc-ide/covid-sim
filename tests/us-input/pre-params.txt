@@ -129,7 +129,10 @@ Also comparable with 1957 pandemic attack rates from Chin.
 [Duration of place absenteeism for cases who withdraw]
 7
 
-[Absenteeism Place Closure]
+[Place close round household]
+1
+
+[Absenteeism place closure]
 1
 
 [Max absent time]

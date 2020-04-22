@@ -1038,6 +1038,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum age of child at home for whom one adult also stays at home", "%i", (void*)& P.CaseAbsentChildAgeCutoff, 1, 1, 0)) P.CaseAbsentChildAgeCutoff = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of children at home for whom one adult also stays at home", "%lf", (void*)& P.CaseAbsentChildPropAdultCarers, 1, 1, 0)) P.CaseAbsentChildPropAdultCarers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place close round household", "%i", (void*)&P.PlaceCloseRoundHousehold, 1, 1, 0)) P.PlaceCloseRoundHousehold = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Absenteeism place closure", "%i", (void*)&P.AbsenteeismPlaceClosure, 1, 1, 0)) P.AbsenteeismPlaceClosure = 0;
 		if (P.AbsenteeismPlaceClosure)
 		{

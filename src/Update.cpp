@@ -527,21 +527,23 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 	if (!P.AbsenteeismPlaceClosure)
 	{
-#ifdef PLACE_CLOSE_ROUND_HOUSEHOLD
-		if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
-#endif
+		if (P.PlaceCloseRoundHousehold)
+		{
+			if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
+		}
 		if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 				{
 					DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
-#ifndef PLACE_CLOSE_ROUND_HOUSEHOLD
-					if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
+					if (P.PlaceCloseRoundHousehold)
 					{
+						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
+						{
 #pragma omp critical (place_trig)
-						Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
+							Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
+						}
 					}
-#endif
 				}
 	}
 

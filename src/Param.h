@@ -86,6 +86,7 @@ typedef struct PARAM {
 	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
+	int PlaceCloseRoundHousehold; // Default 1 (close places around a household), 0 (off)
 	int AbsenteeismPlaceClosure; // Default 0 (off), 1 (on) track place closures in more detail
 	int MaxAbsentTime; // In days.  Max number of days absent, range [0, MAX_ABSENT_TIME].  Default 0 if !P.AbsenteeismPlaceClosure, otherwise MAX_ABSENT_TIME
 	double CaseAbsentChildPropAdultCarers;
