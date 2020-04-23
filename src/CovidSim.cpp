@@ -362,7 +362,7 @@ int main(int argc, char* argv[])
 		}
 
 		///// Set and save seeds
-		if (i == 0 || P.ResetSeeds && P.KeepSameSeeds)
+		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
 		{
 			P.nextRunSeed1 = P.runSeed1;
 			P.nextRunSeed2 = P.runSeed2;
