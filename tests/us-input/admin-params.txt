@@ -139,6 +139,12 @@ Wyoming
 [Proportion of between group place links]
 0.25	0.25	1
 
+[Kernel resolution]
+4000000
+
+[Kernel higher resolution factor]
+2500
+
 [Include holidays]
 0
 
