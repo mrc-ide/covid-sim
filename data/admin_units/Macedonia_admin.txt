@@ -157,10 +157,10 @@ Aerodrom	Aracinovo	Berovo	Bitola	Bogdanci	Bogovinje	Bosilovo	Brvenica	Butel	?air
 1	1	0	0.463977238
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.96822083	0.800317676	0.536022762	0.19968232399999997
@@ -178,7 +178,7 @@ Aerodrom	Aracinovo	Berovo	Bitola	Bogdanci	Bogovinje	Bosilovo	Brvenica	Butel	?air
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -216,6 +216,12 @@ Aerodrom	Aracinovo	Berovo	Bitola	Bogdanci	Bogovinje	Bosilovo	Brvenica	Butel	?air
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -227,11 +233,11 @@ Aerodrom	Aracinovo	Berovo	Bitola	Bogdanci	Bogovinje	Bosilovo	Brvenica	Butel	?air
 6
 
 [Holiday start times]
-115	158	362	479	522	726	
+115	158	362	479	522	726
 
 
 [Holiday durations]
-4	84	22	4	84	22	
+4	84	22	4	84	22
 
 ===================================
 

@@ -80,10 +80,10 @@ Aegean	Athos	Attica	Crete	Epirus_and_Western_Macedonia	Macedonia_and_Thrace	Pelo
 0.970799546	0.955467156	0	0.26176810399999995
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.53486274	0.940827458	0.738231896	0.059172541999999995
@@ -101,7 +101,7 @@ Aegean	Athos	Attica	Crete	Epirus_and_Western_Macedonia	Macedonia_and_Thrace	Pelo
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -139,6 +139,12 @@ Aegean	Athos	Attica	Crete	Epirus_and_Western_Macedonia	Macedonia_and_Thrace	Pelo
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -150,11 +156,11 @@ Aegean	Athos	Attica	Crete	Epirus_and_Western_Macedonia	Macedonia_and_Thrace	Pelo
 6
 
 [Holiday start times]
-111	167	357	475	531	721	
+111	167	357	475	531	721
 
 
 [Holiday durations]
-12	86	14	12	86	14	
+12	86	14	12	86	14
 
 ===================================
 

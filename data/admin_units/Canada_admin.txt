@@ -85,10 +85,10 @@ Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northw
 1	1	0	0.305973615
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 1	0.988946442	0.694026385	0.011053557999999963
@@ -106,7 +106,7 @@ Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northw
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -144,6 +144,12 @@ Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northw
 [Kernel Shape]
 3
 
+[Kernel resolution]
+4000000
+
+[Kernel higher resolution factor]
+2500
+
 ===================================
 [Include holidays]
 1
@@ -155,11 +161,11 @@ Alberta	British_Columbia	Manitoba	New_Brunswick	Newfoundland_and_Labrador	Northw
 5
 
 [Holiday start times]
-176	356	438	540	720	
+176	356	438	540	720
 
 
 [Holiday durations]
-90	10	5	90	10	
+90	10	5	90	10
 
 ===================================
 

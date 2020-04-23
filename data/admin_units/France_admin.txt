@@ -85,10 +85,10 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 1	1	0	0.29981962500000003
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 1	1	0.700180375	0.0
@@ -106,7 +106,7 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -144,6 +144,12 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -155,11 +161,11 @@ Auvergne-Rhône-Alpes	Bourgogne-Franche-Comté	Bretagne	Centre-Val_de_Loire	Corse	
 9
 
 [Holiday start times]
-103	187	293	356	411	467	551	657	720	
+103	187	293	356	411	467	551	657	720
 
 
 [Holiday durations]
-15	56	15	14	15	15	56	15	14	
+15	56	15	14	15	15	56	15	14
 
 ===================================
 

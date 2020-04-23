@@ -89,10 +89,10 @@ East_Midlands	East_of_England	London	North_East	North_West	South_East	South_West
 0.976396125	0.98390173	0	0.37097869299999997
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 1	0.959727307	0.629021307	0.040272693000000026
@@ -110,7 +110,7 @@ East_Midlands	East_of_England	London	North_East	North_West	South_East	South_West
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -148,6 +148,12 @@ East_Midlands	East_of_England	London	North_East	North_West	South_East	South_West
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -159,11 +165,11 @@ East_Midlands	East_of_England	London	North_East	North_West	South_East	South_West
 9
 
 [Holiday start times]
-97	195	294	353	412	461	559	658	717	
+97	195	294	353	412	461	559	658	717
 
 
 [Holiday durations]
-15	51	7	15	7	15	51	7	15	
+15	51	7	15	7	15	51	7	15
 
 ===================================
 

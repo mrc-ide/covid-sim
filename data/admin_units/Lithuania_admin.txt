@@ -82,10 +82,10 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 0.955059626	1	0	0.13537337699999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.786388259	1	0.864626623	0.0
@@ -103,7 +103,7 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -141,6 +141,12 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -152,11 +158,11 @@ Alytaus	Kauno	Klaipedos	Marijampoles	Panevezio	Šiauliai	Taurages	Telšiai	Utenos	
 7
 
 [Holiday start times]
-112	301	360	412	476	665	724	
+112	301	360	412	476	665	724
 
 
 [Holiday durations]
-4	5	5	5	4	5	5	
+4	5	5	5	4	5	5
 
 ===================================
 

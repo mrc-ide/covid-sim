@@ -93,10 +93,10 @@ Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	N
 0.979664304	1	0	0.24270737499999995
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.948282219	1	0.757292625	0.0
@@ -114,7 +114,7 @@ Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	N
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -152,6 +152,12 @@ Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	N
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -163,11 +169,11 @@ Blekinge	Dalarna	Gävleborg	Gotland	Halland	Jämtland	Jönköping	Kalmar	Kronoberg	N
 6
 
 [Holiday start times]
-106	165	355	470	529	719	
+106	165	355	470	529	719
 
 
 [Holiday durations]
-8	71	16	8	71	16	
+8	71	16	8	71	16
 
 ===================================
 

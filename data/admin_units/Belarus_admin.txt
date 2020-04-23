@@ -78,10 +78,10 @@ Brest	Homyel'	Hrodna	Mahilyow	Minsk	Vitsyebsk
 0.955059626	1	0	0.13537337699999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.786388259	1	0.864626623	0.0
@@ -99,7 +99,7 @@ Brest	Homyel'	Hrodna	Mahilyow	Minsk	Vitsyebsk
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -137,6 +137,12 @@ Brest	Homyel'	Hrodna	Mahilyow	Minsk	Vitsyebsk
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -148,11 +154,11 @@ Brest	Homyel'	Hrodna	Mahilyow	Minsk	Vitsyebsk
 5
 
 [Holiday start times]
-107	172	384	471	536	
+107	172	384	471	536
 
 
 [Holiday durations]
-6	71	15	6	71	
+6	71	15	6	71
 
 ===================================
 

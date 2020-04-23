@@ -92,10 +92,10 @@ Abruzzo	Apulia	Basilicata	Calabria	Campania	Emilia-Romagna	Friuli-Venezia_Giulia
 0.965637772	0.976321607	0	0.348694077
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.923243349	0.96385278	0.651305923	0.036147220000000035
@@ -113,7 +113,7 @@ Abruzzo	Apulia	Basilicata	Calabria	Campania	Emilia-Romagna	Friuli-Venezia_Giulia
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -151,6 +151,12 @@ Abruzzo	Apulia	Basilicata	Calabria	Campania	Emilia-Romagna	Friuli-Venezia_Giulia
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -162,11 +168,11 @@ Abruzzo	Apulia	Basilicata	Calabria	Campania	Emilia-Romagna	Friuli-Venezia_Giulia
 6
 
 [Holiday start times]
-109	160	357	473	524	721	
+109	160	357	473	524	721
 
 
 [Holiday durations]
-6	93	12	6	93	12	
+6	93	12	6	93	12
 
 ===================================
 

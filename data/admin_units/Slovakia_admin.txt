@@ -80,10 +80,10 @@ Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Ž
 0.87455989	0.956959587	0	0.385278836
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.731750181	0.93368794	0.614721164	0.06631206
@@ -101,7 +101,7 @@ Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Ž
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -139,6 +139,12 @@ Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Ž
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -150,11 +156,11 @@ Banskobystrický	Bratislavský	Košický	Nitriansky	Prešovský	Tren?iansky	Trnavský	Ž
 7
 
 [Holiday start times]
-107	181	357	419	471	545	721	
+107	181	357	419	471	545	721
 
 
 [Holiday durations]
-6	62	14	5	6	62	14	
+6	62	14	5	6	62	14
 
 ===================================
 

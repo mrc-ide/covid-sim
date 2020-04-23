@@ -98,10 +98,10 @@ Carlow	Cavan	Clare	Cork	Donegal	Dublin	Galway	Kerry	Kildare	Kilkenny	Laoighis	Le
 0.973540261	1	0	0.18311655000000004
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.928965833	1	0.81688345	0.0
@@ -119,7 +119,7 @@ Carlow	Cavan	Clare	Cork	Donegal	Dublin	Galway	Kerry	Kildare	Kilkenny	Laoighis	Le
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -157,6 +157,12 @@ Carlow	Cavan	Clare	Cork	Donegal	Dublin	Galway	Kerry	Kildare	Kilkenny	Laoighis	Le
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -168,11 +174,11 @@ Carlow	Cavan	Clare	Cork	Donegal	Dublin	Galway	Kerry	Kildare	Kilkenny	Laoighis	Le
 8
 
 [Holiday start times]
-104	183	301	357	468	547	665	721	
+104	183	301	357	468	547	665	721
 
 
 [Holiday durations]
-12	64	5	11	12	64	5	11	
+12	64	5	11	12	64	5	11
 
 ===================================
 

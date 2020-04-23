@@ -84,10 +84,10 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 0.941674506	0.95958227	0	0.15546461
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.873997709	0.986972381	0.84453539	0.013027619000000046
@@ -105,7 +105,7 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -143,6 +143,12 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -154,11 +160,11 @@ Gorenjska	Goriška	Jugovzhodna_Slovenija	Koroška	Notranjsko-kraška	Obalno-kraška	
 9
 
 [Holiday start times]
-116	175	301	358	415	480	539	665	722	
+116	175	301	358	415	480	539	665	722
 
 
 [Holiday durations]
-6	68	7	8	7	6	68	7	8	
+6	68	7	8	7	6	68	7	8
 
 ===================================
 

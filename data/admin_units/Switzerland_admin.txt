@@ -98,10 +98,10 @@ Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt
 0.991182732	0.986254991	0	0.35020033500000003
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.248954627	0.938226339	0.649799665	0.061773661000000035
@@ -119,7 +119,7 @@ Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -156,6 +156,12 @@ Aargau	Appenzell_Ausserrhoden	Appenzell_Innerrhoden	Basel-Landschaft	Basel-Stadt
 
 [Kernel Shape]
 3
+
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
 
 ===================================
 [Include holidays]

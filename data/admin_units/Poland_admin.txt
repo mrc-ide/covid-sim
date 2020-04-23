@@ -88,10 +88,10 @@ Dolno?l?skie	Kujawsko-Pomorskie	?ódzkie	Lubelskie	Lubuskie	Ma?opolskie	Mazowieck
 0.913607534	0.960123137	0	0.19037957699999997
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.767800623	0.989802097	0.809620423	0.010197903000000008
@@ -109,7 +109,7 @@ Dolno?l?skie	Kujawsko-Pomorskie	?ódzkie	Lubelskie	Lubuskie	Ma?opolskie	Mazowieck
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -147,6 +147,12 @@ Dolno?l?skie	Kujawsko-Pomorskie	?ódzkie	Lubelskie	Lubuskie	Ma?opolskie	Mazowieck
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -158,11 +164,11 @@ Dolno?l?skie	Kujawsko-Pomorskie	?ódzkie	Lubelskie	Lubuskie	Ma?opolskie	Mazowieck
 5
 
 [Holiday start times]
-107	172	384	471	536	
+107	172	384	471	536
 
 
 [Holiday durations]
-6	71	15	6	71	
+6	71	15	6	71
 
 ===================================
 

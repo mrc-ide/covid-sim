@@ -75,10 +75,10 @@ Bruxelles	Vlaanderen	Wallonie
 0.982751969	0.977743684	0	0.16726634900000004
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.971900302	0.995054748	0.832733651	0.004945251999999956
@@ -96,7 +96,7 @@ Bruxelles	Vlaanderen	Wallonie
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -134,6 +134,12 @@ Bruxelles	Vlaanderen	Wallonie
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -145,11 +151,11 @@ Bruxelles	Vlaanderen	Wallonie
 9
 
 [Holiday start times]
-97	181	301	357	426	461	545	665	721	
+97	181	301	357	426	461	545	665	721
 
 
 [Holiday durations]
-15	61	7	12	7	15	61	7	12	
+15	61	7	12	7	15	61	7	12
 
 ===================================
 

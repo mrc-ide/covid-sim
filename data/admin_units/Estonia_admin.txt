@@ -88,10 +88,10 @@ Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare
 0.917530196	0.953272084	0	0.24834509699999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.879050503	0.998095485	0.751654903	0.0019045149999999955
@@ -109,7 +109,7 @@ Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -147,6 +147,12 @@ Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -158,11 +164,11 @@ Harju	Hiiu	Ida-Viru	J‰rva	Jıgeva	L‰‰ne	L‰‰ne-Viru	P‰rnu	Peipsi	Pılva	Rapla	Saare
 9
 
 [Holiday start times]
-111	162	294	357	419	475	526	658	721	
+111	162	294	357	419	475	526	658	721
 
 
 [Holiday durations]
-7	79	7	12	7	7	79	7	12	
+7	79	7	12	7	7	79	7	12
 
 ===================================
 

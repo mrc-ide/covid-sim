@@ -77,10 +77,10 @@ Kurzeme	Latgale	Riga	Vidzeme	Zemgale
 0.928281921	0.977598471	0	0.16850819800000005
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.966000258	1	0.831491802	0.0
@@ -98,7 +98,7 @@ Kurzeme	Latgale	Riga	Vidzeme	Zemgale
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -136,6 +136,12 @@ Kurzeme	Latgale	Riga	Vidzeme	Zemgale
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -147,11 +153,11 @@ Kurzeme	Latgale	Riga	Vidzeme	Zemgale
 7
 
 [Holiday start times]
-153	294	357	433	517	658	721	
+153	294	357	433	517	658	721
 
 
 [Holiday durations]
-89	5	11	5	89	5	11	
+89	5	11	5	89	5	11
 
 ===================================
 

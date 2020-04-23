@@ -92,10 +92,10 @@ Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiri
 1	1	0	0.312125109
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.876812552	1	0.687874891	0.0
@@ -113,7 +113,7 @@ Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiri
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -151,6 +151,12 @@ Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiri
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -162,11 +168,11 @@ Aveiro	Azores	Beja	Braga	Bragança	Castelo_Branco	Coimbra	Évora	Faro	Guarda	Leiri
 6
 
 [Holiday start times]
-97	172	350	461	536	714	
+97	172	350	461	536	714
 
 
 [Holiday durations]
-15	83	16	15	83	16	
+15	83	16	15	83	16
 
 ===================================
 
