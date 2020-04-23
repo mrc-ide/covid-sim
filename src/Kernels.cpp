@@ -7,6 +7,23 @@
 #include "Param.h"
 
 double(*Kernel)(double);
+
+// To speed up calculation of kernel values we provide a couple of lookup
+// tables.
+//
+// nKernel is a P.NKR+1 element table of lookups nKernel[0] is the kernel
+// value at a distance of 0, and nKernel[P.NKR] is the kernel value at the
+// largest possible distance (diagonal across the bounding box).
+//
+// nKernelHR is a higher-resolution table of lookups, also of P.NKR+1
+// elements.  nKernelHR[n * P.NK_HR] corresponds to nKernel[n] for
+// n in [0, P.NKR/P.NK_HR]
+//
+// Graphically:
+//
+// Distance 0            ...                              Bound Box diagonal
+//          nKernel[0]   ... nKernel[P.NKR / P.NK_HR] ... nKernel[P.NKR]
+//          nKernelHR[0] ... nKernelHR[P.NKR]
 double *nKernel, *nKernelHR;
 void InitKernel(int DoPlaces, double norm)
 {
@@ -27,10 +44,10 @@ void InitKernel(int DoPlaces, double norm)
 	else if (P.KernelType == 7)
 		Kernel = PowerExpKernel;
 #pragma omp parallel for private(i) schedule(static,500) //added private i
-	for (i = 0; i <= NKR; i++)
+	for (i = 0; i <= P.NKR; i++)
 	{
 		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
-		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / NK_HR) / norm;
+		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
 	}
 
 #pragma omp parallel for schedule(static,500) private(i,j)
@@ -46,7 +63,7 @@ void InitKernel(int DoPlaces, double norm)
 	}
 }
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** KERNEL DEFINITIONS
 
 double ExpKernel(double r2)
@@ -99,13 +116,13 @@ double numKernel(double r2)
 	double t, s;
 
 	t = r2 / P.KernelDelta;
-	if (t > NKR)
+	if (t > P.NKR)
 	{
 		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, P.KernelDelta, t);
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
-	s = t * NK_HR;
-	if (s < NKR)
+	s = t * P.NK_HR;
+	if (s < P.NKR)
 	{
 		t = s - floor(s);
 		t = (1 - t) * nKernelHR[(int)s] + t * nKernelHR[(int)(s + 1)];
