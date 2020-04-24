@@ -68,15 +68,16 @@
 # that you can compare the failing versions of the .xls files against
 # good versions.
 
+import glob
 import gzip
 import os
 import sys
 import shutil
 import subprocess
 
-testdir='regressiontest_US_based'
-
+failed = False
 accept_results = False
+
 if len(sys.argv) > 1 and sys.argv[1] == '--accept':
     accept_results = True
 
@@ -126,6 +127,29 @@ subprocess.run(
      '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
+print('=== Starting rerunning noint (no schools):')
+subprocess.run(
+    [covidsim_exe, '/c:1',
+     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+     '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
+     '/O:' + os.path.join(output_dir, 'results-noint-repeat'),
+     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+     '/D:' + wpop_bin,
+     '/L:' + os.path.join(output_dir, 'network.bin'),
+     '/R:1.5',
+     '98798150', '729101', '17389101', '4797132'
+    ])
+subprocess.run(
+    [covidsim_exe, '/c:1',
+     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
+     '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
+     '/O:' + os.path.join(output_dir, 'results-noint-again'),
+     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
+     '/D:' + wpop_bin,
+     '/L:' + os.path.join(output_dir, 'network.bin'),
+     '/R:1.5',
+     '98798150', '729101', '17389101', '4797132'
+    ])
 print('=== Starting running (no schools):')
 subprocess.run(
     [covidsim_exe, '/c:1',
@@ -168,6 +192,23 @@ subprocess.run(
 #      '98798150', '729101', '17389101', '4797132'
 #     ])
 # print('=== Done')
+
+repeat_files_checked = 0
+for fn2 in glob.glob(os.path.join(output_dir, 'results-noint-repeat') + '*'):
+    fn1 = fn2.replace('-repeat', '')
+    with open(fn1, 'rb') as f:
+        dat1 = f.read()
+    with open(fn2, 'rb') as f:
+        dat2 = f.read()
+    # We expect multiple reasonably large files, so only count those that are at least 10 bytes long
+    if len(dat1) > 10:
+        repeat_files_checked += 1
+    if dat1 != dat2:
+        print('FAILURE: Contents of ' + fn1 + ' does not match that of ' + fn2)
+        failed = True
+if repeat_files_checked < 3:
+    print('FAILURE: Not enough repeat files found')
+    failed = True
 
 expected_checksums = os.path.join(input_dir, 'results.checksums.txt')
 actual_checksums = os.path.join(output_dir, 'results.checksums.txt')
@@ -236,4 +277,9 @@ else:
             with open(expected_checksums, 'wb') as checksums_out:
                 shutil.copyfileobj(checksums_in, checksums_out)
     else:
-        sys.exit(1)
+        failed = True
+
+if failed:
+    print('TEST FAILED.')
+    sys.exit(1)
+
