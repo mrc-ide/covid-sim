@@ -1239,12 +1239,11 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		{
 			P.AlertTriggerAfterIntervThreshold = P.PreControlClusterIdCaseThreshold;
 			P.PreControlClusterIdCaseThreshold = 1000;
-
 		}
 	}
 	else
 		P.PreIntervIdCalTime = P.PreControlClusterIdCalTime;
-	P.StopCalibration = P.ModelCalibIteration=0;
+	P.StopCalibration = P.ModelCalibIteration = 0;
 	P.SeedingScaling = 1.0;
 	P.PreControlClusterIdTime = 0;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
@@ -4677,7 +4676,7 @@ void RecordSample(double t, int n)
 		{
 			if (P.PreControlClusterIdTime == 0)
 			{
-				P.PreIntervTime=P.PreControlClusterIdTime = t;
+				P.PreIntervTime =P.PreControlClusterIdTime = t;
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
 					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
@@ -4753,6 +4752,11 @@ void RecordSample(double t, int n)
 			}
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
+
+		//// update "efficacies". This should supersede social distancing code above. For now leave this as an overide. Later fix it so consistent.
+		if (P.VaryEfficaciesOverTime) //// Set up so that this statement unneccsary but avoids unneccessary updates if not doing.
+			//UpdateEfficaciesAndComplianceProportions(t);
+			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
 
 		//// Set Case isolation start time (by admin unit)
 		for (i = 0; i < P.NumAdunits; i++)
@@ -4845,20 +4849,21 @@ void RecordSample(double t, int n)
 		P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart;
 		if ((P.PlaceCloseIncTrig == 0) && (P.PlaceCloseFracIncTrig == 0) && (P.PlaceCloseCellIncThresh == 0)) P.PlaceCloseTimeStart = 9e9;
 	}
-	if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStartPrevious) && //// if second place closure start time after previous start time AND
-		(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
-		(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
+
+	if (!P.VaryEfficaciesOverTime)
 	{
-		fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t);
-		P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
-		P.PlaceCloseDuration = P.PlaceCloseDuration2;
-		P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
-		P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
+		if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStartPrevious) && //// if second place closure start time after previous start time AND
+			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
+			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
+		{
+			fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t);
+			P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
+			P.PlaceCloseDuration = P.PlaceCloseDuration2;
+			P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
+			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
+		}
 	}
 
-	//// update "efficacies". This should supersede social distancing code above. For now leave this as an overide. Later fix it so consistent.
-	if (P.VaryEfficaciesOverTime) //// Set up so that this statement unneccsary but avoids unneccessary updates if not doing.
-		UpdateEfficaciesAndComplianceProportions(t);
 
 	if (P.OutputBitmap >= 1)
 	{
