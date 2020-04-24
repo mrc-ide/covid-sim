@@ -4222,19 +4222,20 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		}
 
 	////// **** household quarantine
-	for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++)
-		if (t == P.HQ_ChangeTimes[ChangeTime])
-		{
-			P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[ChangeTime];	//// spatial
-			P.HQuarantineHouseEffect 	= P.HQ_HouseholdEffects_OverTime[ChangeTime];	//// household
-			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-				P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
+	if (P.DoHouseholds)
+		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++)
+			if (t == P.HQ_ChangeTimes[ChangeTime])
+			{
+				P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime				[ChangeTime];				//// spatial
+				P.HQuarantineHouseEffect 	= P.HQ_HouseholdEffects_OverTime			[ChangeTime];				//// household
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+					P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
 
-			P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
-			P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[ChangeTime]; //// household compliance
+				P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
+				P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[ChangeTime]; //// household compliance
 
-			P.HHQuar_CellIncThresh			= P.HQ_CellIncThresh_OverTime			[ChangeTime]; //// cell incidence threshold
-		}
+				P.HHQuar_CellIncThresh			= P.HQ_CellIncThresh_OverTime			[ChangeTime]; //// cell incidence threshold
+			}
 
 	//// **** place closure
 	if (P.DoPlaces)
@@ -4258,16 +4259,16 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				P.PlaceCloseIncTrig				= P.PC_IncThresh_OverTime		[ChangeTime];				//// global incidence threshold
 				P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[ChangeTime];				//// fractional incidence threshold
 				P.PlaceCloseCellIncThresh		= P.PC_CellIncThresh_OverTime	[ChangeTime];				//// cell incidence threshold
-				P.PlaceCloseDuration			= P.PC_Durs_OverTime[ChangeTime];							//// duration of place closure
+				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime] + 1;							//// duration of place closure
 
 				//printf("\nt=%lf, Change_PC_Dur: PlaceCloseDuration = %lf \n", t, P.PlaceCloseDuration);
 				//// reset place close time start - has been set to 9e9 in event of no triggers. m
 				P.PlaceCloseTimeStart			= t;
 
-				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants. You
+				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants. 
 				if (ChangeTime != P.Num_PC_ChangeTimes - 1)
 					if (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1])
-						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime];	
+						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] + 1;	
 			}
 	}
 
@@ -4676,7 +4677,7 @@ void RecordSample(double t, int n)
 		{
 			if (P.PreControlClusterIdTime == 0)
 			{
-				P.PreIntervTime =P.PreControlClusterIdTime = t;
+				P.PreIntervTime = P.PreControlClusterIdTime = t;
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
 					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
@@ -4753,9 +4754,7 @@ void RecordSample(double t, int n)
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
 
-		//// update "efficacies". This should supersede social distancing code above. For now leave this as an overide. Later fix it so consistent.
-		if (P.VaryEfficaciesOverTime) //// Set up so that this statement unneccsary but avoids unneccessary updates if not doing.
-			//UpdateEfficaciesAndComplianceProportions(t);
+		if (P.VaryEfficaciesOverTime)
 			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
 
 		//// Set Case isolation start time (by admin unit)
@@ -4825,6 +4824,8 @@ void RecordSample(double t, int n)
 			DoOrDontAmendStartTime(&P.KeyWorkerProphTimeStart	, t + P.KeyWorkerProphTimeStartBase	);
 		}
 		DoOrDontAmendStartTime(&P.AirportCloseTimeStart, t + P.AirportCloseTimeStartBase);
+
+
 	}
 	if ((P.PlaceCloseIndepThresh > 0) && (((double)State.cumDC) >= P.PlaceCloseIndepThresh))
 		DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
@@ -4864,6 +4865,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
+	
 
 	if (P.OutputBitmap >= 1)
 	{
