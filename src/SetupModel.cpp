@@ -267,8 +267,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 
-	fprintf(stderr, "Initialising kernel...\n");
-	InitKernel(0, 1.0);	fprintf(stderr, "Initialising places...\n");
+	fprintf(stderr, "Initialising places...\n");
 	if (P.DoPlaces)
 	{
 		if (P.LoadSaveNetwork == 1)
@@ -291,6 +290,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	for (i = 0; i < P.N; i++) Hosts[i].keyworker = 0;
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
+
+	fprintf(stderr, "Initialising kernel...\n");
+	InitKernel(0, 1.0);
+
 	if (P.DoPlaces)
 	{
 		while ((m < P.KeyWorkerPopNum) && (l < 1000))
