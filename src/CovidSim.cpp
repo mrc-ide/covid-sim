@@ -597,7 +597,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
     free(AdunitNames);
     free(AdunitNamesBuf);
 
-		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Output incidence by administrative unit", "%i", (void*) & (P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output incidence by administrative unit", "%i", (void*) & (P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
 		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*) & (P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
 		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Correct administrative unit populations", "%i", (void*) & (P.DoCorrectAdunitPop), 1, 1, 0)) P.DoCorrectAdunitPop = 0;
 		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Fix population size at specified value", "%i", (void*) & (P.DoSpecifyPop), 1, 1, 0)) P.DoSpecifyPop = 0;
@@ -1561,11 +1561,14 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (P.DoHouseholds)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given social distancing", "%lf", (void*)& P.SocDistHouseholdEffect, 1, 1, 0)) P.SocDistHouseholdEffect = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given enhanced social distancing", "%lf", (void*)& P.EnhancedSocDistHouseholdEffect, 1, 1, 0)) P.EnhancedSocDistHouseholdEffect = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given social distancing", "%lf", (void*)&P.SocDistHouseholdEffect, 1, 1, 0)) P.SocDistHouseholdEffect = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given enhanced social distancing", "%lf", (void*)&P.EnhancedSocDistHouseholdEffect, 1, 1, 0)) P.EnhancedSocDistHouseholdEffect = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given social distancing  after change", "%lf", (void*)&P.SocDistHouseholdEffect2, 1, 1, 0)) P.SocDistHouseholdEffect2 = P.SocDistHouseholdEffect;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate given enhanced social distancing after change", "%lf", (void*)&P.EnhancedSocDistHouseholdEffect2, 1, 1, 0)) P.EnhancedSocDistHouseholdEffect2 = P.EnhancedSocDistHouseholdEffect;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Cluster compliance with enhanced social distancing by household", "%i", (void*)&P.EnhancedSocDistClusterByHousehold, 1, 1, 0)) P.EnhancedSocDistClusterByHousehold = 0;
 	}
+	else
+		P.EnhancedSocDistClusterByHousehold = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given social distancing", "%lf", (void*)& P.SocDistSpatialEffect, 1, 1, 0)) P.SocDistSpatialEffect = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given social distancing after change", "%lf", (void*)&P.SocDistSpatialEffect2, 1, 1, 0)) P.SocDistSpatialEffect2 = P.SocDistSpatialEffect;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Minimum radius for social distancing", "%lf", (void*) & (P.SocDistRadius), 1, 1, 0)) P.SocDistRadius = 0;
