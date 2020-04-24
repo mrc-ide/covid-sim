@@ -35,7 +35,7 @@ CovidSim
     /O:OutputFilesPrefix
     [/D:PopulationDensityFile]
     [/L:NetworkFileToLoad | /S:NetworkFileToSave]
-    Seed1 Seed2 Seed3 Seed4
+    SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 
 Explanation of the arguments with examples:
@@ -45,7 +45,8 @@ Explanation of the arguments with examples:
 - `/O:./output/NoInt_R0=1` specifies the prefix pathname for a collection of output files that contain simulation data. The output files are tabular `tsv` data (but with the extension `.xls`)
 - `[/D:pop_usa_adm2.txt]` a population density file for a specific geography (e.g. a country)
 - `[/L:NetworkFileToLoad | /S:NetworkFileToSave]`. For efficiency, we can run and, as a side-effect, generate a [network file](./model-glossary.md#Network\ file) that assigns [people](./model-glossary.md#People) to [places](./model-glossary.md#Places). The [network file](./model-glossary.md#Network\ file) may then be re-used for subsequent runs (with different input parameters for the same geography). The network file is a non-portable `.bin`. Generate this file with the `/S` option and re-use it (in a subsequent run) with the `/L` option.
-- `Seed1 Seed2 Seed3 Seed4` Random seeds.
+- `SetupSeed1 SetupSeed2` Random number generator seeds used when initialising the model, including creating the networkfile.
+- `RunSeed1 RunSeed2` Random number generator seeds used when running the model. These can be varied to do multiple runs with the same network file.
 
 ## Additional command-line arguments
 
@@ -63,7 +64,7 @@ CovidSim
     [/AP:AirTravelFile]
     [/s:SchoolFile]
     [/R:R0scaling]
-    Seed1 Seed2 Seed3 Seed4
+    SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 Explanation of additional arguments:
 - `[/AP:AirTravelFile]` Air travel data for a specific geography (unused for some countries, such as UK)
