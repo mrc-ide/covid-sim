@@ -7,6 +7,14 @@ CovidSim models the instances and severity of COVID-19 infections throughout
 a population over time.  It enables modelling of how intervention policies and
 healthcare provision affect the spread of COVID-19.
 
+## IMPORTANT NOTES
+
+:warning: This code is released with no support.
+
+:warning: This model is in active development and so parameter name and behaviours, and output file formats will change without notice.
+
+:warning: A single model run does not produce statistically significant results.  Multiple runs with different random number seeds should be made to generate a statistical model.
+
 ## Status
 
 This model is in active development and subject to significant code changes
