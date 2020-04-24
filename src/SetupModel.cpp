@@ -268,7 +268,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 
 	fprintf(stderr, "Initialising kernel...\n");
-	InitKernel(0, 1.0);	fprintf(stderr, "Initialising places...\n");
+	InitKernel(0, 1.0);
+
+	fprintf(stderr, "Initialising places...\n");
 	if (P.DoPlaces)
 	{
 		if (P.LoadSaveNetwork == 1)
@@ -276,6 +278,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		else
 			AssignPeopleToPlaces();
 	}
+
+
 	if ((P.DoPlaces) && (P.LoadSaveNetwork == 2))
 		SavePeopleToPlaces(NetworkFile);
 	//SaveDistribs();
@@ -560,11 +564,23 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		for (j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household_av[i][j] = case_household_av[i][j] = 0;
-	fprintf(stderr, "Model configuration complete.\n");
 	DoInitUpdateProbs = 1;
 	for (i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
 	for (i = 0; i < P.N; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
+	if (!P.EnhancedSocDistClusterByHousehold)
+	{
+		for (i = 0; i < P.NH;i++)
+		{
+			l = Households[i].FirstPerson;
+			m = l + Households[i].nh;
+			i2 = 0;
+			for (k = l; k < m; k++) if (Hosts[k].esocdist_comply) i2=1;
+			if (i2)
+				for (k = l; k < m; k++) Hosts[k].esocdist_comply = 1;
+		}
+	}
+
 	if (P.OutputBitmap)
 	{
 		InitBMHead();
@@ -624,7 +640,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	//	CaptureBitmap();
 	//	OutputBitmap(0);
 	//}
-
+	fprintf(stderr, "Model configuration complete.\n");
 }
 
 void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
