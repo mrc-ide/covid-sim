@@ -13,7 +13,7 @@ healthcare provision affect the spread of COVID-19.
 
 :warning: This model is in active development and so parameter name and behaviours, and output file formats will change without notice.
 
-:warning: A single model run does not produce statistically significant results.  Multiple runs with different random number seeds should be made to generate a statistical model.
+:warning: The model is stochastic. Multiple runs with different seeds should be undertaken to see average behaviour.
 
 ## Status
 
