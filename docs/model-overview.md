@@ -15,11 +15,11 @@ may require a subscription to the appropriate publication to read.
 
 ## Geographical space is divided into cells
 
-This is a spatial model. We divide a country into [cells](./model-glossary.md#Cells) and [microcells](./model-glossary.md#Microcells) (9 microcells to a cell). Cells have a location on a geographical map.
+This is a spatial model. We divide a country into [cells](./model-glossary.md#Cells) and [microcells](./model-glossary.md#Microcells) (9x9 microcells to a cell) which are geolocated.
 
-## People live in cells
+## People live in households located in cells
 
-[People](./model-glossary.md#people) are allocated according to population density data (from input files) to cells. People have an age, and other attributes. People do not move between cells.
+[People](./model-glossary.md#people) are allocated according to population density data (from input files) to cells. People have an age, and other attributes. People's residence location does not change, but they interact with people in other cells via places (see below) and via random social interactions governed by a spatial kernel function.
 
 ## People are associated with different civil institutions
 
@@ -36,7 +36,7 @@ Infections may be initially seeded in different ways. The simplest way is to see
 - place infections (e.g. at work)
 - spatial infections (e.g. when travelling around)
 
-Spatial infection uses spatial kernels to simulate infections across space (to avoid literally moving people around cells). A given cell accumulates a "spatial infectiousness" from the people in it (aggregate summary). This can then spread to other cells (as a kernel function that weights according to both spatial distance and population densities).
+Spatial infection models contacts between individuals which have a frequency which depends upon the distance between home locations (to avoid literally moving people around cells), modelled using a kernel function that weights according to both spatial distance and population densities.
 
 ## Further information
 
