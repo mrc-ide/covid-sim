@@ -2611,8 +2611,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 								if (Households[Hosts[k].hh].FirstPerson == k)
 								{
 									if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
+									{
+										nim += Households[Hosts[k].hh].nh;
 										for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
 											DoImmune(k + m);
+									}
 								}
 							}
 						}
@@ -2620,13 +2623,18 @@ void InitModel(int run) // passing run number so we can save run number in the i
 						{
 							m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
+							{
 								DoImmune(k); nim += 1;
+							}
 						}
 					}
 			}
 		}
 	}
-//	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
+	if (false)
+	{
+		fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
+	}
 
 #pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
 	for (l = 0; l < P.NMCP; l++)
