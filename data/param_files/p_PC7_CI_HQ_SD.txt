@@ -68,13 +68,14 @@
 
 //// Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant.
 [Change times for levels of place closure]
-0 31 61 91
+0 50 100 150
 
+//// Example below gives schools closing, then opening etc.
 [Proportion of places remaining open after closure by place type over time]
 0	0	0.25	1
+1	1	0.25	1
 0	0	0.25	1
-0	0	0.25	1
-0	0	0.25	1
+1	1	0.25	1
 
 [Relative household contact rates over time after place closure]
 1.5 1.5 1.5 1.5
@@ -91,8 +92,12 @@
 ^^ needs to be 0 for global triggers or if abs incidence threshold used
 
 [Trigger incidence per cell for place closure over time]
-100 100 100 100
+0 0 0 0 
 *** ^^^ change these for global too ***
+
+//// Note: closure durations longer than interval between change times will be truncated
+[Duration of place closure over time]
+50 50 50 50  
 
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS

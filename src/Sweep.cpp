@@ -1498,7 +1498,7 @@ int TreatSweep(double t)
 						trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
 						f2 = (Mcells[b].treat_trig < trig_thresh);
 					}
-					if ((t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == 2) && ((f2) || (ts >= Mcells[b].place_end_time)))
+					if ((t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == 2) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 					{
 						f = 1;
 						Mcells[b].placeclose = P.DoPlaceCloseOnceOnly;

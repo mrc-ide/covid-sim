@@ -18,40 +18,40 @@ This is WIP. Know something not documented here? Please add and open a PR!
 
 `CovidSim` simulates disease spread in a geographical region, which in principle can be at any scale, but in practice is a region or country.
 
-In consequence, the model must be told the geography of a region, such as its population density, plus other specific information. Right now this information is specified as a mixture of parameters, density files and compile-time flags.
-
-### Warning: need to recompile
-
-The code currently *must* be recompiled for use with different countries:  it is insufficient to simply use country-specific network and population files. The UK and US are modelled respectively by ensuring the macros `#define COUNTRY_UK` and `#define COUNTRY_US` in the file `Country.h`. We plan to change this so different countries can be specified by the command line.
+In consequence, the model must be told the geography of a region, such as its population density, plus other specific information. This information is specified as a mixture of parameters and input population density files.
 
 ## Main command-line arguments
 
-A typical run specifies (i) files that contain simulation parameters (the `/P` and `/PP` option) , (ii) a population density file for the country we're simulating (the `/D` option) and (iii) the name of output files that summarise the results of the simulation (the `/O` option).
+A typical run specifies (i) files that contain simulation parameters (the `/A`, `/P` and `/PP` option) , (ii) a population density file for the country we're simulating (the `/D` option) and (iii) the name of output files that summarise the results of the simulation (the `/O` option).
 ```
 CovidSim
     /c:NumThreads
+    /A:AdminParamFile
     /PP:PreParameterFile
     /P:ParameterFile
     /O:OutputFilesPrefix
     [/D:PopulationDensityFile]
     [/L:NetworkFileToLoad | /S:NetworkFileToSave]
-    Seed1 Seed2 Seed3 Seed4
+    SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 
 Explanation of the arguments with examples:
 - `/c:32` the number of parallel threads to use
-- `/PP:preUS_R0=2.0_BM.txt` a file that defines pre-parameters for a specific run
-- `/P:p_NoInt.txt` a file that defines parameters for a specific run
+- `/A:sample_admin.txt` a file specifying parameters determining the geography to be modelled
+- `/PP:preUS_R0=2.0_BM.txt` a file that defines transmission and calibration parameters for a specific run
+- `/P:p_NoInt.txt` a file that defines intervention parameters for a specific run
 - `/O:./output/NoInt_R0=1` specifies the prefix pathname for a collection of output files that contain simulation data. The output files are tabular `tsv` data (but with the extension `.xls`)
 - `[/D:pop_usa_adm2.txt]` a population density file for a specific geography (e.g. a country)
 - `[/L:NetworkFileToLoad | /S:NetworkFileToSave]`. For efficiency, we can run and, as a side-effect, generate a [network file](./model-glossary.md#Network\ file) that assigns [people](./model-glossary.md#People) to [places](./model-glossary.md#Places). The [network file](./model-glossary.md#Network\ file) may then be re-used for subsequent runs (with different input parameters for the same geography). The network file is a non-portable `.bin`. Generate this file with the `/S` option and re-use it (in a subsequent run) with the `/L` option.
-- `Seed1 Seed2 Seed3 Seed4` Random seeds.
+- `SetupSeed1 SetupSeed2` Random number generator seeds used when initialising the model, including creating the networkfile (large positive integers).
+- `RunSeed1 RunSeed2` Random number generator seeds used when running the model. These can be varied to do multiple runs with the same network file (large positive integers).
 
 ## Additional command-line arguments
 
 ```
 CovidSim
     /c:NumThreads
+    /A:AdminFile
     /PP:PreParameterFile
     /P:ParameterFile
     /O:OutputFilesPrefix
@@ -63,31 +63,29 @@ CovidSim
     [/AP:AirTravelFile]
     [/s:SchoolFile]
     [/R:R0scaling]
-    Seed1 Seed2 Seed3 Seed4
+    SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 Explanation of additional arguments:
-- `[/AP:AirTravelFile]` Air travel data for a specific geography (unused for some countries, such as UK)
-- `[/s:USschools.txt]` School information for a specific geography.
-- `[/R:1.1]`. The base reproduction number, `R0`, for a disease is the number of secondary cases in susceptibles per infected case. `R0scaling` scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`)
-- `/CLP1:100000`, `/CLP2:0` etc. are special parameters that interact with wildcards `#100000`, `#0` etc. in the parameter file (and less often the pre-parameter file). Wildcard `#n` is replaced by the value of `CLPn`. This is useful to vary parts of parameter files without needing to generate entirely new parameter files.
+- `[/AP:AirTravelFile]` Air travel data for a specific geography (unused currently)
+- `[/s:USschools.txt]` School information for a specific geography (currently only used for US).
+- `[/R:1.1]`. Spcifies the reproduction number (`R0`), as a multiplier of 2. `R0`, for a disease is the number of secondary cases in susceptibles per infected case. These commandline parameter is read into `P.R0scaling` which scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`). For COVID-19, `/R:1.4` to `/R:1.6` is suitable.
+- `/CLP1:100000`, `/CLP2:0` etc. are special parameters that interact with wildcards `#1`, `#2` etc. in the intervention parameter file (and less often the pre-parameter file). Wildcard `#n` is replaced by the value of `CLPn`. This is useful to vary parts of parameter files at run-time (e.g. to undertake sensitivity analysis) without needing to generate entirely new parameter files.
 
 ## Input files
 
-The main inputs files are parameter files and population density information (for specific geographies).
+The main inputs files are parameter files and population density files (for specific geographies).
 
 ### Parameters
 
 There are a very large number of parameters to `CovidSim`. This repo is undergoing active development and rationalisation. The parameters are currently not self-documenting.
 
-Parameter values are read in from parameter files by function `ReadParams`, which matches up a parameter description string to the according variable in the source code. Absent proper documentation the only method to determine the precise meaning of a specific parameter is to read the code.
+Parameter values are read in from parameter files by function `ReadParams`, which matches up a parameter description string to the according variable in the source code. The only method to determine the precise meaning of a specific parameter is to read the code.
 
 ### Parameter files
 
-The parameters are specified in pre-parameter and parameter files. Both files have the same format.
+The parameters are specified in admin, pre-parameter and intervention parameter files. Both files have the same format.
 
-Pre-parameter files contain parameters whose values are *common* to a series of runs. Parameter files contain parameters whose values *differ* between a series of runs. 
-
-Right now, it's somewhat arbitrary which parameters go where. If looking for particular value, look in both files. 
+Admin and pre-parameter files contain parameters whose values are *common* to a series of runs (i.e. defining geographiies and transmission parameters). Parameter files group intervention parameters whose values are more likely to *differ* between a series of runs. 
 
 The format is a sequence of:
 ```
@@ -96,13 +94,13 @@ value
 ``` 
 If you see multiple numbers below the parameter description, then disregard them. The simulation uses only the numbers immediately below the parameter description. 
 
-An example parameter file is `./uk_data/p_NoInt.txt`.
+An example parameter file is `./data/param_files/p_NoInt.txt`.
 
 ### Population density file
 
 A binary geography-specific file used to assign people to cells. Currently these files are generated and provided by Imperial College.
 
-An example population density file is `./uk_data/UK_LS2018.bin`.
+An example population density file is `./data/populations/wpop_eur.txt`.
 
 The information contained in this file includes:
 
@@ -169,7 +167,7 @@ Contains time-stamped (e.g., daily) statistics for the simulation over the whole
 
 | column | meaning |
 | ------------- |-------------:|
-| t | sample time – specified in the preparam file by Sampling timestep   | 
+| t | sample time – specified in the preparam file by Sampling timestep - generally day in 2020 (t=1 -> Jan 1)  | 
 | S | total number of susceptibles in the population |
 | L | total number of latently infected people in the population |
 | I | total number of infectious people in the population |
