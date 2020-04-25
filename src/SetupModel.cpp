@@ -21,6 +21,11 @@ void* BinFileBuf;
 bin_file* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];
 
+#ifdef COUNTRY_THAILAND
+static const bool country_Thailand = true;
+#else
+static const bool country_Thailand = false;
+#endif
 
 ///// INITIALIZE / SET UP FUNCTIONS
 void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* RegDemogFile)
@@ -114,28 +119,31 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			if (P.DoBin == 0) fclose(dat);
 		}
 
-#ifdef COUNTRY_THAILAND
-		P.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
-		P.ncw = (int)(P.width / P.cwidth);
-		P.nch = (int)(P.height / P.cwidth);
-		P.cwidth = P.width / ((double)P.ncw);
-		P.cheight = P.height / ((double)P.nch);
-#else
-		P.cheight = P.cwidth;
-		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.cwidth) * P.cwidth;
-		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.cheight) * P.cheight;
-		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.cwidth) * P.cwidth;
-		P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.cheight) * P.cheight;
-		P.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
-		P.ncw = 4 * ((int)ceil(P.width / P.cwidth / 4));
-		P.nch = 4 * ((int)ceil(P.height / P.cheight / 4));
-		P.width = ((double)P.ncw) * P.cwidth;
-		P.height = ((double)P.nch) * P.cheight;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.width;
-		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.height;
-#endif
+		if (country_Thailand)
+		{
+			P.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
+			P.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
+			P.ncw = (int)(P.width / P.cwidth);
+			P.nch = (int)(P.height / P.cwidth);
+			P.cwidth = P.width / ((double)P.ncw);
+			P.cheight = P.height / ((double)P.nch);
+		}
+		else
+		{
+			P.cheight = P.cwidth;
+			P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.cwidth) * P.cwidth;
+			P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.cheight) * P.cheight;
+			P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.cwidth) * P.cwidth;
+			P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.cheight) * P.cheight;
+			P.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
+			P.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
+			P.ncw = 4 * ((int)ceil(P.width / P.cwidth / 4));
+			P.nch = 4 * ((int)ceil(P.height / P.cheight / 4));
+			P.width = ((double)P.ncw) * P.cwidth;
+			P.height = ((double)P.nch) * P.cheight;
+			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.width;
+			P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.height;
+		}
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
@@ -1682,6 +1690,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	*/
 	int i, j, k, l, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
+	bool notOk;
 
 	ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
 	if (!P.DoHouseholds)
@@ -1698,13 +1707,13 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = a[0] < P.NoChildPersAge;
+					else
+						notOk = (a[0] < P.NoChildPersAge)
+							 || (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1));
 				}
-#ifdef COUNTRY_THAILAND
-				while (a[0] < P.NoChildPersAge);
-#else
-				while ((a[0] < P.NoChildPersAge)
-					|| (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
+				while (notOk);
 			}
 			else if ((P.OnePersHouseProbYoung > 0) && (ranf_mt(tn) < P.OnePersHouseProbYoung / (1 - P.OnePersHouseProbOld)))
 			{
@@ -1724,23 +1733,23 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = a[0] < P.NoChildPersAge;
+					else
+						notOk = (a[0] < P.NoChildPersAge)
+							 || (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1));
 				}
-#ifdef COUNTRY_THAILAND
-				while (a[0] < P.NoChildPersAge);
-#else
-				while ((a[0] < P.NoChildPersAge)
-					|| (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
+				while (notOk);
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = (a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge);
+					else
+						notOk = (a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.NoChildPersAge)
+							 || (ranf_mt(tn) > (((double)a[1]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1));
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
-				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.NoChildPersAge)
-					|| (ranf_mt(tn) > (((double)a[1]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
+				while (notOk);
 			}
 			else if (ranf_mt(tn) < P.OneChildTwoPersProb / (1 - P.TwoPersHouseProbOld))
 			{
@@ -1748,12 +1757,12 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = (a[1] >= a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap);
+					else
+						notOk = (a[1] > a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap) || (a[1] < P.MinAdultAge);
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap));
-#else
-				while ((a[1] > a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap) || (a[1] < P.MinAdultAge));
-#endif
+				while (notOk);
 			}
 			else if ((P.TwoPersHouseProbYoung > 0) && (ranf_mt(tn) < P.TwoPersHouseProbYoung / (1 - P.TwoPersHouseProbOld - P.OneChildTwoPersProb)))
 			{
@@ -1765,12 +1774,12 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = (a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge);
+					else
+						notOk = (a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge);
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
-				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#endif
+				while (notOk);
 			}
 			else
 			{
@@ -1814,13 +1823,13 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+					if (country_Thailand)
+						notOk = (a[0] < P.MinAdultAge) || (a[1] >= a[0] + P.MaxParentAgeGap)
+							 || (a[1] < a[0] + P.MinParentAgeGap) || (a[1] > P.NoChildPersAge);
+					else
+						notOk = (a[1] < P.MinAdultAge) || (a[0] < P.MinAdultAge);
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[0] < P.MinAdultAge) || (a[1] >= a[0] + P.MaxParentAgeGap)
-					|| (a[1] < a[0] + P.MinParentAgeGap) || (a[1] > P.NoChildPersAge));
-#else
-				while ((a[1] < P.MinAdultAge) || (a[0] < P.MinAdultAge));
-#endif
+				while (notOk);
 				do
 				{
 					a[2] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
@@ -1829,76 +1838,78 @@ void AssignHouseholdAges(int n, int pers, int tn)
 			}
 			else
 			{
-#ifdef COUNTRY_THAILAND
-				a[0] = 0;
-				for (i = 1; i < nc; i++)
-					a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
-				j = a[nc - 1] - (P.MaxParentAgeGap - P.MinParentAgeGap);
-				if (j > 0)
-					j += P.MaxParentAgeGap;
-				else
-					j = P.MaxParentAgeGap;
-				do
-				{
-					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					k = ((nc > 1) ? a[nc - 1] : 0) + a[0];
-					l = k - P.MaxChildAge;
-					if (ranf_mt(tn) < P.OneChildProbYoungestChildUnderFive) l = k - 5;
-				} while ((l > 0) || (a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap));
-				for (i = 1; i < nc; i++) a[i] += a[0];
-				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
-				{
-					do
-					{
-						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					} while ((a[nc + 1] >= a[nc] + P.MaxMFPartnerAgeGap)
-						|| (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap));
-					l = nc + 2;
-				}
-				else
-					l = nc + 1;
-#else
-				do
+				if (country_Thailand)
 				{
 					a[0] = 0;
 					for (i = 1; i < nc; i++)
 						a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
-					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))] - a[(int)(ranf_mt(tn) * ((double)nc))];
+					j = a[nc - 1] - (P.MaxParentAgeGap - P.MinParentAgeGap);
+					if (j > 0)
+						j += P.MaxParentAgeGap;
+					else
+						j = P.MaxParentAgeGap;
+					do
+					{
+						a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+						a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+						k = ((nc > 1) ? a[nc - 1] : 0) + a[0];
+						l = k - P.MaxChildAge;
+						if (ranf_mt(tn) < P.OneChildProbYoungestChildUnderFive) l = k - 5;
+					} while ((l > 0) || (a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap));
 					for (i = 1; i < nc; i++) a[i] += a[0];
-					k = (((nc == 1) && (ranf_mt(tn) < P.OneChildProbYoungestChildUnderFive)) || ((nc == 2) && (ranf_mt(tn) < P.TwoChildrenProbYoungestUnderFive))
-						|| ((nc > 2) && (ranf_mt(tn) < P.ProbYoungestChildUnderFive))) ? 5 : P.MaxChildAge;
-				} while ((a[0] < 0) || (a[0] > k) || (a[nc - 1] > P.MaxChildAge));
-				j = a[nc - 1] - a[0] - (P.MaxParentAgeGap - P.MinParentAgeGap);
-				if (j > 0)
-					j += P.MaxParentAgeGap;
+					if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
+					{
+						do
+						{
+							a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+						} while ((a[nc + 1] >= a[nc] + P.MaxMFPartnerAgeGap)
+							|| (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap));
+						l = nc + 2;
+					}
+					else
+						l = nc + 1;
+				}
 				else
-					j = P.MaxParentAgeGap;
-				do
-				{
-					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					k = a[nc - 1];
-					l = k - P.MaxChildAge;
-				} while ((a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap) || (a[nc] < P.MinAdultAge));
-				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
 				{
 					do
 					{
-						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					} while ((a[nc + 1] > a[nc] + P.MaxMFPartnerAgeGap) || (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap)
-						|| (a[nc + 1] > a[0] + j) || (a[nc + 1] < k + P.MinParentAgeGap) || (a[nc + 1] < P.MinAdultAge));
-					l = nc + 2;
+						a[0] = 0;
+						for (i = 1; i < nc; i++)
+							a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
+						a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))] - a[(int)(ranf_mt(tn) * ((double)nc))];
+						for (i = 1; i < nc; i++) a[i] += a[0];
+						k = (((nc == 1) && (ranf_mt(tn) < P.OneChildProbYoungestChildUnderFive)) || ((nc == 2) && (ranf_mt(tn) < P.TwoChildrenProbYoungestUnderFive))
+							|| ((nc > 2) && (ranf_mt(tn) < P.ProbYoungestChildUnderFive))) ? 5 : P.MaxChildAge;
+					} while ((a[0] < 0) || (a[0] > k) || (a[nc - 1] > P.MaxChildAge));
+					j = a[nc - 1] - a[0] - (P.MaxParentAgeGap - P.MinParentAgeGap);
+					if (j > 0)
+						j += P.MaxParentAgeGap;
+					else
+						j = P.MaxParentAgeGap;
+					do
+					{
+						a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+						k = a[nc - 1];
+						l = k - P.MaxChildAge;
+					} while ((a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap) || (a[nc] < P.MinAdultAge));
+					if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
+					{
+						do
+						{
+							a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
+						} while ((a[nc + 1] > a[nc] + P.MaxMFPartnerAgeGap) || (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap)
+							|| (a[nc + 1] > a[0] + j) || (a[nc + 1] < k + P.MinParentAgeGap) || (a[nc + 1] < P.MinAdultAge));
+						l = nc + 2;
+					}
+					else
+						l = nc + 1;
 				}
-				else
-					l = nc + 1;
-#endif
 				if (n > nc + 2)
 				{
-#ifdef COUNTRY_THAILAND
-					j = a[nc] + P.MinParentAgeGap;
-#else
-					j = ((a[nc + 1] > a[nc]) ? a[nc + 1] : a[nc]) + P.OlderGenGap;
-#endif
+					if (country_Thailand)
+						j = a[nc] + P.MinParentAgeGap;
+					else
+						j = ((a[nc + 1] > a[nc]) ? a[nc + 1] : a[nc]) + P.OlderGenGap;
 					if (j >= NUM_AGE_GROUPS * AGE_GROUP_WIDTH) j = NUM_AGE_GROUPS * AGE_GROUP_WIDTH - 1;
 					if (j < P.NoChildPersAge) j = P.NoChildPersAge;
 					for (i = nc + 2; i < n; i++)
