@@ -34,7 +34,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	if (!(Xcg1 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
 	if (!(Xcg2 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
-	setall(P.seed1, P.seed2);
+	P.nextSetupSeed1 = P.setupSeed1;
+	P.nextSetupSeed2 = P.setupSeed2;
+	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
 	P.DoBin = -1;
 	if (P.DoHeteroDensity)
@@ -284,7 +286,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		SavePeopleToPlaces(NetworkFile);
 	//SaveDistribs();
 
-	//setall(P.seed3,P.seed4);
+	// From here on, we want the same random numbers regardless of whether we used the RNG to make the network,
+	// or loaded the network from a file. Therefore we need to reseed the RNG.
+	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
 	StratifyPlaces();
 	for (i = 0; i < P.NC; i++)
@@ -2560,7 +2564,7 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	fread_big(&s2, sizeof(long), 1, dat);
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
 	if (j != P.N) ERR_CRITICAL("Population size does not match saved value\n");
-	if ((s1 != P.seed1) || (s2 != P.seed2)) ERR_CRITICAL("Random number seeds do not match saved values\n");
+	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) ERR_CRITICAL("Random number seeds do not match saved values\n");
 	k = (P.N + 999999) / 1000000;
 	for (i = 0; i < P.N; i++)
 		for (j = 0; j < P.PlaceTypeNum; j++)
@@ -2612,8 +2616,8 @@ void SavePeopleToPlaces(char* NetworkFile)
 	{
 		fwrite_big(&npt, sizeof(int), 1, dat);
 		fwrite_big(&(P.N), sizeof(int), 1, dat);
-		fwrite_big(&P.seed1, sizeof(long), 1, dat);
-		fwrite_big(&P.seed2, sizeof(long), 1, dat);
+		fwrite_big(&P.setupSeed1, sizeof(long), 1, dat);
+		fwrite_big(&P.setupSeed2, sizeof(long), 1, dat);
 		for (i = 0; i < P.N; i++)
 		{
 			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);

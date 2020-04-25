@@ -19,7 +19,7 @@ long ignbin_mt(long, double, int);
 long ignpoi_mt(double, int);
 double ranf(void);
 double ranf_mt(int);
-void setall(long, long);
+void setall(long *, long *);
 double sexpo_mt(int);
 double sexpo(void);
 long mltmod(long, long, long);

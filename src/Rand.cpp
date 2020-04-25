@@ -66,7 +66,7 @@ double ranf_mt(int tn)
 	return ((double)z) / Xm1;
 }
 
-void setall(long iseed1, long iseed2)
+void setall(long *pseed1, long *pseed2)
 /*
 **********************************************************************
 	 void setall(long iseed1,long iseed2)
@@ -88,12 +88,16 @@ void setall(long iseed1, long iseed2)
 {
 	int g;
 
-	*Xcg1 = iseed1;
-	*Xcg2 = iseed2;
-	for (g = 1; g < MAX_NUM_THREADS; g++) {
-		*(Xcg1 + g * CACHE_LINE_SIZE) = mltmod(Xa1vw, *(Xcg1 + (g - 1) * CACHE_LINE_SIZE), Xm1);
-		*(Xcg2 + g * CACHE_LINE_SIZE) = mltmod(Xa2vw, *(Xcg2 + (g - 1) * CACHE_LINE_SIZE), Xm2);
+	long iseed1 = *pseed1;
+	long iseed2 = *pseed2;
+
+	for (g = 0; g < MAX_NUM_THREADS; g++) {
+		*(Xcg1 + g * CACHE_LINE_SIZE) = iseed1 = mltmod(Xa1vw, iseed1, Xm1);
+		*(Xcg2 + g * CACHE_LINE_SIZE) = iseed2 = mltmod(Xa2vw, iseed2, Xm2);
 	}
+
+	*pseed1 = iseed1;
+	*pseed2 = iseed2;
 }
 long mltmod(long a, long s, long m)
 /*

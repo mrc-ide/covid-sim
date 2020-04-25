@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
 	{
 		///// Get seeds.
 		i = argc - 4;
-		sscanf(argv[i], "%li", &P.seed1);
-		sscanf(argv[i + 1], "%li", &P.seed2);
-		sscanf(argv[i + 2], "%li", &P.seed3);
-		sscanf(argv[i + 3], "%li", &P.seed4);
+		sscanf(argv[i], "%li", &P.setupSeed1);
+		sscanf(argv[i + 1], "%li", &P.setupSeed2);
+		sscanf(argv[i + 2], "%li", &P.runSeed1);
+		sscanf(argv[i + 3], "%li", &P.runSeed2);
 
 		///// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s", OutFileBase);
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
-	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] Seed1 Seed2 Seed3 Seed4\n", argv[0]);
+	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** SET UP OMP / THREADS
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
 	if (GotScF) P.DoSchoolFile = 1;
 	if (P.DoAirports)
 	{
-		if (!GotAP) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile /AP:AirTravelFile [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] Seed1 Seed2 Seed3 Seed4\n", argv[0]);
+		if (!GotAP) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile /AP:AirTravelFile [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 		ReadAirTravel(AirTravelFile);
 	}
 
@@ -347,14 +347,6 @@ int main(int argc, char* argv[])
 
 	//print out number of calls to random number generator
 
-	///// Set seeds
-	if (!P.ResetSeeds)
-	{
-		P.newseed1 = P.seed3;
-		P.newseed2 = P.seed4;
-		setall(P.newseed1, P.newseed2);
-	}
-
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -370,31 +362,21 @@ int main(int argc, char* argv[])
 		}
 
 		///// Set and save seeds
-		if (P.ResetSeeds)
+		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
 		{
-			if (P.KeepSameSeeds)
-			{
-				P.newseed1 = P.seed3;
-				P.newseed2 = P.seed4;
-			}
-			else
-			{
-				if (i == 0)
-				{
-					P.newseed1 = P.seed3;
-					P.newseed2 = P.seed4;
-				}
-				else
-				{
-					//sample 2 new seeds for random number generators
-					P.newseed1 = (int)(ranf() * 1e8);
-					P.newseed2 = (int)(ranf() * 1e8);
-				}
-			}
+			P.nextRunSeed1 = P.runSeed1;
+			P.nextRunSeed2 = P.runSeed2;
+		}
+		if (P.ResetSeeds) {
 			//save these seeds to file
 			SaveRandomSeeds();
-			//reset seeds
-			setall(P.newseed1, P.newseed2);
+		}
+		// Now that we have set P.nextRunSeed* ready for the run, we need to save the values in case
+		// we need to reinitialise the RNG after the run is interrupted.
+		long thisRunSeed1 = P.nextRunSeed1;
+		long thisRunSeed2 = P.nextRunSeed2;
+		if (i == 0 || P.ResetSeeds) {
+			setall(&P.nextRunSeed1, &P.nextRunSeed2);
 			//fprintf(stderr, "%i, %i\n", P.newseed1,P.newseed2);
 			//fprintf(stderr, "%f\n", ranf());
 		}
@@ -404,7 +386,9 @@ int main(int argc, char* argv[])
 		if (P.DoLoadSnapshot) LoadSnapshot();
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			setall(P.newseed1, P.newseed2);  // reset random number seeds to generate same run again after calibration.
+			long tmp1 = thisRunSeed1;
+			long tmp2 = thisRunSeed2;
+			setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
 			InitModel(i);
 		}
 		if (P.OutputNonSummaryResults)
@@ -2937,9 +2921,7 @@ int RunModel(int run) //added run number as parameter
 				if (P.ResetSeedsPostIntervention)
 					if ((P.ResetSeedsFlag == 0) && (ts >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
 					{
-						P.newseed1 = (int)(ranf() * 1e8);
-						P.newseed2 = (int)(ranf() * 1e8);
-						setall(P.newseed1, P.newseed2);
+						setall(&P.nextRunSeed1, &P.nextRunSeed2);
 						P.ResetSeedsFlag = 1;
 					}
 
@@ -3943,7 +3925,7 @@ void SaveRandomSeeds(void)
 
 	sprintf(outname, "%s.seeds.xls", OutFile);
 	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
-	fprintf(dat, "%li\t%li\n", P.newseed1, P.newseed2);
+	fprintf(dat, "%li\t%li\n", P.nextRunSeed1, P.nextRunSeed2);
 	fclose(dat);
 }
 
@@ -4002,8 +3984,8 @@ void LoadSnapshot(void)
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.seed1) ERR_CRITICAL("Incorrect seed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.seed2) ERR_CRITICAL("Incorrect seed2 in snapshot file.\n");
+	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
+	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
@@ -4076,9 +4058,9 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.seed1), sizeof(long), 1, dat);
+	fwrite_big((void*) & (P.setupSeed1), sizeof(long), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.seed2), sizeof(long), 1, dat);
+	fwrite_big((void*) & (P.setupSeed2), sizeof(long), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.TimeStep), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
