@@ -1782,11 +1782,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
 				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
-				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#endif
 			}
 
 		}
@@ -1829,11 +1825,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[2] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
 				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
-#else
-				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
-#endif
 			}
 			else
 			{
