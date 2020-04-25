@@ -2419,7 +2419,7 @@ void ReadAirTravel(char* AirTravelFile)
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int i, i2,j, k, l, m, j2, tn, nim, stt, stp;
+	int i, j, k, l, m, tn, nim;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
@@ -2628,7 +2628,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 //	fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
 
-#pragma omp parallel for private(i,j,k,j2,l) schedule(static,500)
+#pragma omp parallel for private(i,j,k,l) schedule(static,500)
 	for (l = 0; l < P.NMCP; l++)
 	{
 		i = (int)(McellLookup[l] - Mcells);
@@ -2642,7 +2642,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
 	}
 	if (P.DoPlaces)
-#pragma omp parallel for private(m,l,i2) schedule(static,1)
+#pragma omp parallel for private(m,l) schedule(static,1)
 		for (m = 0; m < P.PlaceTypeNum; m++)
 		{
 			for(l=0;l<P.Nplace[m];l++)
