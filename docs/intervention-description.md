@@ -4,7 +4,7 @@ See [model overview](./model-overview.md) for further information.
 
 CovidSim models infections through time in a spatially explicit representation of individuals in a population. Infected people are assumed to infect susceptible people at household, spatial and place level. Here, [place](./model-glossary.md#Places) is a generalisation of either primary schools, secondary schools, universities or workplaces (e.g. offices). The model includes disease progression for symptomatic individuals, and is parameterised to reflect current knowledge of Covid-19 disease progression and death.
 
-Interventions are implemented in the code through the parameter and pre-parameter files (see [input-and-outputs](./inputs-and-outputs#input files)). These parameters are read in function `ReadParams` in `CovidSim.cpp` and collected in single structure `PARAMS`, of which there is a single, global instance `P`.
+Interventions are implemented in the code through the parameter and pre-parameter files (see [input-and-outputs](./inputs-and-outputs#input files.md)). These parameters are read in function `ReadParams` in `CovidSim.cpp` and collected in single structure `PARAMS`, of which there is a single, global instance `P`.
 
 
 ## Intervention overview
