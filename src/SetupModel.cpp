@@ -1988,14 +1988,14 @@ void AssignPeopleToPlaces(void)
 						j2++;
 					}
 				}
-				for (i2 = 0; i2 < 2; i2++)
-					for (k = 0; k < cnt; k++)
-					{
-						while ((l = (int)(((double)cnt) * ranf())) == k);
-						j2 = PeopleArray[k];
-						PeopleArray[k] = PeopleArray[l];
-						PeopleArray[l] = j2;
-					}
+				// Use the Fisher–Yates shuffle algorithm to get a random permutation of PeopleArray
+				for (int index1 = cnt - 1; index1 > 0; index1--)
+				{
+					int index2 = (int)(((double)k) * ranf());
+					int tmp = PeopleArray[index1];
+					PeopleArray[index1] = PeopleArray[index2];
+					PeopleArray[index2] = tmp;
+				}
 				m = 0;
 				if (tp < P.nsp)
 				{
