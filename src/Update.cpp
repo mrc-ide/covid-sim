@@ -1261,9 +1261,9 @@ int DoVacc(int ai, unsigned short int ts)
 
 #pragma omp critical (state_cumV)
 		State.cumV++;
-#pragma omp critical (state_cumV_daily)
 		if (P.VaccDosePerDay >= 0)
 		{
+#pragma omp critical (state_cumV_daily)
 			State.cumV_daily++;
 		}
 #pragma omp critical (tot_vacc)
@@ -1295,9 +1295,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Hosts[ai].vacc_start_time = ts;
 #pragma omp critical (state_cumVG) //changed to VG
 		State.cumVG++; //changed to VG
-#pragma omp critical (state_cumV_daily)
 		if (P.VaccDosePerDay >= 0)
 		{
+#pragma omp critical (state_cumV_daily)
 			State.cumVG_daily++;
 		}
 #pragma omp critical (tot_vacc)
