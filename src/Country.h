@@ -11,14 +11,8 @@ const int MAX_COUNTRIES = 100;
 const int NUM_PLACE_TYPES = 4;
 const int MAX_ADUNITS = 3200;
 
-#ifdef COUNTRY_US
-#define ABSENTEEISM_PLACE_CLOSURE
-#define MAX_ABSENT_TIME 8
-#else
-/*
-#define ABSENTEEISM_PLACE_CLOSURE
-*/
-#endif
+// Maximal absent time - used for array sizing
+const int MAX_ABSENT_TIME = 8;
 
 #ifdef COUNTRY_US
 #define MAX_DIST 2000

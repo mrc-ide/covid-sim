@@ -525,24 +525,28 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (Mcells[a->mcell].socdist_trig			< USHRT_MAX - 1) Mcells[a->mcell].socdist_trig++;
 	if (Mcells[a->mcell].keyworkerproph_trig	< USHRT_MAX - 1) Mcells[a->mcell].keyworkerproph_trig++;
 
-#ifndef ABSENTEEISM_PLACE_CLOSURE
-#ifdef PLACE_CLOSE_ROUND_HOUSEHOLD
-	if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
-#endif
-	if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
-		for (j = 0; j < P.PlaceTypeNum; j++)
-			if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
-			{
-				DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
-#ifndef PLACE_CLOSE_ROUND_HOUSEHOLD
-				if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
+	if (!P.AbsenteeismPlaceClosure)
+	{
+		if (P.PlaceCloseRoundHousehold)
+		{
+			if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
+		}
+		if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
+			for (j = 0; j < P.PlaceTypeNum; j++)
+				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 				{
+					DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
+					if (!P.PlaceCloseRoundHousehold)
+					{
+						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
+						{
 #pragma omp critical (place_trig)
-					Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
+							Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
+						}
+					}
 				}
-#endif
-			}
-#endif
+	}
+
 	if (t >= P.TreatTimeStart)
 		if ((P.TreatPropCases == 1) || (ranf_mt(tn) < P.TreatPropCases))
 		{
@@ -797,12 +801,14 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 						{
 							a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
 							a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
-#ifdef ABSENTEEISM_PLACE_CLOSURE
-							if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
-								for (j = 0; j < P.PlaceTypeNum; j++)
-									if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
-											DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
-#endif
+							if (P.AbsenteeismPlaceClosure)
+							{
+								if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
+									for (j = 0; j < P.PlaceTypeNum; j++)
+										if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
+												DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
+							}
+
 							if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
 								StateT[tn].cumAC++;
 							/* This calculates adult absenteeism from work due to care of sick children. Note, children not at school not counted (really this should
@@ -1077,18 +1083,14 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	unsigned short trig;
 	unsigned short int t_start, t_stop;
 
-#ifdef ABSENTEEISM_PLACE_CLOSURE
 	unsigned short int t_old, t_new;
-#endif
 
 	f2 = 0;
 	/*	if((j<0)||(j>=P.Nplace[i]))
 			fprintf(stderr,"** %i %i *\n",i,j);
 		else
 	*/
-#ifdef ABSENTEEISM_PLACE_CLOSURE
 	t_new = ts / P.TimeStepsPerDay;
-#endif
 	trig = 0;
 	t_start = ts + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
 	if (P.DoInterventionDelaysByAdUnit)
@@ -1109,32 +1111,35 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
 				Places[i][j].control_trig++;
-#ifdef ABSENTEEISM_PLACE_CLOSURE
-				t_old = Places[i][j].AbsentLastUpdateTime;
-				if (t_new >= t_old + MAX_ABSENT_TIME)
-					for (l = 0; l < MAX_ABSENT_TIME; l++) Places[i][j].Absent[l] = 0;
+				if (P.AbsenteeismPlaceClosure)
+				{
+					t_old = Places[i][j].AbsentLastUpdateTime;
+					if (t_new >= t_old + P.MaxAbsentTime)
+						for (l = 0; l < P.MaxAbsentTime; l++) Places[i][j].Absent[l] = 0;
+					else
+						for (l = t_old; l < t_new; l++) Places[i][j].Absent[l % P.MaxAbsentTime] = 0;
+					for (l = t_new; l < t_new + P.usCaseAbsenteeismDuration / P.TimeStepsPerDay; l++) Places[i][j].Absent[l % P.MaxAbsentTime]++;
+					trig = Places[i][j].Absent[t_new % P.MaxAbsentTime];
+					Places[i][j].AbsentLastUpdateTime = t_new;
+					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
+						&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
+					{
+						//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
+						k = Mcells[Places[i][j].mcell].adunit;
+						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
+					}
+				}
 				else
-					for (l = t_old; l < t_new; l++) Places[i][j].Absent[l % MAX_ABSENT_TIME] = 0;
-				for (l = t_new; l < t_new + P.usCaseAbsenteeismDuration / P.TimeStepsPerDay; l++) Places[i][j].Absent[l % MAX_ABSENT_TIME]++;
-				trig = Places[i][j].Absent[t_new % MAX_ABSENT_TIME];
-				Places[i][j].AbsentLastUpdateTime = t_new;
-				if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
-					&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 				{
-					//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
-					k = Mcells[Places[i][j].mcell].adunit;
-					if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
+					trig = Places[i][j].control_trig;
+					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
+						&& (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
+					{
+						//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
+						k = Mcells[Places[i][j].mcell].adunit;
+						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
+					}
 				}
-#else
-				trig = Places[i][j].control_trig;
-				if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
-					&& (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
-				{
-					//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
-					k = Mcells[Places[i][j].mcell].adunit;
-					if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
-				}
-#endif
 			}
 			if (Places[i][j].control_trig < USHRT_MAX - 1) //// control_trig initialized to zero so this check will pass at least once
 			{
