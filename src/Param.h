@@ -231,7 +231,6 @@ typedef struct PARAM {
 	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// us = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay
 	unsigned short int usCaseIsolationDuration, usCaseIsolationDelay, usCaseAbsenteeismDuration, usCaseAbsenteeismDelay;
 
-	int DoDistributionVaccination;
 	//Added DoRecordInfEvents and MaxInfEvents in order to give the user a choice as to whether to output infection events as a line list: ggilani - 10/10/14
 	int DoRecordInfEvents, MaxInfEvents, RecordInfEventsPerRun;
 	double KernelPowerScale, KernelOffsetScale;
