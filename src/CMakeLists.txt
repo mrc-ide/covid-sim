@@ -20,10 +20,6 @@ project("CovidSim")
 
 option(USE_OPENMP "Compile with OpenMP parallelism enabled" ON)
 
-# Country configuration for compile-time properties
-set(COUNTRY "UK" CACHE STRING "The country being modeled.")
-set_property(CACHE COUNTRY PROPERTY STRINGS UK US)
-
 # Packages used
 if(USE_OPENMP)
   find_package(OpenMP REQUIRED)
@@ -35,7 +31,6 @@ set(CMAKE_CXX_STANDARD 11)
 # CovidSim target
 add_executable(CovidSim CovidSim.cpp CovidSim.h binio.cpp binio.h Rand.cpp Rand.h Constants.h Country.h MachineDefines.h Error.cpp Error.h Dist.cpp Dist.h Kernels.cpp Kernels.h Bitmap.cpp Bitmap.h Model.h Param.h SetupModel.cpp SetupModel.h SharedFuncs.h ModelMacros.h InfStat.h CalcInfSusc.cpp CalcInfSusc.h Sweep.cpp Sweep.h Update.cpp Update.h)
 target_include_directories(CovidSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(CovidSim PUBLIC  "COUNTRY_${COUNTRY}")
 if(USE_OPENMP)
   target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
 endif()

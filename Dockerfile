@@ -1,7 +1,5 @@
 FROM debian:stable AS build
 
-ARG COUNTRY=UK
-
 WORKDIR /src
 
 COPY . .
@@ -11,7 +9,7 @@ RUN mkdir -p build \
 
 WORKDIR /src/build
 
-RUN cmake -DCOUNTRY=${COUNTRY} ../src \
+RUN cmake ../src \
     && make
 
 # This allows for building a release without having to potentially re-run the tests.
