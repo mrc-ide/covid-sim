@@ -91,10 +91,10 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 0.981230907	0.986622976	0	0.28069138699999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.962517446	0.948564094	0.719308613	0.05143590600000003
@@ -112,7 +112,7 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -150,6 +150,12 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -161,11 +167,11 @@ Akershus	Ãstfold	Aust-Agder	Buskerud	Finnmark	Hedmark	Hordaland	Møre_og_Romsdal	
 7
 
 [Holiday start times]
-104	170	353	409	468	534	717	
+104	170	353	409	468	534	717
 
 
 [Holiday durations]
-9	63	15	8	9	63	15	
+9	63	15	8	9	63	15
 
 ===================================
 

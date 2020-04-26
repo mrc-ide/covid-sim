@@ -100,10 +100,10 @@ Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Love
 0.833177461	0.866486581	0	0.330793231
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.735559614	0.933561178	0.669206769	0.06643882199999995
@@ -121,7 +121,7 @@ Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Love
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -159,6 +159,12 @@ Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Love
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -170,11 +176,11 @@ Blagoevgrad	Burgas	Dobrich	Gabrovo	Grad_Sofiya	Haskovo	Kardzhali	Kyustendil	Love
 6
 
 [Holiday start times]
-88	164	355	452	528	719	
+88	164	355	452	528	719
 
 
 [Holiday durations]
-8	91	10	8	91	10	
+8	91	10	8	91	10
 
 ===================================
 

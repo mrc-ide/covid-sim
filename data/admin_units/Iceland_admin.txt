@@ -80,10 +80,10 @@ Austurland	Hálshreppur	Höfuðborgarsvæði	Norðurland_vestra	Suðurland	Suðurnes	Ves
 0.963856725	0.980140053	0	0.33104709600000004
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.964091162	0.95478097	0.668952904	0.04521903000000005
@@ -101,7 +101,7 @@ Austurland	Hálshreppur	Höfuðborgarsvæði	Norðurland_vestra	Suðurland	Suðurnes	Ves
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -139,6 +139,12 @@ Austurland	Hálshreppur	Höfuðborgarsvæði	Norðurland_vestra	Suðurland	Suðurnes	Ves
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -150,11 +156,11 @@ Austurland	Hálshreppur	Höfuðborgarsvæði	Norðurland_vestra	Suðurland	Suðurnes	Ves
 6
 
 [Holiday start times]
-104	154	354	468	518	718	
+104	154	354	468	518	718
 
 
 [Holiday durations]
-9	79	13	9	79	13	
+9	79	13	9	79	13
 
 ===================================
 

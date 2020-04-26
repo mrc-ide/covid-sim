@@ -114,10 +114,10 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 0.837409627	0.898731845	0	0.452502325
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.775901723	0.847272566	0.547497675	0.152727434
@@ -135,7 +135,7 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -173,6 +173,12 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -184,11 +190,11 @@ Alba	Arad	Arge?	Bac?u	Bihor	Bistri?a-N?s?ud	Boto?ani	Bra?ov	Br?ila	Bucharest	Buz
 9
 
 [Holiday start times]
-109	165	299	355	396	473	529	663	719	
+109	165	299	355	396	473	529	663	719
 
 
 [Holiday durations]
-16	90	9	22	9	16	90	9	22	
+16	90	9	22	9	16	90	9	22
 
 ===================================
 

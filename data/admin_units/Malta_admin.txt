@@ -77,10 +77,10 @@ Malta
 0.806245976	0.948473888	0	0.668189743
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.580614529	0.923406634	0.331810257	0.076593366
@@ -98,7 +98,7 @@ Malta
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -136,6 +136,12 @@ Malta
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -147,11 +153,11 @@ Malta
 6
 
 [Holiday start times]
-106	179	357	470	543	721	
+106	179	357	470	543	721
 
 
 [Holiday durations]
-9	89	11	9	89	11	
+9	89	11	9	89	11
 
 ===================================
 

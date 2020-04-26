@@ -14,14 +14,6 @@ const int MAX_ADUNITS = 3200;
 // Maximal absent time - used for array sizing
 const int MAX_ABSENT_TIME = 8;
 
-#ifdef COUNTRY_US
-#define MAX_DIST 2000
-#define NK_HR 2500
-#define NKR 4000000
-#else
-#define MAX_DIST 2000
-#define NK_HR 400
-#define NKR 2000000
-#endif
+const int MAX_DIST = 2000;
 
 #endif // COVIDSIM_COUNTRY_H_INCLUDED_

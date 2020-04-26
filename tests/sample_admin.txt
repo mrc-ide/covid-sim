@@ -135,6 +135,12 @@ East_Wales	West_Wales_and_The_Valleys
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 
 [Include holidays]

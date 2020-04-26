@@ -92,10 +92,10 @@ Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moso
 0.953707079	0.975682323	0	0.32963683499999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.925067851	0.892237438	0.670363165	0.107762562
@@ -113,7 +113,7 @@ Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moso
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -151,6 +151,12 @@ Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moso
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -162,11 +168,11 @@ Bács-Kiskun	Baranya	Békés	Borsod-Abaúj-Zemplén	Budapest	Csongrád	Fejér	Gyor-Moso
 8
 
 [Holiday start times]
-107	167	301	357	471	531	665	721	
+107	167	301	357	471	531	665	721
 
 
 [Holiday durations]
-6	76	5	9	6	76	5	9	
+6	76	5	9	6	76	5	9
 
 ===================================
 

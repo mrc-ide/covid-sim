@@ -93,10 +93,10 @@ Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolaši
 0.806245976	0.948473888	0	0.668189743
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.580614529	0.923406634	0.331810257	0.076593366
@@ -114,7 +114,7 @@ Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolaši
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -152,6 +152,12 @@ Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolaši
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -163,11 +169,11 @@ Andrijevica	Bar	Berane	Bijelo_Polje	Budva	Cetinje	Danilovgrad	Herceg_Novi	Kolaši
 4
 
 [Holiday start times]
-163	362	527	726	
+163	362	527	726
 
 
 [Holiday durations]
-80	22	80	22	
+80	22	80	22
 
 ===================================
 

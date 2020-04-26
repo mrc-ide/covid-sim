@@ -81,10 +81,10 @@ Burgenland	Kärnten	Niederösterreich	Oberösterreich	Salzburg	Steiermark	Tirol	Vor
 0.994532505	0.951800944	0	0.412154777
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.854841131	0.869408164	0.587845223	0.13059183600000002
@@ -102,7 +102,7 @@ Burgenland	Kärnten	Niederösterreich	Oberösterreich	Salzburg	Steiermark	Tirol	Vor
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -140,6 +140,12 @@ Burgenland	Kärnten	Niederösterreich	Oberösterreich	Salzburg	Steiermark	Tirol	Vor
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -151,11 +157,11 @@ Burgenland	Kärnten	Niederösterreich	Oberösterreich	Salzburg	Steiermark	Tirol	Vor
 7
 
 [Holiday start times]
-102	182	356	405	466	546	720	
+102	182	356	405	466	546	720
 
 
 [Holiday durations]
-11	66	14	7	11	66	14	
+11	66	14	7	11	66	14
 
 ===================================
 

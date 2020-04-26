@@ -77,10 +77,10 @@ Hovedstaden	Midtjylland	Nordjylland	Sjælland	Syddanmark
 0.984719472	0.99483081	0	0.350576125
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.984939424	0.926005323	0.649423875	0.07399467699999995
@@ -98,7 +98,7 @@ Hovedstaden	Midtjylland	Nordjylland	Sjælland	Syddanmark
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -136,6 +136,12 @@ Hovedstaden	Midtjylland	Nordjylland	Sjælland	Syddanmark
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -147,11 +153,11 @@ Hovedstaden	Midtjylland	Nordjylland	Sjælland	Syddanmark
 9
 
 [Holiday start times]
-104	179	287	357	405	468	543	651	721	
+104	179	287	357	405	468	543	651	721
 
 
 [Holiday durations]
-8	46	7	8	7	8	46	7	8	
+8	46	7	8	7	8	46	7	8
 
 ===================================
 

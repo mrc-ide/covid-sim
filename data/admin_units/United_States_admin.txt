@@ -105,9 +105,9 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 1
 
 [Place overlap matrix]
-1 0 0 
-0 1 0 
-0 0 1 
+1 0 0
+0 1 0
+0 0 1
 
 (note this isn't used - currently assume identity matrix)
 
@@ -126,19 +126,19 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 [Proportion of age group 2 in place types]
 0.25	0.32	0
 
-[Minimum age for age group 2 in place types]	
+[Minimum age for age group 2 in place types]
 5	65	0
 
-[Maximum age for age group 2 in place types]	
+[Maximum age for age group 2 in place types]
 6	75	85
 
 [Proportion of age group 3 in place types]
 0.014	0	0.01
 
-[Minimum age for age group 3 in place types]	
+[Minimum age for age group 3 in place types]
 20	21	0
 
-[Maximum age for age group 3 in place types]	
+[Maximum age for age group 3 in place types]
 65	65	85
 
 [Kernel type]
@@ -155,10 +155,10 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 [Kernel type for place types]
 5	6	2
 
-[Kernel shape params for place types]	
+[Kernel shape params for place types]
 11	6.5	3
 
-[Kernel scale params for place types]	
+[Kernel scale params for place types]
 14000	35000	4000
 
 [Kernel 3rd param for place types]
@@ -167,18 +167,18 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 [Kernel 4th param for place types]
 0	2.2	0
 
-[Mean size of place types]	
+[Mean size of place types]
 460	14.28	100
 
 (inc teachers)
 
-[Number of closest places people pick from (0=all) for place types]	
+[Number of closest places people pick from (0=all) for place types]
 10	0	0
 
-[Param 1 of place group size distribution]	
+[Param 1 of place group size distribution]
 25	10	1000
 
-[Power of place size distribution]	
+[Power of place size distribution]
 0	1.34	0
 
 [Offset of place size distribution]
@@ -187,10 +187,16 @@ Alabama	Arizona	Arkansas	California	Colorado	Connecticut	Delaware	District_of_Co
 [Maximum of place size distribution]
 0	5927	0
 
-[Proportion of between group place links]	
+[Proportion of between group place links]
 0.25	0.25	1.0
 
 (25% of within-group contacts)
+
+[Kernel resolution]
+4000000
+
+[Kernel higher resolution factor]
+2500
 
 ===================================
 [Include holidays]

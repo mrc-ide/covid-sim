@@ -93,10 +93,10 @@ Bjelovarska-Bilogorska	Brodsko-Posavska	Dubrovacko-Neretvanska	Grad_Zagreb	Istar
 0.871567812	1	0	0.40749204800000005
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.643588185	0.954225755	0.592507952	0.04577424500000005
@@ -114,7 +114,7 @@ Bjelovarska-Bilogorska	Brodsko-Posavska	Dubrovacko-Neretvanska	Grad_Zagreb	Istar
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -152,6 +152,12 @@ Bjelovarska-Bilogorska	Brodsko-Posavska	Dubrovacko-Neretvanska	Grad_Zagreb	Istar
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -163,11 +169,11 @@ Bjelovarska-Bilogorska	Brodsko-Posavska	Dubrovacko-Neretvanska	Grad_Zagreb	Istar
 6
 
 [Holiday start times]
-107	164	357	471	528	721	
+107	164	357	471	528	721
 
 
 [Holiday durations]
-9	80	17	9	80	17	
+9	80	17	9	80	17
 
 ===================================
 

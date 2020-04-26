@@ -84,10 +84,10 @@ Berat	Dibër	Durrës	Elbasan	Fier	Gjirokastër	Korçë	Kukës	Lezhë	Shkodër	Tiranë	Vlo
 0.970799546	0.955467156	0	0.26176810399999995
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.53486274	0.940827458	0.738231896	0.059172541999999995
@@ -105,7 +105,7 @@ Berat	Dibër	Durrës	Elbasan	Fier	Gjirokastër	Korçë	Kukës	Lezhë	Shkodër	Tiranë	Vlo
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -143,6 +143,12 @@ Berat	Dibër	Durrës	Elbasan	Fier	Gjirokastër	Korçë	Kukës	Lezhë	Shkodër	Tiranë	Vlo
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -154,11 +160,11 @@ Berat	Dibër	Durrës	Elbasan	Fier	Gjirokastër	Korçë	Kukës	Lezhë	Shkodër	Tiranë	Vlo
 6
 
 [Holiday start times]
-110	163	355	474	527	719	
+110	163	355	474	527	719
 
 
 [Holiday durations]
-7	86	14	7	86	14	
+7	86	14	7	86	14
 
 ===================================
 

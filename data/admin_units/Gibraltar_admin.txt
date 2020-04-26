@@ -73,10 +73,10 @@ Gibraltar
 0.968576934	0.991132314	0	0.29211170799999997
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.974981243	0.947510365	0.707888292	0.052489635000000034
@@ -94,7 +94,7 @@ Gibraltar
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -132,6 +132,12 @@ Gibraltar
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -143,11 +149,11 @@ Gibraltar
 6
 
 [Holiday start times]
-106	180	355	470	544	719	
+106	180	355	470	544	719
 
 
 [Holiday durations]
-10	78	14	10	78	14	
+10	78	14	10	78	14
 
 ===================================
 

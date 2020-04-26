@@ -23,6 +23,8 @@ typedef struct PARAM {
 	int UpdatesPerSample; // Number of time steps between samples
 	int NumSamples; // Total number of samples that will be made
 	int KernelType;
+	int NKR; // Size of kernel lookup table
+	int NK_HR; // Factor to expand hi-res kernel lookup table by
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;

@@ -88,10 +88,10 @@ Baden-Württemberg	Bayern	Berlin	Brandenburg	Bremen	Hamburg	Hessen	Mecklenburg-Vo
 0.963280104	0.953879888	0	0.28928189299999996
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.929999643	0.934765173	0.710718107	0.06523482700000005
@@ -109,7 +109,7 @@ Baden-Württemberg	Bayern	Berlin	Brandenburg	Bremen	Hamburg	Hessen	Mecklenburg-Vo
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -146,6 +146,12 @@ Baden-Württemberg	Bayern	Berlin	Brandenburg	Bremen	Hamburg	Hessen	Mecklenburg-Vo
 
 [Kernel Shape]
 3
+
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
 
 ===================================
 [Include holidays]

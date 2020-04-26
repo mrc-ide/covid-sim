@@ -86,10 +86,10 @@ Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Braban
 0.998386266	0.988555369	0	0.16649962500000004
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.911946357	1	0.833500375	0.0
@@ -107,7 +107,7 @@ Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Braban
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -145,6 +145,12 @@ Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Braban
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -156,11 +162,11 @@ Drenthe	Flevoland	Friesland	Gelderland	Groningen	IJsselmeer	Limburg	Noord-Braban
 5
 
 [Holiday start times]
-200	292	417	564	656	
+200	292	417	564	656
 
 
 [Holiday durations]
-43	9	9	43	9	
+43	9	9	43	9
 
 ===================================
 

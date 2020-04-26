@@ -75,10 +75,10 @@ Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
 0.556362	0.672716458	0	0.567830854
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.407916167	0.605385593	0.432169146	0.39461440699999994
@@ -96,7 +96,7 @@ Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -134,6 +134,12 @@ Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -145,11 +151,11 @@ Br?ko	Federacija_Bosna_i_Hercegovina	Repuplika_Srpska
 5
 
 [Holiday start times]
-88	170	365	452	534	
+88	170	365	452	534
 
 
 [Holiday durations]
-8	72	25	8	72	
+8	72	25	8	72
 
 ===================================
 

@@ -77,10 +77,10 @@ Eastern_Finland	Lapland	Oulu	Southern_Finland	Western_Finland
 0.91392117	0.9847967	0	0.300743698
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.764836259	0.964666825	0.699256302	0.035333174999999994
@@ -98,7 +98,7 @@ Eastern_Finland	Lapland	Oulu	Southern_Finland	Western_Finland
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -136,6 +136,12 @@ Eastern_Finland	Lapland	Oulu	Southern_Finland	Western_Finland
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -147,11 +153,11 @@ Eastern_Finland	Lapland	Oulu	Southern_Finland	Western_Finland
 6
 
 [Holiday start times]
-108	151	355	472	515	719	
+108	151	355	472	515	719
 
 
 [Holiday durations]
-4	76	17	4	76	17	
+4	76	17	4	76	17
 
 ===================================
 

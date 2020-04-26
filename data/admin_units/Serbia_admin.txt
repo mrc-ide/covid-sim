@@ -97,10 +97,10 @@ Borski	Brani?evski	Grad_Beograd	Jablani?ki	Južno-Ba?ki	Južno-Banatski	Kolubarski
 0.556362	0.672716458	0	0.567830854
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.407916167	0.605385593	0.432169146	0.39461440699999994
@@ -118,7 +118,7 @@ Borski	Brani?evski	Grad_Beograd	Jablani?ki	Južno-Ba?ki	Južno-Banatski	Kolubarski
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -156,6 +156,12 @@ Borski	Brani?evski	Grad_Beograd	Jablani?ki	Južno-Ba?ki	Južno-Banatski	Kolubarski
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -167,11 +173,11 @@ Borski	Brani?evski	Grad_Beograd	Jablani?ki	Južno-Ba?ki	Južno-Banatski	Kolubarski
 7
 
 [Holiday start times]
-119	167	312	366	483	531	676	
+119	167	312	366	483	531	676
 
 
 [Holiday durations]
-4	74	4	6	4	74	4	
+4	74	4	6	4	74	4
 
 ===================================
 

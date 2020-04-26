@@ -86,10 +86,10 @@ Jiho?eský	Jihomoravský	Karlovarský	Kraj_Vyso?ina	Královéhradecký	Liberecký	Morav
 0.929467814	0.961306069	0	0.259034553
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0.836296904	0.970305309	0.740965447	0.029694690999999995
@@ -107,7 +107,7 @@ Jiho?eský	Jihomoravský	Karlovarský	Kraj_Vyso?ina	Královéhradecký	Liberecký	Morav
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -145,6 +145,12 @@ Jiho?eský	Jihomoravský	Karlovarský	Kraj_Vyso?ina	Královéhradecký	Liberecký	Morav
 [Kernel Shape]
 3
 
+[Kernel resolution]
+2000000
+
+[Kernel higher resolution factor]
+400
+
 ===================================
 [Include holidays]
 1
@@ -156,11 +162,11 @@ Jiho?eský	Jihomoravský	Karlovarský	Kraj_Vyso?ina	Královéhradecký	Liberecký	Morav
 6
 
 [Holiday start times]
-107	179	355	471	543	719	
+107	179	355	471	543	719
 
 
 [Holiday durations]
-5	65	10	5	65	10	
+5	65	10	5	65	10
 
 ===================================
 

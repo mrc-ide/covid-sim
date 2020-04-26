@@ -181,9 +181,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	t = dist2_raw(0, 0, P.width, P.height);
 	if (P.DoPeriodicBoundaries) t *= 0.25;
-	if (!(nKernel = (double*)calloc(NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
-	if (!(nKernelHR = (double*)calloc(NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
-	P.KernelDelta = t / NKR;
+	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
+	if (!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
+	P.KernelDelta = t / P.NKR;
 	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n", sqrt(dist2_raw(P.width / 2, P.height / 2, P.width / 2 + P.mcwidth, P.height / 2)), sqrt(dist2_raw(P.width / 2, P.height / 2, P.width / 2, P.height / 2 + P.mcheight)));
 	P.KernelShape = P.MoveKernelShape;
@@ -1419,7 +1419,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 		for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 			for (l = 1; l < P.PlaceTypeNum; l++)
-				if (l != P.HotelPlaceType) 
+				if (l != P.HotelPlaceType)
 				{
 					if (PropPlacesC[k][l - 1] < 1)
 						PropPlaces[k][l] /= (1 - PropPlacesC[k][l - 1]);
@@ -1461,7 +1461,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				if (!(StateT[i].dct_queue[j] = (contactevent*)malloc(AdUnits[j].n * sizeof(contactevent)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
-		
+
 	}
 
 	//If outputting origin-destination matrix, set up storage for flow between admin units
@@ -1944,7 +1944,7 @@ void AssignPeopleToPlaces(void)
 
 		for (i = 0; i < P.N; i++)
 		{
-			for (tp = 0; tp < npt; tp++) //Changed from 'for(tp=0;tp<P.PlaceTypeNum;tp++)' to try and assign -1 early and avoid problems when using less than the default number of placetypes later 
+			for (tp = 0; tp < npt; tp++) //Changed from 'for(tp=0;tp<P.PlaceTypeNum;tp++)' to try and assign -1 early and avoid problems when using less than the default number of placetypes later
 			{
 				Hosts[i].PlaceLinks[tp] = -1;
 			}
@@ -1965,7 +1965,7 @@ void AssignPeopleToPlaces(void)
 						f = ((PropPlaces[k][tp] > 0) && (ranf() < PropPlaces[k][tp]));
 						if (f)
 							for (k = 0; (k < tp) && (f); k++)
-								if (Hosts[c->members[j]].PlaceLinks[k] >= 0) f = 0; //(ranf()<P.PlaceExclusivityMatrix[tp][k]); 
+								if (Hosts[c->members[j]].PlaceLinks[k] >= 0) f = 0; //(ranf()<P.PlaceExclusivityMatrix[tp][k]);
 						// Am assuming people can only belong to 1 place (and a hotel) at present
 						if (f)
 						{
