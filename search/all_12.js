@@ -108,11 +108,10 @@ var searchData=
   ['sumrad2_1157',['sumRad2',['../struct_p_o_p_v_a_r.html#ab08ee4a7963abb4d68dcc652e1f4a864',1,'POPVAR']]],
   ['susc_1158',['susc',['../struct_p_e_r_s_o_n.html#a1e2871c04d8ee4aa4864dba37089296f',1,'PERSON']]],
   ['susceptible_1159',['susceptible',['../struct_c_e_l_l.html#a09f7d71bb3fc167138fa113bb0427461',1,'CELL']]],
-  ['suscreductionfactorperinfection_1160',['SuscReductionFactorPerInfection',['../struct_p_a_r_a_m.html#a49ae5fb48c39e0311dbb67553cfa8ddb',1,'PARAM']]],
-  ['sweep_2ecpp_1161',['Sweep.cpp',['../_sweep_8cpp.html',1,'']]],
-  ['sweep_2eh_1162',['Sweep.h',['../_sweep_8h.html',1,'']]],
-  ['symptinfectiousness_1163',['SymptInfectiousness',['../struct_p_a_r_a_m.html#afee33664cb107ae82b17f41a1e9c62e7',1,'PARAM']]],
-  ['symptplacetypecontactrate_1164',['SymptPlaceTypeContactRate',['../struct_p_a_r_a_m.html#a27f86a3ca109477c477864dbce39e766',1,'PARAM']]],
-  ['symptplacetypewithdrawalprop_1165',['SymptPlaceTypeWithdrawalProp',['../struct_p_a_r_a_m.html#a71c3e7712ebf06be08ebfa59574307d0',1,'PARAM']]],
-  ['symptspatialcontactrate_1166',['SymptSpatialContactRate',['../struct_p_a_r_a_m.html#aee1ae1ba614309763ca81faf5e68412e',1,'PARAM']]]
+  ['sweep_2ecpp_1160',['Sweep.cpp',['../_sweep_8cpp.html',1,'']]],
+  ['sweep_2eh_1161',['Sweep.h',['../_sweep_8h.html',1,'']]],
+  ['symptinfectiousness_1162',['SymptInfectiousness',['../struct_p_a_r_a_m.html#afee33664cb107ae82b17f41a1e9c62e7',1,'PARAM']]],
+  ['symptplacetypecontactrate_1163',['SymptPlaceTypeContactRate',['../struct_p_a_r_a_m.html#a27f86a3ca109477c477864dbce39e766',1,'PARAM']]],
+  ['symptplacetypewithdrawalprop_1164',['SymptPlaceTypeWithdrawalProp',['../struct_p_a_r_a_m.html#a71c3e7712ebf06be08ebfa59574307d0',1,'PARAM']]],
+  ['symptspatialcontactrate_1165',['SymptSpatialContactRate',['../struct_p_a_r_a_m.html#aee1ae1ba614309763ca81faf5e68412e',1,'PARAM']]]
 ];

@@ -23,7 +23,7 @@ var searchData=
   ['nextsetupseed1_801',['nextSetupSeed1',['../struct_p_a_r_a_m.html#ae27e77b3ea04bbf0d58891e4b4edb4b0',1,'PARAM']]],
   ['nextsetupseed2_802',['nextSetupSeed2',['../struct_p_a_r_a_m.html#a045728d9ac9750105381337e14c0a6fc',1,'PARAM']]],
   ['ng_803',['ng',['../struct_p_l_a_c_e.html#a4ad6be9872b3950d830a53275db2deb0',1,'PLACE']]],
-  ['nh_804',['nh',['../struct_h_o_u_s_e_h_o_l_d.html#ad03a412402244fb96d495903dc8649b4',1,'HOUSEHOLD::nh()'],['../struct_p_a_r_a_m.html#ac5752c7d5d3c910cde1e8223a874c976',1,'PARAM::NH()']]],
+  ['nh_804',['NH',['../struct_p_a_r_a_m.html#ac5752c7d5d3c910cde1e8223a874c976',1,'PARAM::NH()'],['../struct_h_o_u_s_e_h_o_l_d.html#ad03a412402244fb96d495903dc8649b4',1,'HOUSEHOLD::nh()']]],
   ['nh_5fqueue_805',['nh_queue',['../struct_p_o_p_v_a_r.html#a6e01577ddfe8b94b3ccf89092cc6d1d8',1,'POPVAR']]],
   ['nhd_5fqueue_806',['nhd_queue',['../struct_p_o_p_v_a_r.html#af44bd3890cc7f5333c76792041d29152',1,'POPVAR']]],
   ['nhr_807',['nhr',['../struct_h_o_u_s_e_h_o_l_d.html#ab4193b63654511a90e1bd4e256e51ad3',1,'HOUSEHOLD']]],
