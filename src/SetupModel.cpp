@@ -650,7 +650,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 {
-	int i, j, k, l, m, i2, j2, last_i, mr, ad, tn, *mcl;
+	int i, j, k, l, m, i2, j2, last_i, mr, ad, tn, *mcl, country;
 	unsigned int rn, rn2;
 	double t, s, x, y, xh, yh, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
 	char buf[4096], *col;
@@ -720,11 +720,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			{
 				if (P.DoBin == 1)
 				{
-					x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; i2 = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
+					x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
 					rec = BF[rn];
 				}
 				else
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &j2);
+					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &country, &j2);
 				m = (j2 % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.DoAdunitBoundaries)
 				{
@@ -733,7 +733,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 						if (j2 / P.AdunitLevel1Mask == AdUnits[P.AdunitLevel1Lookup[m]].id / P.AdunitLevel1Mask)
 						{
 							k = 1;
-							AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = i2;
+							AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 						}
 						else
 							k = 0;
@@ -748,13 +748,13 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					{
 						P.AdunitLevel1Lookup[m] = P.NumAdunits;
 						AdUnits[P.NumAdunits].id = j2;
-						AdUnits[P.NumAdunits].cnt_id = i2;
+						AdUnits[P.NumAdunits].cnt_id = country;
 						P.NumAdunits++;
 						if (P.NumAdunits >= MAX_ADUNITS) ERR_CRITICAL("Total number of administrative units exceeds MAX_ADUNITS\n");
 					}
 					else
 					{
-						AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = i2;
+						AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 					}
 				}
 			}
@@ -763,14 +763,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				k = 1;
 				if (P.DoBin == 1)
 				{
-					x = BF[i].x; y = BF[i].y; t = BF[i].pop; i2 = BF[i].cnt; j2 = BF[i].ad;
+					x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
 					rec = BF[rn];
 				}
 				else
 				{
-					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
+					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &country);
 					j2 = 0;
-					rec.x = x; rec.y = y; rec.pop = t; rec.cnt = i2; rec.ad = j2;
+					rec.x = x; rec.y = y; rec.pop = t; rec.cnt = country; rec.ad = j2;
 				}
 			}
 			if (P.DoBin == 0)
@@ -787,8 +787,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				{
 					mr++;
 					mcell_dens[l] += t;
-					mcell_country[l] = i2;
-					//fprintf(stderr,"mcell %i, country %i, pop %lg\n",l,i2,t);
+					mcell_country[l] = country;
+					//fprintf(stderr,"mcell %i, country %i, pop %lg\n",l,country,t);
 					mcell_num[l]++;
 					if (P.DoAdUnits)
 					{
