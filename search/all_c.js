@@ -9,7 +9,7 @@ var searchData=
   ['max_5fairports_683',['MAX_AIRPORTS',['../_constants_8h.html#a06194fdcf31c0d7bf1e38e07e9ef5cce',1,'Constants.h']]],
   ['max_5fcontacts_684',['MAX_CONTACTS',['../_constants_8h.html#a84bfa512ba2269b77a80f391fbdde0a3',1,'Constants.h']]],
   ['max_5fcountries_685',['MAX_COUNTRIES',['../_country_8h.html#aa7e7a5fdaa1159a9aa10148b60af3531',1,'Country.h']]],
-  ['max_5fdist_686',['MAX_DIST',['../_country_8h.html#ae4f6058c45a018de2c45bc43f0c405ae',1,'Country.h']]],
+  ['max_5fdist_686',['MAX_DIST',['../_country_8h.html#a437e1cffc0eafe36dd7712982ee853a7',1,'Country.h']]],
   ['max_5fdist_5fairport_5fto_5fhotel_687',['MAX_DIST_AIRPORT_TO_HOTEL',['../_constants_8h.html#acde3cebbdcf97ae6d6c4084148d1d748',1,'Constants.h']]],
   ['max_5fdur_5fimport_5fprofile_688',['MAX_DUR_IMPORT_PROFILE',['../_constants_8h.html#a99c90393bd788408fb22e34686ecef5a',1,'Constants.h']]],
   ['max_5fgen_5frec_689',['MAX_GEN_REC',['../_constants_8h.html#aeecc4d8aacdc72eea3dd2a8654456333',1,'Constants.h']]],

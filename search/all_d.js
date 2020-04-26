@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['n_781',['n',['../struct_m_i_c_r_o_c_e_l_l.html#a82351d0d9079697b6ab7631d0ee35da1',1,'MICROCELL::n()'],['../struct_c_e_l_l.html#a5cbf467112a3cf29e1c33122c038a1e8',1,'CELL::n()'],['../struct_p_l_a_c_e.html#ab4ca75ec49d3c2c003081203a9a8b51f',1,'PLACE::n()'],['../struct_a_d_m_i_n_u_n_i_t.html#a6ede8982e08e694d1b6bc312df15ea2d',1,'ADMINUNIT::n()'],['../struct_p_a_r_a_m.html#a492528cce9934bd664972ebcb26c00ae',1,'PARAM::N()']]],
+  ['n_781',['N',['../struct_p_a_r_a_m.html#a492528cce9934bd664972ebcb26c00ae',1,'PARAM::N()'],['../struct_m_i_c_r_o_c_e_l_l.html#a82351d0d9079697b6ab7631d0ee35da1',1,'MICROCELL::n()'],['../struct_c_e_l_l.html#a5cbf467112a3cf29e1c33122c038a1e8',1,'CELL::n()'],['../struct_p_l_a_c_e.html#ab4ca75ec49d3c2c003081203a9a8b51f',1,'PLACE::n()'],['../struct_a_d_m_i_n_u_n_i_t.html#a6ede8982e08e694d1b6bc312df15ea2d',1,'ADMINUNIT::n()']]],
   ['n_5fmvacc_782',['n_mvacc',['../struct_p_o_p_v_a_r.html#a62098fc98f541448051ac94c7160463d',1,'POPVAR']]],
   ['n_5fqueue_783',['n_queue',['../struct_p_o_p_v_a_r.html#a25fa60abf1eec460497091d11a3e19ae',1,'POPVAR']]],
   ['na_784',['Na',['../struct_p_o_p_v_a_r.html#aee72db659f3574d4106ccf7be5c25dde',1,'POPVAR']]],
@@ -28,10 +28,10 @@ var searchData=
   ['nhd_5fqueue_806',['nhd_queue',['../struct_p_o_p_v_a_r.html#af44bd3890cc7f5333c76792041d29152',1,'POPVAR']]],
   ['nhr_807',['nhr',['../struct_h_o_u_s_e_h_o_l_d.html#ab4193b63654511a90e1bd4e256e51ad3',1,'HOUSEHOLD']]],
   ['ni_808',['NI',['../struct_a_d_m_i_n_u_n_i_t.html#aaafb87342fbfdf3befce3e3887d23477',1,'ADMINUNIT']]],
-  ['nk_5fhr_809',['NK_HR',['../_country_8h.html#a39a0cf90dd026fc007ecb501fd45547f',1,'Country.h']]],
+  ['nk_5fhr_809',['NK_HR',['../struct_p_a_r_a_m.html#a15ec5fda6efd9a3c31c3ffc542bcc2cb',1,'PARAM']]],
   ['nkernel_810',['nKernel',['../_kernels_8cpp.html#ae989621a2ab4f680bf8a538a86d5b1dd',1,'nKernel():&#160;Kernels.cpp'],['../_kernels_8h.html#ae989621a2ab4f680bf8a538a86d5b1dd',1,'nKernel():&#160;Kernels.cpp']]],
   ['nkernelhr_811',['nKernelHR',['../_kernels_8cpp.html#a9108701e0e905fd7aa0c0575ac7aa793',1,'nKernelHR():&#160;Kernels.cpp'],['../_kernels_8h.html#a9108701e0e905fd7aa0c0575ac7aa793',1,'nKernelHR():&#160;Kernels.h']]],
-  ['nkr_812',['NKR',['../_country_8h.html#a93921b6d8b05706d35781e69cdca59c5',1,'Country.h']]],
+  ['nkr_812',['NKR',['../struct_p_a_r_a_m.html#a53b32fc952dd3b3013d3967da9677d20',1,'PARAM']]],
   ['nl_813',['NL',['../struct_p_o_p_v_a_r.html#a14b34d923207d78c6400a680fe2d72aa',1,'POPVAR']]],
   ['nmc_814',['NMC',['../struct_p_a_r_a_m.html#abeee4d92a09a1c33621b39c3cfa3afbd',1,'PARAM']]],
   ['nmch_815',['nmch',['../struct_p_a_r_a_m.html#afb68d44e762bc60a4aeddd4d958736c1',1,'PARAM']]],
