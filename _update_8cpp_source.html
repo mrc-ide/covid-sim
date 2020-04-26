@@ -1292,9 +1292,9 @@ $(function() {
 <div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160; </div>
 <div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumV)</span></div>
 <div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;        <a class="code" href="_covid_sim_8cpp.html#a69f225da64a62e8750c954c8a117d4fb">State</a>.<a class="code" href="struct_p_o_p_v_a_r.html#a42e0ee86479691db197a35afb17a5891">cumV</a>++;</div>
-<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumV_daily)</span></div>
-<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;        <span class="keywordflow">if</span> (<a class="code" href="_covid_sim_8cpp.html#a06ca657fc7c3af9a169878df18236499">P</a>.<a class="code" href="struct_p_a_r_a_m.html#a9537887e752d455d22d332e3a986fa26">VaccDosePerDay</a> &gt;= 0)</div>
-<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;        {</div>
+<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;        <span class="keywordflow">if</span> (<a class="code" href="_covid_sim_8cpp.html#a06ca657fc7c3af9a169878df18236499">P</a>.<a class="code" href="struct_p_a_r_a_m.html#a9537887e752d455d22d332e3a986fa26">VaccDosePerDay</a> &gt;= 0)</div>
+<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;        {</div>
+<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumV_daily)</span></div>
 <div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;            <a class="code" href="_covid_sim_8cpp.html#a69f225da64a62e8750c954c8a117d4fb">State</a>.<a class="code" href="struct_p_o_p_v_a_r.html#ab613662ffc8b65a857d782e62b90bcd3">cumV_daily</a>++;</div>
 <div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;        }</div>
 <div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;<span class="preprocessor">#pragma omp critical (tot_vacc)</span></div>
@@ -1326,9 +1326,9 @@ $(function() {
 <div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;        <a class="code" href="_covid_sim_8cpp.html#a425ef0e7fb94382a2c5705eab1f27d63">Hosts</a>[ai].<a class="code" href="struct_p_e_r_s_o_n.html#acefdb1c455451d7fb81d2cbedca7216c">vacc_start_time</a> = ts;</div>
 <div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumVG) //changed to VG</span></div>
 <div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;        <a class="code" href="_covid_sim_8cpp.html#a69f225da64a62e8750c954c8a117d4fb">State</a>.<a class="code" href="struct_p_o_p_v_a_r.html#ad1448046d47a10eda9c2d02d45cdc698">cumVG</a>++; <span class="comment">//changed to VG</span></div>
-<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumV_daily)</span></div>
-<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;        <span class="keywordflow">if</span> (<a class="code" href="_covid_sim_8cpp.html#a06ca657fc7c3af9a169878df18236499">P</a>.<a class="code" href="struct_p_a_r_a_m.html#a9537887e752d455d22d332e3a986fa26">VaccDosePerDay</a> &gt;= 0)</div>
-<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;        {</div>
+<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;        <span class="keywordflow">if</span> (<a class="code" href="_covid_sim_8cpp.html#a06ca657fc7c3af9a169878df18236499">P</a>.<a class="code" href="struct_p_a_r_a_m.html#a9537887e752d455d22d332e3a986fa26">VaccDosePerDay</a> &gt;= 0)</div>
+<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;        {</div>
+<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;<span class="preprocessor">#pragma omp critical (state_cumV_daily)</span></div>
 <div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;            <a class="code" href="_covid_sim_8cpp.html#a69f225da64a62e8750c954c8a117d4fb">State</a>.<a class="code" href="struct_p_o_p_v_a_r.html#a898cc206012aa9a1f0aa3d7e67fea497">cumVG_daily</a>++;</div>
 <div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;        }</div>
 <div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;<span class="preprocessor">#pragma omp critical (tot_vacc)</span></div>
