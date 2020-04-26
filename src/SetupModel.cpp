@@ -667,8 +667,6 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 
-	if (P.DoPlaces)
-		if (!(Places = (place * *)malloc(P.PlaceTypeNum * sizeof(place*)))) ERR_CRITICAL("Unable to allocate place storage\n");
 	for (j = 0; j < P.NMC; j++)
 	{
 		Mcells[j].n = 0;
@@ -1313,6 +1311,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			free(State.InvAgeDist[0]);
 		free(State.InvAgeDist);
 	*/	P.nsp = 0;
+	if (P.DoPlaces)
+		if (!(Places = (place * *)malloc(P.PlaceTypeNum * sizeof(place*)))) ERR_CRITICAL("Unable to allocate place storage\n");
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
