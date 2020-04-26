@@ -657,7 +657,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	const char delimiters[] = " \t,";
 	FILE* dat = NULL, *dat2;
 	bin_file rec;
-
+	double *mcell_dens;
+	int *mcell_adunits, *mcell_num, *mcell_country;
 
 	if (!(Cells = (cell*)calloc(P.NC, sizeof(cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(Mcells = (microcell*)calloc(P.NMC, sizeof(microcell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
