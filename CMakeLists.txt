@@ -35,7 +35,13 @@ if(USE_OPENMP)
 endif()
 
 # Python3 needed for testing
-find_package(Python3 REQUIRED)
+if (CMAKE_VERSION VERSION_LESS 3.12)
+  set(Python_ADDITIONAL_VERSIONS 3 3.9 3.8 3.7 3.6)
+  find_package(PythonInterp REQUIRED)
+  set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE}")
+else()
+  find_package(Python3 REQUIRED)
+endif()
 
 enable_testing()
 
