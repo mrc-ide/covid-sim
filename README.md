@@ -3,9 +3,10 @@
 This is the COVID-19 CovidSim microsimulation model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
 
-CovidSim models the instances and severity of COVID-19 infections throughout
+CovidSim models the transmission dynamivs and severity of COVID-19 infections throughout
 a population over time.  It enables modelling of how intervention policies and
-healthcare provision affect the spread of COVID-19.
+healthcare provision affect the spread of COVID-19. With parameter changes, it can be used
+to model other respiratory viruses, such as influenza.
 
 ## IMPORTANT NOTES
 
