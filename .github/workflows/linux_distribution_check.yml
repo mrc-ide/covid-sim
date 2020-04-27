@@ -38,4 +38,4 @@ jobs:
         make
     - name: regression tests
       run: |
-        make test ARGS="-V"
+        make -Cbuild test ARGS="-V"
