@@ -1251,7 +1251,7 @@ int DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
 
-	if ((!P.DoDistributionVaccination) && (State.cumV >= P.VaccMaxCourses))
+	if (State.cumV >= P.VaccMaxCourses)
 		return 2;
 	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return 1;
