@@ -3,25 +3,71 @@ The COVID-19 CovidSim model uses the [CMake](www.cmake.org) build tool to genera
 
 # Building with Makefiles
 From the command line inside a git clone, run the following:
-```
+```sh
 mkdir build
 cd build
-cmake ../src
+cmake ..
 make
 ```
+
+## Testing
+
+Once `make` has completed use:
+
+```sh
+make test
+```
+
+to run the regressions tests.
+
+The tests can take a while, and may produce no output for >10 minutes.
+Therefore using:
+
+```sh
+make test ARGS="-V"
+```
+
+or
+
+```sh
+ctest -V
+```
+
+May be more reassuring.
+
 # Building with Visual Studio project files from Cmake
 From the command line inside a git clone, run the following:
-```
+```sh
 mkdir build
 cd build
-cmake ../src
+cmake ..
 ```
-This will create project files inside the `build` directory that can be opened in Visual Studio. Modifications to the CMake configuration may require regenerating the Visual Studio projects.
+
+This will create project files inside the `build` directory that can be opened
+in Visual Studio. Modifications to the CMake configuration may require
+regenerating the Visual Studio projects.
+
+## Testing
+
+To enable Visual Studio to pick up the tests added by CMake:
+
+ * Open the `Tests` menu in the Visual Studio menu bar
+
+ * Choose `Run CTests`.
 
 # Building directly with CMake in Visual Studio 2019
+
 Visual Studio 2019 supports using CMake to manage the build directly by selecting File -> Open -> Cmake... and opening `src/CMakeLists.txt`. Then Visual Studio's normal build shortcuts will update the CMake configuration as well as building the project.
 
 CMake options are configured using the `CMakeSettings.json` file, which Visual Studio will generate when `CMakeLists.txt` is opened.
+
+## Testing
+
+To enable Visual Studio to pick up the tests added by CMake:
+
+ * Open the `Tests` menu in the Visual Studio menu bar
+
+ * Choose `Run CTests`.
 
 # Build options
 Additional configuration variables can be provided in the `cmake` invocation.
@@ -32,3 +78,8 @@ For Makefile builds, a build type can be specified by passing `-DCMAKE_BUILD_TYP
 
 # VisualStudio solution
 A manually created VS-2019 solution and project is included for convenience, but it should not be considered the source of truth for the project.
+
+## Testing
+
+The regression tests are not supported in the Visual Studio stand-alone
+solution.

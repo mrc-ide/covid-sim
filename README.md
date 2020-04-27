@@ -42,10 +42,17 @@ See [build.md](./docs/build.md) for detailed build instructions.
 
 ### Testing
 
-The [regressiontest_UK_100th.py](./tests/regressiontest_UK_100th.py) script
-provides a basic regression test.
+From within your build directory do:
 
-*IMPORTANT*: This script uses test data only and is not a run reflective of
+```sh
+make test
+# If you want more progress indication
+make test ARGS="-V"
+# or
+ctest -V
+```
+
+*IMPORTANT*: The test scripts use test data only are not runs reflective of
 real-world situations.
 
 ## Sample Data
