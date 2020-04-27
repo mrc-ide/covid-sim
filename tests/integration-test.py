@@ -106,7 +106,7 @@ def parse_args():
     # Defaults
     script_path = os.path.dirname(os.path.realpath(__file__))
     output_dir = script_path
-    src_dir = os.path.join(script_path, os.pardir, "src")
+    src_dir = os.path.join(script_path, os.pardir)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -163,9 +163,9 @@ if args.covidsim is None:
     subprocess.run(['cmake', '--build', '.'])
 
     if os.name == 'nt':
-        covidsim_exe = os.path.join(build_dir, "Debug", "CovidSim.exe")
+        covidsim_exe = os.path.join(build_dir, "Debug", "src", "CovidSim.exe")
     else:
-        covidsim_exe = os.path.join(build_dir, "CovidSim")
+        covidsim_exe = os.path.join(build_dir, "src", "CovidSim")
 
     os.chdir(cwd)
 else:
