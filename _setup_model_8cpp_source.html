@@ -2055,14 +2055,14 @@ $(function() {
 <div class="line"><a name="l01989"></a><span class="lineno"> 1989</span>&#160;                        j2++;</div>
 <div class="line"><a name="l01990"></a><span class="lineno"> 1990</span>&#160;                    }</div>
 <div class="line"><a name="l01991"></a><span class="lineno"> 1991</span>&#160;                }</div>
-<div class="line"><a name="l01992"></a><span class="lineno"> 1992</span>&#160;                <span class="keywordflow">for</span> (i2 = 0; i2 &lt; 2; i2++)</div>
-<div class="line"><a name="l01993"></a><span class="lineno"> 1993</span>&#160;                    <span class="keywordflow">for</span> (k = 0; k &lt; cnt; k++)</div>
-<div class="line"><a name="l01994"></a><span class="lineno"> 1994</span>&#160;                    {</div>
-<div class="line"><a name="l01995"></a><span class="lineno"> 1995</span>&#160;                        <span class="keywordflow">while</span> ((l = (<span class="keywordtype">int</span>)(((<span class="keywordtype">double</span>)cnt) * <a class="code" href="_rand_8cpp.html#a0576ba455127db74f31b5a8eee738f44">ranf</a>())) == k);</div>
-<div class="line"><a name="l01996"></a><span class="lineno"> 1996</span>&#160;                        j2 = PeopleArray[k];</div>
-<div class="line"><a name="l01997"></a><span class="lineno"> 1997</span>&#160;                        PeopleArray[k] = PeopleArray[l];</div>
-<div class="line"><a name="l01998"></a><span class="lineno"> 1998</span>&#160;                        PeopleArray[l] = j2;</div>
-<div class="line"><a name="l01999"></a><span class="lineno"> 1999</span>&#160;                    }</div>
+<div class="line"><a name="l01992"></a><span class="lineno"> 1992</span>&#160;                <span class="comment">// Use the Fisher–Yates shuffle algorithm to get a random permutation of PeopleArray</span></div>
+<div class="line"><a name="l01993"></a><span class="lineno"> 1993</span>&#160;                <span class="keywordflow">for</span> (<span class="keywordtype">int</span> index1 = cnt - 1; index1 &gt; 0; index1--)</div>
+<div class="line"><a name="l01994"></a><span class="lineno"> 1994</span>&#160;                {</div>
+<div class="line"><a name="l01995"></a><span class="lineno"> 1995</span>&#160;                    <span class="keywordtype">int</span> index2 = (int)(((<span class="keywordtype">double</span>)k) * <a class="code" href="_rand_8cpp.html#a0576ba455127db74f31b5a8eee738f44">ranf</a>());</div>
+<div class="line"><a name="l01996"></a><span class="lineno"> 1996</span>&#160;                    <span class="keywordtype">int</span> tmp = PeopleArray[index1];</div>
+<div class="line"><a name="l01997"></a><span class="lineno"> 1997</span>&#160;                    PeopleArray[index1] = PeopleArray[index2];</div>
+<div class="line"><a name="l01998"></a><span class="lineno"> 1998</span>&#160;                    PeopleArray[index2] = tmp;</div>
+<div class="line"><a name="l01999"></a><span class="lineno"> 1999</span>&#160;                }</div>
 <div class="line"><a name="l02000"></a><span class="lineno"> 2000</span>&#160;                m = 0;</div>
 <div class="line"><a name="l02001"></a><span class="lineno"> 2001</span>&#160;                <span class="keywordflow">if</span> (tp &lt; <a class="code" href="_covid_sim_8cpp.html#a06ca657fc7c3af9a169878df18236499">P</a>.<a class="code" href="struct_p_a_r_a_m.html#ab17a58e51aecc55689fb9abc2b3d0eb2">nsp</a>)</div>
 <div class="line"><a name="l02002"></a><span class="lineno"> 2002</span>&#160;                {</div>
