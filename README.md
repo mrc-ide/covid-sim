@@ -34,7 +34,8 @@ Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
 
 It is strongly recommended to build the model with OpenMP support enabled to
-improve performance.
+improve performance on multi-core processors. 24 to 32 core Xeon systems give
+optimal performance for large (e.g. UK, US) populations.
 
 See [build.md](./docs/build.md) for detailed build instructions.
 
