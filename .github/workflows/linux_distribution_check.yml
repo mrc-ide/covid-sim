@@ -15,7 +15,7 @@ jobs:
         make
     - name: regression tests
       run: |
-        make test ARGS="-V"
+        make -Cbuild test ARGS="-V"
 
   test-in-container:
     runs-on: ubuntu-latest

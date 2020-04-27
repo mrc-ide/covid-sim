@@ -16,4 +16,5 @@ jobs:
           cmake --build .
       - name: regression tests
         run: |
+          cd build
           ctest -V
