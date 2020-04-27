@@ -68,18 +68,9 @@
 # that you can compare the failing versions of the .xls files against
 # good versions.
 
-import glob
-import gzip
 import os
 import sys
-import shutil
 import subprocess
-
-failed = False
-accept_results = False
-
-if len(sys.argv) > 1 and sys.argv[1] == '--accept':
-    accept_results = True
 
 # Sort out directories
 script_dir = os.path.dirname(os.path.realpath(__file__))
