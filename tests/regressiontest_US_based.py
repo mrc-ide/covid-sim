@@ -91,7 +91,7 @@ data_dir = os.path.join(script_dir, os.pardir, 'data')
 shutil.rmtree(output_dir, ignore_errors=True)
 os.makedirs(output_dir, exist_ok=False)
 os.chdir(output_dir)
-subprocess.run(['cmake', src_dir, "-DCOUNTRY=US"])
+subprocess.run(['cmake', src_dir])
 subprocess.run(['cmake', '--build', '.'])
 
 if os.name == 'nt':
