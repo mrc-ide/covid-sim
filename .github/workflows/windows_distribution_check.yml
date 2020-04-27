@@ -17,4 +17,4 @@ jobs:
       - name: regression tests
         run: |
           cd build
-          ctest -V -CDebug
+          ctest -V -C Debug
