@@ -85,6 +85,7 @@
 import argparse
 import glob
 import gzip
+import hashlib
 import os
 import sys
 import shutil
@@ -134,6 +135,10 @@ def parse_args():
             "--accept",
             help="Accept the results",
             action="store_true")
+    parser.add_argument(
+            "--r",
+            help="r value to pass to covid-sim, default = 1.5",
+            default=1.5)
 
     return parser.parse_args()
 
@@ -209,7 +214,7 @@ if args.schools:
     cmd.extend(["/s:" + args.schools])
 cmd.extend([
         '/S:' + os.path.join(args.output, 'network.bin'),
-        '/R:1.5',
+        '/R:' + args.r,
         '98798150',
         '729101',
         '17389101',
@@ -232,7 +237,7 @@ if args.schools:
     cmd.extend(["/s:" + args.schools])
 cmd.extend([
         '/L:' + os.path.join(args.output, 'network.bin'),
-        '/R:1.5',
+        '/R:' + args.r,
         '98798150',
         '729101',
         '17389101',
@@ -255,7 +260,7 @@ if args.schools:
     cmd.extend(["/s:" + args.schools])
 cmd.extend([
         '/L:' + os.path.join(args.output, 'network.bin'),
-        '/R:1.5',
+        '/R:' + args.r,
         '98798150',
         '729101',
         '17389101',
@@ -265,7 +270,7 @@ print("Command line: " + " ".join(cmd))
 process = subprocess.run(cmd, check=True)
 
 repeat_files_checked = 0
-for fn2 in glob.glob(os.path.join(args.output, 'results-noint-repeat') + '*'):
+for fn2 in glob.glob(os.path.join(args.output, 'results-noint-repeat*.xls')):
     fn1 = fn2.replace('-repeat', '')
     with open(fn1, 'rb') as f:
         dat1 = f.read()
@@ -287,24 +292,30 @@ actual_checksums = os.path.join(args.output, 'results.checksums.txt')
 # Compute SHA-512 checksums for the generated files.
 paths = []
 sha512sums = []
+
+# Scan output for files to check
 for direntry in os.scandir(args.output):
     name = direntry.name
+
     if name.endswith('.xls'):
+        # TSV files
         paths.append((args.output, name))
+    elif name.endswith('.ge'):
+        # Bitmap files - only check every 100th.
+        for direntry2 in os.scandir(direntry.path):
+            name2 = direntry2.name
+            if name2.endswith('00.bmp'):
+                paths.append((direntry.path, name2))
+
 max_filename_len = max(map(len, [ filename for dirname, filename in paths ]))
 
 for dirname, filename in paths:
-    try:
-        # sha512sum (usually installed on Linux, sometimes on Windows)
-        output = subprocess.check_output(['sha512sum', '--binary', filename], cwd=dirname)
-        sha = output.decode('utf-8').split(' ')[0]
-    except FileNotFoundError:
-        # certUtil (always? available in modern Windows)
-        output = subprocess.check_output(['certUtil', '-hashfile', filename, 'SHA512'], cwd=dirname)
-        sha = output.decode('utf-8').splitlines()[1]
-    line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
-    print(line)
-    sha512sums.append(line)
+    with open(os.path.join(dirname, filename), 'rb') as f:
+        dat = f.read()
+        sha = hashlib.sha512(dat).hexdigest()
+        line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
+        print(line)
+        sha512sums.append(line)
 
 sha512sums.sort()
 print('New checksums:')
