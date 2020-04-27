@@ -1806,14 +1806,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 			else if (n == 5)
 				nc = (ranf_mt(tn) < P.ThreeChildFivePersProb) ? 3 : 2;
 			else
-#ifdef COUNTRY_INDONESIA
-				do
-				{
-					nc = ignpoi_mt(FRAC_CHILDREN_BIG_HOUSEHOLDS * ((double)n), tn);
-				} while ((nc > n - 2) || (nc < 2));
-#else
 				nc = n - 2 - (int)(3 * ranf_mt(tn));
-#endif
 			if (nc <= 0)
 			{
 				do
