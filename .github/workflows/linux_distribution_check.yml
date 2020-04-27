@@ -11,19 +11,11 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ../src
+        cmake ..
         make
-        cd ..
-    - name: regression test (UK based)
+    - name: regression tests
       run: |
-        cd tests
-        pwd
-        ls -l
-        ./regressiontest_UK_100th.py
-    - name: regression test (US based)
-      run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        make test ARGS="-V"
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -42,16 +34,8 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ../src
+        cmake ..
         make
-        cd ..
-    - name: regression test
+    - name: regression tests
       run: |
-        cd tests
-        pwd
-        ls -l
-        ./regressiontest_UK_100th.py
-    - name: regression test (US based)
-      run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        make test ARGS="-V"

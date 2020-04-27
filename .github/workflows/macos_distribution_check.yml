@@ -3,7 +3,7 @@ name: CI for macOS
 on: push
 
 jobs:
-  test:
+  macos-build-and-test:
     runs-on: macos-latest
 
     strategy:
@@ -13,25 +13,13 @@ jobs:
     - uses: actions/checkout@v1
     - name: install dependencies
       run: ./ci/install_macos_dependencies.sh
-    - name: build UK
+    - name: build
       run: |
-        mkdir build-UK && cd build-UK
-        cmake ../src -DCOUNTRY=UK
+        mkdir build && cd build
+        cmake ..
         make
-        cd ..
-    - name: build US
+    - name: regression tests
       run: |
-        mkdir build-US && cd build-US
-        cmake ../src -DCOUNTRY=US
-        make
-        cd ..
-    - name: regression test (UK based)
-      run: |
-        cd tests
         pwd
         ls -l
-        ./regressiontest_UK_100th.py
-    - name: regression test (US based)
-      run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        make test ARGS="-V"
