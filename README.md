@@ -1,11 +1,12 @@
 # COVID-19 CovidSim Model
 
-This is the COVID-19 CovidSim model developed by the MRC Centre for Global
+This is the COVID-19 CovidSim microsimulation model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
 
-CovidSim models the instances and severity of COVID-19 infections throughout
+CovidSim models the transmission dynamivs and severity of COVID-19 infections throughout
 a population over time.  It enables modelling of how intervention policies and
-healthcare provision affect the spread of COVID-19.
+healthcare provision affect the spread of COVID-19. With parameter changes, it can be used
+to model other respiratory viruses, such as influenza.
 
 ## IMPORTANT NOTES
 
@@ -24,8 +25,6 @@ to:
 
  * Enable modelling of different intervention scenarios
 
- * Reduce memory usage
-
  * Improve performance
 
 ## Building
@@ -36,7 +35,8 @@ Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
 
 It is strongly recommended to build the model with OpenMP support enabled to
-improve performance.
+improve performance on multi-core processors. 24 to 32 core Xeon systems give
+optimal performance for large (e.g. UK, US) populations.
 
 See [build.md](./docs/build.md) for detailed build instructions.
 
@@ -67,6 +67,8 @@ particular interest are:
  * [Interventions description](./docs/intervention-description.md)
  * [R Scripts for Output Visualisation](./docs/inputs-and-outputs.md#r-summary-visualisations)
 
+Given the entire Imperial College team is working full-time on the COVID-19 response, documentation is currently sparse. More documentation and sample files will be added as time permits.
+
 ### Relevant papers
 
 The following papers are relevant to the model.  Please note that some of them
@@ -82,7 +84,8 @@ may require a subscription.
 The source code for CovidSim is licensed under the GPLv3, see
 [LICENSE.md](LICENSE.md).
 
-It is Copyright Imperial College of Science, Technology and Medicine.
+It is Copyright Imperial College of Science, Technology and Medicine. The 
+lead developers are Neil Ferguson, Gemma Nedjati-Giliani and Daniel Laydon.
 
 Additional contributions for open-sourcing made by Imperial College of
 Science, Technology and Medicine, GitHub Inc, and John Carmack are copyright
