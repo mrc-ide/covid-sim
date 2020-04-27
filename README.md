@@ -1,6 +1,6 @@
 # COVID-19 CovidSim Model
 
-This is the COVID-19 CovidSim model developed by the MRC Centre for Global
+This is the COVID-19 CovidSim microsimulation model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
 
 CovidSim models the instances and severity of COVID-19 infections throughout
@@ -23,8 +23,6 @@ to:
  * Enable modelling of more geographies
 
  * Enable modelling of different intervention scenarios
-
- * Reduce memory usage
 
  * Improve performance
 
@@ -66,6 +64,8 @@ particular interest are:
  * [Model Inputs and Outputs](./docs/inputs-and-outputs.md)
  * [Interventions description](./docs/intervention-description.md)
  * [R Scripts for Output Visualisation](./docs/inputs-and-outputs.md#r-summary-visualisations)
+
+Given the entire Imperial College team is working full-time on the COVID-19 response, documentation is currently sparse. More documentation and sample files will be added as time permits.
 
 ### Relevant papers
 
