@@ -349,8 +349,7 @@ extern events* InfEventLog;
 extern int* nEvents;
 
 
-extern double ** PopDensity, *mcell_dens;
-extern int* mcell_adunits, *mcell_num, *mcell_country;
+extern double ** PopDensity;
 extern double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
 extern double indivR0[MAX_SEC_REC][MAX_GEN_REC], indivR0_av[MAX_SEC_REC][MAX_GEN_REC];
 extern double inf_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], denom_household[MAX_HOUSEHOLD_SIZE + 1];
