@@ -75,7 +75,7 @@ import sys
 import shutil
 import subprocess
 
-testdir='regressiontest_UK_100th'
+testdir = 'regressiontest_UK_100th'
 
 failed = False
 accept_results = False
@@ -107,9 +107,8 @@ wpop_bin = "wpop_test.bin"
 
 # gunzip wpop fie
 if not os.path.exists(wpop_file):
-    with gzip.open(wpop_file_gz, 'rb') as f_in:
-            with open(wpop_file, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+    with gzip.open(wpop_file_gz, 'rb') as f_in, open(wpop_file, 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
 print('=== Starting building network:')

@@ -150,9 +150,8 @@ wpop_bin = os.path.join(
 # gunzip wpop fie
 try_remove(wpop_file)
 try_remove(wpop_bin)
-with gzip.open(wpop_file_gz, 'rb') as f_in:
-    with open(wpop_file, 'wb') as f_out:
-        shutil.copyfileobj(f_in, f_out)
+with gzip.open(wpop_file_gz, 'rb') as f_in, open(wpop_file, 'wb') as f_out:
+    shutil.copyfileobj(f_in, f_out)
 
 # Configure pre-parameter file.  This file doesn't change between runs:
 if args.country in united_states:
@@ -198,7 +197,7 @@ if args.country in united_states:
 
 # Some command_line settings
 r = 3.0
-rs = r/2
+rs = r / 2
 
 # This is the temporary network that represents initial state of the
 # simulation

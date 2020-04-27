@@ -109,9 +109,8 @@ wpop_bin_schools = os.path.join(output_dir, "wpop-test-schools.bin")
 
 # gunzip wpop fie
 if not os.path.exists(wpop_file):
-    with gzip.open(wpop_file_gz, 'rb') as f_in:
-            with open(wpop_file, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+    with gzip.open(wpop_file_gz, 'rb') as f_in, open(wpop_file, 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
 print('=== Starting building network (no schools):')
@@ -282,4 +281,3 @@ else:
 if failed:
     print('TEST FAILED.')
     sys.exit(1)
-
