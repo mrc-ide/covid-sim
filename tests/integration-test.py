@@ -138,7 +138,7 @@ def parse_args():
     parser.add_argument(
             "--r",
             help="r value to pass to covid-sim, default = 1.5",
-            default=1.5)
+            default="1.5")
 
     return parser.parse_args()
 
