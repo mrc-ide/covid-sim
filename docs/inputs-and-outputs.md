@@ -85,7 +85,7 @@ Parameter values are read in from parameter files by function `ReadParams`, whic
 
 The parameters are specified in admin, pre-parameter and intervention parameter files. Both files have the same format.
 
-Admin and pre-parameter files contain parameters whose values are *common* to a series of runs (i.e. defining geographiies and transmission parameters). Parameter files group intervention parameters whose values are more likely to *differ* between a series of runs. 
+Admin and pre-parameter files contain parameters whose values are *common* to a series of runs (i.e. defining geographies and transmission parameters). Intervention parameter files contain parameters whose values are more likely to *differ* between a series of runs. 
 
 The format is a sequence of:
 ```
