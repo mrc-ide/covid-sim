@@ -16,6 +16,8 @@ to model other respiratory viruses, such as influenza.
 
 :warning: The model is stochastic. Multiple runs with different seeds should be undertaken to see average behaviour.
 
+:warning: As with any mathematical model, it is easy to misconfigure inputs and therefore get meaningless outputs. The Imperial College COVID-19 team only endorses outputs it has itself generated.
+
 ## Status
 
 This model is in active development and subject to significant code changes
@@ -67,7 +69,7 @@ particular interest are:
  * [Interventions description](./docs/intervention-description.md)
  * [R Scripts for Output Visualisation](./docs/inputs-and-outputs.md#r-summary-visualisations)
 
-Given the entire Imperial College team is working full-time on the COVID-19 response, documentation is currently sparse. More documentation and sample files will be added as time permits.
+Given the entire Imperial College team is working full-time on the COVID-19 response, documentation is currently sparse. More documentation and sample files will be added as time permits. In the coming few weeks this will include a much more extensive set of input files to model strategies for exiting lockdown.
 
 ### Relevant papers
 
