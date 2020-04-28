@@ -696,7 +696,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
-		fprintf(stderr, "Density file contains %i mcells.\n", (int)P.BinFileLen);
+		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			if (P.DoAdUnits)
