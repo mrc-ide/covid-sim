@@ -139,17 +139,6 @@ subprocess.run(
      '/R:1.5',
      '98798150', '729101', '17389101', '4797132'
     ])
-subprocess.run(
-    [covidsim_exe, '/c:1',
-     '/PP:' +  os.path.join(input_dir, 'pre-params.txt'),
-     '/P:' + os.path.join(input_dir, 'input-noint-params.txt'),
-     '/O:' + os.path.join(output_dir, 'results-noint-again'),
-     '/A:' + os.path.join(input_dir, 'admin-params.txt'),
-     '/D:' + wpop_bin,
-     '/L:' + os.path.join(output_dir, 'network.bin'),
-     '/R:1.5',
-     '98798150', '729101', '17389101', '4797132'
-    ])
 print('=== Starting running (no schools):')
 subprocess.run(
     [covidsim_exe, '/c:1',
