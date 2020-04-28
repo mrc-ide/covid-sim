@@ -1,5 +1,5 @@
 /*
-(c) 2004-13 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
+(c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
 */
 
 #include <errno.h>
