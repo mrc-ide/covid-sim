@@ -43,7 +43,7 @@ void CaptureBitmap()
 		fst = 0;
 		int32_t maxPop = 0;
 		for (i = 0; i < mi; i++) bmPopulation[i] = 0;
-		for (i = 0; i < P.N; i++)
+		for (i = 0; i < P.PopSize; i++)
 		{
 			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;

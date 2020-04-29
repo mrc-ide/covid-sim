@@ -13,7 +13,7 @@
 typedef struct PARAM {
 
 
-	int N; /**< Population size */
+	int PopSize; /**< Population size */
 	int NH; // Number of households
 	int NR; /**< Number of Realisations */
 	int NRN; /**< Number of non-extinct realisations */

@@ -459,7 +459,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*) & (P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
-	GetInputParameter(ParamFile_dat, AdminFile_dat, "Population size", "%i", (void*) & (P.N), 1, 1, 0);
+	GetInputParameter(ParamFile_dat, AdminFile_dat, "Population size", "%i", (void*) & (P.PopSize), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of realisations", "%i", (void*) & (P.NR), 1, 1, 0);
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of non-extinct realisations", "%i", (void*) & (P.NRN), 1, 1, 0)) P.NRN = P.NR;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
@@ -2303,7 +2303,7 @@ void ReadAirTravel(char* AirTravelFile)
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
         ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
     }
-	sc = (float)((double)P.N / (double)P.Air_popscale);
+	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
 	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
@@ -2458,7 +2458,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 	ns = 0;
-	State.S = P.N;
+	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
 	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumH = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDC = State.DCT = State.cumDCT
 		= State.cumInf_h = State.cumInf_n = State.cumInf_s = State.cumHQ
@@ -2543,7 +2543,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	nim = 0;
 
 #pragma omp parallel for private(k) schedule(static,10000)
-	for (k = 0; k < P.N; k++)
+	for (k = 0; k < P.PopSize; k++)
 	{
 		Hosts[k].absent_start_time = USHRT_MAX - 1;
 		Hosts[k].absent_stop_time = 0;
@@ -2787,7 +2787,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to pass it to event log
 {
-	/* *nsi is an array of the number of seeding infections by location (I think). During runtime, usually just a single int (given by a poisson distribution)*/
+	/* *nsi is an array of the number of seeding infections by location. During runtime, usually just a single int (given by a poisson distribution)*/
 	/*rf set to 0 when initializing model, otherwise set to 1 during runtime. */
 
 	int i /*seed location index*/;
@@ -2826,7 +2826,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 						m = 0;
 					}
 				}
-				else { k--; m++; } //// think k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
+				else { k--; m++; } //// k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
 			}
 		}
 		else if (P.DoAllInitialInfectioninSameLoc)
@@ -2837,7 +2837,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				m = 0;
 				do
 				{
-					l = (int)(ranf() * ((double)P.N));
+					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
 					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
 				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
@@ -2875,7 +2875,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 			{
 				do
 				{
-					l = (int)(ranf() * ((double)P.N));
+					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
 					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
 				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
@@ -2973,14 +2973,14 @@ int RunModel(int run) //added run number as parameter
 					}
 					if (P.FalsePositivePerCapitaIncidence > 0)
 					{
-						ni = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.N));
+						ni = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
 						if (ni > 0)
 						{
 							for (k = 0; k < ni; k++)
 							{
 								do
 								{
-									l = (int)(((double)P.N) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
+									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
 								} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
 							}
@@ -3007,7 +3007,7 @@ int RunModel(int run) //added run number as parameter
 				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
 				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
 				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
-				cI = ((double)(State.S)) / ((double)P.N);
+				cI = ((double)(State.S)) / ((double)P.PopSize);
 				if ((lcI - cI) > 0.2)
 				{
 					lcI = cI;
@@ -3035,7 +3035,7 @@ int RunModel(int run) //added run number as parameter
 	}
 /*		fprintf(stderr,"Checking consistency of final state...\n");
         int i, i2, k2;
-		for(i=j=k=ni=fs2=i2=0;i<P.N;i++)
+		for(i=j=k=ni=fs2=i2=0;i<P.PopSize;i++)
 			{
 			if(i%1000==0) fprintf(stderr,"\r*** %i              ",i);
 			if(Hosts[i].inf==0) j++;
@@ -3081,7 +3081,7 @@ void SaveDistribs(void)
 			{
 				for (i = 0; i < P.Nplace[j]; i++)
 					Places[j][i].n = 0;
-				for (i = 0; i < P.N; i++)
+				for (i = 0; i < P.PopSize; i++)
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 						fprintf(stderr, "*%i %i: %i %i", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
@@ -3092,7 +3092,7 @@ void SaveDistribs(void)
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			for (i = 0; i < MAX_DIST; i++)
 				PlaceDistDistrib[j][i] = 0;
-		for (i = 0; i < P.N; i++)
+		for (i = 0; i < P.PopSize; i++)
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((j != P.HotelPlaceType) && (Hosts[i].PlaceLinks[j] >= 0))
 				{
@@ -3298,7 +3298,7 @@ void SaveResults(void)
 		{
 		sprintf(outname, "%s.tree.xls", OutFile);
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		for(i = 0; i < P.N; i++)
+		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
 		fclose(dat);
@@ -4007,7 +4007,7 @@ void LoadSnapshot(void)
 		Array_tot_prob[i] = Cells[i].tot_prob;
 	}
 
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.N) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.N, i);
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
@@ -4026,7 +4026,7 @@ void LoadSnapshot(void)
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	zfread_big((void*)Hosts, sizeof(person), (size_t)P.N, dat);
+	zfread_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	zfread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
@@ -4034,9 +4034,9 @@ void LoadSnapshot(void)
 	fprintf(stderr, ".");
 	zfread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.N, dat);
+	zfread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.N, dat);
+	zfread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	for (i = 0; i < P.NC; i++)
 	{
@@ -4075,7 +4075,7 @@ void SaveSnapshot(void)
 
 	if (!(dat = fopen(SnapshotSaveFile, "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 
-	fwrite_big((void*) & (P.N), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4100,7 +4100,7 @@ void SaveSnapshot(void)
 	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)Hosts, sizeof(person), (size_t)P.N, dat);
+	zfwrite_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
 	zfwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
@@ -4110,9 +4110,9 @@ void SaveSnapshot(void)
 	zfwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.N, dat);
+	zfwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.N, dat);
+	zfwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fclose(dat);
@@ -4176,7 +4176,7 @@ int ChooseTriggerVariableAndValue(int AdUnit)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			VariableAndValue = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.N));
+			VariableAndValue = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else
 			VariableAndValue = State.trigDC;
 	}
@@ -4279,7 +4279,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				//// reset place close time start - has been set to 9e9 in event of no triggers. m
 				P.PlaceCloseTimeStart			= t;
 
-				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants. 
+				// ensure that new duration doesn't go over next change time.
 				if (ChangeTime != P.Num_PC_ChangeTimes - 1)
 					if (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1])
 						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] + 1;	
@@ -4336,7 +4336,7 @@ void RecordSample(double t, int n)
 	cumR = R;
 	cumD = D;
 	N = S + L + I + R + D;
-	if (N != P.N) fprintf(stderr, "## %i #\n", P.N - N);
+	if (N != P.PopSize) fprintf(stderr, "## %i #\n", P.PopSize - N);
 	State.sumRad2 = 0;
 	for (j = 0; j < P.NumThreads; j++)
 	{
@@ -4514,7 +4514,7 @@ void RecordSample(double t, int n)
 				TimeSeries[n].incDeath_SARI_adunit		[i] = (double)(-State.cumDeath_SARI_adunit		[i]);
 				TimeSeries[n].incDeath_Critical_adunit	[i] = (double)(-State.cumDeath_Critical_adunit	[i]);
 
-				//// reset State (don't think StateT) to zero. Don't need to do this with non-admin unit as local variables Mild, cumSARI etc. initialized to zero at beginning of function. Check with Gemma
+				//// reset State (not StateT) to zero. Don't need to do this with non-admin unit as local variables Mild, cumSARI etc. initialized to zero at beginning of function. Check with Gemma
 				State.Mild_adunit				[i] = 0;
 				State.ILI_adunit				[i] = 0;
 				State.SARI_adunit				[i] = 0;
@@ -4917,7 +4917,7 @@ void RecordInfTypes(void)
 	{
 		j = k = l = lc = lc2 = 0; t = 1e10;
 		//			for(c=0;c<Cells[b].n;c++)
-		for (i = 0; i < P.N; i++)
+		for (i = 0; i < P.PopSize; i++)
 		{
 			//				i=Cells[b].members[c];
 			if (j == 0) j = k = Households[Hosts[i].hh].nh;
