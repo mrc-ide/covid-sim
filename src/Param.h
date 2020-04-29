@@ -15,8 +15,8 @@ typedef struct PARAM {
 
 	int PopSize; /**< Population size */
 	int NH; // Number of households
-	int NR; /**< Number of Realisations */
-	int NRN; /**< Number of non-extinct realisations */
+	int NumRealisations; /**< Number of Realisations */
+	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
 	int NRactNE;
