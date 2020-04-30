@@ -833,10 +833,7 @@ void IncubRecoverySweep(double t, int run)
 						//increment bin in State corresponding to this number of contacts
 						StateT[tn].contact_dist[Hosts[ci].ncontacts]++;
 					}
-
 				}
-
-
 			}
 		}
 }

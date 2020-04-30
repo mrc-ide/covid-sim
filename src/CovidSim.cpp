@@ -4336,6 +4336,7 @@ void RecordSample(double t, int n)
 	}
 	cumR = R;
 	cumD = D;
+	//cumD = 0;
 	N = S + L + I + R + D;
 	if (N != P.N) fprintf(stderr, "## %i #\n", P.N - N);
 	State.sumRad2 = 0;
@@ -4418,6 +4419,7 @@ void RecordSample(double t, int n)
 	TimeSeries[n].cumV = State.cumV;
 	TimeSeries[n].cumVG = State.cumVG; //added VG;
 	TimeSeries[n].cumDC = cumDC;
+	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
 	for (i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
