@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Microsoft
+Standard: Cpp11
+TabWidth: '4'
+UseTab: ForContinuationAndIndentation
+
+...
