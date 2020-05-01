@@ -324,7 +324,7 @@ typedef struct ADMINUNIT {
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
 	//adding in admin level delays and durations for admin units: ggilani 17/03/20
 	double SocialDistanceDelay, HQuarantineDelay, CaseIsolationDelay, PlaceCloseDelay, DCTDelay;
-	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
+	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationPolicyDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
 } adminunit;

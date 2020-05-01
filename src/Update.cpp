@@ -607,7 +607,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
-				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineHouseDelay));
+				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
@@ -631,7 +631,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 	//// Giant compound if statement. If doing delays by admin unit, then window of case isolation dependent on admin unit-specific duration. This if statement ensures that this timepoint within window, regardless of how window defined.
 	if ((P.DoInterventionDelaysByAdUnit &&
-		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + AdUnits[Mcells[a->mcell].adunit].CaseIsolationDuration)))	||
+		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + AdUnits[Mcells[a->mcell].adunit].CaseIsolationPolicyDuration)))	||
 		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + P.CaseIsolationPolicyDuration))								)
 		if ((P.CaseIsolationProp == 1) || (ranf_mt(tn) < P.CaseIsolationProp))
 		{

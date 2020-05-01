@@ -139,7 +139,7 @@ typedef struct PARAM {
 	double CaseIsolationTimeStart, CaseIsolationDuration, CaseIsolationEffectiveness, CaseIsolationHouseEffectiveness;
 	double CaseIsolationDelay, CaseIsolationPolicyDuration, CaseIsolationProp;
 
-	double HQuarantineTimeStart, HQuarantineHouseDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;
+	double HQuarantineTimeStart, HQuarantineDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;
 	double HQuarantinePropHouseCompliant, HQuarantinePlaceEffect[NUM_PLACE_TYPES], HQuarantineSpatialEffect, HQuarantineHouseEffect;
 
 	int EnhancedSocDistClusterByHousehold;

@@ -1258,7 +1258,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Treatment trigger incidence per cell"				, "%lf", (void*) & (P.TreatCellIncThresh)			, 1, 1, 0)) P.TreatCellIncThresh			= 1000000000;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation trigger incidence per cell"			, "%lf", (void*) & (P.CaseIsolation_CellIncThresh)	, 1, 1, 0)) P.CaseIsolation_CellIncThresh	= P.TreatCellIncThresh; //// changed default to be P.TreatCellIncThresh
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Case isolation trigger incidence per cell"		, "%lf", (void*) & (P.CaseIsolation_CellIncThresh)	, 1, 1, 0)) P.CaseIsolation_CellIncThresh	= P.TreatCellIncThresh; //// changed default to be P.TreatCellIncThresh
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine trigger incidence per cell"	, "%lf", (void*) & (P.HHQuar_CellIncThresh)			, 1, 1, 0)) P.HHQuar_CellIncThresh			= P.TreatCellIncThresh; //// changed default to be P.TreatCellIncThresh
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative susceptibility of treated individual", "%lf", (void*) & (P.TreatSuscDrop), 1, 1, 0)) P.TreatSuscDrop = 1;
@@ -1395,14 +1395,14 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			AdUnits[i].SocialDistanceDelay		= AdunitDelayToSocialDistance	[i];
-			AdUnits[i].SocialDistanceDuration	= AdunitDurationSocialDistance	[i];
-			AdUnits[i].HQuarantineDelay			= AdunitDelayToHQuarantine		[i];
-			AdUnits[i].HQuarantineDuration		= AdunitDurationHQuarantine		[i];
-			AdUnits[i].CaseIsolationDelay		= AdunitDelayToCaseIsolation	[i];
-			AdUnits[i].CaseIsolationDuration	= AdunitDurationCaseIsolation	[i];
-			AdUnits[i].PlaceCloseDelay			= AdunitDelayToPlaceClose		[i];
-			AdUnits[i].PlaceCloseDuration		= AdunitDurationPlaceClose		[i];
+			AdUnits[i].SocialDistanceDelay			= AdunitDelayToSocialDistance	[i];
+			AdUnits[i].SocialDistanceDuration		= AdunitDurationSocialDistance	[i];
+			AdUnits[i].HQuarantineDelay				= AdunitDelayToHQuarantine		[i];
+			AdUnits[i].HQuarantineDuration			= AdunitDurationHQuarantine		[i];
+			AdUnits[i].CaseIsolationDelay			= AdunitDelayToCaseIsolation	[i];
+			AdUnits[i].CaseIsolationPolicyDuration	= AdunitDurationCaseIsolation	[i];
+			AdUnits[i].PlaceCloseDelay				= AdunitDelayToPlaceClose		[i];
+			AdUnits[i].PlaceCloseDuration			= AdunitDurationPlaceClose		[i];
 		}
 	}
 
@@ -1602,7 +1602,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Retrigger household quarantine with each new case in quarantine window", "%i", (void*) & (P.DoHQretrigger), 1, 1, 0)) P.DoHQretrigger =0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household quarantine start time", "%lf", (void*) & (P.HQuarantineTimeStartBase), 1, 1, 0)) P.HQuarantineTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start household quarantine", "%lf", (void*) & (P.HQuarantineHouseDelay), 1, 1, 0)) P.HQuarantineHouseDelay = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to start household quarantine", "%lf", (void*) & (P.HQuarantineDelay), 1, 1, 0)) P.HQuarantineDelay = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of time households are quarantined", "%lf", (void*) & (P.HQuarantineHouseDuration), 1, 1, 0)) P.HQuarantineHouseDuration = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of household quarantine policy", "%lf", (void*) & (P.HQuarantinePolicyDuration), 1, 1, 0)) P.HQuarantinePolicyDuration = USHRT_MAX / P.TimeStepsPerDay;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after quarantine", "%lf", (void*) & (P.HQuarantineHouseEffect), 1, 1, 0)) P.HQuarantineHouseEffect = 1;
