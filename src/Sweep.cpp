@@ -363,8 +363,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						for (k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
 							l = si->PlaceLinks[k];
-							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed).
-							{
+							//if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed).
+							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
+								{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
 								mp = Mcells + Places[k][l].mcell;
 								if (bm)
@@ -411,7 +412,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
 											Hosts[ci].ncontacts++; //add to number of contacts made
 											if (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)
@@ -482,7 +483,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
 											Hosts[ci].ncontacts++; //add to number of contacts made
 											if (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)

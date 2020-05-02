@@ -1172,39 +1172,40 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	{
 		if (P.DoRealSymptWithdrawal)
 			for (k = 0; k < Places[i][j].n; k++) //// loop over all people in place.
-			{
-				ai = Places[i][j].members[k];
-				if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai))) //// if person is a child and neither absent nor quarantined
+				if((P.PlaceClosePropAttending[i]==0)|| (ranf_mt(tn) >= P.PlaceClosePropAttending[i]))
 				{
-					StateT[tn].cumAPCS++;
-					if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers)) //// if child needs adult supervision
+					ai = Places[i][j].members[k];
+					if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai))) //// if person is a child and neither absent nor quarantined
 					{
-						j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-						if ((j1 < 0) || (j2 > P.N)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
-						f = 0;
-
-						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
-						for (l = j1; (l < j2) && (!f); l++)
-							f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) &&
-							((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(l)) || (HOST_QUARANTINED(l))));
-						if (!f) //// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
+						StateT[tn].cumAPCS++;
+						if ((P.CaseAbsentChildPropAdultCarers == 1) || (ranf_mt(tn) < P.CaseAbsentChildPropAdultCarers)) //// if child needs adult supervision
 						{
-							for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-								if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead)) { m = l; f = 1; }
-							if (f) //// ... if so then amend absent start and stop times.
+							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
+							if ((j1 < 0) || (j2 > P.N)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
+							f = 0;
+
+							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
+							for (l = j1; (l < j2) && (!f); l++)
+								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) &&
+								((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(l)) || (HOST_QUARANTINED(l))));
+							if (!f) //// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 							{
-								if (Hosts[m].absent_start_time > Places[i][j].close_start_time) Hosts[m].absent_start_time = Places[i][j].close_start_time;
-								if (Hosts[m].absent_stop_time < Places[i][j].close_end_time) Hosts[m].absent_stop_time = Places[i][j].close_end_time;
-								StateT[tn].cumAPA++;
+								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead)) { m = l; f = 1; }
+								if (f) //// ... if so then amend absent start and stop times.
+								{
+									if (Hosts[m].absent_start_time > Places[i][j].close_start_time) Hosts[m].absent_start_time = Places[i][j].close_start_time;
+									if (Hosts[m].absent_stop_time < Places[i][j].close_end_time) Hosts[m].absent_stop_time = Places[i][j].close_end_time;
+									StateT[tn].cumAPA++;
+								}
 							}
 						}
 					}
+					///// finally amend absent start and stop times if they contradict place start and stop times.
+					if (Hosts[ai].absent_start_time > Places[i][j].close_start_time) Hosts[ai].absent_start_time = Places[i][j].close_start_time;
+					if (Hosts[ai].absent_stop_time < Places[i][j].close_end_time) Hosts[ai].absent_stop_time = Places[i][j].close_end_time;
+					if ((HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0)) StateT[tn].cumAPC++;
 				}
-				///// finally amend absent start and stop times if they contadict place start and stop times.
-				if (Hosts[ai].absent_start_time > Places[i][j].close_start_time) Hosts[ai].absent_start_time = Places[i][j].close_start_time;
-				if (Hosts[ai].absent_stop_time < Places[i][j].close_end_time) Hosts[ai].absent_stop_time = Places[i][j].close_end_time;
-				if ((HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0)) StateT[tn].cumAPC++;
-			}
 	}
 }
 
