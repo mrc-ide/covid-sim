@@ -1,0 +1,4 @@
+libgomp1
+cmake
+make
+g++
