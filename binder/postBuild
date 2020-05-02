@@ -2,4 +2,4 @@ mkdir -p build
 cd build
 cmake ../src
 make
-cp CovidSim /usr/bin/
+cp CovidSim ../
