@@ -1,4 +1,4 @@
-# COVID-19 CovidSim Model
+# COVID-19 CovidSim Model [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mrc-ide/covid-sim/master)
 
 This is the COVID-19 CovidSim microsimulation model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
@@ -6,7 +6,7 @@ Infectious Disease Analysis hosted at Imperial College, London.
 CovidSim models the transmission dynamics and severity of COVID-19 infections throughout a spatially and socially structured
 population over time.  It enables modelling of how intervention policies and
 healthcare provision affect the spread of COVID-19. With parameter changes, it can be used
-to model other respiratory viruses, such as influenza.
+to model other respiratory viruses, such as influenza. Using the binder link above you can run the model using infrastructure from the MyBinder.org project
 
 ## IMPORTANT NOTES
 
