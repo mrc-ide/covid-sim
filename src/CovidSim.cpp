@@ -1714,6 +1714,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.Enhanced_SD_PlaceEffects_OverTime	[ChangeTime][PlaceType] = 0;
 			P.HQ_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
 			P.PC_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
+			P.PC_PropAttending_OverTime			[ChangeTime][PlaceType] = 0;
 		}
 		P.PC_Durs_OverTime[ChangeTime] = 0;
 
@@ -1894,6 +1895,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.PC_HouseholdEffects_OverTime	[PC_ChangeTime] = P.PC_HouseholdEffects_OverTime[P.Num_PC_ChangeTimes - 1];
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				P.PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P.PC_PlaceEffects_OverTime[P.Num_PC_ChangeTimes - 1][PlaceType];
+			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				P.PC_PropAttending_OverTime[PC_ChangeTime][PlaceType] = P.PC_PropAttending_OverTime[P.Num_PC_ChangeTimes - 1][PlaceType];
 
 			P.PC_IncThresh_OverTime			[PC_ChangeTime]	= P.PC_IncThresh_OverTime		[P.Num_PC_ChangeTimes - 1];
 			P.PC_FracIncThresh_OverTime		[PC_ChangeTime]	= P.PC_FracIncThresh_OverTime	[P.Num_PC_ChangeTimes - 1];
@@ -2707,6 +2710,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];			//// household
 	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 		P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime	[0][PlaceType];	//// place
+	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+		P.PlaceClosePropAttending[PlaceType] = P.PC_PropAttending_OverTime[0][PlaceType];	//// place
 	P.PlaceCloseIncTrig1			= P.PC_IncThresh_OverTime		[0];			//// global incidence threshold
 	P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[0];			//// fractional incidence threshold
 	P.PlaceCloseCellIncThresh1		= P.PC_CellIncThresh_OverTime	[0];			//// cell incidence threshold
