@@ -1,9 +1,9 @@
 results-int.avNE.age.xls                      101780aa318c63b06a5a1371a8162a0c913730bb096168750907ff613cad46048030cb0a5299c26e2382326fd8d2cd30084e39e9300cd9490c3638bc51559577
 results-int.avNE.severity.adunit.xls          16718f9062d776bfd4a4c1ca3017110e0dc980f9dc6059b5c1898b9c2767f1ca1f1dbb346b27042b58d98b4ed184d4426ffe8fce40f17e968815642bb6c7c8db
-results-int.avNE.severity.xls                 85c1de141c9ac6e90fe8b200f21ead72216975f6392b6c4c4f77035e7b8a0880e5893e7c5df6685391ba9e540c4cc943b35cf760f665ca52cfc2d1447cd434d0
+results-int.avNE.severity.xls                 8fac7d885ab6f6dd113f793c36bf96f739ceadb8687d480e54341916259cf25c2a0c9eb530bb2aa6b545f6d51a8b9b6a7180e3f3bc33f29cb6be4e847b456059
 results-noint-repeat.avNE.age.xls             f0cb51e5b0ba424aea21f3cf4f748cfaa983be95836bf86b60a1d68e64d50601762a569709e96613f43f081afd50d5cc5a9033926087e0ae1cbaef921899dc83
 results-noint-repeat.avNE.severity.adunit.xls 0c46d2be1cac753c772bf623deb25dda2a335b04d6222349531fb9779eb04aa640355c6cd3c3c9a41e9da75ad3b700f6af5889c89226ab5096286ea17864db6b
-results-noint-repeat.avNE.severity.xls        d9f68ebfe24e938042c5edccf2c623f8dcf7805ef47f8ea60d258efb2cff606af9dd6c23368c1cab1b4fe09105b6f8b418d47e8175fa897c88537bcf6b0a9630
+results-noint-repeat.avNE.severity.xls        bf92fcdf005917d6c19d5b0faaedf3a4591d78f21ec311d7d526abcbd8ba9397f8556bafe92de2f137ab0b0aef8a080a101f523cdbafbfa8db504f56354d119c
 results-noint.avNE.age.xls                    f0cb51e5b0ba424aea21f3cf4f748cfaa983be95836bf86b60a1d68e64d50601762a569709e96613f43f081afd50d5cc5a9033926087e0ae1cbaef921899dc83
 results-noint.avNE.severity.adunit.xls        0c46d2be1cac753c772bf623deb25dda2a335b04d6222349531fb9779eb04aa640355c6cd3c3c9a41e9da75ad3b700f6af5889c89226ab5096286ea17864db6b
-results-noint.avNE.severity.xls               d9f68ebfe24e938042c5edccf2c623f8dcf7805ef47f8ea60d258efb2cff606af9dd6c23368c1cab1b4fe09105b6f8b418d47e8175fa897c88537bcf6b0a9630
+results-noint.avNE.severity.xls               bf92fcdf005917d6c19d5b0faaedf3a4591d78f21ec311d7d526abcbd8ba9397f8556bafe92de2f137ab0b0aef8a080a101f523cdbafbfa8db504f56354d119c
