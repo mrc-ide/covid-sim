@@ -11,7 +11,7 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DPYTHON_EXECUTABLE:FILEPATH:=python3 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
         cmake --build . -- -j$(nproc)
     - name: regression test (UK based)
       run: |
@@ -37,7 +37,7 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DPYTHON_EXECUTABLE:FILEPATH:=python3 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
         cmake --build . -- -j$(nproc)
     - name: regression test (UK based)
       run: |
