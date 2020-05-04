@@ -1644,7 +1644,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Vary efficacies over time", "%i", (void*) & (P.VaryEfficaciesOverTime), 1, 1, 0)) P.VaryEfficaciesOverTime = 0;
-
 	//// **** number of change times
 	if (!P.VaryEfficaciesOverTime)
 	{
@@ -1672,18 +1671,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	P.DCT_ChangeTimes	[0] = 0;
 	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
-		P.SD_ChangeTimes	[ChangeTime] = 100000;
-		P.CI_ChangeTimes	[ChangeTime] = 100000;
-		P.HQ_ChangeTimes	[ChangeTime] = 100000;
-		P.PC_ChangeTimes	[ChangeTime] = 100000;
-		P.DCT_ChangeTimes	[ChangeTime] = 100000;
+		P.SD_ChangeTimes	[ChangeTime] = 1e10;
+		P.CI_ChangeTimes	[ChangeTime] = 1e10;
+		P.HQ_ChangeTimes	[ChangeTime] = 1e10;
+		P.PC_ChangeTimes	[ChangeTime] = 1e10;
+		P.DCT_ChangeTimes	[ChangeTime] = 1e10;
 	}
 	//// Get real values from (pre)param file
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of social distancing"		, "%i", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of case isolation"			, "%i", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of household quarantine"	, "%i", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of place closure"			, "%i", (void*)P.PC_ChangeTimes	, P.Num_PC_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of digital contact tracing", "%i", (void*)P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of social distancing"		, "%lf", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of case isolation"			, "%lf", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of household quarantine"	, "%lf", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of place closure"			, "%lf", (void*)P.PC_ChangeTimes	, P.Num_PC_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of digital contact tracing", "%lf", (void*)P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes	, 1, 0);
 
 	// initialize to zero (regardless of whether doing places or households).
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
@@ -1795,7 +1794,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 					P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.PlaceCloseEffect[PlaceType];
 
 		if (!P.VaryEfficaciesOverTime || !GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportional attendance after closure by place type over time", "%lf", (void*) &P.PC_PropAttending_OverTime[0][0], P.Num_PC_ChangeTimes * P.PlaceTypeNum, 1, 0))
-			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P.PlaceCloseEffect
+			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P.PlaceClosePropAttending
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.PC_PropAttending_OverTime[ChangeTime][PlaceType] = P.PlaceClosePropAttending[PlaceType];
 	}
@@ -2529,37 +2528,40 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 	nim = 0;
 
-#pragma omp parallel for private(k) schedule(static,10000)
-	for (k = 0; k < P.N; k++)
-	{
-		Hosts[k].absent_start_time = USHRT_MAX - 1;
-		Hosts[k].absent_stop_time = 0;
-		if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-		Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
-		Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-		Hosts[k].quar_comply = 2;
-		Hosts[k].susc = (P.DoPartialImmunity)?(1.0- P.InitialImmunity[HOST_AGE_GROUP(k)]):1.0;
-		Hosts[k].to_die = 0;
-		Hosts[k].Travelling = 0;
-		Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
-		Hosts[k].detected_time = 0;
-		Hosts[k].digitalContactTraced = 0;
-		Hosts[k].inf = InfStat_Susceptible;
-		Hosts[k].num_treats = 0;
-		Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
-		Hosts[k].infector = -1;
-		Hosts[k].infect_type = 0;
-		Hosts[k].index_case_dct = 0;
-		if (P.DoSeverity)
+#pragma omp parallel for private(tn,k) schedule(static,1)
+	for (tn = 0; tn < P.NumThreads; tn++)
+		for (k = tn; k < P.N; k+= P.NumThreads)
 		{
-			Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-			Hosts[k].Critical_time = USHRT_MAX - 1;
-			Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
-			Hosts[k].Severity_Current = Severity_Asymptomatic;
-			Hosts[k].Severity_Final = Severity_Asymptomatic;
+			Hosts[k].absent_start_time = USHRT_MAX - 1;
+			Hosts[k].absent_stop_time = 0;
+			if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
+			Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
+			Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
+			Hosts[k].quar_comply = 2;
+			Hosts[k].susc = (P.DoPartialImmunity)?(1.0- P.InitialImmunity[HOST_AGE_GROUP(k)]):1.0;
+			Hosts[k].to_die = 0;
+			Hosts[k].Travelling = 0;
+			Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
+			Hosts[k].detected_time = 0;
+			Hosts[k].digitalContactTraced = 0;
 			Hosts[k].inf = InfStat_Susceptible;
+			Hosts[k].num_treats = 0;
+			Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
+			Hosts[k].infector = -1;
+			Hosts[k].infect_type = 0;
+			Hosts[k].index_case_dct = 0;
+			Hosts[k].ProbAbsent =(float) ranf_mt(tn);
+			Hosts[k].ProbCare = (float) ranf_mt(tn);
+			if (P.DoSeverity)
+			{
+				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
+				Hosts[k].Critical_time = USHRT_MAX - 1;
+				Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
+				Hosts[k].Severity_Current = Severity_Asymptomatic;
+				Hosts[k].Severity_Final = Severity_Asymptomatic;
+				Hosts[k].inf = InfStat_Susceptible;
+			}
 		}
-	}
 
 #pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
@@ -2572,32 +2574,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
-					if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-					Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time =  Hosts[k].dct_trigger_time = Hosts[k].dct_test_time = USHRT_MAX - 1;
-					Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-					Hosts[k].quar_comply = 2;
-					Hosts[k].susc = 1.0;
-					Hosts[k].to_die = 0;
-					Hosts[k].Travelling = 0;
-					Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
-					Hosts[k].detected_time = 0;
-					Hosts[k].digitalContactTraced = 0;
-					Hosts[k].inf = InfStat_Susceptible;
 					Hosts[k].listpos = j;
-					Hosts[k].num_treats = 0;
-					Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
-					Hosts[k].infector = -1;
-					Hosts[k].infect_type = 0;
-					Hosts[k].index_case_dct = Hosts[k].ncontacts = 0;
-
-					if (P.DoSeverity)
-					{
-						Hosts[k].SARI_time						= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-						Hosts[k].Critical_time					= USHRT_MAX - 1;
-						Hosts[k].RecoveringFromCritical_time	= USHRT_MAX - 1;
-						Hosts[k].Severity_Current				= Severity_Asymptomatic;
-						Hosts[k].Severity_Final					= Severity_Asymptomatic;
-					}
 				}
 				Cells[i].S = Cells[i].n;
 				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
@@ -2638,10 +2615,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 	}
-	if (false)
-	{
-		fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
-	}
 
 #pragma omp parallel for private(i,j,k,l) schedule(static,500)
 	for (l = 0; l < P.NMCP; l++)
@@ -2665,6 +2638,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Places[m][l].close_start_time = USHRT_MAX - 1;
 				Places[m][l].treat = Places[m][l].control_trig = 0;
 				Places[m][l].treat_end_time = Places[m][l].close_end_time = 0;
+				Places[m][l].ProbClose = (float) ranf_mt(m);
 				if (P.AbsenteeismPlaceClosure)
 				{
 					Places[m][l].AbsentLastUpdateTime = 0;
@@ -2703,7 +2677,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[0]; //// individual compliance
 	P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[0]; //// household compliance
 	P.HHQuar_CellIncThresh			= P.HQ_CellIncThresh_OverTime			[0]; //// cell incidence threshold
-	P.PlaceCloseDuration			= P.PC_Durs_OverTime					[0]; //// duration of place closure
 
 
 	//// **** place closure
@@ -2717,6 +2690,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseIncTrig1			= P.PC_IncThresh_OverTime		[0];			//// global incidence threshold
 	P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[0];			//// fractional incidence threshold
 	P.PlaceCloseCellIncThresh1		= P.PC_CellIncThresh_OverTime	[0];			//// cell incidence threshold
+	P.PlaceCloseDurationBase = P.PC_Durs_OverTime[0]; //// duration of place closure
+
 
 	//// **** digital contact tracing
 	P.DCTCaseIsolationEffectiveness			= P.DCT_SpatialAndPlaceEffects_OverTime	[0];	//// spatial / place
@@ -2899,12 +2874,43 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 int RunModel(int run) //added run number as parameter
 {
-	int j, k, l, fs, fs2, nu, ni,nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int j, k, l, fs, fs2, nu, ni, nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
 	double t, cI, lcI, t2;
 	unsigned short int ts;
 	int continueEvents = 1;
 
+
+/*	fprintf(stderr, "Checking consistency of initial state...\n");
+	int i, i2, k2;
+	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
+	{
+		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+		if (Hosts[i].inf == 0) j++;
+		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
+		{
+			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
+			{
+				k++;
+				for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
+					fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
+				if (!fs) ni++;
+			}
+			else
+			{
+				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+			}
+			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
+			{
+				k2++;
+			}
+		}
+		else
+			fs2++;
+	}
+	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+*/
 	InterruptRun = 0;
 	lcI = 1;
 	if (P.DoLoadSnapshot)
@@ -2957,7 +2963,7 @@ int RunModel(int run) //added run number as parameter
 					else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
 					if (ir > 0) //// if infection import rate > 0, seed some infections
 					{
-						for(k=ni=0;k<P.NumSeedLocations;k++) ni+=(nsi[k] = (int)ignpoi(P.TimeStep * ir*P.InitialInfectionsAdminUnitWeight[k]*P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
+						for (k = ni = 0; k < P.NumSeedLocations; k++) ni += (nsi[k] = (int)ignpoi(P.TimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
 						if (ni > 0)		SeedInfection(t, nsi, 1, run);
 					}
 					if (P.FalsePositivePerCapitaIncidence > 0)
@@ -3010,11 +3016,11 @@ int RunModel(int run) //added run number as parameter
 	fprintf(stderr, "\nEnd of run\n");
 	t2 = t + P.SampleTime;
 //	if(!InterruptRun)
-		while (fs)
-		{
-			fs = TreatSweep(t2);
-			t2 += P.SampleStep;
-		}
+	while (fs)
+	{
+		fs = TreatSweep(t2);
+		t2 += P.SampleStep;
+	}
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
@@ -3022,35 +3028,38 @@ int RunModel(int run) //added run number as parameter
 		for (t2 = t; t2 <= t + MAX_TRAVEL_TIME; t2 += P.TimeStep)
 			TravelReturnSweep(t2);
 	}
-/*		fprintf(stderr,"Checking consistency of final state...\n");
-        int i, i2, k2;
-		for(i=j=k=ni=fs2=i2=0;i<P.N;i++)
+/*	if (!InterruptRun)
+	{
+		fprintf(stderr, "Checking consistency of final state...\n");
+		int i, i2, k2;
+		for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
+		{
+			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+			if (Hosts[i].inf == 0) j++;
+			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 			{
-			if(i%1000==0) fprintf(stderr,"\r*** %i              ",i);
-			if(Hosts[i].inf==0) j++;
-			if((Hosts[i].pcell<P.NC)&&(Hosts[i].pcell>=0))
+				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
 				{
-				if(Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos]!=i)
-					{
 					k++;
-					for(l=fs=0;(l<Cells[Hosts[i].pcell].n)&&(!fs);l++)
-						fs=(Cells[Hosts[i].pcell].susceptible[l]==i);
-					if(!fs) ni++;
-					}
+					for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
+						fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
+					if (!fs) ni++;
+				}
 				else
-					{
-					if((Hosts[i].listpos>Cells[Hosts[i].pcell].S-1)&&(Hosts[i].inf== InfStat_Susceptible)) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S+ Cells[Hosts[i].pcell].L+ Cells[Hosts[i].pcell].I-1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-					}
+				{
+					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+				}
 				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 				{
 					k2++;
 				}
-				}
+			}
 			else
 				fs2++;
-			}
-		fprintf(stderr,"\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n",j,k,ni,fs2,i2,k2);
+		}
+		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+	}
 */
 	if(!InterruptRun) RecordInfTypes();
 	return (InterruptRun);
@@ -4265,16 +4274,16 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				P.PlaceCloseIncTrig				= P.PC_IncThresh_OverTime		[ChangeTime];				//// global incidence threshold
 				P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[ChangeTime];				//// fractional incidence threshold
 				P.PlaceCloseCellIncThresh		= P.PC_CellIncThresh_OverTime	[ChangeTime];				//// cell incidence threshold
-				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime] + 1;							//// duration of place closure
+				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime];							//// duration of place closure
 
-				//printf("\nt=%lf, Change_PC_Dur: PlaceCloseDuration = %lf \n", t, P.PlaceCloseDuration);
+
 				//// reset place close time start - has been set to 9e9 in event of no triggers. m
-				P.PlaceCloseTimeStart			= t;
+				if(P.PlaceCloseTimeStart<1e10) P.PlaceCloseTimeStart = t;
 
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants. 
-				if (ChangeTime != P.Num_PC_ChangeTimes - 1)
-					if (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1])
-						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] + 1;	
+				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
+						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] - 1;
+				//fprintf(stderr, "\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
 			}
 	}
 
@@ -4986,7 +4995,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = P.PreIntervIdCalTime - P.PreControlClusterIdTime;
+	k = (int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime);
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;

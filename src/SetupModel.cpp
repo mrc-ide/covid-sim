@@ -1797,7 +1797,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 			}
 		}
 	}
-	for (i = 0; i < n; i++) Hosts[pers + i].age = (unsigned short int) a[i];
+	for (i = 0; i < n; i++) Hosts[pers + i].age = (unsigned char) a[i];
 }
 
 void AssignPeopleToPlaces(void)
