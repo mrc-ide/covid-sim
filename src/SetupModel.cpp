@@ -41,61 +41,77 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.DoBin = -1;
 	if (P.DoHeteroDensity)
 	{
+		fprintf(stderr, "Scanning population density file\n");
+		if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+		if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+		{
+			P.DoBin = 1;
+			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
+			BF = (bin_file*)BinFileBuf;
+			fclose(dat);
+		}
+		else
+		{
+			P.DoBin = 0;
+			// Count the number of lines in the density file
+			rewind(dat);
+			P.BinFileLen = 0;
+			while(fgets(buf, sizeof(buf), dat) != NULL) P.BinFileLen++;
+			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			// Read each line, and build the binary structure that corresponds to it
+			rewind(dat);
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			BF = (bin_file*)BinFileBuf;
+			int index = 0;
+			while(fgets(buf, sizeof(buf), dat) != NULL)
+			{
+				// This shouldn't be able to happen, as we just counted the number of lines:
+				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
+				if (P.DoAdUnits)
+				{
+					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
+					if (l / P.CountryDivisor != i2)
+					{
+						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
+					}
+				}
+				else {
+					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
+					l = 0;
+				}
+				BF[index].x = x;
+				BF[index].y = y;
+				BF[index].pop = t;
+				BF[index].cnt = i2;
+				BF[index].ad = l;
+				index++;
+			}
+			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			// This shouldn't be able to happen, as we just counted the number of lines:
+			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
+			fclose(dat);
+		}
+
 		if (P.DoAdunitBoundaries)
 		{
-			fprintf(stderr, "Scanning population density file\n");
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
-			{
-				P.DoBin = 1;
-				fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-				if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-				fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
-				BF = (bin_file*)BinFileBuf;
-				fclose(dat);
-			}
-			else
-			{
-				P.DoBin = 0;
-				fclose(dat);
-				if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-				P.BinFileLen = UINT_MAX - 1;
-			}
 			// We will compute a precise spatial bounding box using the population locations.
 			// Initially, set the min values too high, and the max values too low, and then
 			// we will adjust them as we read population data.
 			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
 			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
 			s2 = 0;
-			if (P.DoBin == 0)
-			{
-				fgets(buf, 2047, dat);
-				if (feof(dat)) rn = P.BinFileLen;
-			}
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
-				if (P.DoBin == 0)
-				{
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
-					if (l / P.CountryDivisor != i2) //temporarily changed this to 10000 from 100 to work with new admin codes - ggilani 30/05/2018, now changed to CountryDivisor - ggilani 13/05/2019
-					{
-						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
-					}
+				x = BF[rn].x;
+				y = BF[rn].y;
+				t = BF[rn].pop;
+				i2 = BF[rn].cnt;
+				l = BF[rn].ad;
+				//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
 
-					fgets(buf, 2047, dat);
-					if (feof(dat)) rn = P.BinFileLen;
-				}
-				else
-				{
-					x = BF[rn].x;
-					y = BF[rn].y;
-					t = BF[rn].pop;
-					i2 = BF[rn].cnt;
-					l = BF[rn].ad;
-					//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
-
-				}
 				m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.AdunitLevel1Lookup[m] >= 0)
 					if (AdUnits[P.AdunitLevel1Lookup[m]].id / P.AdunitLevel1Mask == l / P.AdunitLevel1Mask)
@@ -111,7 +127,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					}
 			}
 			if (!P.DoSpecifyPop) P.N = (int)s2;
-			if (P.DoBin == 0) fclose(dat);
 		}
 
 		P.cheight = P.cwidth;
@@ -671,51 +686,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoHeteroDensity)
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
-		if (P.DoBin == -1)
-		{
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file
-			{
-				fprintf(stderr, "Reading binary population density file...\n");
-				P.DoBin = 1;
-				fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-				if (!(BinFileBuf = (void*)malloc(((size_t)P.BinFileLen) * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-				fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
-				BF = (bin_file*)BinFileBuf;
-				fclose(dat);
-			}
-			else
-			{
-				fclose(dat);
-				P.DoBin = 0;
-			}
-		}
-		if (P.DoBin == 0)
-		{
-			P.BinFileLen = UINT_MAX - 1;
-			fprintf(stderr, "Reading ASCII population density file...\n");
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-		}
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
-		if (P.DoBin == 1)
-			fprintf(stderr, "Binary density file contains %i mcells.\n", (int)P.BinFileLen);
-		else
-		{
-			fgets(buf, 2047, dat);
-			if (feof(dat)) rn = P.BinFileLen;
-		}
+		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			if (P.DoAdUnits)
 			{
-				if (P.DoBin == 1)
-				{
-					x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
-					rec = BF[rn];
-				}
-				else
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &country, &j2);
+				x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
+				rec = BF[rn];
 				m = (j2 % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.DoAdunitBoundaries)
 				{
@@ -752,22 +730,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			else
 			{
 				k = 1;
-				if (P.DoBin == 1)
-				{
-					x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
-					rec = BF[rn];
-				}
-				else
-				{
-					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &country);
-					j2 = 0;
-					rec.x = x; rec.y = y; rec.pop = t; rec.cnt = country; rec.ad = j2;
-				}
-			}
-			if (P.DoBin == 0)
-			{
-				fgets(buf, 2047, dat);
-				if (feof(dat)) rn = P.BinFileLen;
+				x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
+				rec = BF[rn];
 			}
 			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
 			{
@@ -802,9 +766,9 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if ((P.OutputDensFile) && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
-			fclose(dat);
 			if (P.OutputDensFile)
 			{
+				free(BinFileBuf);
 				P.DoBin = 1;
 				P.BinFileLen = 0;
 				for (l = 0; l < P.NMC; l++)
@@ -836,7 +800,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			fwrite_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
-		if (P.DoBin == 1) free(BinFileBuf);
+		free(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
 		maxd = 0;
 		for (i = 0; i < P.NMC; i++)
