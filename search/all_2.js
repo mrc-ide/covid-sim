@@ -45,7 +45,7 @@ var searchData=
   ['choosethreshold_114',['ChooseThreshold',['../_covid_sim_8cpp.html#a0b6851cb631df8c24fe6fff095941232',1,'CovidSim.cpp']]],
   ['choosetriggervariableandvalue_115',['ChooseTriggerVariableAndValue',['../_covid_sim_8cpp.html#a625f2a0d53f7ece911b43e5268e8a285',1,'CovidSim.cpp']]],
   ['ci_5fcellincthresh_5fovertime_116',['CI_CellIncThresh_OverTime',['../struct_p_a_r_a_m.html#aa5524ef59bcc90922a5e2d4e8757c9c6',1,'PARAM']]],
-  ['ci_5fchangetimes_117',['CI_ChangeTimes',['../struct_p_a_r_a_m.html#adfdfb40ef7f5acc1602cb99fd4a9340c',1,'PARAM']]],
+  ['ci_5fchangetimes_117',['CI_ChangeTimes',['../struct_p_a_r_a_m.html#a9bf6ac1834bb27977c476e2400ca047a',1,'PARAM']]],
   ['ci_5fhouseholdeffects_5fovertime_118',['CI_HouseholdEffects_OverTime',['../struct_p_a_r_a_m.html#a85b9d42077fdc7041462989b60d6a3cc',1,'PARAM']]],
   ['ci_5fprop_5fovertime_119',['CI_Prop_OverTime',['../struct_p_a_r_a_m.html#a48f3b75171be4ad5feec3c72dbd94e21',1,'PARAM']]],
   ['ci_5fspatialandplaceeffects_5fovertime_120',['CI_SpatialAndPlaceEffects_OverTime',['../struct_p_a_r_a_m.html#a0b7b2a65c6704f0e23815ad7f4d07e8a',1,'PARAM']]],

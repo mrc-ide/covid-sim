@@ -2,9 +2,9 @@ var searchData=
 [
   ['d_244',['D',['../struct_p_o_p_v_a_r.html#a3de90b92cbce87f2c84adb840a3584c5',1,'POPVAR::D()'],['../struct_r_e_s_u_l_t_s.html#ac86fb559557094be0a3ad01889cc41ca',1,'RESULTS::D()'],['../struct_c_e_l_l.html#ac12409d18223d44ab9e96953f0cdbf10',1,'CELL::D()']]],
   ['days_5fper_5fyear_245',['DAYS_PER_YEAR',['../_constants_8h.html#ab8b198f8809cbf6e5135c0a7750b3b45',1,'Constants.h']]],
-  ['dct_246',['DCT',['../struct_p_o_p_v_a_r.html#a744a05d725514e30ba884271be91d782',1,'POPVAR::DCT()'],['../struct_r_e_s_u_l_t_s.html#a81d64d72550ad8097295286ae589fd5e',1,'RESULTS::DCT()'],['../struct_a_d_m_i_n_u_n_i_t.html#af6d4230479be3d9df3883483676c7c12',1,'ADMINUNIT::dct()']]],
+  ['dct_246',['dct',['../struct_a_d_m_i_n_u_n_i_t.html#af6d4230479be3d9df3883483676c7c12',1,'ADMINUNIT::dct()'],['../struct_p_o_p_v_a_r.html#a744a05d725514e30ba884271be91d782',1,'POPVAR::DCT()'],['../struct_r_e_s_u_l_t_s.html#a81d64d72550ad8097295286ae589fd5e',1,'RESULTS::DCT()']]],
   ['dct_5fadunit_247',['DCT_adunit',['../struct_p_o_p_v_a_r.html#a387001a42a8e221a0940874cde4571c3',1,'POPVAR::DCT_adunit()'],['../struct_r_e_s_u_l_t_s.html#aa9bc88bc022b4b8200cbaa5f693bec14',1,'RESULTS::DCT_adunit()']]],
-  ['dct_5fchangetimes_248',['DCT_ChangeTimes',['../struct_p_a_r_a_m.html#ac5da35934e57e97705462a90f91bd354',1,'PARAM']]],
+  ['dct_5fchangetimes_248',['DCT_ChangeTimes',['../struct_p_a_r_a_m.html#a56ca2f25593e40e17c3d57f855a746b7',1,'PARAM']]],
   ['dct_5fend_5ftime_249',['dct_end_time',['../struct_p_e_r_s_o_n.html#aca004a599885ae96a1481c6512ce2d4c',1,'PERSON']]],
   ['dct_5fhouseholdeffects_5fovertime_250',['DCT_HouseholdEffects_OverTime',['../struct_p_a_r_a_m.html#a837e8fd6943ffe28393f86b2615c20a6',1,'PARAM']]],
   ['dct_5fmaxtotrace_5fovertime_251',['DCT_MaxToTrace_OverTime',['../struct_p_a_r_a_m.html#a211e033b72bf1f6a1345a4a7864b703f',1,'PARAM']]],
