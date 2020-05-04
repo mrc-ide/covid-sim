@@ -11,19 +11,14 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ../src
-        make
-        cd ..
+        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+        cmake --build . -- -j$(nproc)
     - name: regression test (UK based)
       run: |
-        cd tests
-        pwd
-        ls -l
-        ./regressiontest_UK_100th.py
+        ctest --tests-regex regressiontest_UK_100th --verbose
     - name: regression test (US based)
       run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        ctest --tests-regex regressiontest_US_based --verbose
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -42,16 +37,11 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ../src
-        make
-        cd ..
-    - name: regression test
+        cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+        cmake --build . -- -j$(nproc)
+    - name: regression test (UK based)
       run: |
-        cd tests
-        pwd
-        ls -l
-        ./regressiontest_UK_100th.py
+        ctest --tests-regex regressiontest_UK_100th --verbose
     - name: regression test (US based)
       run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        ctest --tests-regex regressiontest_US_based --verbose

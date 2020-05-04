@@ -90,13 +90,13 @@ updir1 = os.pardir + os.sep
 shutil.rmtree(testdir, True)
 os.mkdir(testdir)
 os.chdir(testdir)
-subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2 + 'src'])
+subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2])
 subprocess.check_call(['cmake', '--build', '.'])
 
 if os.name == 'nt':
-    covidsim_exe = os.getcwd() + os.sep + 'Debug\CovidSim.exe'
+    covidsim_exe = os.path.join(os.getcwd(), "src", "Debug", "CovidSim.exe")
 else:
-    covidsim_exe = os.getcwd() + os.sep + 'CovidSim'
+    covidsim_exe = os.path.join(os.getcwd(), "src", "CovidSim")
 print(covidsim_exe)
 
 # Population density file in gziped form, text file, and binary file as

@@ -12,16 +12,11 @@ jobs:
         run: |
           md build
           cd build
-          cmake ..\src
+          cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
           cmake --build .
-          cd ..
       - name: regression test (UK based)
         run: |
-          cd tests
-          python.exe regressiontest_UK_100th.py
-          cd ..
+          ctest --tests-regex regressiontest_UK_100th --verbose
       - name: regression test (US based)
         run: |
-          cd tests
-          python.exe regressiontest_US_based.py
-          cd ..
+          ctest --tests-regex regressiontest_US_based --verbose

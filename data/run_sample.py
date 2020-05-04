@@ -44,7 +44,7 @@ def parse_args():
     data_dir = script_path
     param_dir = os.path.join(script_path, "param_files")
     output_dir = os.getcwd()
-    src_dir = os.path.join(data_dir, os.pardir, "src")
+    root_dir = os.path.join(data_dir, os.pardir)
 
     parser.add_argument(
             "country",
@@ -63,7 +63,7 @@ def parse_args():
     parser.add_argument(
             "--srcdir",
             help="Directory with source in - needed if --covidsim isn't specified",
-            default=src_dir)
+            default=root_dir)
     parser.add_argument(
             "--outputdir",
             help="Directory to store output data",
@@ -102,9 +102,9 @@ else:
 
     # Where the exe ends up depends on the OS.
     if os.name == 'nt':
-        exe = os.path.join(build_dir, "Debug", "CovidSim.exe")
+        exe = os.path.join(build_dir, "src", "Debug", "CovidSim.exe")
     else:
-        exe = os.path.join(build_dir, "CovidSim")
+        exe = os.path.join(build_dir, "src", "CovidSim")
 
     os.chdir(cwd)
 

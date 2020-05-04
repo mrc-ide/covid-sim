@@ -9,8 +9,8 @@ RUN mkdir -p build \
 
 WORKDIR /src/build
 
-RUN cmake ../src \
-    && make
+RUN cmake -DENABLE_REGRESSION_TEST:BOOL=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON .. \
+    && cmake --build . -- -j$(nproc)
 
 # This allows for building a release without having to potentially re-run the tests.
 FROM debian:stable-slim AS release
@@ -22,18 +22,16 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /src/build/CovidSim /usr/bin/.
+COPY --from=build /src/build/src/CovidSim /usr/bin/.
 COPY data /data/input
 
 ENTRYPOINT ["/usr/bin/CovidSim"]
 
 FROM build AS test
 
-WORKDIR /src/tests
+WORKDIR /src/build
 
-RUN pwd \
-    && ls -l \
-    && ./regressiontest_UK_100th.py
+RUN ctest --tests-regex regressiontest_UK_100th --verbose
 
 # This ensures that the default behavior is to run the tests and then create a release
 FROM release

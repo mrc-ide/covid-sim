@@ -85,19 +85,19 @@ if len(sys.argv) > 1 and sys.argv[1] == '--accept':
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'us-input')
 output_dir = os.path.join(script_dir, 'us-output')
-src_dir = os.path.join(script_dir, os.pardir, 'src')
+root_dir = os.path.join(script_dir, os.pardir)
 data_dir = os.path.join(script_dir, os.pardir, 'data')
 
 shutil.rmtree(output_dir, ignore_errors=True)
 os.makedirs(output_dir, exist_ok=False)
 os.chdir(output_dir)
-subprocess.run(['cmake', src_dir])
+subprocess.run(['cmake', root_dir])
 subprocess.run(['cmake', '--build', '.'])
 
 if os.name == 'nt':
-    covidsim_exe = os.getcwd() + os.sep + 'Debug\CovidSim.exe'
+    covidsim_exe = os.path.join(os.getcwd(), "src", "Debug", "CovidSim.exe")
 else:
-    covidsim_exe = os.getcwd() + os.sep + 'CovidSim'
+    covidsim_exe = os.path.join(os.getcwd(), "src", "CovidSim")
 print(covidsim_exe)
 
 # Population density file in gziped form, text file, and binary file as
