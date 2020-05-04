@@ -32,6 +32,7 @@ case "$distro_id" in
         yum -y install epel-release
         yum -y install cmake3 make gcc-c++
         ln -s /bin/cmake3 /bin/cmake
+        ln -s /bin/ctest3 /bin/ctest
         ;;
 
     'opensuse'|'opensuse-tumbleweed')
