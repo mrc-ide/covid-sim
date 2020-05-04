@@ -1,11 +1,12 @@
 # COVID-19 CovidSim Model
 
-This is the COVID-19 CovidSim model developed by the MRC Centre for Global
+This is the COVID-19 CovidSim microsimulation model developed by the MRC Centre for Global
 Infectious Disease Analysis hosted at Imperial College, London.
 
-CovidSim models the instances and severity of COVID-19 infections throughout
-a population over time.  It enables modelling of how intervention policies and
-healthcare provision affect the spread of COVID-19.
+CovidSim models the transmission dynamics and severity of COVID-19 infections throughout a spatially and socially structured
+population over time.  It enables modelling of how intervention policies and
+healthcare provision affect the spread of COVID-19. With parameter changes, it can be used
+to model other respiratory viruses, such as influenza.
 
 ## IMPORTANT NOTES
 
@@ -15,6 +16,8 @@ healthcare provision affect the spread of COVID-19.
 
 :warning: The model is stochastic. Multiple runs with different seeds should be undertaken to see average behaviour.
 
+:warning: As with any mathematical model, it is easy to misconfigure inputs and therefore get meaningless outputs. The Imperial College COVID-19 team only endorses outputs it has itself generated.
+
 ## Status
 
 This model is in active development and subject to significant code changes
@@ -23,8 +26,6 @@ to:
  * Enable modelling of more geographies
 
  * Enable modelling of different intervention scenarios
-
- * Reduce memory usage
 
  * Improve performance
 
@@ -36,7 +37,8 @@ Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
 
 It is strongly recommended to build the model with OpenMP support enabled to
-improve performance.
+improve performance on multi-core processors. 24 to 32 core Xeon systems give
+optimal performance for large (e.g. UK, US) populations.
 
 See [build.md](./docs/build.md) for detailed build instructions.
 
@@ -74,6 +76,8 @@ particular interest are:
  * [Interventions description](./docs/intervention-description.md)
  * [R Scripts for Output Visualisation](./docs/inputs-and-outputs.md#r-summary-visualisations)
 
+Given the entire Imperial College team is working full-time on the COVID-19 response, documentation is currently sparse. More documentation and sample files will be added as time permits. In the coming few weeks this will include a much more extensive set of input files to model strategies for exiting lockdown.
+
 ### Relevant papers
 
 The following papers are relevant to the model.  Please note that some of them
@@ -89,7 +93,8 @@ may require a subscription.
 The source code for CovidSim is licensed under the GPLv3, see
 [LICENSE.md](LICENSE.md).
 
-It is Copyright Imperial College of Science, Technology and Medicine.
+It is Copyright Imperial College of Science, Technology and Medicine. The 
+lead developers are Neil Ferguson, Gemma Nedjati-Giliani and Daniel Laydon.
 
 Additional contributions for open-sourcing made by Imperial College of
 Science, Technology and Medicine, GitHub Inc, and John Carmack are copyright

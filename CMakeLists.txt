@@ -25,10 +25,6 @@ endif()
 
 option(USE_OPENMP "Compile with OpenMP parallelism enabled" ON)
 
-# Country configuration for compile-time properties
-set(COUNTRY "UK" CACHE STRING "The country being modeled.")
-set_property(CACHE COUNTRY PROPERTY STRINGS UK US)
-
 # Do we use the Win32 BMP routines or the generic ones?
 option(USE_WIN32_BMP
   "Use Windows BMP specific output routines instead of generic ones.  If ON disables testing."

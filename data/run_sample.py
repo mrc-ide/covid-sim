@@ -90,12 +90,6 @@ if args.covidsim is not None:
 else:
     build_dir = os.path.join(args.outputdir, "build")
 
-    # Build the right version depending on the country
-    if args.country in united_states:
-        country = "-DCOUNTRY=US"
-    else:
-        country = "-DCOUNTRY=UK"
-
     # Ensure we do a clean build
     shutil.rmtree(build_dir, ignore_errors=True)
     os.makedirs(build_dir, exist_ok=False)
@@ -103,7 +97,7 @@ else:
     os.chdir(build_dir)
 
     # Build
-    subprocess.run(['cmake', args.srcdir, country], check=True)
+    subprocess.run(['cmake', args.srcdir], check=True)
     subprocess.run(['cmake', '--build', '.'], check=True)
 
     # Where the exe ends up depends on the OS.

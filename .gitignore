@@ -1,3 +1,4 @@
+
 *~
 *.xls
 x64
@@ -11,5 +12,6 @@ out/
 build
 build-*/
 build_*/
+.project
 *.vcxproj.user
 tests/*-output/

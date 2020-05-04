@@ -80,8 +80,7 @@ disabled.
 
 # Build options
 Additional configuration variables can be provided in the `cmake` invocation.
-- `COUNTRY` specifies the country that will be modeled, defaulting to the UK. Pass `-DCOUNTRY=US` or `-DCOUNTRY=UK` to change the country.
-- `USE_OPENMP` determines whether the model is compiled with parallelization using OpenMP. This option defaults to on, but can be disabled by passing `-DUSE_OPENMP=OFF`.
+- `USE_OPENMP` determines whether the model is compiled with parallelization using OpenMP. This option defaults to on, but can be disabled by passing `-DUSE_OPENMP=OFF`. The simulation is designed to be run on multi-core systems. Performance improvements are approximately linear up to 24 to 32 cores, depending on memory performance.
 - `USE_WIN32_BMP` determines what bitmap routines to use when compiling on
   Windows.  By default we will generate BMP files.  On Windows if
   `-DUSE_WIN32_BMP=ON` is passed to `cmake` then PNG files will be produced.
@@ -90,6 +89,7 @@ Additional configuration variables can be provided in the `cmake` invocation.
 For Makefile builds, a build type can be specified by passing `-DCMAKE_BUILD_TYPE=Debug`, `-DCMAKE_BUILD_TYPE=MinSizeRel`, `-DCMAKE_BUILD_TYPE=Release`, or `-DCMAKE_BUILD_TYPE=RelWithDebInfo`. By default, Makefile builds will use `RelWithDebInfo`.
 
 # VisualStudio solution
+
 A manually created VS-2019 solution and project is included for convenience, but it should not be considered the source of truth for the project.
 
 ## Testing

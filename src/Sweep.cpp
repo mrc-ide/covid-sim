@@ -284,6 +284,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	double s3, s3_scaled; // household, then place infectiousness
 	double s4, s4_scaled; // place infectiousness (copy of s3 as some code commented out
 	double s5; //// total spatial infectiousness summed over all infectious people in cell.
+	double s6;
 	double fp; //// false positive
 	cell* c, *ct;
 	microcell* mi, *mt, *mp;
@@ -299,7 +300,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
+#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -363,8 +364,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						for (k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
 							l = si->PlaceLinks[k];
-							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed).
-							{
+							//if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed).
+							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
+								{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
 								mp = Mcells + Places[k][l].mcell;
 								if (bm)
@@ -411,11 +413,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											Hosts[ci].ncontacts++; //add to number of contacts made
-											if (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)
+											s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
+											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
 											{
+												Hosts[ci].ncontacts++; //add to number of contacts made
 												ad = Mcells[Hosts[i3].mcell].adunit;
 												if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
 												{
@@ -482,11 +485,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											Hosts[ci].ncontacts++; //add to number of contacts made
-											if (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)
+											s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
+											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
 											{
+												Hosts[ci].ncontacts++; //add to number of contacts made
 												ad = Mcells[Hosts[i3].mcell].adunit;
 												if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
 												{
@@ -515,6 +519,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
+											s*=((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												cq = Hosts[i3].pcell % P.NumThreads;
@@ -639,7 +644,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 							f2 = 1;
 						}
 
-						else if (m < ct->S) //// if person m susceptible. if not, then block of code not evaluated, we finish this do-while without having allocated infectee, or anybody to infection queue.
+						else
 						{
 							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, is not part of cell c and doesn't share a household with infector.
 							{
@@ -655,9 +660,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//if infectee is also a user, add them as a contact
 									if (Hosts[i3].digitalContactTracingUser && (ci != i3))
 									{
-										Hosts[ci].ncontacts++; //add to number of contacts made
-										if (ranf_mt(tn) < P.ProportionDigitalContactsIsolate)
+										s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0);
+										if ((Hosts[ci].ncontacts<P.MaxDigitalContactsToTrace)&&(ranf_mt(tn) < s6))
 										{
+											Hosts[ci].ncontacts++; //add to number of contacts made
 											ad = Mcells[Hosts[i3].mcell].adunit;
 											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
 											{
@@ -671,36 +677,39 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										}
 									}
 								}
-
-								if (bm)
+								if (m < ct->S)  // only bother trying to infect susceptible people
 								{
-									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
-										Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y) > P.MoveRestrRadius2))
-										s *= P.MoveRestrEffect;
-								}
-								else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
-									s *= P.MoveRestrEffect;
-								if (!f) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
-								{
-									for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
-										if (Hosts[i3].PlaceLinks[m] >= 0)
-										{
-											f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
-										}
-									if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
-									f2 = 0;
-								}
-								if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
-								{
-									cq = ((int)(ct - Cells)) % P.NumThreads;
-									if ((Hosts[i3].inf == InfStat_Susceptible) && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
+									if (bm)
 									{
-										if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
-										else
+										if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
+											Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y) > P.MoveRestrRadius2))
+											s *= P.MoveRestrEffect;
+									}
+									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
+										s *= P.MoveRestrEffect;
+									if (!f) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
+									{
+										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
+											if (Hosts[i3].PlaceLinks[m] >= 0)
+											{
+												f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
+											}
+										if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+										f2 = 0;
+									}
+									s *= ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0);
+									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
+									{
+										cq = ((int)(ct - Cells)) % P.NumThreads;
+										if ((Hosts[i3].inf == InfStat_Susceptible) && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
 										{
-											short int infect_type = 2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
-											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
+											if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
+												StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = { -1, i3, -1 };
+											else
+											{
+												short int infect_type = 2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
+												StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = { ci, i3, infect_type };
+											}
 										}
 									}
 								}
@@ -833,10 +842,7 @@ void IncubRecoverySweep(double t, int run)
 						//increment bin in State corresponding to this number of contacts
 						StateT[tn].contact_dist[Hosts[ci].ncontacts]++;
 					}
-
 				}
-
-
 			}
 		}
 }
