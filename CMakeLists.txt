@@ -29,6 +29,11 @@ option(USE_OPENMP "Compile with OpenMP parallelism enabled" ON)
 set(COUNTRY "UK" CACHE STRING "The country being modeled.")
 set_property(CACHE COUNTRY PROPERTY STRINGS UK US)
 
+# Do we use the Win32 BMP routines or the generic ones?
+option(USE_WIN32_BMP
+  "Use Windows BMP specific output routines instead of generic ones.  If ON disables testing."
+  OFF)
+
 # Packages used
 if(USE_OPENMP)
   find_package(OpenMP REQUIRED)
@@ -43,10 +48,15 @@ else()
   find_package(Python3 REQUIRED)
 endif()
 
-enable_testing()
-
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(src)
+
+if(WIN32 AND USE_WIN32_BMP)
+  message(WARNING "USE_WIN32_BMP is enabled.  Therefore testing is disabled.")
+  message(WARNING "To enable testing invoke with `cmake -DUSE_WIN32_BMP=NO`")
+else()
+enable_testing()
 add_subdirectory(tests)
+endif()
