@@ -21,7 +21,7 @@ typedef struct PERSON {
 	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
 
 	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc;
+	float infectiousness, susc,ProbAbsent,ProbCare;
 
 	unsigned int esocdist_comply : 1;
 	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
@@ -297,6 +297,7 @@ typedef struct PLACE {
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
 	float loc_x, loc_y;
+	float ProbClose;
 	int* group_start, *group_size, *members;
 } place;
 
