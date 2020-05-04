@@ -91,7 +91,7 @@ typedef struct CONTACTEVENT {
  */
 typedef struct POPVAR {
 
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumInf_h, cumInf_n, cumDC, trigDC;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumInf_h, cumDC, trigDC;
 	int H, cumH; //Added total and cumulative hospitalisation: ggilani 28/10/14
 	int CT, cumCT, CC, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
