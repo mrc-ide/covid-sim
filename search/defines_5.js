@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['host_5fabsent_2525',['HOST_ABSENT',['../_model_macros_8h.html#a647e3cd1890f495c063a9537cc2c6b72',1,'ModelMacros.h']]],
-  ['host_5fage_5fgroup_2526',['HOST_AGE_GROUP',['../_model_macros_8h.html#aa5a6525c77db4abd9464ac6a40adaf52',1,'ModelMacros.h']]],
-  ['host_5fage_5fyear_2527',['HOST_AGE_YEAR',['../_model_macros_8h.html#a25a9f97e729e19c3afdd9e94ef9bf1f5',1,'ModelMacros.h']]],
-  ['host_5fisolated_2528',['HOST_ISOLATED',['../_model_macros_8h.html#a7069485bb50594d378b9a84d4e4facf5',1,'ModelMacros.h']]],
-  ['host_5fquarantined_2529',['HOST_QUARANTINED',['../_model_macros_8h.html#a82ea6b7b910b7c937d8a8c861adbdcc0',1,'ModelMacros.h']]],
-  ['host_5fto_5fbe_5fquarantined_2530',['HOST_TO_BE_QUARANTINED',['../_model_macros_8h.html#a1ec4282cd891a55eee846cc5659f486f',1,'ModelMacros.h']]],
-  ['host_5fto_5fbe_5ftreated_2531',['HOST_TO_BE_TREATED',['../_model_macros_8h.html#a021c0d276055369d1583da0064dcc251',1,'ModelMacros.h']]],
-  ['host_5fto_5fbe_5fvacced_2532',['HOST_TO_BE_VACCED',['../_model_macros_8h.html#a3f398fd88fc61d6287e532b89650dc54',1,'ModelMacros.h']]],
-  ['host_5ftreated_2533',['HOST_TREATED',['../_model_macros_8h.html#ae66746e1f11d41f53bed6d04cddeac6f',1,'ModelMacros.h']]],
-  ['host_5fvacced_2534',['HOST_VACCED',['../_model_macros_8h.html#ae543c325159c7f6e54f956391f871d80',1,'ModelMacros.h']]],
-  ['host_5fvacced_5fswitch_2535',['HOST_VACCED_SWITCH',['../_model_macros_8h.html#aab91d3a8d606d0cbc5c41ca8f4c86d53',1,'ModelMacros.h']]],
-  ['hotels_5fper_5f1000passenger_2536',['HOTELS_PER_1000PASSENGER',['../_constants_8h.html#a300a3bb30e49af541eed470ed14ca0a8',1,'Constants.h']]]
+  ['host_5fabsent_2521',['HOST_ABSENT',['../_model_macros_8h.html#a647e3cd1890f495c063a9537cc2c6b72',1,'ModelMacros.h']]],
+  ['host_5fage_5fgroup_2522',['HOST_AGE_GROUP',['../_model_macros_8h.html#aa5a6525c77db4abd9464ac6a40adaf52',1,'ModelMacros.h']]],
+  ['host_5fage_5fyear_2523',['HOST_AGE_YEAR',['../_model_macros_8h.html#a25a9f97e729e19c3afdd9e94ef9bf1f5',1,'ModelMacros.h']]],
+  ['host_5fisolated_2524',['HOST_ISOLATED',['../_model_macros_8h.html#a7069485bb50594d378b9a84d4e4facf5',1,'ModelMacros.h']]],
+  ['host_5fquarantined_2525',['HOST_QUARANTINED',['../_model_macros_8h.html#a82ea6b7b910b7c937d8a8c861adbdcc0',1,'ModelMacros.h']]],
+  ['host_5fto_5fbe_5fquarantined_2526',['HOST_TO_BE_QUARANTINED',['../_model_macros_8h.html#a1ec4282cd891a55eee846cc5659f486f',1,'ModelMacros.h']]],
+  ['host_5fto_5fbe_5ftreated_2527',['HOST_TO_BE_TREATED',['../_model_macros_8h.html#a021c0d276055369d1583da0064dcc251',1,'ModelMacros.h']]],
+  ['host_5fto_5fbe_5fvacced_2528',['HOST_TO_BE_VACCED',['../_model_macros_8h.html#a3f398fd88fc61d6287e532b89650dc54',1,'ModelMacros.h']]],
+  ['host_5ftreated_2529',['HOST_TREATED',['../_model_macros_8h.html#ae66746e1f11d41f53bed6d04cddeac6f',1,'ModelMacros.h']]],
+  ['host_5fvacced_2530',['HOST_VACCED',['../_model_macros_8h.html#ae543c325159c7f6e54f956391f871d80',1,'ModelMacros.h']]],
+  ['host_5fvacced_5fswitch_2531',['HOST_VACCED_SWITCH',['../_model_macros_8h.html#aab91d3a8d606d0cbc5c41ca8f4c86d53',1,'ModelMacros.h']]],
+  ['hotels_5fper_5f1000passenger_2532',['HOTELS_PER_1000PASSENGER',['../_constants_8h.html#a300a3bb30e49af541eed470ed14ca0a8',1,'Constants.h']]]
 ];
