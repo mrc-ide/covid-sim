@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Regression test for checking output of CovidSim in US mode
+"""Regression test for checking output of CovidSim in US mode."""
+
 # NOTE: This uses test data and is not a run reflective of real-world
 # situations.
 
@@ -76,7 +77,12 @@ import subprocess
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'us-input')
 output_dir = os.path.join(script_dir, 'us-output')
-wpop_file_gz = os.path.join(script_dir, os.pardir, "data", "populations", "wpop_usacan.txt.gz")
+wpop_file_gz = os.path.join(
+        script_dir,
+        os.pardir,
+        "data",
+        "populations",
+        "wpop_usacan.txt.gz")
 
 print("Invoking integration-test.py")
 cmd = [

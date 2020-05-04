@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-#
-# Integration test infrastructure:
-#
-# Invoke as:
-#
-# integration-test.py --covidsim <exe> --input <input_dir> \
-#       --output <output_dir> --popfile <pop file> \
-#       [--schools <shoolfile>] [--accept]
-#
-# It will run 3 tests:
-#   a. No intervention, generating network from scratch
-#   b. No intervention, loading network generated in a
-#   c. Intervention, using network generated in a.
-#
-# It will check outputs from a & b are identical, and that the outputs
-# match expected checksums.
-#
+r"""Integration test infrastructure.
+
+Invoke as:
+
+integration-test.py --covidsim <exe> --input <input_dir> \
+   --output <output_dir> --popfile <pop file> \
+   [--schools <shoolfile>] [--accept]
+
+It will run 3 tests:
+a. No intervention, generating network from scratch
+b. No intervention, loading network generated in a
+c. Intervention, using network generated in a.
+
+It will check outputs from a & b are identical, and that the outputs
+match expected checksums.
+"""
 
 # WHAT TO DO IF THE TEST FAILS
 #
@@ -91,6 +90,7 @@ import sys
 import shutil
 import subprocess
 
+
 def parse_args():
     """Parse the arguments.
 
@@ -102,7 +102,6 @@ def parse_args():
     args.schools = school file
     args.accept = accept new results
     """
-
     # Defaults
     script_path = os.path.dirname(os.path.realpath(__file__))
     output_dir = script_path
@@ -142,6 +141,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 failed = False
 args = parse_args()
 
@@ -177,12 +177,12 @@ print("Using executable: {0}".format(covidsim_exe))
 if not os.path.exists(args.popfile):
     print("Unable to find population file: {0}".format(args.popfile))
     exit(1)
-if not args.schools is None and not os.path.exists(args.schools):
+if args.schools is not None and not os.path.exists(args.schools):
     print("Unable to find schools file: {0}".format(args.schools))
     exit(1)
 for i in ["pre-params.txt", "input-noint-params.txt",
-        "admin-params.txt", "input-params.txt",
-        "results.checksums.txt"]:
+          "admin-params.txt", "input-params.txt",
+          "results.checksums.txt"]:
     f = os.path.join(args.input, i)
     if not os.path.exists(f):
         print("Unable to find input file: {0}".format(f))
@@ -194,9 +194,8 @@ wpop_file = os.path.join(args.output, "pop.txt")
 wpop_bin = os.path.join(args.output, "pop.bin")
 
 # gunzip wpop fie
-with gzip.open(args.popfile, 'rb') as f_in:
-        with open(wpop_file, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+with gzip.open(args.popfile, 'rb') as f_in,  open(wpop_file, 'wb') as f_out:
+    shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
 print('=== RUN 1: No Intervention - Build network:')
@@ -276,7 +275,8 @@ for fn2 in glob.glob(os.path.join(args.output, 'results-noint-repeat*.xls')):
         dat1 = f.read()
     with open(fn2, 'rb') as f:
         dat2 = f.read()
-    # We expect multiple reasonably large files, so only count those that are at least 10 bytes long
+    # We expect multiple reasonably large files, so only count those that are
+    # at least 10 bytes long
     if len(dat1) > 10:
         repeat_files_checked += 1
     if dat1 != dat2:
@@ -307,7 +307,7 @@ for direntry in os.scandir(args.output):
             if name2.endswith('00.bmp'):
                 paths.append((direntry.path, name2))
 
-max_filename_len = max(map(len, [ filename for dirname, filename in paths ]))
+max_filename_len = max(map(len, [filename for dirname, filename in paths]))
 
 for dirname, filename in paths:
     with open(os.path.join(dirname, filename), 'rb') as f:
@@ -329,7 +329,10 @@ with open(actual_checksums, 'wb') as checksums_outfile:
     checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
 
 # Read the expected checksums from the reference file.
-sha512sums_reference = list(filter(None, open(expected_checksums, 'rb').read().decode('utf-8').split('\n')))
+sha512sums_reference = list(
+        filter(None,
+               open(expected_checksums, 'rb').read().decode('utf-8')
+               .split('\n')))
 print('Reference checksums:')
 print('\n'.join(sha512sums_reference))
 print('end')
@@ -355,8 +358,8 @@ else:
 
     if args.accept:
         print('Accepting results.')
-        with open(actual_checksums, 'rb') as checksums_in:
-            with open(expected_checksums, 'wb') as checksums_out:
+        with open(actual_checksums, 'rb') as checksums_in, \
+                open(expected_checksums, 'wb') as checksums_out:
                 shutil.copyfileobj(checksums_in, checksums_out)
     else:
         failed = True
@@ -364,4 +367,3 @@ else:
 if failed:
     print('TEST FAILED.')
     sys.exit(1)
-

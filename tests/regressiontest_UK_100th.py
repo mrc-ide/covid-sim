@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Regression test for checking output of CovidSim
+"""Regression test for checking output of CovidSim."""
+
 # NOTE: This uses test data and is not a run reflective of real-world
 # situations.
 
@@ -76,7 +77,12 @@ import subprocess
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'uk-input')
 output_dir = os.path.join(script_dir, 'uk-output')
-wpop_file_gz = os.path.join(script_dir, os.pardir, "data", "populations", "wpop_eur.txt.gz")
+wpop_file_gz = os.path.join(
+        script_dir,
+        os.pardir,
+        "data",
+        "populations",
+        "wpop_eur.txt.gz")
 
 print("Invoking integration-test.py")
 cmd = [
@@ -85,7 +91,7 @@ cmd = [
         "--output", output_dir,
         "--input", input_dir,
         "--popfile", os.path.join(wpop_file_gz),
-        "--r" , "1.1"
+        "--r", "1.1"
 ]
 
 if len(sys.argv) > 1 and sys.argv[1] == '--accept':
