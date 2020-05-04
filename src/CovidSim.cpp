@@ -2577,7 +2577,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				{
 					k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
-
+					Hosts[k].listpos = j;
 				}
 				Cells[i].S = Cells[i].n;
 				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
@@ -2617,10 +2617,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					}
 			}
 		}
-	}
-	if (false)
-	{
-		fprintf(stderr, "Finished cell init - %i people assigned as immune.\n", nim);
 	}
 
 #pragma omp parallel for private(i,j,k,l) schedule(static,500)
@@ -2882,12 +2878,43 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 int RunModel(int run) //added run number as parameter
 {
-	int j, k, l, fs, fs2, nu, ni,nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int j, k, l, fs, fs2, nu, ni, nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
 	double t, cI, lcI, t2;
 	unsigned short int ts;
 	int continueEvents = 1;
 
+
+/*	fprintf(stderr, "Checking consistency of initial state...\n");
+	int i, i2, k2;
+	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
+	{
+		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+		if (Hosts[i].inf == 0) j++;
+		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
+		{
+			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
+			{
+				k++;
+				for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
+					fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
+				if (!fs) ni++;
+			}
+			else
+			{
+				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+			}
+			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
+			{
+				k2++;
+			}
+		}
+		else
+			fs2++;
+	}
+	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+*/
 	InterruptRun = 0;
 	lcI = 1;
 	if (P.DoLoadSnapshot)
@@ -2940,7 +2967,7 @@ int RunModel(int run) //added run number as parameter
 					else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
 					if (ir > 0) //// if infection import rate > 0, seed some infections
 					{
-						for(k=ni=0;k<P.NumSeedLocations;k++) ni+=(nsi[k] = (int)ignpoi(P.TimeStep * ir*P.InitialInfectionsAdminUnitWeight[k]*P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
+						for (k = ni = 0; k < P.NumSeedLocations; k++) ni += (nsi[k] = (int)ignpoi(P.TimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
 						if (ni > 0)		SeedInfection(t, nsi, 1, run);
 					}
 					if (P.FalsePositivePerCapitaIncidence > 0)
@@ -2993,11 +3020,11 @@ int RunModel(int run) //added run number as parameter
 	fprintf(stderr, "\nEnd of run\n");
 	t2 = t + P.SampleTime;
 //	if(!InterruptRun)
-		while (fs)
-		{
-			fs = TreatSweep(t2);
-			t2 += P.SampleStep;
-		}
+	while (fs)
+	{
+		fs = TreatSweep(t2);
+		t2 += P.SampleStep;
+	}
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
@@ -3005,35 +3032,38 @@ int RunModel(int run) //added run number as parameter
 		for (t2 = t; t2 <= t + MAX_TRAVEL_TIME; t2 += P.TimeStep)
 			TravelReturnSweep(t2);
 	}
-/*		fprintf(stderr,"Checking consistency of final state...\n");
-        int i, i2, k2;
-		for(i=j=k=ni=fs2=i2=0;i<P.N;i++)
+/*	if (!InterruptRun)
+	{
+		fprintf(stderr, "Checking consistency of final state...\n");
+		int i, i2, k2;
+		for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
+		{
+			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+			if (Hosts[i].inf == 0) j++;
+			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 			{
-			if(i%1000==0) fprintf(stderr,"\r*** %i              ",i);
-			if(Hosts[i].inf==0) j++;
-			if((Hosts[i].pcell<P.NC)&&(Hosts[i].pcell>=0))
+				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
 				{
-				if(Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos]!=i)
-					{
 					k++;
-					for(l=fs=0;(l<Cells[Hosts[i].pcell].n)&&(!fs);l++)
-						fs=(Cells[Hosts[i].pcell].susceptible[l]==i);
-					if(!fs) ni++;
-					}
+					for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
+						fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
+					if (!fs) ni++;
+				}
 				else
-					{
-					if((Hosts[i].listpos>Cells[Hosts[i].pcell].S-1)&&(Hosts[i].inf== InfStat_Susceptible)) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S+ Cells[Hosts[i].pcell].L+ Cells[Hosts[i].pcell].I-1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-					}
+				{
+					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+				}
 				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 				{
 					k2++;
 				}
-				}
+			}
 			else
 				fs2++;
-			}
-		fprintf(stderr,"\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n",j,k,ni,fs2,i2,k2);
+		}
+		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+	}
 */
 	if(!InterruptRun) RecordInfTypes();
 	return (InterruptRun);

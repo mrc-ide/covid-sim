@@ -570,7 +570,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
-					for (j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] = (float)(StateT[tn].cell_inf[j] / s5);
+					for (j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] /= ((float) s5);
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[tn].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[tn].cell_inf[i2 - 1] = (StateT[tn].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
@@ -608,7 +608,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 
 
-					//// decide on infectee outside cell c.
+					//// decide on infectee 
 					do
 					{
 						//// chooses which cell person will infect
@@ -627,10 +627,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							f2 = 1;
 						}
-
 						else
 						{
-							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, is not part of cell c and doesn't share a household with infector.
+							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
 							{
 								mi = Mcells + si->mcell;
 								mt = Mcells + Hosts[i3].mcell;
@@ -696,7 +695,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		}
 
 
-//#pragma omp parallel for private(i,k) schedule(static,1)
+#pragma omp parallel for private(i,k) schedule(static,1)
 	for (j = 0; j < P.NumThreads; j++)
 	{
 		for (k = 0; k < P.NumThreads; k++)
