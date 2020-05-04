@@ -690,10 +690,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
+			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
+			rec = BF[rn];
 			if (P.DoAdUnits)
 			{
-				x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
-				rec = BF[rn];
 				m = (j2 % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.DoAdunitBoundaries)
 				{
@@ -730,8 +730,6 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			else
 			{
 				k = 1;
-				x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
-				rec = BF[rn];
 			}
 			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
 			{
