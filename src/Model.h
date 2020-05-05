@@ -21,7 +21,7 @@ typedef struct PERSON {
 	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
 
 	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc;
+	float infectiousness, susc,ProbAbsent,ProbCare;
 
 	unsigned int esocdist_comply : 1;
 	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
@@ -42,13 +42,13 @@ typedef struct PERSON {
 	unsigned short int quar_start_time, isolation_start_time;
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease.
 	unsigned short int recovery_or_death_time;	// set in DoIncub function
+	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 2;
 	unsigned int digitalContactTracingUser : 1;
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
-	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
 
 } person;
 
@@ -296,6 +296,7 @@ typedef struct PLACE {
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
 	float loc_x, loc_y;
+	float ProbClose;
 	int* group_start, *group_size, *members;
 } place;
 

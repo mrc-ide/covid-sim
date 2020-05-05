@@ -327,11 +327,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s3 = hbeta * CalcHouseInf(ci, ts);
 						f = 0;
 						for (i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
-							for (i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
-								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
-								{
-									f = PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]);
-								}
+							f = HOST_ABSENT(i3);
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
@@ -364,8 +360,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						for (k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
 							l = si->PlaceLinks[k];
-							//if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (And obviously if place isn't closed).
-							if ((l >= 0) && (!PLACE_CLOSED(k, l))) //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
+							if (l >= 0)  //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
 								{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
 								mp = Mcells + Places[k][l].mcell;
@@ -410,12 +405,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
-
+										s = CalcPlaceSusc(i3, k, ts, ci, tn);
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
+											s6 = P.ProportionDigitalContactsIsolate * s;
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
@@ -437,7 +432,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
-											s = CalcPlaceSusc(i3, k, ts, ci, tn)* s4 / s4_scaled;
+											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
 
 											if (bm)
 											{
@@ -482,12 +477,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									for (m = 0; m < n; m++)
 									{
 										i3 = Places[k][l].members[SamplingQueue[tn][m]];
-
+										s = CalcPlaceSusc(i3, k, ts, ci, tn);
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
+											s6 = P.ProportionDigitalContactsIsolate * s;
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
@@ -509,8 +504,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											mt = Mcells + Hosts[i3].mcell;
 											ct = Cells + Hosts[i3].pcell;
 											//if doing digital contact tracing, scale down susceptibility here
-											s = CalcPlaceSusc(i3, k, ts, ci, tn)*s3/s3_scaled;
-
+											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
@@ -519,7 +513,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-											s*=((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0);
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												cq = Hosts[i3].pcell % P.NumThreads;
@@ -552,18 +545,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					{
 						s2 = CalcSpatialInf(ci, ts);
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
-						if (fct)
-						{
-							//scale up infectiousness so that we pick more spatial contacts
-							s2 *= P.ScalingFactorSpatialDigitalContacts;
-						}
-						f = 0;
-						if (P.DoPlaces)
-							for (i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
-								if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
-									f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
+						if (fct) s2 *= P.ScalingFactorSpatialDigitalContacts;
 					}
-					if (f) //// if place is closed then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness _
+					if (HOST_ABSENT(ci)) //// if place is closed then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness _
 					{
 						s2 *= P.PlaceCloseSpatialRelContact;
 						/* NumPCD++; */
@@ -586,7 +570,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
-					for (j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] = (float)(StateT[tn].cell_inf[j] / s5);
+					for (j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] /= ((float) s5);
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[tn].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[tn].cell_inf[i2 - 1] = (StateT[tn].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
@@ -624,7 +608,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 
 
-					//// decide on infectee outside cell c.
+					//// decide on infectee 
 					do
 					{
 						//// chooses which cell person will infect
@@ -643,10 +627,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							f2 = 1;
 						}
-
 						else
 						{
-							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, is not part of cell c and doesn't share a household with infector.
+							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
 							{
 								mi = Mcells + si->mcell;
 								mt = Mcells + Hosts[i3].mcell;
@@ -655,13 +638,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if (fct)
 								{
-									//scale down susceptibility so we don't over accept
-									s /= P.ScalingFactorSpatialDigitalContacts;
 									//if infectee is also a user, add them as a contact
 									if (Hosts[i3].digitalContactTracingUser && (ci != i3))
 									{
-										s6 = P.ProportionDigitalContactsIsolate * ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0);
-										if ((Hosts[ci].ncontacts<P.MaxDigitalContactsToTrace)&&(ranf_mt(tn) < s6))
+										if ((Hosts[ci].ncontacts<P.MaxDigitalContactsToTrace)&&(ranf_mt(tn) < s*P.ProportionDigitalContactsIsolate))
 										{
 											Hosts[ci].ncontacts++; //add to number of contacts made
 											ad = Mcells[Hosts[i3].mcell].adunit;
@@ -676,9 +656,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 									}
+									//scale down susceptibility so we don't over accept
+									s /= P.ScalingFactorSpatialDigitalContacts;
 								}
 								if (m < ct->S)  // only bother trying to infect susceptible people
 								{
+									s *= CalcPersonSusc(i3, ts, ci, tn);
 									if (bm)
 									{
 										if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
@@ -688,16 +671,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
 										s *= P.MoveRestrEffect;
 									if (!f) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
-									{
-										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
-											if (Hosts[i3].PlaceLinks[m] >= 0)
-											{
-												f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
-											}
-										if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
-										f2 = 0;
-									}
-									s *= ((Mcells[Hosts[i3].mcell].socdist == 2) ? ((Hosts[i3].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0);
+										if (HOST_ABSENT(i3)) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
@@ -721,7 +695,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		}
 
 
-//#pragma omp parallel for private(i,k) schedule(static,1)
+#pragma omp parallel for private(i,k) schedule(static,1)
 	for (j = 0; j < P.NumThreads; j++)
 	{
 		for (k = 0; k < P.NumThreads; k++)
@@ -1504,7 +1478,7 @@ int TreatSweep(double t)
 						trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
 						f2 = (Mcells[b].treat_trig < trig_thresh);
 					}
-					if ((t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == 2) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
+					if ((Mcells[b].placeclose == 2) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 					{
 						f = 1;
 						Mcells[b].placeclose = P.DoPlaceCloseOnceOnly;
