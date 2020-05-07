@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['update_2ecpp_1215',['Update.cpp',['../_update_8cpp.html',1,'']]],
-  ['update_2eh_1216',['Update.h',['../_update_8h.html',1,'']]],
-  ['updateefficaciesandcomplianceproportions_1217',['UpdateEfficaciesAndComplianceProportions',['../_covid_sim_8cpp.html#ae024ef70dc0a6627d611ed334207dd93',1,'CovidSim.cpp']]],
-  ['updateprobs_1218',['UpdateProbs',['../_covid_sim_8cpp.html#a0444680c8fde4d51c387b1ccee9118a1',1,'UpdateProbs(int DoPlace):&#160;CovidSim.cpp'],['../_shared_funcs_8h.html#a6ebb780665387c6f7da35b342664df09',1,'UpdateProbs(int):&#160;CovidSim.cpp']]],
-  ['updatespersample_1219',['UpdatesPerSample',['../struct_p_a_r_a_m.html#ac64d62005446c8c59c9804504ba1ecca',1,'PARAM']]],
-  ['uscaseabsenteeismdelay_1220',['usCaseAbsenteeismDelay',['../struct_p_a_r_a_m.html#a88349c7bb8856e3e72d8275cff397dcf',1,'PARAM']]],
-  ['uscaseabsenteeismduration_1221',['usCaseAbsenteeismDuration',['../struct_p_a_r_a_m.html#a08683632527cf238db9ff7c63f3b8bce',1,'PARAM']]],
-  ['uscaseisolationdelay_1222',['usCaseIsolationDelay',['../struct_p_a_r_a_m.html#a352eada0fff956df8f4e0127400d55bc',1,'PARAM']]],
-  ['uscaseisolationduration_1223',['usCaseIsolationDuration',['../struct_p_a_r_a_m.html#ae3b0b9f448b73762acec019c0e260efc',1,'PARAM']]],
-  ['ushquarantinehouseduration_1224',['usHQuarantineHouseDuration',['../struct_p_a_r_a_m.html#a5fa3b22b55e613f5d9ad014e8254a053',1,'PARAM']]],
-  ['usvacctimeefficacyswitch_1225',['usVaccTimeEfficacySwitch',['../struct_p_a_r_a_m.html#a6d72a95fb821a22146ace8dc02617340',1,'PARAM']]],
-  ['usvacctimetoefficacy_1226',['usVaccTimeToEfficacy',['../struct_p_a_r_a_m.html#ac5f51bd6f10ccc5d1963b2a2b5f68588',1,'PARAM']]]
+  ['update_2ecpp_1211',['Update.cpp',['../_update_8cpp.html',1,'']]],
+  ['update_2eh_1212',['Update.h',['../_update_8h.html',1,'']]],
+  ['updateefficaciesandcomplianceproportions_1213',['UpdateEfficaciesAndComplianceProportions',['../_covid_sim_8cpp.html#ae024ef70dc0a6627d611ed334207dd93',1,'CovidSim.cpp']]],
+  ['updateprobs_1214',['UpdateProbs',['../_covid_sim_8cpp.html#a0444680c8fde4d51c387b1ccee9118a1',1,'UpdateProbs(int DoPlace):&#160;CovidSim.cpp'],['../_shared_funcs_8h.html#a6ebb780665387c6f7da35b342664df09',1,'UpdateProbs(int):&#160;CovidSim.cpp']]],
+  ['updatespersample_1215',['UpdatesPerSample',['../struct_p_a_r_a_m.html#ac64d62005446c8c59c9804504ba1ecca',1,'PARAM']]],
+  ['uscaseabsenteeismdelay_1216',['usCaseAbsenteeismDelay',['../struct_p_a_r_a_m.html#a88349c7bb8856e3e72d8275cff397dcf',1,'PARAM']]],
+  ['uscaseabsenteeismduration_1217',['usCaseAbsenteeismDuration',['../struct_p_a_r_a_m.html#a08683632527cf238db9ff7c63f3b8bce',1,'PARAM']]],
+  ['uscaseisolationdelay_1218',['usCaseIsolationDelay',['../struct_p_a_r_a_m.html#a352eada0fff956df8f4e0127400d55bc',1,'PARAM']]],
+  ['uscaseisolationduration_1219',['usCaseIsolationDuration',['../struct_p_a_r_a_m.html#ae3b0b9f448b73762acec019c0e260efc',1,'PARAM']]],
+  ['ushquarantinehouseduration_1220',['usHQuarantineHouseDuration',['../struct_p_a_r_a_m.html#a5fa3b22b55e613f5d9ad014e8254a053',1,'PARAM']]],
+  ['usvacctimeefficacyswitch_1221',['usVaccTimeEfficacySwitch',['../struct_p_a_r_a_m.html#a6d72a95fb821a22146ace8dc02617340',1,'PARAM']]],
+  ['usvacctimetoefficacy_1222',['usVaccTimeToEfficacy',['../struct_p_a_r_a_m.html#ac5f51bd6f10ccc5d1963b2a2b5f68588',1,'PARAM']]]
 ];
