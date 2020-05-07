@@ -13,10 +13,10 @@
 typedef struct PARAM {
 
 
-	int N; /**< Population size */
+	int PopSize; /**< Population size */
 	int NH; // Number of households
-	int NR; /**< Number of Realisations */
-	int NRN; /**< Number of non-extinct realisations */
+	int NumRealisations; /**< Number of Realisations */
+	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
 	int NRactNE;
@@ -139,7 +139,7 @@ typedef struct PARAM {
 	double CaseIsolationDuration, CaseIsolationEffectiveness, CaseIsolationHouseEffectiveness;
 	double CaseIsolationDelay, CaseIsolationPolicyDuration, CaseIsolationProp;
 
-	double HQuarantineTimeStart, HQuarantineHouseDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;
+	double HQuarantineTimeStart, HQuarantineDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;
 	double HQuarantinePropHouseCompliant, HQuarantinePlaceEffect[NUM_PLACE_TYPES], HQuarantineSpatialEffect, HQuarantineHouseEffect;
 
 	int EnhancedSocDistClusterByHousehold;

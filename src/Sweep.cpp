@@ -41,7 +41,7 @@ void TravelReturnSweep(double t)
 					if (Hosts[i].Travelling == l)
 					{
 						n--;
-						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.N))
+						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.PopSize))
 													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else if((k<0)||(k>n))
 													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
@@ -1190,7 +1190,7 @@ int TreatSweep(double t)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.N));
+			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else
 			global_trig = State.trigDC;
 	}
@@ -1213,7 +1213,7 @@ int TreatSweep(double t)
 						f = StateT[i].pg_queue[j][k];
 						for (m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
 						{
-							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.N-1))
+							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.PopSize-1))
 															fprintf(stderr,"\n*** npq=%i gn=%i h=%i m=%i j=%i l=%i f=%i s=%i n=%i ***\n",
 																StateT[i].np_queue[j],
 																Places[j][l].n,

@@ -6,7 +6,7 @@
 rm(list=ls(all=TRUE)) 
 
 #### change as appropriate
-CurrentPath 		= "C:/Users/dlaydon/Dropbox (SPH Imperial College)/nCoV_MERS_Covid19/CoVid_19/DJLnCoV_unshared/ParamFiles/"
+CurrentPath 		= "."
 
 ### issues
 # 1) 0 0 0 0 rather than 0\t0\t0\t0: DONE
