@@ -1938,7 +1938,7 @@ $(function() {
 <div class="line"><a name="l01872"></a><span class="lineno"> 1872</span>&#160;                <span class="comment">// Use the Fisher–Yates shuffle algorithm to get a random permutation of PeopleArray</span></div>
 <div class="line"><a name="l01873"></a><span class="lineno"> 1873</span>&#160;                <span class="keywordflow">for</span> (<span class="keywordtype">int</span> index1 = cnt - 1; index1 &gt; 0; index1--)</div>
 <div class="line"><a name="l01874"></a><span class="lineno"> 1874</span>&#160;                {</div>
-<div class="line"><a name="l01875"></a><span class="lineno"> 1875</span>&#160;                    <span class="keywordtype">int</span> index2 = (int)(((<span class="keywordtype">double</span>)k) * <a class="code" href="_rand_8cpp.html#a0576ba455127db74f31b5a8eee738f44">ranf</a>());</div>
+<div class="line"><a name="l01875"></a><span class="lineno"> 1875</span>&#160;                    <span class="keywordtype">int</span> index2 = (int)(((<span class="keywordtype">double</span>)(index1 + 1)) * <a class="code" href="_rand_8cpp.html#a0576ba455127db74f31b5a8eee738f44">ranf</a>());</div>
 <div class="line"><a name="l01876"></a><span class="lineno"> 1876</span>&#160;                    <span class="keywordtype">int</span> tmp = PeopleArray[index1];</div>
 <div class="line"><a name="l01877"></a><span class="lineno"> 1877</span>&#160;                    PeopleArray[index1] = PeopleArray[index2];</div>
 <div class="line"><a name="l01878"></a><span class="lineno"> 1878</span>&#160;                    PeopleArray[index2] = tmp;</div>
