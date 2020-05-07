@@ -1872,7 +1872,7 @@ void AssignPeopleToPlaces(void)
 				// Use the Fisher–Yates shuffle algorithm to get a random permutation of PeopleArray
 				for (int index1 = cnt - 1; index1 > 0; index1--)
 				{
-					int index2 = (int)(((double)k) * ranf());
+					int index2 = (int)(((double)(index1 + 1)) * ranf());
 					int tmp = PeopleArray[index1];
 					PeopleArray[index1] = PeopleArray[index2];
 					PeopleArray[index2] = tmp;
