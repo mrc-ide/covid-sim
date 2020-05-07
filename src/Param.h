@@ -136,7 +136,7 @@ typedef struct PARAM {
 	double MoveDelayMean, MoveRestrEffect, MoveRestrDuration, MoveRestrTimeStart;
 	double AirportCloseTimeStart, AirportCloseDuration, AirportCloseEffectiveness;
 
-	double CaseIsolationTimeStart, CaseIsolationDuration, CaseIsolationEffectiveness, CaseIsolationHouseEffectiveness;
+	double CaseIsolationDuration, CaseIsolationEffectiveness, CaseIsolationHouseEffectiveness;
 	double CaseIsolationDelay, CaseIsolationPolicyDuration, CaseIsolationProp;
 
 	double HQuarantineTimeStart, HQuarantineHouseDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;

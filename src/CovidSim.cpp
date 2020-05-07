@@ -2734,7 +2734,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseTimeStart2 = 2e10;
 	P.SocDistTimeStart = 1e10;
 	P.AirportCloseTimeStart = 1e10;
-	P.CaseIsolationTimeStart = 1e10;
 	//P.DigitalContactTracingTimeStart = 1e10;
 	P.HQuarantineTimeStart = 1e10;
 	P.KeyWorkerProphTimeStart = 1e10;
