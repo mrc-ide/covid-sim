@@ -26,7 +26,7 @@ var searchData=
   ['caseisolationhouseeffectiveness_95',['CaseIsolationHouseEffectiveness',['../struct_p_a_r_a_m.html#a5a9cbe5656f1da1ed1e9c3700e9de7b1',1,'PARAM']]],
   ['caseisolationpolicyduration_96',['CaseIsolationPolicyDuration',['../struct_p_a_r_a_m.html#a91498a4e794f688b7cf0190587b039c0',1,'PARAM']]],
   ['caseisolationprop_97',['CaseIsolationProp',['../struct_p_a_r_a_m.html#a829f98c0204124ce11b729a6cf61ca68',1,'PARAM']]],
-  ['caseisolationtimestart_98',['CaseIsolationTimeStart',['../struct_a_d_m_i_n_u_n_i_t.html#a981316c58d9e824725dfaaeb4d50994a',1,'ADMINUNIT::CaseIsolationTimeStart()'],['../struct_p_a_r_a_m.html#a600aa7c7a85a34d0748d5ef933ec6892',1,'PARAM::CaseIsolationTimeStart()']]],
+  ['caseisolationtimestart_98',['CaseIsolationTimeStart',['../struct_a_d_m_i_n_u_n_i_t.html#a981316c58d9e824725dfaaeb4d50994a',1,'ADMINUNIT']]],
   ['caseisolationtimestartbase_99',['CaseIsolationTimeStartBase',['../struct_p_a_r_a_m.html#a641ebe0fba323ec719269407867ae46c',1,'PARAM']]],
   ['cc_100',['CC',['../struct_p_o_p_v_a_r.html#a484fba9e18f6b417b7208508bf5d7735',1,'POPVAR::CC()'],['../struct_r_e_s_u_l_t_s.html#a4683fd0e34321dbb0469d167e92baf37',1,'RESULTS::CC()']]],
   ['cdf_5fres_101',['CDF_RES',['../_constants_8h.html#aea13911f89320cd19c39c76ddc03579c',1,'Constants.h']]],
