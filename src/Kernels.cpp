@@ -6,8 +6,6 @@
 #include "Dist.h"
 #include "Param.h"
 
-double(*Kernel)(double);
-
 // To speed up calculation of kernel values we provide a couple of lookup
 // tables.
 //
@@ -28,6 +26,7 @@ double *nKernel, *nKernelHR;
 void InitKernel(int DoPlaces, double norm)
 {
 	int i, j;
+	double(*Kernel)(double);
 
 	if (P.KernelType == 1)
 		Kernel = ExpKernel;
