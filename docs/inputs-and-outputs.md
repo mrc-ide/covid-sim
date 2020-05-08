@@ -30,7 +30,7 @@ CovidSim
     /PP:PreParameterFile
     /P:ParameterFile
     /O:OutputFilesPrefix
-    [/D:PopulationDensityFile]
+    /D:PopulationDensityFile
     [/L:NetworkFileToLoad | /S:NetworkFileToSave]
     SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
@@ -41,8 +41,8 @@ Explanation of the arguments with examples:
 - `/PP:preUS_R0=2.0_BM.txt` a file that defines transmission and calibration parameters for a specific run
 - `/P:p_NoInt.txt` a file that defines intervention parameters for a specific run
 - `/O:./output/NoInt_R0=1` specifies the prefix pathname for a collection of output files that contain simulation data. The output files are tabular `tsv` data (but with the extension `.xls`)
-- `[/D:pop_usa_adm2.txt]` a population density file for a specific geography (e.g. a country)
-- `[/L:NetworkFileToLoad | /S:NetworkFileToSave]`. For efficiency, we can run and, as a side-effect, generate a [network file](./model-glossary.md#Network\ file) that assigns [people](./model-glossary.md#People) to [places](./model-glossary.md#Places). The [network file](./model-glossary.md#Network\ file) may then be re-used for subsequent runs (with different input parameters for the same geography). The network file is a non-portable `.bin`. Generate this file with the `/S` option and re-use it (in a subsequent run) with the `/L` option.
+- `/D:pop_usa_adm2.txt` a population density file for a specific geography (e.g. a country)
+- `/L:NetworkFileToLoad | /S:NetworkFileToSave`. For efficiency, we can run and, as a side-effect, generate a [network file](./model-glossary.md#Network\ file) that assigns [people](./model-glossary.md#People) to [places](./model-glossary.md#Places). The [network file](./model-glossary.md#Network\ file) may then be re-used for subsequent runs (with different input parameters for the same geography). The network file is a non-portable `.bin`. Generate this file with the `/S` option and re-use it (in a subsequent run) with the `/L` option.
 - `SetupSeed1 SetupSeed2` Random number generator seeds used when initialising the model, including creating the networkfile (large positive integers).
 - `RunSeed1 RunSeed2` Random number generator seeds used when running the model. These can be varied to do multiple runs with the same network file (large positive integers).
 
@@ -55,20 +55,20 @@ CovidSim
     /PP:PreParameterFile
     /P:ParameterFile
     /O:OutputFilesPrefix
-    [/D:PopulationDensityFile]
+    /D:PopulationDensityFile
     /CLP1:100000
     /CLP2:0
     /M:US_LS2018.bin
     [/L:NetworkFileToLoad | /S:NetworkFileToSave]
-    [/AP:AirTravelFile]
-    [/s:SchoolFile]
-    [/R:R0scaling]
+    /AP:AirTravelFile
+    /s:SchoolFile
+    /R:R0scaling
     SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 Explanation of additional arguments:
-- `[/AP:AirTravelFile]` Air travel data for a specific geography (unused currently)
-- `[/s:USschools.txt]` School information for a specific geography (currently only used for US).
-- `[/R:1.1]`. Spcifies the reproduction number (`R0`), as a multiplier of 2. `R0`, for a disease is the number of secondary cases in susceptibles per infected case. These commandline parameter is read into `P.R0scaling` which scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`). For COVID-19, `/R:1.4` to `/R:1.6` is suitable.
+- `/AP:AirTravelFile` Air travel data for a specific geography (unused currently)
+- `/s:USschools.txt` School information for a specific geography (currently only used for US).
+- `/R:1.1`. Spcifies the reproduction number (`R0`), as a multiplier of 2. `R0`, for a disease is the number of secondary cases in susceptibles per infected case. These commandline parameter is read into `P.R0scaling` which scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`). For COVID-19, `/R:1.4` to `/R:1.6` is suitable.
 - `/CLP1:100000`, `/CLP2:0` etc. are special parameters that interact with wildcards `#1`, `#2` etc. in the intervention parameter file (and less often the pre-parameter file). Wildcard `#n` is replaced by the value of `CLPn`. This is useful to vary parts of parameter files at run-time (e.g. to undertake sensitivity analysis) without needing to generate entirely new parameter files.
 
 ## Input files
