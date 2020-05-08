@@ -215,7 +215,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			TSMean[i].S = TSMean[i].I = TSMean[i].R = TSMean[i].D = TSMean[i].L =
 				TSMean[i].incI = TSMean[i].incR = TSMean[i].incC = TSMean[i].incDC = TSMean[i].cumDC =
 				TSMean[i].incTC = TSMean[i].cumT = TSMean[i].cumTP = TSMean[i].cumUT = TSMean[i].cumV = TSMean[i].H = TSMean[i].incH =
-				TSMean[i].incCT = TSMean[i].CT = TSMean[i].incCC = TSMean[i].incDCT = TSMean[i].DCT = //added contact tracing, cases who are contactsTSMean[i].cumTmax = TSMean[i].cumVmax = TSMean[i].incD = TSMean[i].incHQ = TSMean[i].incAC =
+				TSMean[i].incCT = TSMean[i].CT = TSMean[i].incCC = TSMean[i].incDCT = TSMean[i].DCT = //added contact tracing, cases who are contacts
+				TSMean[i].cumTmax = TSMean[i].cumVmax = TSMean[i].incD = TSMean[i].incHQ = TSMean[i].incAC =
 				TSMean[i].incAH = TSMean[i].incAA = TSMean[i].incACS = TSMean[i].incAPC =
 				TSMean[i].incAPA = TSMean[i].incAPCS = TSMean[i].Rdenom = 0;
 			TSVar[i].S = TSVar[i].I = TSVar[i].R = TSVar[i].D = TSVar[i].L =
