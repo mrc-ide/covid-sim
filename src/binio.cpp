@@ -54,8 +54,8 @@ size_t zfwrite_big(void *buffer,size_t size,size_t count, FILE *stream)
 	unsigned char *buf2,*buf3,*tb,*ccbuf,*scbuf,*cbuf1,*cbuf2;
 
 	cbs=mx+0x10000000;
-	if(!(cbuf1=(unsigned char *) malloc(((size_t) cbs)*sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
-	if(!(cbuf2=(unsigned char *) malloc(((size_t) cbs)*sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
+	if(!(cbuf1=(unsigned char *) calloc(((size_t) cbs), sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
+	if(!(cbuf2=(unsigned char *) calloc(((size_t) cbs), sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
 	st=mx/((unsigned long long) size);
 	n=count/st;
 	ucs=(n>0)?((unsigned long) (st*size)):((unsigned long) (count*size));
@@ -113,8 +113,8 @@ size_t zfread_big(void *buffer,size_t size,size_t count, FILE *stream)
 	unsigned char *buf3,*tb,*ccbuf,*scbuf,*cbuf1,*cbuf2;
 
 	cbs=mx+0x10000000;
-	if(!(cbuf1=(unsigned char *) malloc(((size_t) cbs)*sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
-	if(!(cbuf2=(unsigned char *) malloc(((size_t) cbs)*sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
+	if(!(cbuf1=(unsigned char *) calloc(((size_t) cbs), sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
+	if(!(cbuf2=(unsigned char *) calloc(((size_t) cbs), sizeof(unsigned char)))) ERR_CRITICAL("Unable to allocate compression buffer\n");
 	st=mx/((unsigned long long) size);
 	n=count/st;
 	ucs=(n>0)?((unsigned long) (st*size)):((unsigned long) (count*size));

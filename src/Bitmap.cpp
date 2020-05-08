@@ -181,7 +181,7 @@ void OutputBitmap(int tp)
 		static UINT palsize;
 		static ColorPalette* palette;
 		palsize = gdip_bmp->GetPaletteSize();
-		palette = (ColorPalette*)malloc(palsize);
+		palette = (ColorPalette*)calloc(1, palsize);
 		if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
 		(void)gdip_bmp->GetPalette(palette, palsize);
 		palette->Flags = PaletteFlagsHasAlpha;
@@ -256,13 +256,13 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
+	if (!(bmPopulation = (int32_t*)calloc(bmh->imagesize, sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
+	if (!(bmInfected = (int32_t*)calloc(bmh->imagesize, sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
+	if (!(bmRecovered = (int32_t*)calloc(bmh->imagesize, sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
+	if (!(bmTreated = (int32_t*)calloc(bmh->imagesize, sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
 #ifdef WIN32_BM
@@ -275,7 +275,7 @@ void InitBMHead()
 
 	Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 	Gdiplus::GetImageEncodersSize(&num, &size);
-	if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
+	if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(calloc(1, size))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 	Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 	for (UINT j = 0; j < num; ++j)
