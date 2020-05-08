@@ -1,6 +1,5 @@
 /*
 (c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
-	All rights reserved. Copying and distribution prohibited without prior permission.
 */
 
 #include <errno.h>
