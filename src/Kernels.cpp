@@ -42,6 +42,8 @@ void InitKernel(int DoPlaces, double norm)
 		Kernel = PowerKernelUS;
 	else if (P.KernelType == 7)
 		Kernel = PowerExpKernel;
+	else
+		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
 #pragma omp parallel for private(i) schedule(static,500) //added private i
 	for (i = 0; i <= P.NKR; i++)
 	{
