@@ -75,7 +75,7 @@ std::vector<cell> Cells(P.NC); // Cells.at(i) is the i'th cell
 std::vector<cell*> CellLookup(P.NCP); // CellLookup[i] is a pointer to the i'th populated cell
 std::vector<microcell> Mcells(P.NMC);
 std::vector<microcell*> McellLookup(P.NMCP);
-std::vector<std::vector<place>> Places;
+place** Places;
 adminunit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
