@@ -1005,11 +1005,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	i2 = k = 0;
 	auto Cells_front = &Cells.front();
 	for (j = 0; j < P.NC; j++)
-		if (Cells[j].n > 0)
+		if (Cells.at(j).n > 0)
 		{
 			CellLookup[i2++] = Cells_front + j;
-			Cells[j].susceptible = mcl + k;
-			k += Cells[j].n;
+			Cells.at(j).susceptible = mcl + k;
+			k += Cells.at(j).n;
 		}
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
 	i2 = 0;
@@ -1054,8 +1054,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				//				fprintf(stderr,"%i ",i+i2);
 				Hosts[i + i2].listpos = m; //used temporarily to store household size
 				Mcells[j].members[k + i2] = i + i2;
-				Cells[l].susceptible[Cells[l].cumTC] = i + i2;
-				Cells[l].members[Cells[l].cumTC++] = i + i2;
+				Cells.at(l).susceptible[Cells.at(l).cumTC] = i + i2;
+				Cells.at(l).members[Cells.at(l).cumTC++] = i + i2;
 				Hosts[i + i2].pcell = l;
 				Hosts[i + i2].mcell = j;
 				Hosts[i + i2].hh = P.NH;
@@ -1385,7 +1385,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	}
 	l = 0;
 	for (j = 0; j < P.NC; j++)
-		if (l < Cells[j].n) l = Cells[j].n;
+		if (l < Cells.at(j).n) l = Cells.at(j).n;
 	if (!(SamplingQueue = (int**)malloc(P.NumThreads * sizeof(int*)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
 #pragma omp parallel for private(i,k) schedule(static,1)
@@ -1922,53 +1922,53 @@ void AssignPeopleToPlaces(void)
 						{
 							j = (int)(Places[tp][i].loc_x / P.cwidth);
 							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.cheight));
-							Cells[k].I += (int)Places[tp][i].treat_end_time;
+							Cells.at(k).I += (int)Places[tp][i].treat_end_time;
 						}
 					for (k = 0; k < P.NC; k++)
 					{
 						i = k % P.nch;
 						j = k / P.nch;
-						f2 = Cells[k].I; f3 = Cells[k].S;
+						f2 = Cells.at(k).I; f3 = Cells.at(k).S;
 						if ((i > 0) && (j > 0))
 						{
-							f2 += Cells[(j - 1) * P.nch + (i - 1)].I; f3 += Cells[(j - 1) * P.nch + (i - 1)].S;
+							f2 += Cells.at((j - 1) * P.nch + (i - 1)).I; f3 += Cells.at((j - 1) * P.nch + (i - 1)).S;
 						}
 						if (i > 0)
 						{
-							f2 += Cells[j * P.nch + (i - 1)].I; f3 += Cells[j * P.nch + (i - 1)].S;
+							f2 += Cells.at(j * P.nch + (i - 1)).I; f3 += Cells.at(j * P.nch + (i - 1)).S;
 						}
 						if ((i > 0) && (j < P.ncw - 1))
 						{
-							f2 += Cells[(j + 1) * P.nch + (i - 1)].I; f3 += Cells[(j + 1) * P.nch + (i - 1)].S;
+							f2 += Cells.at((j + 1) * P.nch + (i - 1)).I; f3 += Cells.at((j + 1) * P.nch + (i - 1)).S;
 						}
 						if (j > 0)
 						{
-							f2 += Cells[(j - 1) * P.nch + i].I; f3 += Cells[(j - 1) * P.nch + i].S;
+							f2 += Cells.at((j - 1) * P.nch + i).I; f3 += Cells.at((j - 1) * P.nch + i).S;
 						}
 						if (j < P.ncw - 1)
 						{
-							f2 += Cells[(j + 1) * P.nch + i].I; f3 += Cells[(j + 1) * P.nch + i].S;
+							f2 += Cells.at((j + 1) * P.nch + i).I; f3 += Cells.at((j + 1) * P.nch + i).S;
 						}
 						if ((i < P.nch - 1) && (j > 0))
 						{
-							f2 += Cells[(j - 1) * P.nch + (i + 1)].I; f3 += Cells[(j - 1) * P.nch + (i + 1)].S;
+							f2 += Cells.at((j - 1) * P.nch + (i + 1)).I; f3 += Cells.at((j - 1) * P.nch + (i + 1)).S;
 						}
 						if (i < P.nch - 1)
 						{
-							f2 += Cells[j * P.nch + (i + 1)].I; f3 += Cells[j * P.nch + (i + 1)].S;
+							f2 += Cells.at(j * P.nch + (i + 1)).I; f3 += Cells.at(j * P.nch + (i + 1)).S;
 						}
 						if ((i < P.nch - 1) && (j < P.ncw - 1))
 						{
-							f2 += Cells[(j + 1) * P.nch + (i + 1)].I; f3 += Cells[(j + 1) * P.nch + (i + 1)].S;
+							f2 += Cells.at((j + 1) * P.nch + (i + 1)).I; f3 += Cells.at((j + 1) * P.nch + (i + 1)).S;
 						}
-						Cells[k].L = f3; Cells[k].R = f2;
+						Cells.at(k).L = f3; Cells.at(k).R = f2;
 					}
 					m = f2 = f3 = f4 = 0;
 					for (k = 0; k < P.NC; k++)
-						if ((Cells[k].S > 0) && (Cells[k].I == 0))
+						if ((Cells.at(k).S > 0) && (Cells.at(k).I == 0))
 						{
-							f2 += Cells[k].S; f3++;
-							if (Cells[k].R == 0) f4 += Cells[k].S;
+							f2 += Cells.at(k).S; f3++;
+							if (Cells.at(k).R == 0) f4 += Cells.at(k).S;
 						}
 					fprintf(stderr, "Demand in cells with no places=%i in %i cells\nDemand in cells with no places <=1 cell away=%i\n", f2, f3, f4);
 					for (i = 0; i < P.Nplace[tp]; i++)
@@ -1976,9 +1976,9 @@ void AssignPeopleToPlaces(void)
 						{
 							j = (int)(Places[tp][i].loc_x / P.cwidth);
 							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.cheight));
-							if ((Cells[k].L > 0) && (Cells[k].R > 0))
+							if ((Cells.at(k).L > 0) && (Cells.at(k).R > 0))
 							{
-								s = ((double)Cells[k].L) / ((double)Cells[k].R);
+								s = ((double)Cells.at(k).L) / ((double)Cells.at(k).R);
 								Places[tp][i].treat_end_time = (unsigned short)ceil(Places[tp][i].treat_end_time * s);
 							}
 							m += ((int)Places[tp][i].treat_end_time);
