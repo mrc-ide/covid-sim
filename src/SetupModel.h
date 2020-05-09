@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 

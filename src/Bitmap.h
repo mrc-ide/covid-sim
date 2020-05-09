@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_BITMAP_H_INCLUDED_
 #define COVIDSIM_BITMAP_H_INCLUDED_
 
