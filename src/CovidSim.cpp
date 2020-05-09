@@ -2,8 +2,11 @@
 (c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
 */
 
+#include <cstdlib>
 #include <cerrno>
 #include <cstddef>
+#include <fstream>
+#include <iostream>
 
 #include "CovidSim.h"
 #include "BinIO.h"
@@ -38,10 +41,14 @@
 enum class ArgType {
 	DOUBLE,
 	INTEGER,
-	STRING
+	STRING,
+	FILE,
+	DIR
 };
 
-bool ParseArg(ArgType, char*, void*);
+void ParseArg(ArgType, char*, void*);
+void PrintHelpAndExit();
+void PrintDetailedHelpAndExit();
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
@@ -124,13 +131,11 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 int main(int argc, char* argv[])
 {
 	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, GotNR, Perr, cl;
+	int i, GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
 	GotP = GotO = GotL = GotS = GotAP = GotScF = GotPP = GotNR = 0;
 
-	Perr = 0;
-	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 	cl = clock();
 
 	// Default bitmap format is platform dependent.
@@ -149,227 +154,222 @@ int main(int argc, char* argv[])
 	 *   - output directory
 	 */
 
-	if (argc < 7) {
-		Perr = 1;
+	// Detect if the user wants to print out the full help output
+	if (argc >= 2 && strlen(argv[1]) == 2 && strcmp("/H", argv[1]) == 0) {
+		PrintDetailedHelpAndExit();
 	}
-	else {
-		// Get seeds.
-		i = argc - 4;
-		sscanf(argv[i], "%i", &P.setupSeed1);
-		sscanf(argv[i + 1], "%i", &P.setupSeed2);
-		sscanf(argv[i + 2], "%i", &P.runSeed1);
-		sscanf(argv[i + 3], "%i", &P.runSeed2);
 
-		// Set parameter defaults - read them in after
-		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
-		P.CaseOrDeathThresholdBeforeAlert = 0;
-		P.R0scale = 1.0;
-		// added this so that kernel parameters are only changed if input from
-		// the command line: ggilani - 15/10/2014
-		P.KernelOffsetScale = P.KernelPowerScale = 1.0;
-		P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
+	if (argc < 7) {
+		std::cerr << "Minimum number of arguments not met. Expected 6 got "
+				  << (argc - 1) << "\n" << std::endl;
+		PrintHelpAndExit();
+	}
 
-		// scroll through command line arguments, anticipating what they can be
-		// using various if statements.
-		for (i = 1; i < argc - 4; i++)
-		{
-			char* opt = argv[i];
-			if (opt[0] != '/') {
-				Perr = 1;
-				fprintf(stderr, "Argument does not start with '/': %s\n", opt);
+	// Get seeds.
+	i = argc - 4;
+	sscanf(argv[i], "%i", &P.setupSeed1);
+	sscanf(argv[i + 1], "%i", &P.setupSeed2);
+	sscanf(argv[i + 2], "%i", &P.runSeed1);
+	sscanf(argv[i + 3], "%i", &P.runSeed2);
+
+	// Set parameter defaults - read them in after
+	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.CaseOrDeathThresholdBeforeAlert = 0;
+	P.R0scale = 1.0;
+	// added this so that kernel parameters are only changed if input from
+	// the command line: ggilani - 15/10/2014
+	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
+	P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
+
+	// scroll through command line arguments, anticipating what they can be
+	// using various if statements.
+	for (i = 1; i < argc - 4; i++)
+	{
+		char* opt = argv[i];
+		if (opt[0] != '/') {
+			std::cerr << "Argument \"" << opt << "\" does not start with '/'" << std::endl;
+			break;
+		}
+
+		char* optval = &(argv[i][3]);
+		switch(opt[1]) {
+			case 'A':
+				switch(opt[2]) {
+					case ':':
+						ParseArg(ArgType::FILE, &opt[2], AdunitFile);
+						break;
+					case 'P':
+						ParseArg(ArgType::FILE, &opt[3], AirTravelFile);
+						GotAP = 1;
+						break;
+				}
+				break;
+			case 'B': {
+				if (opt[2] == 'M') {
+					ParseArg(ArgType::STRING, &opt[3], buf);
+					if (strcasecmp(buf, "png") == 0) {
+				#if defined(IMAGE_MAGICK) || defined(_WIN32)
+						P.BitmapFormat = BitmapFormats::PNG;
+				#else
+						std::cerr << "PNG Bitmaps not supported - please build with Image Magic or WIN32 support" << std::endl;
+						PrintHelpAndExit();
+				#endif
+					}
+					else if (strcasecmp(buf, "bmp") == 0) {
+						P.BitmapFormat = BitmapFormats::BMP;
+					}
+					else {
+						std::cerr << "Unrecognised bitmap format: " << buf << std::endl;
+						PrintHelpAndExit();
+					}
+				}
 				break;
 			}
-
-			char* optval = &(argv[i][3]);
-			switch(opt[1]) {
-				case 'A':
-					switch(opt[2]) {
-						case ':':
-							ParseArg(ArgType::STRING, &opt[2], AdunitFile);
-							break;
-						case 'P':
-							if (ParseArg(ArgType::STRING, &opt[3], AirTravelFile)) {
-								GotAP = 1;
+			case 'c':
+				ParseArg(ArgType::INTEGER, &opt[2], &P.MaxNumThreads);
+				break;
+			// generic command line specified params mapped to #<X> in param file
+			case 'C': {
+				switch(opt[2]) {
+					case ':':
+						ParseArg(ArgType::INTEGER, &opt[2], &P.PlaceCloseIndepThresh);
+						break;
+					case 'L': {
+						if (opt[3] == 'P') {
+							switch(opt[4]) {
+								case '1':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP1);
+									break;
+								case '2':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP2);
+									break;
+								case '3':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP3);
+									break;
+								case '4':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP4);
+									break;
+								case '5':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP5);
+									break;
+								case '6':
+									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP6);
+									break;
 							}
-							break;
-					}
-					break;
-				case 'B': {
-					if (opt[2] == 'M') {
-						ParseArg(ArgType::STRING, &opt[3], buf);
-						if (strcasecmp(buf, "png") == 0) {
-					#if defined(IMAGE_MAGICK) || defined(_WIN32)
-							P.BitmapFormat = BitmapFormats::PNG;
-					#else
-							fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
-							Perr = 1;
-					#endif
 						}
-						else if (strcasecmp(buf, "bmp") == 0) {
-							P.BitmapFormat = BitmapFormats::BMP;
+						break;
+					}
+				}
+				break;
+			}
+			case 'd':
+				ParseArg(ArgType::FILE, &opt[2], RegDemogFile);
+				P.DoAdunitDemog = 1;
+				break;
+			case 'D':
+				ParseArg(ArgType::FILE, &opt[2], DensityFile);
+				P.DoHeteroDensity = 1;
+				P.DoPeriodicBoundaries = 0;
+				break;
+			case 'I':
+				ParseArg(ArgType::FILE, &opt[2], InterventionFile[P.DoInterventionFile]);
+				P.DoInterventionFile++;
+				break;
+			// added Kernel Power and Offset scaling so that it can easily
+			// be altered from the command line in order to vary the kernel
+			// quickly: ggilani - 15/10/14
+			case 'K': {
+				switch(opt[2]) {
+					case 'O':
+						ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelOffsetScale);
+						break;
+					case 'P':
+						ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelPowerScale);
+						break;
+				}
+				break;
+			}
+			case 'L':
+				switch(opt[2]) {
+					case ':':
+						ParseArg(ArgType::FILE, &opt[2], NetworkFile);
+						GotL = 1;
+						P.LoadSaveNetwork = 1;
+						break;
+					case 'S':
+						ParseArg(ArgType::FILE, &opt[3], SnapshotLoadFile);
+						P.DoLoadSnapshot = 1;
+						break;
+				}
+				break;
+			case 'M':
+				ParseArg(ArgType::FILE, &opt[2], OutDensFile);
+				P.OutputDensFile = 1;
+				break;
+			case 'N':
+				switch(opt[2]) {
+					case 'R':
+						ParseArg(ArgType::INTEGER, &opt[3], &GotNR);
+						break;
+				}
+				break;
+			case 'O':
+				ParseArg(ArgType::DIR, &opt[2], OutFileBase);
+				GotO = 1;
+				break;
+			case 'P':
+				switch(opt[2]) {
+					case ':':
+						ParseArg(ArgType::FILE, &opt[2], ParamFile);
+						GotP = 1;
+						break;
+					case 'P':
+						ParseArg(ArgType::FILE, &opt[3], PreParamFile);
+						GotPP = 1;
+						break;
+				}
+				break;
+			case 'R':
+				ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
+				break;
+			case 's':
+				ParseArg(ArgType::FILE, &opt[2], SchoolFile);
+				GotScF = 1;
+				break;
+			case 'S':
+				switch(opt[2]) {
+					case ':':
+						ParseArg(ArgType::FILE, &opt[2], NetworkFile);
+						P.LoadSaveNetwork = 2;
+						GotS = 1;
+						break;
+					case 'S':
+						ParseArg(ArgType::STRING, &opt[3], buf);
+						sep = strchr(buf, ',');
+						if (!sep) {
+							fprintf(stderr, "Argument value didn't use a ',': %s\n", buf);
+							PrintHelpAndExit();
 						}
 						else {
-							fprintf(stderr, "Unrecognised bitmap format: %s\n", buf);
-							Perr = 1;
+							P.DoSaveSnapshot = 1;
+							*sep = ' ';
+							sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
 						}
-					}
-					break;
+						sscanf(&opt[4], "%s", buf);
+						break;
 				}
-				case 'c':
-					ParseArg(ArgType::INTEGER, &opt[2], &P.MaxNumThreads);
-					break;
-				// generic command line specified params mapped to #<X> in param file
-				case 'C': {
-					switch(opt[2]) {
-						case ':':
-							ParseArg(ArgType::INTEGER, &opt[2], &P.PlaceCloseIndepThresh);
-							break;
-						case 'L': {
-							if (opt[3] == 'P') {
-								switch(opt[4]) {
-									case '1':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP1);
-										break;
-									case '2':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP2);
-										break;
-									case '3':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP3);
-										break;
-									case '4':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP4);
-										break;
-									case '5':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP5);
-										break;
-									case '6':
-										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP6);
-										break;
-								}
-							}
-							break;
-						}
-					}
-					break;
-				}
-				case 'd':
-					if (ParseArg(ArgType::STRING, &opt[2], RegDemogFile))
-						P.DoAdunitDemog = 1;
-					break;
-				case 'D':
-					if (ParseArg(ArgType::STRING, &opt[2], DensityFile)) {
-						P.DoHeteroDensity = 1;
-						P.DoPeriodicBoundaries = 0;
-					}
-					break;
-				case 'I':
-					if (ParseArg(ArgType::STRING, &opt[2], InterventionFile[P.DoInterventionFile])) {
-						P.DoInterventionFile++;
-					}
-					break;
-				// added Kernel Power and Offset scaling so that it can easily
-				// be altered from the command line in order to vary the kernel
-				// quickly: ggilani - 15/10/14
-				case 'K': {
-					switch(opt[2]) {
-						case 'O':
-							ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelOffsetScale);
-							break;
-						case 'P':
-							ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelPowerScale);
-							break;
-					}
-					break;
-				}
-				case 'L':
-					switch(opt[2]) {
-						case ':':
-							if (ParseArg(ArgType::STRING, &opt[2], NetworkFile)) {
-								GotL = 1;
-								P.LoadSaveNetwork = 1;
-							}
-							break;
-						case 'S':
-							if (ParseArg(ArgType::STRING, &opt[3], SnapshotLoadFile)) {
-								P.DoLoadSnapshot = 1;
-							}
-							break;
-					}
-					break;
-				case 'M':
-					if (ParseArg(ArgType::STRING, &opt[2], OutDensFile)) {
-						P.OutputDensFile = 1;
-					}
-					break;
-				case 'N':
-					switch(opt[2]) {
-						case 'R':
-							ParseArg(ArgType::INTEGER, &opt[3], &GotNR);
-							break;
-					}
-					break;
-				case 'O':
-					if (ParseArg(ArgType::STRING, &opt[2], OutFileBase)) {
-						GotO = 1;
-					}
-					break;
-				case 'P':
-					switch(opt[2]) {
-						case ':':
-							if (ParseArg(ArgType::STRING, &opt[2], ParamFile)) {
-								GotP = 1;
-							}
-							break;
-						case 'P':
-							if (ParseArg(ArgType::STRING, &opt[3], PreParamFile)) {
-								GotPP = 1;
-							}
-							break;
-					}
-					break;
-				case 'R':
-					ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
-					break;
-				case 's':
-					if (ParseArg(ArgType::STRING, &opt[2], SchoolFile)) {
-						GotScF = 1;
-					}
-					break;
-				case 'S':
-					switch(opt[2]) {
-						case ':':
-							if (ParseArg(ArgType::STRING, &opt[2], NetworkFile)) {
-								P.LoadSaveNetwork = 2;
-								GotS = 1;
-							}
-							break;
-						case 'S':
-							if (ParseArg(ArgType::STRING, &opt[3], buf)) {
-								fprintf(stderr, "### %s\n", buf);
-								sep = strchr(buf, ',');
-								if (!sep)
-									Perr = 1;
-								else
-								{
-									P.DoSaveSnapshot = 1;
-									*sep = ' ';
-									sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
-								}
-							}
-							sscanf(&opt[4], "%s", buf);
-							break;
-					}
-					break;
-				case 'T':
-					ParseArg(ArgType::INTEGER, &opt[2], &P.CaseOrDeathThresholdBeforeAlert);
-					break;
-				default:
-					fprintf(stderr, "Unsupported argument specified %s\n", opt);
-					break;
-			}
+				break;
+			case 'T':
+				ParseArg(ArgType::INTEGER, &opt[2], &P.CaseOrDeathThresholdBeforeAlert);
+				break;
+			default:
+				fprintf(stderr, "Unsupported argument specified %s\n", opt);
+				break;
 		}
-		if (((GotS) && (GotL)) || (!GotP) || (!GotO)) Perr = 1;
 	}
+
+	if (((GotS) && (GotL)) || (!GotP) || (!GotO))
+		PrintHelpAndExit();
 
 	///// END Read in command line arguments
 
@@ -377,7 +377,7 @@ int main(int argc, char* argv[])
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
-	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
+	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** SET UP OMP / THREADS
@@ -537,25 +537,106 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "Model finished\n");
 }
 
-bool ParseArg(ArgType type, char* input, void* output)
+void ParseArg(ArgType type, char* input, void* output)
 {
 	if (input[0] != ':') {
-		fprintf(stderr, "Improperly formatted argument: %s\n", input);
-		return false;
+		std::cerr << "Improperly formatted argument: " << input << std::endl;
+		PrintHelpAndExit();
 	}
 
 	switch(type) {
 		case ArgType::DOUBLE:
-			sscanf(&input[1], "%lf", (double *) output);
+			sscanf(&input[1], "%lf", (double*) output);
 			break;
 		case ArgType::INTEGER:
-			sscanf(&input[1], "%i", (int *) output);
+			sscanf(&input[1], "%i", (int*) output);
 			break;
 		case ArgType::STRING:
-			sscanf(&input[1], "%s", (char* ) output);
+			sscanf(&input[1], "%s", (char*) output);
 			break;
+		case ArgType::FILE: {
+			char* str_out = (char*) output;
+			sscanf(&input[1], "%s", str_out);
+			// check to see if the file exists and error out if it doesn't
+			if (static_cast<bool>(std::ifstream(str_out)) == false) {
+				std::cerr << str_out << " is not a file" << std::endl;
+				std::exit(1);
+			}
+			break;
+		}
+		case ArgType::DIR: {
+			char* str_out = (char*) output;
+			sscanf(&input[1], "%s", str_out);
+			// check to see if this path already exists as a file and error out
+			if (static_cast<bool>(std::ifstream(str_out)) == true) {
+				std::cerr << "Cannot create a directory, this path already exists"
+							 " as a file: " << str_out << std::endl;
+				std::exit(1);
+			}
+			break;
+		}
 	}
-	return true;
+}
+
+const char* USAGE =
+R"(CovidSim /O /P [/A] [/AP] [/c] [/C] [/CLP[1-6]] [/d] [/D] [/H] [/I] [/KO] [/KP] [/L] [/LS] [/M] [/PP] [/R] [/s] [/S] [/SS] [/T] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
+
+All '/' arguments are followed by a colon ':' and then the value.
+More detailed information can be found in docs/inputs-and-outputs.md.
+)";
+
+const char* DETAILED_USAGE =
+R"(Argument type:
+
+    DIR     Directory path
+    DOUBLE  Floating point number with double precision
+    INT     Integer number
+    FILE    File path
+
+Required arguments:
+
+    /O      DIR     Output file path prefix
+    /P      FILE    Parameter file
+
+    SetupSeed*      RNG seeds when initializing
+    RunSeed*        RNG seeds when running
+
+Optional arguments:
+
+    /A      FILE    Administrative division
+    /AP     FILE    Air travel data file
+    /c      INT     Number of threads to use
+    /C      INT     Sets the P.PlaceCloseIndepThresh parameter
+    /CLP*   DOUBLE  Overwrites wildcards in parameter file
+    /d      FILE    Regional demography file
+    /D      FILE    Population density file
+    /H              Display this help page
+    /I      FILE    Intervention file
+    /KO     DOUBLE  Scales the P.KernelOffsetScale parameter
+    /KP     DOUBLE  Scales the P.KernelPowerScale parameter
+    /L      FILE    Network file to load
+    /LS     FILE    Snapshot file to load
+    /M      FILE    Output density file
+    /PP     FILE    Pre-parameter file
+    /R      DOUBLE  R0 scaling
+    /s      FILE    School file
+    /S      FILE    Network file to save
+    /SS     DOUBLE,FILE	Interval and file to save snapshots
+    /T      FILE    Sets the P.PreControlClusterIdCaseThreshold
+)";
+
+void PrintHelpAndExit()
+{
+	std::cerr << USAGE << std::endl;
+	std::cerr << "Use the '/H' argument to get a detailed listing of "
+				 "required and optional arguments." << std::endl;
+	std::exit(1);
+}
+
+void PrintDetailedHelpAndExit()
+{
+	std::cerr << USAGE << "\n" << DETAILED_USAGE << std::endl;
+	std::exit(1);
 }
 
 void ReadParams(char* ParamFile, char* PreParamFile)
