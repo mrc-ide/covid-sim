@@ -340,7 +340,7 @@ extern std::vector<cell> Cells;
 extern std::vector<cell*> CellLookup;
 extern std::vector<microcell> Mcells;
 extern std::vector<microcell*> McellLookup;
-extern std::vector<std::vector<place>> Places;
+extern place** Places;
 extern adminunit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
