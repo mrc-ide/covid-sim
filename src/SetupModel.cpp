@@ -967,7 +967,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (Mcells[P.NMC - 1].n > 0)
 	{
 		P.NMCP++;
-		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
+		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells.back().n;
 	}
 
 	t = 0.0;
@@ -984,13 +984,13 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			for (m = 0; m < P.NMCL; m++)
 			{
 				j = k + m + l * P.nmch;
-				if (Mcells[j].n > 0)
+				if (Mcells.at(j).n > 0)
 				{
-					Mcells[j].members = mcl + j2;
-					//if(!(Mcells[j].members=(int *) calloc(Mcells[j].n,sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n"); //replaced line above with this to ensure members don't get mixed across microcells
+					Mcells.at(j).members = mcl + j2;
+					//if(!(Mcells.at(j).members=(int *) calloc(Mcells.at(j).n,sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n"); //replaced line above with this to ensure members don't get mixed across microcells
 					McellLookup[i2++] = &Mcells.front() + j;
-					Cells.at(i).n += Mcells[j].n;
-					j2 += Mcells[j].n;
+					Cells.at(i).n += Mcells.at(j).n;
+					j2 += Mcells.at(j).n;
 				}
 			}
 		if (Cells.at(i).n > 0) P.NCP++;
@@ -1007,7 +1007,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (j = 0; j < P.NC; j++)
 		if (Cells.at(j).n > 0)
 		{
-			CellLookup[i2++] = Cells_front + j;
+			CellLookup.at(i2++) = Cells_front + j;
 			Cells.at(j).susceptible = mcl + k;
 			k += Cells.at(j).n;
 		}
@@ -1018,7 +1018,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "sizeof(person)=%i\n", (int) sizeof(person));
 	for (i = 0; i < P.NCP; i++)
 	{
-		cell *c = CellLookup[i];
+		cell *c = CellLookup.at(i);
 		if (c->n > 0)
 		{
 			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
@@ -1039,21 +1039,21 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		j = (int)(McellLookup[j2] - Mcells_front);
 		l = ((j / P.nmch) / P.NMCL) * P.nch + ((j % P.nmch) / P.NMCL);
-		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
-		for (k = 0; k < Mcells[j].n;)
+		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells.at(j).adunit : 0;
+		for (k = 0; k < Mcells.at(j).n;)
 		{
 			m = 1;
 			if (P.DoHouseholds)
 			{
 				s = ranf_mt(0);
-				while ((s > P.HouseholdSizeDistrib[ad][m - 1]) && (k + m < Mcells[j].n) && (m < MAX_HOUSEHOLD_SIZE)) m++;
+				while ((s > P.HouseholdSizeDistrib[ad][m - 1]) && (k + m < Mcells.at(j).n) && (m < MAX_HOUSEHOLD_SIZE)) m++;
 			}
 			denom_household[m]++;
 			for (i2 = 0; i2 < m; i2++)
 			{
 				//				fprintf(stderr,"%i ",i+i2);
 				Hosts[i + i2].listpos = m; //used temporarily to store household size
-				Mcells[j].members[k + i2] = i + i2;
+				Mcells.at(j).members[k + i2] = i + i2;
 				Cells.at(l).susceptible[Cells.at(l).cumTC] = i + i2;
 				Cells.at(l).members[Cells.at(l).cumTC++] = i + i2;
 				Hosts[i + i2].pcell = l;
@@ -1076,10 +1076,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			j = (int)(McellLookup[j2] - Mcells_front);
 			x = (double)(j / P.nmch);
 			y = (double)(j % P.nmch);
-			i = Mcells[j].members[0];
+			i = Mcells.at(j).members[0];
 			if (j % 100 == 0)
-				fprintf(stderr, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
-			for (k = 0; k < Mcells[j].n;)
+				fprintf(stderr, "%i=%i (%i %i)            \r", j, Mcells.at(j).n, Mcells.at(j).adunit, (AdUnits[Mcells.at(j).adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+			for (k = 0; k < Mcells.at(j).n;)
 			{
 				m = Hosts[i].listpos;
 				xh = P.mcwidth * (ranf_mt(tn) + x);
@@ -1120,7 +1120,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				AgeDistAd[i][j] = 0;
 		for (i = 0; i < P.PopSize; i++)
 		{
-			k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
+			k = (P.DoAdunitDemog) ? Mcells.at(Hosts[i].mcell).adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
 		}
 		// normalize AgeDistAd[i][j], so it's the proportion of people in adunit i that are in age group j
@@ -1166,7 +1166,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (i = tn; i < P.PopSize; i += P.NumThreads)
 			{
-				m = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
+				m = (P.DoAdunitDemog) ? Mcells.at(Hosts[i].mcell).adunit : 0;
 				j = HOST_AGE_GROUP(i);
 				s = ranf_mt(tn);
 				// probabilistic age adjustment by one age category (5 years)
@@ -1204,9 +1204,9 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		double rand_r = 0.0; //added these variables so that if initial infection location is empty we can search the 10km neighbourhood to find a suitable cell
 		double rand_theta = 0.0;
 		int counter = 0;
-		if (Mcells[j].n < P.NumInitialInfections[0])
+		if (Mcells.at(j).n < P.NumInitialInfections[0])
 		{
-			while (Mcells[j].n < P.NumInitialInfections[0] && counter < 100)
+			while (Mcells.at(j).n < P.NumInitialInfections[0] && counter < 100)
 			{
 				rand_r = ranf(); rand_theta = ranf();
 				rand_r = 0.083 * sqrt(rand_r); rand_theta = 2 * PI * rand_theta; //rand_r is multiplied by 0.083 as this is roughly equal to 10km in decimal degrees
@@ -1221,7 +1221,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				P.LocationInitialInfection[0][1] = P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta);
 			}
 		}
-		if (Mcells[j].n < P.NumInitialInfections[0])
+		if (Mcells.at(j).n < P.NumInitialInfections[0])
 			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
 	}
 	fprintf(stderr, "Checking cells...\n");
@@ -1292,7 +1292,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				i = (int)(Places[j][P.Nplace[j]].loc_x / P.mcwidth);
 				k = (int)(Places[j][P.Nplace[j]].loc_y / P.mcheight);
 				j2 = i * P.nmch + k;
-				Mcells[j2].np[j]++;
+				Mcells.at(j2).np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
 				if (P.Nplace[j] % 1000 == 0) fprintf(stderr, "%i read    \r", P.Nplace[j]);
@@ -1554,13 +1554,13 @@ void SetupAirports(void)
 			}
 			l = 0;
 			for (j = 0; j < Airports[i].num_mcell; j++)
-				l += Mcells[Airports[i].DestMcells[j].id].np[P.HotelPlaceType];
+				l += Mcells.at(Airports[i].DestMcells[j].id).np[P.HotelPlaceType];
 			if (l < 10)
 			{
 				fprintf(stderr, "(%i ", l);
 				l = 0;
 				for (j = 0; j < Airports[i].num_mcell; j++)
-					l += Mcells[Airports[i].DestMcells[j].id].n;
+					l += Mcells.at(Airports[i].DestMcells[j].id).n;
 				fprintf(stderr, "%i %i) ", Airports[i].num_mcell, l);
 			}
 		}
@@ -1635,7 +1635,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	int i, j, k, l, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
 
-	ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
+	ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells.at(Hosts[pers].mcell).adunit : 0;
 	if (!P.DoHouseholds)
 	{
 		for (i = 0; i < n; i++)
@@ -1833,7 +1833,7 @@ void AssignPeopleToPlaces(void)
 				cnt = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					cell *c = CellLookup[a];
+					cell *c = CellLookup.at(a);
 					c->n = 0;
 					for (j = 0; j < c->cumTC; j++)
 					{
@@ -1857,7 +1857,7 @@ void AssignPeopleToPlaces(void)
 				j2 = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					cell *c = CellLookup[a];
+					cell *c = CellLookup.at(a);
 					for (j = 0; j < c->n; j++)
 					{
 						PeopleArray[j2] = c->susceptible[j];
@@ -2074,9 +2074,9 @@ void AssignPeopleToPlaces(void)
 									if ((mx >= 0) && (my >= 0) && (mx < P.nmcw) && (my < P.nmch))
 									{
 										ic = mx * P.nmch + my;
-										if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
+										if (Mcells[ic].country == Mcells.at(Hosts[i].mcell).country)
 										{
-											for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
+											for (cnt = 0; cnt < Mcells.at(ic).np[tp]; cnt++)
 											{
 												if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
 												t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
@@ -2100,7 +2100,7 @@ void AssignPeopleToPlaces(void)
 												{
 													if (k < nn)
 													{
-														NearestPlaces[tn][k] = Mcells[ic].places[tp][cnt];
+														NearestPlaces[tn][k] = Mcells.at(ic).places[tp][cnt];
 														NearestPlacesProb[tn][k] = s;
 														k++;
 													}
@@ -2116,7 +2116,7 @@ void AssignPeopleToPlaces(void)
 														if (s > t)
 														{
 															NearestPlacesProb[tn][j2] = s;
-															NearestPlaces[tn][j2] = Mcells[ic].places[tp][cnt];
+															NearestPlaces[tn][j2] = Mcells.at(ic).places[tp][cnt];
 														}
 													}
 												}
@@ -2213,7 +2213,7 @@ void AssignPeopleToPlaces(void)
 										s = ranf();
 										l = Cells.at(i).InvCDF[(int)floor(s * 1024)];
 										while (Cells.at(i).cum_trans[l] < s) l++;
-										ct = CellLookup[l];
+										ct = CellLookup.at(l);
 										m = (int)(ranf() * ((double)ct->S));
 										j = -1;
 #pragma omp critical
@@ -2235,7 +2235,7 @@ void AssignPeopleToPlaces(void)
 									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells.at(i).max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{
-										if (Mcells[Hosts[k].mcell].adunit != Mcells[Places[tp][j].mcell].adunit) s *= (1 - P.InhibitInterAdunitPlaceAssignment[tp]);
+										if (Mcells[Hosts[k].mcell].adunit != Mcells.at(Places[tp][j].mcell).adunit) s *= (1 - P.InhibitInterAdunitPlaceAssignment[tp]);
 									}
 									if (ranf() < s)
 									{
