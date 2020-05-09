@@ -71,10 +71,11 @@ param P;
 person* Hosts;
 household* Households;
 popvar State, StateT[MAX_NUM_THREADS];
-cell* Cells; // Cells[i] is the i'th cell
-cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
-microcell* Mcells, ** McellLookup;
-place** Places;
+std::vector<cell> Cells(P.NC); // Cells.at(i) is the i'th cell
+std::vector<cell*> CellLookup(P.NCP); // CellLookup[i] is a pointer to the i'th populated cell
+std::vector<microcell> Mcells(P.NMC);
+std::vector<microcell*> McellLookup(P.NMCP);
+std::vector<std::vector<place>> Places;
 adminunit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
@@ -2567,25 +2568,25 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	{
 		for (i = tn; i < P.NC; i+=P.NumThreads)
 		{
-			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
+			if ((Cells.at(i).tot_treat != 0) || (Cells.at(i).tot_vacc != 0) || (Cells.at(i).S != Cells.at(i).n) || (Cells.at(i).D > 0) || (Cells.at(i).R > 0))
 			{
-				for (j = 0; j < Cells[i].n; j++)
+				for (j = 0; j < Cells.at(i).n; j++)
 				{
-					k = Cells[i].members[j];
-					Cells[i].susceptible[j] = k; //added this in here instead
+					k = Cells.at(i).members[j];
+					Cells.at(i).susceptible[j] = k; //added this in here instead
 					Hosts[k].listpos = j;
 				}
-				Cells[i].S = Cells[i].n;
-				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
-				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
-				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
-				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
+				Cells.at(i).S = Cells.at(i).n;
+				Cells.at(i).L = Cells.at(i).I = Cells.at(i).R = Cells.at(i).cumTC = Cells.at(i).D = 0;
+				Cells.at(i).infected = Cells.at(i).latent = Cells.at(i).susceptible + Cells.at(i).S;
+				Cells.at(i).tot_treat = Cells.at(i).tot_vacc = 0;
+				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells.at(i).CurInterv[l] = -1;
 
 				// Next loop needs to count down for DoImmune host list reordering to work
 				if(!P.DoPartialImmunity)
-					for (j = Cells[i].n - 1; j >= 0; j--)
+					for (j = Cells.at(i).n - 1; j >= 0; j--)
 					{
-						k = Cells[i].members[j];
+						k = Cells.at(i).members[j];
 						if (P.DoWholeHouseholdImmunity)
 						{
 	// note that this breaks determinism of runs if executed due to reordering of Cell members list each realisation
@@ -2618,15 +2619,15 @@ void InitModel(int run) // passing run number so we can save run number in the i
 #pragma omp parallel for private(i,j,k,l) schedule(static,500)
 	for (l = 0; l < P.NMCP; l++)
 	{
-		i = (int)(McellLookup[l] - Mcells);
-		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
-		Mcells[i].treat_end_time = 0;
-		Mcells[i].treat_trig = Mcells[i].vacc_trig = Mcells[i].vacc = Mcells[i].treat = 0;
-		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
-			Mcells[i].placeclose = Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
-		Mcells[i].move_start_time = USHRT_MAX - 1;
-		Mcells[i].place_end_time = Mcells[i].move_end_time =
-			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
+		i = (int)(McellLookup.at(l) - &Mcells[0]);
+		Mcells.at(i).vacc_start_time = Mcells.at(i).treat_start_time = USHRT_MAX - 1;
+		Mcells.at(i).treat_end_time = 0;
+		Mcells.at(i).treat_trig = Mcells.at(i).vacc_trig = Mcells.at(i).vacc = Mcells.at(i).treat = 0;
+		Mcells.at(i).place_trig = Mcells.at(i).move_trig = Mcells.at(i).socdist_trig = Mcells.at(i).keyworkerproph_trig =
+			Mcells.at(i).placeclose = Mcells.at(i).moverest = Mcells.at(i).socdist = Mcells.at(i).keyworkerproph = 0;
+		Mcells.at(i).move_start_time = USHRT_MAX - 1;
+		Mcells.at(i).place_end_time = Mcells.at(i).move_end_time =
+			Mcells.at(i).socdist_end_time = Mcells.at(i).keyworkerproph_end_time = 0;
 	}
 	if (P.DoPlaces)
 #pragma omp parallel for private(m,l) schedule(static,1)
@@ -2771,7 +2772,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 			m = 0;
 			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
 			{
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
+				l = Mcells.at(j).members[(int)(ranf() * ((double)Mcells.at(j).n))]; //// randomly choose member of microcell j. Name this member l
 				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
@@ -2801,13 +2802,13 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				{
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
-					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
-				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
-					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
-					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
+					//fprintf(stderr,"%i ",AdUnits[Mcells.at(j).adunit].id);
+				} while ((Mcells.at(j).n < nsi[i]) || (Mcells.at(j).n > P.MaxPopDensForInitialInfection)
+					|| (Mcells.at(j).n < P.MinPopDensForInitialInfection)
+					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells.at(j).adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
 				for (k = 0; (k < nsi[i]) && (m < 10000); k++)
 				{
-					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+					l = Mcells.at(j).members[(int)(ranf() * ((double)Mcells.at(j).n))];
 					if (Hosts[l].inf == InfStat_Susceptible)
 					{
 						if (CalcPersonSusc(l, 0, 0, 0) > 0)
@@ -2839,11 +2840,11 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				{
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
-					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
-				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
-					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
-					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells.at(j).adunit].id, (int)(AdUnits[Mcells.at(j).adunit].id / P.CountryDivisor));
+				} while ((Mcells.at(j).n == 0) || (Mcells.at(j).n > P.MaxPopDensForInitialInfection)
+					|| (Mcells.at(j).n < P.MinPopDensForInitialInfection)
+					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells.at(j).adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
+				l = Mcells.at(j).members[(int)(ranf() * ((double)Mcells.at(j).n))];
 				if (Hosts[l].inf == InfStat_Susceptible)
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
@@ -3997,10 +3998,10 @@ void LoadSnapshot(void)
 	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
 	for (i = 0; i < P.NCP; i++)
 	{
-		Array_InvCDF[i] = Cells[i].InvCDF;
-		Array_max_trans[i] = Cells[i].max_trans;
-		Array_cum_trans[i] = Cells[i].cum_trans;
-		Array_tot_prob[i] = Cells[i].tot_prob;
+		Array_InvCDF[i] = Cells.at(i).InvCDF;
+		Array_max_trans[i] = Cells.at(i).max_trans;
+		Array_cum_trans[i] = Cells.at(i).cum_trans;
+		Array_tot_prob[i] = Cells.at(i).tot_prob;
 	}
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
@@ -4026,9 +4027,9 @@ void LoadSnapshot(void)
 	fprintf(stderr, ".");
 	zfread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	zfread_big((void*)&Cells.front(), sizeof(cell), (size_t)P.NC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	zfread_big((void*)&Mcells.front(), sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
 	zfread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
@@ -4036,25 +4037,25 @@ void LoadSnapshot(void)
 	fprintf(stderr, ".");
 	for (i = 0; i < P.NC; i++)
 	{
-		if (Cells[i].n > 0)
+		if (Cells.at(i).n > 0)
 		{
-			Cells[i].members += CM_offset;
-			Cells[i].susceptible += CSM_offset;
-			Cells[i].latent += CSM_offset;
-			Cells[i].infected += CSM_offset;
+			Cells.at(i).members += CM_offset;
+			Cells.at(i).susceptible += CSM_offset;
+			Cells.at(i).latent += CSM_offset;
+			Cells.at(i).infected += CSM_offset;
 		}
-		for (j = 0; j < MAX_INTERVENTION_TYPES; j++) Cells[i].CurInterv[j] = -1; // turn interventions off in loaded image
+		for (j = 0; j < MAX_INTERVENTION_TYPES; j++) Cells.at(i).CurInterv[j] = -1; // turn interventions off in loaded image
 	}
 	for (i = 0; i < P.NMC; i++)
-		if (Mcells[i].n > 0)
-			Mcells[i].members += CM_offset;
+		if (Mcells.at(i).n > 0)
+			Mcells.at(i).members += CM_offset;
 
 	for (i = 0; i < P.NCP; i++)
 	{
-		Cells[i].InvCDF = Array_InvCDF[i];
-		Cells[i].max_trans = Array_max_trans[i];
-		Cells[i].cum_trans = Array_cum_trans[i];
-		Cells[i].tot_prob = Array_tot_prob[i];
+		Cells.at(i).InvCDF = Array_InvCDF[i];
+		Cells.at(i).max_trans = Array_max_trans[i];
+		Cells.at(i).cum_trans = Array_cum_trans[i];
+		Cells.at(i).tot_prob = Array_tot_prob[i];
 	}
 	free(Array_tot_prob);
 	free(Array_cum_trans);
@@ -4101,9 +4102,9 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	zfwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	zfwrite_big((void*)&Cells.front(), sizeof(cell), (size_t)P.NC, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	zfwrite_big((void*)&Mcells.front(), sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	zfwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
@@ -4123,12 +4124,12 @@ void UpdateProbs(int DoPlace)
 #pragma omp parallel for private(j) schedule(static,500)
 		for (j = 0; j < P.NCP; j++)
 		{
-			CellLookup[j]->tot_prob = 0;
-			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
+			Cells.at(j).tot_prob = 0;
+			Cells.at(j).S0 = Cells.at(j).S + Cells.at(j).L + Cells.at(j).I;
 			if (P.DoDeath)
 			{
-				CellLookup[j]->S0 += CellLookup[j]->n / 5;
-				if ((CellLookup[j]->n < 100) || (CellLookup[j]->S0 > CellLookup[j]->n)) CellLookup[j]->S0 = CellLookup[j]->n;
+				Cells.at(j).S0 += Cells.at(j).n / 5;
+				if ((Cells.at(j).n < 100) || (Cells.at(j).S0 > Cells.at(j).n)) Cells.at(j).S0 = Cells.at(j).n;
 			}
 		}
 	}
@@ -4137,8 +4138,8 @@ void UpdateProbs(int DoPlace)
 #pragma omp parallel for private(j) schedule(static,500)
 		for (j = 0; j < P.NCP; j++)
 		{
-			CellLookup[j]->S0 = CellLookup[j]->S;
-			CellLookup[j]->tot_prob = 0;
+			Cells.at(j).S0 = Cells.at(j).S;
+			Cells.at(j).tot_prob = 0;
 		}
 	}
 #pragma omp parallel for private(j) schedule(static,500)
@@ -4146,21 +4147,21 @@ void UpdateProbs(int DoPlace)
 	{
 		int m, k;
 		float t;
-		CellLookup[j]->cum_trans[0] = ((float)(CellLookup[0]->S0)) * CellLookup[j]->max_trans[0];
-		t = ((float)CellLookup[0]->n) * CellLookup[j]->max_trans[0];
+		Cells.at(j).cum_trans[0] = ((float)(Cells.front().S0)) * Cells.at(j).max_trans[0];
+		t = ((float)Cells.front().n) * Cells.at(j).max_trans[0];
 		for (m = 1; m < P.NCP; m++)
 		{
-				CellLookup[j]->cum_trans[m] = CellLookup[j]->cum_trans[m - 1] + ((float)(CellLookup[m]->S0)) * CellLookup[j]->max_trans[m];
-				t += ((float)CellLookup[m]->n) * CellLookup[j]->max_trans[m];
+				Cells.at(j).cum_trans[m] = Cells.at(j).cum_trans[m - 1] + ((float)(Cells.at(m).S0)) * Cells.at(j).max_trans[m];
+				t += ((float)Cells.at(m).n) * Cells.at(j).max_trans[m];
 		}
-		CellLookup[j]->tot_prob = CellLookup[j]->cum_trans[P.NCP - 1];
+		Cells.at(j).tot_prob = Cells.at(j).cum_trans[P.NCP - 1];
 		for (m = 0; m < P.NCP; m++)
-			CellLookup[j]->cum_trans[m] /= CellLookup[j]->tot_prob;
-		CellLookup[j]->tot_prob /= t;
+			Cells.at(j).cum_trans[m] /= Cells.at(j).tot_prob;
+		Cells.at(j).tot_prob /= t;
 		for (k = m = 0; k <= 1024; k++)
 		{
-			while (CellLookup[j]->cum_trans[m] * 1024 < ((float)k)) m++;
-			CellLookup[j]->InvCDF[k] = m;
+			while (Cells.at(j).cum_trans[m] * 1024 < ((float)k)) m++;
+			Cells.at(j).InvCDF[k] = m;
 		}
 	}
 }
@@ -4658,7 +4659,7 @@ void RecordSample(double t, int n)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
+	for (i = k = 0; i < P.NMC; i++) if (Mcells.at(i).socdist == 2) k++;
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
 	//update contact number distribution in State
@@ -5061,13 +5062,14 @@ void CalcOriginDestMatrix_adunit()
 #pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) //reduction(+:s,t2)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
+		auto Cells_front = &Cells.front();
 		for (i = tn; i < P.NCP; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
 			double pop_dens_from[MAX_ADUNITS] = {};
 
 			//find index of cell from which flow travels
-			cl_from = CellLookup[i] - Cells;
+			cl_from = CellLookup[i] - Cells_front;
 			cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
@@ -5091,17 +5093,17 @@ void CalcOriginDestMatrix_adunit()
 				double pop_dens_to[MAX_ADUNITS] = {};
 
 				//find index of cell which flow travels to
-				cl_to = CellLookup[j] - Cells;
+				cl_to = CellLookup[j] - Cells_front;
 				cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				if (j == 0)
 				{
-					total_flow = Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
+					total_flow = Cells.at(cl_from).cum_trans[j] * Cells.at(cl_from).n;
 				}
 				else
 				{
-					total_flow = (Cells[cl_from].cum_trans[j] - Cells[cl_from].cum_trans[j - 1]) * Cells[cl_from].n;
+					total_flow = (Cells.at(cl_from).cum_trans[j] - Cells.at(cl_from).cum_trans[j - 1]) * Cells.at(cl_from).n;
 				}
 
 				//loop over microcells within destination cell
@@ -5111,10 +5113,10 @@ void CalcOriginDestMatrix_adunit()
 					{
 						//get index of microcell
 						mcl_to = cl_to_mcl + p + m * P.nmch;
-						if (Mcells[mcl_to].n > 0)
+						if (Mcells.at(mcl_to).n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
-							pop_dens_to[Mcells[mcl_to].adunit] += (((double)Mcells[mcl_to].n) / ((double)Cells[cl_to].n));
+							pop_dens_to[Mcells.at(mcl_to).adunit] += (((double)Mcells.at(mcl_to).n) / ((double)Cells.at(cl_to).n));
 						}
 					}
 				}

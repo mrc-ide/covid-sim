@@ -62,8 +62,9 @@ double dist2_cc(cell* a, cell* b)
 	double x, y;
 	int l, m;
 
-	l = (int)(a - Cells);
-	m = (int)(b - Cells);
+	auto Cells_front = &Cells.front();
+	l = (int)(a - Cells_front);
+	m = (int)(b - Cells_front);
 	if (P.DoUTM_coords)
 		return dist2UTM(P.cwidth * fabs((double)(l / P.nch)), P.cheight * fabs((double)(l % P.nch)),
 			P.cwidth * fabs((double)(m / P.nch)), P.cheight * fabs((double)(m % P.nch)));
@@ -84,8 +85,9 @@ double dist2_cc_min(cell* a, cell* b)
 	double x, y;
 	int l, m, i, j;
 
-	l = (int)(a - Cells);
-	m = (int)(b - Cells);
+	auto Cells_front = &Cells.front();
+	l = (int)(a - Cells_front);
+	m = (int)(b - Cells_front);
 	i = l; j = m;
 	if (P.DoUTM_coords)
 	{
@@ -155,8 +157,9 @@ double dist2_mm(microcell* a, microcell* b)
 	double x, y;
 	int l, m;
 
-	l = (int)(a - Mcells);
-	m = (int)(b - Mcells);
+	auto Mcells_front = &Mcells.front();
+	l = (int)(a - Mcells_front);
+	m = (int)(b - Mcells_front);
 	if (P.DoUTM_coords)
 		return dist2UTM(P.mcwidth * fabs((double)(l / P.nmch)), P.mcheight * fabs((double)(l % P.nmch)),
 			P.mcwidth * fabs((double)(m / P.nmch)), P.mcheight * fabs((double)(m % P.nmch)));
