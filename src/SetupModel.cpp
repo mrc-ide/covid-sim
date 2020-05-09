@@ -1003,10 +1003,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	State.CellSuscMemberArray = mcl;
 	i2 = k = 0;
+	auto Cells_front = &Cells.front();
 	for (j = 0; j < P.NC; j++)
 		if (Cells[j].n > 0)
 		{
-			CellLookup[i2++] = Cells + j;
+			CellLookup[i2++] = Cells_front + j;
 			Cells[j].susceptible = mcl + k;
 			k += Cells[j].n;
 		}
@@ -1031,11 +1032,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (j = 0; j < Cells.at(i).n; j++) Cells.at(i).members[j] = -1;
 	}
 	fprintf(stderr, "Cells assigned\n");
+	auto Mcells_front = &Mcells.front();
 	for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NH = 0;
 	for (i = j2 = 0; j2 < P.NMCP; j2++)
 	{
-		j = (int)(McellLookup[j2] - Mcells);
+		j = (int)(McellLookup[j2] - Mcells_front);
 		l = ((j / P.nmch) / P.NMCL) * P.nch + ((j % P.nmch) / P.NMCL);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (k = 0; k < Mcells[j].n;)
@@ -1068,9 +1070,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", i);
 #pragma omp parallel for private(tn,j2,j,i,k,x,y,xh,yh,i2,m) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
+	auto Mcells_front = &Mcells.front();
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
-			j = (int)(McellLookup[j2] - Mcells);
+			j = (int)(McellLookup[j2] - Mcells_front);
 			x = (double)(j / P.nmch);
 			y = (double)(j % P.nmch);
 			i = Mcells[j].members[0];
