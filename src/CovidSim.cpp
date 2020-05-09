@@ -35,6 +35,13 @@
 #include <strings.h>
 #endif
 
+enum class ArgType {
+	DOUBLE,
+	INTEGER,
+	STRING
+};
+
+bool ParseArg(ArgType, char*, void*);
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
@@ -133,183 +140,232 @@ int main(int argc, char* argv[])
 	P.BitmapFormat = BitmapFormats::BMP;
 #endif
 
-	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
+	/**
+	 * Read in command line arguments:
+	 *   - random number seeds
+	 *   - (pre)parameter files
+	 *   - binary files
+	 *   - population data
+	 *   - output directory
+	 */
 
-	if (argc < 7)	Perr = 1;
-	else
-	{
-		///// Get seeds.
+	if (argc < 7) {
+		Perr = 1;
+	}
+	else {
+		// Get seeds.
 		i = argc - 4;
 		sscanf(argv[i], "%i", &P.setupSeed1);
 		sscanf(argv[i + 1], "%i", &P.setupSeed2);
 		sscanf(argv[i + 2], "%i", &P.runSeed1);
 		sscanf(argv[i + 3], "%i", &P.runSeed2);
 
-		///// Set parameter defaults - read them in after
+		// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
 		P.CaseOrDeathThresholdBeforeAlert = 0;
 		P.R0scale = 1.0;
-		P.KernelOffsetScale = P.KernelPowerScale = 1.0; //added this so that kernel parameters are only changed if input from the command line: ggilani - 15/10/2014
+		// added this so that kernel parameters are only changed if input from
+		// the command line: ggilani - 15/10/2014
+		P.KernelOffsetScale = P.KernelPowerScale = 1.0;
 		P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
 
-		//// scroll through command line arguments, anticipating what they can be using various if statements.
+		// scroll through command line arguments, anticipating what they can be
+		// using various if statements.
 		for (i = 1; i < argc - 4; i++)
 		{
-			if ((argv[i][0] != '/') && ((argv[i][2] != ':') && (argv[i][3] != ':'))) Perr = 1;
-			if (argv[i][1] == 'P' && argv[i][2] == ':')
-			{
-				GotP = 1;
-				sscanf(&argv[i][3], "%s", ParamFile);
+			char* opt = argv[i];
+			if (opt[0] != '/') {
+				Perr = 1;
+				fprintf(stderr, "Argument does not start with '/': %s\n", opt);
+				break;
 			}
-			else if (argv[i][1] == 'O' && argv[i][2] == ':')
-			{
-				GotO = 1;
-				sscanf(&argv[i][3], "%s", OutFileBase);
-			}
-			else if (argv[i][1] == 'D' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%s", DensityFile);
-				P.DoHeteroDensity = 1;
-				P.DoPeriodicBoundaries = 0;
-			}
-			else if (argv[i][1] == 'A' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%s", AdunitFile);
-			}
-			else if (argv[i][1] == 'L' && argv[i][2] == ':')
-			{
-				GotL = 1;
-				P.LoadSaveNetwork = 1;
-				sscanf(&argv[i][3], "%s", NetworkFile);
-			}
-			else if (argv[i][1] == 'S' && argv[i][2] == ':')
-			{
-				P.LoadSaveNetwork = 2;
-				GotS = 1;
-				sscanf(&argv[i][3], "%s", NetworkFile);
-			}
-			else if (argv[i][1] == 'R' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%lf", &P.R0scale);
-			}
-			else if (argv[i][1] == 'N' && argv[i][2] == 'R' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%i", &GotNR);
-			}
-			else if (argv[i][1] == 'K' && argv[i][2] == 'P' && argv[i][3] == ':') //added Kernel Power and Offset scaling so that it can easily be altered from the command line in order to vary the kernel quickly: ggilani - 15/10/14
-			{
-				sscanf(&argv[i][4], "%lf", &P.KernelPowerScale);
-			}
-			else if (argv[i][1] == 'K' && argv[i][2] == 'O' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%lf", &P.KernelOffsetScale);
-			}
-			else if (argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '1' && argv[i][5] == ':') // generic command line specified param - matched to #1 in param file
-			{
-				sscanf(&argv[i][6], "%lf", &P.clP1);
-			}
-			else if (argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '2' && argv[i][5] == ':') // generic command line specified param - matched to #2 in param file
-			{
-				sscanf(&argv[i][6], "%lf", &P.clP2);
-			}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '3' && argv[i][5] == ':') // generic command line specified param - matched to #3 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP3);
+
+			char* optval = &(argv[i][3]);
+			switch(opt[1]) {
+				case 'A':
+					switch(opt[2]) {
+						case ':':
+							ParseArg(ArgType::STRING, &opt[2], AdunitFile);
+							break;
+						case 'P':
+							if (ParseArg(ArgType::STRING, &opt[3], AirTravelFile)) {
+								GotAP = 1;
+							}
+							break;
+					}
+					break;
+				case 'B': {
+					if (opt[2] == 'M') {
+						ParseArg(ArgType::STRING, &opt[3], buf);
+						if (strcasecmp(buf, "png") == 0) {
+					#if defined(IMAGE_MAGICK) || defined(_WIN32)
+							P.BitmapFormat = BitmapFormats::PNG;
+					#else
+							fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
+							Perr = 1;
+					#endif
+						}
+						else if (strcasecmp(buf, "bmp") == 0) {
+							P.BitmapFormat = BitmapFormats::BMP;
+						}
+						else {
+							fprintf(stderr, "Unrecognised bitmap format: %s\n", buf);
+							Perr = 1;
+						}
+					}
+					break;
 				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '4' && argv[i][5] == ':') // generic command line specified param - matched to #4 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP4);
+				case 'c':
+					ParseArg(ArgType::INTEGER, &opt[2], &P.MaxNumThreads);
+					break;
+				// generic command line specified params mapped to #<X> in param file
+				case 'C': {
+					switch(opt[2]) {
+						case ':':
+							ParseArg(ArgType::INTEGER, &opt[2], &P.PlaceCloseIndepThresh);
+							break;
+						case 'L': {
+							if (opt[3] == 'P') {
+								switch(opt[4]) {
+									case '1':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP1);
+										break;
+									case '2':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP2);
+										break;
+									case '3':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP3);
+										break;
+									case '4':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP4);
+										break;
+									case '5':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP5);
+										break;
+									case '6':
+										ParseArg(ArgType::DOUBLE, &opt[5], &P.clP6);
+										break;
+								}
+							}
+							break;
+						}
+					}
+					break;
 				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '5' && argv[i][5] == ':') // generic command line specified param - matched to #5 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP5);
+				case 'd':
+					if (ParseArg(ArgType::STRING, &opt[2], RegDemogFile))
+						P.DoAdunitDemog = 1;
+					break;
+				case 'D':
+					if (ParseArg(ArgType::STRING, &opt[2], DensityFile)) {
+						P.DoHeteroDensity = 1;
+						P.DoPeriodicBoundaries = 0;
+					}
+					break;
+				case 'I':
+					if (ParseArg(ArgType::STRING, &opt[2], InterventionFile[P.DoInterventionFile])) {
+						P.DoInterventionFile++;
+					}
+					break;
+				// added Kernel Power and Offset scaling so that it can easily
+				// be altered from the command line in order to vary the kernel
+				// quickly: ggilani - 15/10/14
+				case 'K': {
+					switch(opt[2]) {
+						case 'O':
+							ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelOffsetScale);
+							break;
+						case 'P':
+							ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelPowerScale);
+							break;
+					}
+					break;
 				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '6' && argv[i][5] == ':') // generic command line specified param - matched to #6 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP6);
-				}
-			else if (argv[i][1] == 'A' && argv[i][2] == 'P' && argv[i][3] == ':')
-			{
-				GotAP = 1;
-				sscanf(&argv[i][3], "%s", AirTravelFile);
-			}
-			else if (argv[i][1] == 's' && argv[i][2] == ':')
-			{
-				GotScF = 1;
-				sscanf(&argv[i][3], "%s", SchoolFile);
-			}
-			else if (argv[i][1] == 'T' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%i", &P.CaseOrDeathThresholdBeforeAlert);
-			}
-			else if (argv[i][1] == 'C' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%i", &P.PlaceCloseIndepThresh);
-			}
-			else if (argv[i][1] == 'd' && argv[i][2] == ':')
-			{
-				P.DoAdunitDemog = 1;
-				sscanf(&argv[i][3], "%s", RegDemogFile);
-			}
-			else if (argv[i][1] == 'c' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%i", &P.MaxNumThreads);
-			}
-			else if (argv[i][1] == 'M' && argv[i][2] == ':')
-			{
-				P.OutputDensFile = 1;
-				sscanf(&argv[i][3], "%s", OutDensFile);
-			}
-			else if (argv[i][1] == 'I' && argv[i][2] == ':')
-			{
-				sscanf(&argv[i][3], "%s", InterventionFile[P.DoInterventionFile]);
-				P.DoInterventionFile++;
-			}
-			else if (argv[i][1] == 'L' && argv[i][2] == 'S' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%s", SnapshotLoadFile);
-				P.DoLoadSnapshot = 1;
-			}
-			else if (argv[i][1] == 'P' && argv[i][2] == 'P' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%s", PreParamFile);
-				GotPP = 1;
-			}
-			else if (argv[i][1] == 'S' && argv[i][2] == 'S' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%s", buf);
-				fprintf(stderr, "### %s\n", buf);
-				sep = strchr(buf, ',');
-				if (!sep)
-					Perr = 1;
-				else
-				{
-					P.DoSaveSnapshot = 1;
-					*sep = ' ';
-					sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
-				}
-			}
-			else if (argv[i][1] == 'B' && argv[i][2] == 'M' && argv[i][3] == ':')
-			{
-				sscanf(&argv[i][4], "%s", buf);
-				if (strcasecmp(buf, "png") == 0)
-				{
-#if defined(IMAGE_MAGICK) || defined(_WIN32)
-				  P.BitmapFormat = BitmapFormats::PNG;
-#else
-				  fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
-				  Perr = 1;
-#endif
-				}
-				else if (strcasecmp(buf, "bmp") == 0)
-				{
-				  P.BitmapFormat = BitmapFormats::BMP;
-				}
-				else
-				{
-				  fprintf(stderr, "Unrecognised bitmap format: %s\n", buf);
-				  Perr = 1;
-				}
+				case 'L':
+					switch(opt[2]) {
+						case ':':
+							if (ParseArg(ArgType::STRING, &opt[2], NetworkFile)) {
+								GotL = 1;
+								P.LoadSaveNetwork = 1;
+							}
+							break;
+						case 'S':
+							if (ParseArg(ArgType::STRING, &opt[3], SnapshotLoadFile)) {
+								P.DoLoadSnapshot = 1;
+							}
+							break;
+					}
+					break;
+				case 'M':
+					if (ParseArg(ArgType::STRING, &opt[2], OutDensFile)) {
+						P.OutputDensFile = 1;
+					}
+					break;
+				case 'N':
+					switch(opt[2]) {
+						case 'R':
+							ParseArg(ArgType::INTEGER, &opt[3], &GotNR);
+							break;
+					}
+					break;
+				case 'O':
+					if (ParseArg(ArgType::STRING, &opt[2], OutFileBase)) {
+						GotO = 1;
+					}
+					break;
+				case 'P':
+					switch(opt[2]) {
+						case ':':
+							if (ParseArg(ArgType::STRING, &opt[2], ParamFile)) {
+								GotP = 1;
+							}
+							break;
+						case 'P':
+							if (ParseArg(ArgType::STRING, &opt[3], PreParamFile)) {
+								GotPP = 1;
+							}
+							break;
+					}
+					break;
+				case 'R':
+					ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
+					break;
+				case 's':
+					if (ParseArg(ArgType::STRING, &opt[2], SchoolFile)) {
+						GotScF = 1;
+					}
+					break;
+				case 'S':
+					switch(opt[2]) {
+						case ':':
+							if (ParseArg(ArgType::STRING, &opt[2], NetworkFile)) {
+								P.LoadSaveNetwork = 2;
+								GotS = 1;
+							}
+							break;
+						case 'S':
+							if (ParseArg(ArgType::STRING, &opt[3], buf)) {
+								fprintf(stderr, "### %s\n", buf);
+								sep = strchr(buf, ',');
+								if (!sep)
+									Perr = 1;
+								else
+								{
+									P.DoSaveSnapshot = 1;
+									*sep = ' ';
+									sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
+								}
+							}
+							sscanf(&opt[4], "%s", buf);
+							break;
+					}
+					break;
+				case 'T':
+					ParseArg(ArgType::INTEGER, &opt[2], &P.CaseOrDeathThresholdBeforeAlert);
+					break;
+				default:
+					fprintf(stderr, "Unsupported argument specified %s\n", opt);
+					break;
 			}
 		}
 		if (((GotS) && (GotL)) || (!GotP) || (!GotO)) Perr = 1;
@@ -481,6 +537,26 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "Model finished\n");
 }
 
+bool ParseArg(ArgType type, char* input, void* output)
+{
+	if (input[0] != ':') {
+		fprintf(stderr, "Improperly formatted argument: %s\n", input);
+		return false;
+	}
+
+	switch(type) {
+		case ArgType::DOUBLE:
+			sscanf(&input[1], "%lf", (double *) output);
+			break;
+		case ArgType::INTEGER:
+			sscanf(&input[1], "%i", (int *) output);
+			break;
+		case ArgType::STRING:
+			sscanf(&input[1], "%s", (char* ) output);
+			break;
+	}
+	return true;
+}
 
 void ReadParams(char* ParamFile, char* PreParamFile)
 {
