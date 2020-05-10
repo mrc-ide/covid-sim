@@ -31,6 +31,15 @@
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
+// Use the POSIX name for case-insensitive string comparison: strcasecmp.
+#ifdef _WIN32
+// Windows calls it _stricmp so make strcasecmp an alias.
+#include <string.h>
+#define strcasecmp _stricmp
+#else
+#include <strings.h>
+#endif
+
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
@@ -284,7 +293,7 @@ int main(int argc, char* argv[])
 			else if (argv[i][1] == 'B' && argv[i][2] == 'M' && argv[i][3] == ':')
 			{
 				sscanf(&argv[i][4], "%s", buf);
-				if (stricmp(buf, "png") == 0)
+				if (strcasecmp(buf, "png") == 0)
 				{
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
 				  P.BitmapFormat = BF_PNG;
@@ -293,7 +302,7 @@ int main(int argc, char* argv[])
 				  Perr = 1;
 #endif
 				}
-				else if (stricmp(buf, "bmp") == 0)
+				else if (strcasecmp(buf, "bmp") == 0)
 				{
 				  P.BitmapFormat = BF_BMP;
 				}
