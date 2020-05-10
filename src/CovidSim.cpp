@@ -420,10 +420,8 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s.avE", OutFileBase);
 	//SaveSummaryResults();
 
+	Bitmap_Finalise();
 
-#ifdef WIN32_BM
-	Gdiplus::GdiplusShutdown(m_gdiplusToken);
-#endif
 	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 	fprintf(stderr, "Model finished\n");
@@ -2429,7 +2427,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	if (P.OutputBitmap)
 	{
-#ifdef WIN32_BM
+#ifdef _WIN32
 		//if (P.OutputBitmap == 1)
 		//{
 		//	char buf[200];

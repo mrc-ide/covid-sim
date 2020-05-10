@@ -15,7 +15,7 @@
 
 #ifdef WIN32_BM
 //HAVI avi;
-ULONG_PTR m_gdiplusToken;
+static ULONG_PTR m_gdiplusToken;
 static HBITMAP bmpdib;
 static CLSID  encoderClsid;
 #endif
@@ -302,3 +302,9 @@ void InitBMHead()
 #endif
 }
 
+void Bitmap_Finalise()
+{
+#ifdef _WIN32
+  Gdiplus::GdiplusShutdown(m_gdiplusToken);
+#endif
+}

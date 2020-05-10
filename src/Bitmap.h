@@ -49,11 +49,12 @@ extern bitmap_header* bmh;
 #ifdef WIN32_BM
 //DECLARE_HANDLE(HAVI);
 //extern HAVI avi;
-extern ULONG_PTR m_gdiplusToken;
 #endif
 
 void CaptureBitmap();
 void OutputBitmap(int);
 void InitBMHead();
+
+void Bitmap_Finalise();
 
 #endif // COVIDSIM_BITMAP_H_INCLUDED_
