@@ -122,6 +122,13 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 	cl = clock();
 
+	// Default bitmap format is platform dependent.
+#if defined(IMAGE_MAGICK) || defined(_WIN32)
+	P.BitmapFormat = BF_PNG;
+#else
+	P.BitmapFormat = BF_BMP;
+#endif
+
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
 
 	if (argc < 7)	Perr = 1;
@@ -274,6 +281,28 @@ int main(int argc, char* argv[])
 					sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
 				}
 			}
+			else if (argv[i][1] == 'B' && argv[i][2] == 'M' && argv[i][3] == ':')
+			{
+				sscanf(&argv[i][4], "%s", buf);
+				if (stricmp(buf, "png") == 0)
+				{
+#if defined(IMAGE_MAGICK) || defined(_WIN32)
+				  P.BitmapFormat = BF_PNG;
+#else
+				  fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
+				  Perr = 1;
+#endif
+				}
+				else if (stricmp(buf, "bmp") == 0)
+				{
+				  P.BitmapFormat = BF_BMP;
+				}
+				else
+				{
+				  fprintf(stderr, "Unrecognised bitmap format: %s\n", buf);
+				  Perr = 1;
+				}
+			}
 		}
 		if (((GotS) && (GotL)) || (!GotP) || (!GotO)) Perr = 1;
 	}
@@ -283,6 +312,7 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s", OutFileBase);
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
+	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BF_PNG ? "png" : "bmp");
 	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -3297,10 +3327,10 @@ void SaveResults(void)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
 		fclose(dat);
 		}
-#if defined(WIN32_BM) || defined(IMAGE_MAGICK)
+#if defined(_WIN32) || defined(IMAGE_MAGICK)
 	static int dm[13] ={0,31,28,31,30,31,30,31,31,30,31,30,31};
 	int d, m, y, dml, f;
-#ifdef WIN32_BM
+#ifdef _WIN32
 	//if(P.OutputBitmap == 1) CloseAvi(avi);
 	//if((TimeSeries[P.NumSamples - 1].extinct) && (P.OutputOnlyNonExtinct))
 	//	{
@@ -3308,7 +3338,7 @@ void SaveResults(void)
 	//	DeleteFile(outname);
 	//	}
 #endif
-	if(P.OutputBitmap >= 1)
+	if(P.OutputBitmap >= 1 && P.BitmapFormat == BF_PNG)
 		{
 		// Generate Google Earth .kml file
 		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);

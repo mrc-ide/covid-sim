@@ -90,7 +90,7 @@ updir1 = os.pardir + os.sep
 shutil.rmtree(testdir, True)
 os.mkdir(testdir)
 os.chdir(testdir)
-subprocess.check_call(['cmake', '-DCMAKE_CXX_FLAGS=-DNO_WIN32_BM', updir2 + 'src'])
+subprocess.check_call(['cmake', updir2 + 'src'])
 subprocess.check_call(['cmake', '--build', '.'])
 
 if os.name == 'nt':
@@ -114,7 +114,7 @@ if not os.path.exists(wpop_file):
 # Run the simulation.
 print('=== Starting building network:')
 subprocess.check_call(
-    [covidsim_exe, '/c:1',
+    [covidsim_exe, '/c:1', '/BM:BMP',
      '/PP:' +  updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1  + 'p_NoInt.txt', '/CLP1:100000',
      '/CLP2:0', '/O:NoInt_R0=2.2', '/D:' + wpop_file, '/M:' + wpop_bin,
@@ -124,7 +124,7 @@ subprocess.check_call(
     ])
 print('=== Starting running repeat:')
 subprocess.check_call(
-    [covidsim_exe, '/c:1',
+    [covidsim_exe, '/c:1', '/BM:BMP',
      '/PP:' +  updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1  + 'p_NoInt.txt', '/CLP1:100000',
      '/CLP2:0', '/O:NoInt_R0=2.2-repeat', '/D:' + wpop_bin,
@@ -134,7 +134,7 @@ subprocess.check_call(
     ])
 print('=== Starting running:')
 subprocess.check_call(
-    [covidsim_exe, '/c:1',
+    [covidsim_exe, '/c:1', '/BM:BMP',
      '/PP:' + updir1 + 'preUK_R0=2.0.txt',
      '/P:' + updir1 + 'p_PC7_CI_HQ_SD.txt', '/CLP1:100',
      '/CLP2:91', '/CLP3:121', '/CLP4:121', '/O:CI_100_91_R0=2.2',
