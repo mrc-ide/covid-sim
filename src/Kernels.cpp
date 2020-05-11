@@ -28,22 +28,32 @@ void InitKernel(int DoPlaces, double norm)
 	int i, j;
 	double(*Kernel)(double);
 
-	if (P.KernelType == 1)
-		Kernel = ExpKernel;
-	else if (P.KernelType == 2)
-		Kernel = PowerKernel;
-	else if (P.KernelType == 3)
-		Kernel = GaussianKernel;
-	else if (P.KernelType == 4)
-		Kernel = StepKernel;
-	else if (P.KernelType == 5)
-		Kernel = PowerKernelB;
-	else if (P.KernelType == 6)
-		Kernel = PowerKernelUS;
-	else if (P.KernelType == 7)
-		Kernel = PowerExpKernel;
-	else
-		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
+    switch (P.KernelType) {
+        case Kernel_Type::KERNEL_EXPONENTIAL:
+            Kernel = ExpKernel;
+            break;
+        case Kernel_Type::KERNEL_POWER:
+            Kernel = PowerKernel;
+            break;
+        case Kernel_Type::KERNEL_GUSSIAN:
+            Kernel = GaussianKernel;
+            break;
+        case Kernel_Type::KERNEL_STEP:
+            Kernel = StepKernel;
+            break;
+        case Kernel_Type::KERNEL_POWERB:
+            Kernel = PowerKernelB;
+            break;
+        case Kernel_Type::KERNEL_POWERUS:
+            Kernel = PowerKernelUS;
+            break;
+        case Kernel_Type::KERNEL_EXPONENTIAL_POWER:
+            Kernel = PowerExpKernel;
+            break;
+        default:
+            ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
+    }
+
 #pragma omp parallel for private(i) schedule(static,500) //added private i
 	for (i = 0; i <= P.NKR; i++)
 	{

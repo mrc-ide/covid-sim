@@ -3,6 +3,7 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "Kernels.h"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
@@ -27,11 +28,11 @@ typedef struct PARAM {
 	int NRactNE;
 	int UpdatesPerSample; // Number of time steps between samples
 	int NumSamples; // Total number of samples that will be made
-	int KernelType;
+	Kernel_Type KernelType;
 	int NKR; // Size of kernel lookup table
 	int NK_HR; // Factor to expand hi-res kernel lookup table by
-	int MoveKernelType;
-	int AirportKernelType;
+	Kernel_Type MoveKernelType;
+	Kernel_Type AirportKernelType;
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
@@ -111,7 +112,8 @@ typedef struct PARAM {
 	int PlaceTypeAgeMin[NUM_PLACE_TYPES], PlaceTypeAgeMax[NUM_PLACE_TYPES], PlaceTypeMaxAgeRead[NUM_PLACE_TYPES];
 	int PlaceTypeAgeMin2[NUM_PLACE_TYPES], PlaceTypeAgeMax2[NUM_PLACE_TYPES];
 	int PlaceTypeAgeMin3[NUM_PLACE_TYPES], PlaceTypeAgeMax3[NUM_PLACE_TYPES];
-	int PlaceTypeNearestNeighb[NUM_PLACE_TYPES], PlaceTypeKernelType[NUM_PLACE_TYPES];
+	int PlaceTypeNearestNeighb[NUM_PLACE_TYPES];
+    Kernel_Type PlaceTypeKernelType[NUM_PLACE_TYPES];
 	double PlaceTypePropAgeGroup[NUM_PLACE_TYPES], PlaceTypePropAgeGroup2[NUM_PLACE_TYPES];
 	double PlaceTypePropAgeGroup3[NUM_PLACE_TYPES], PlaceTypeKernelShape[NUM_PLACE_TYPES], PlaceTypeKernelScale[NUM_PLACE_TYPES];
 	double PlaceTypeKernelP3[NUM_PLACE_TYPES], PlaceTypeKernelP4[NUM_PLACE_TYPES], PlaceTypeTrans[NUM_PLACE_TYPES];
