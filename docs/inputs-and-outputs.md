@@ -70,6 +70,7 @@ Explanation of additional arguments:
 - `[/s:USschools.txt]` School information for a specific geography (currently only used for US).
 - `[/R:1.1]`. Spcifies the reproduction number (`R0`), as a multiplier of 2. `R0`, for a disease is the number of secondary cases in susceptibles per infected case. These commandline parameter is read into `P.R0scaling` which scales the `R0` parameter (specified in the parameter file), which is useful when we want repeated that *only* vary `R0`). For COVID-19, `/R:1.4` to `/R:1.6` is suitable.
 - `/CLP1:100000`, `/CLP2:0` etc. are special parameters that interact with wildcards `#1`, `#2` etc. in the intervention parameter file (and less often the pre-parameter file). Wildcard `#n` is replaced by the value of `CLPn`. This is useful to vary parts of parameter files at run-time (e.g. to undertake sensitivity analysis) without needing to generate entirely new parameter files.
+- `[/BM:format]`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when available) `PNG`.  Default is `PNG` if available, otherwise `BMP`.
 
 ## Input files
 
@@ -85,7 +86,7 @@ Parameter values are read in from parameter files by function `ReadParams`, whic
 
 The parameters are specified in admin, pre-parameter and intervention parameter files. Both files have the same format.
 
-Admin and pre-parameter files contain parameters whose values are *common* to a series of runs (i.e. defining geographiies and transmission parameters). Parameter files group intervention parameters whose values are more likely to *differ* between a series of runs. 
+Admin and pre-parameter files contain parameters whose values are *common* to a series of runs (i.e. defining geographies and transmission parameters). Intervention parameter files contain parameters whose values are more likely to *differ* between a series of runs. 
 
 The format is a sequence of:
 ```

@@ -202,6 +202,7 @@ print('=== RUN 1: No Intervention - Build network:')
 cmd = [
         covidsim_exe,
         '/c:1',
+        '/BM:bmp',
         '/PP:' + os.path.join(args.input, 'pre-params.txt'),
         '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
         '/O:' + os.path.join(args.output, 'results-noint'),
@@ -226,6 +227,7 @@ print('=== RUN 2: No Intervention - Load network:')
 cmd = [
         covidsim_exe,
         '/c:1',
+        '/BM:bmp',
         '/PP:' + os.path.join(args.input, 'pre-params.txt'),
         '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
         '/O:' + os.path.join(args.output, 'results-noint-repeat'),
@@ -249,6 +251,7 @@ print('=== RUN 3: Intervention - Load network:')
 cmd = [
         covidsim_exe,
         '/c:1',
+        '/BM:bmp',
         '/PP:' + os.path.join(args.input, 'pre-params.txt'),
         '/P:' + os.path.join(args.input, 'input-params.txt'),
         '/O:' + os.path.join(args.output, 'results-int'),

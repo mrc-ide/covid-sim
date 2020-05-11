@@ -91,7 +91,7 @@ typedef struct CONTACTEVENT {
  */
 typedef struct POPVAR {
 
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumInf_h, cumInf_n, cumInf_s, cumDC, trigDC;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
 	int H, cumH; //Added total and cumulative hospitalisation: ggilani 28/10/14
 	int CT, cumCT, CC, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
@@ -148,7 +148,7 @@ typedef struct POPVAR {
  */
 typedef struct RESULTS {
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC ;
+	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
 	double H, incH; //added total hospitalisation and incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
@@ -324,7 +324,7 @@ typedef struct ADMINUNIT {
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
 	//adding in admin level delays and durations for admin units: ggilani 17/03/20
 	double SocialDistanceDelay, HQuarantineDelay, CaseIsolationDelay, PlaceCloseDelay, DCTDelay;
-	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
+	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationPolicyDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
 } adminunit;

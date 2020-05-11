@@ -20,9 +20,6 @@ make test
 
 to run the regressions tests.
 
-*Note*: On Windows if you set `-DUSE_WIN32_BMP=ON` then testing will be
-disabled.
-
 The tests can take a while, and may produce no output for >10 minutes.
 Therefore using:
 
@@ -58,9 +55,6 @@ To enable Visual Studio to pick up the tests added by CMake:
 
  * Choose `Run CTests`.
 
-*Note*: On Windows if you set `-DUSE_WIN32_BMP=ON` then testing will be
-disabled.
-
 # Building directly with CMake in Visual Studio 2019
 
 Visual Studio 2019 supports using CMake to manage the build directly by selecting File -> Open -> Cmake... and opening `src/CMakeLists.txt`. Then Visual Studio's normal build shortcuts will update the CMake configuration as well as building the project.
@@ -75,16 +69,9 @@ To enable Visual Studio to pick up the tests added by CMake:
 
  * Choose `Run CTests`.
 
-*Note*: On Windows if you set `-DUSE_WIN32_BMP=ON` then testing will be
-disabled.
-
 # Build options
 Additional configuration variables can be provided in the `cmake` invocation.
 - `USE_OPENMP` determines whether the model is compiled with parallelization using OpenMP. This option defaults to on, but can be disabled by passing `-DUSE_OPENMP=OFF`. The simulation is designed to be run on multi-core systems. Performance improvements are approximately linear up to 24 to 32 cores, depending on memory performance.
-- `USE_WIN32_BMP` determines what bitmap routines to use when compiling on
-  Windows.  By default we will generate BMP files.  On Windows if
-  `-DUSE_WIN32_BMP=ON` is passed to `cmake` then PNG files will be produced.
-  Setting `-DUSE_WIN32_BMP=ON` will disable testing.
 
 For Makefile builds, a build type can be specified by passing `-DCMAKE_BUILD_TYPE=Debug`, `-DCMAKE_BUILD_TYPE=MinSizeRel`, `-DCMAKE_BUILD_TYPE=Release`, or `-DCMAKE_BUILD_TYPE=RelWithDebInfo`. By default, Makefile builds will use `RelWithDebInfo`.
 

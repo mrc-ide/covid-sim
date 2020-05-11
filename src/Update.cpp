@@ -73,7 +73,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
 	unsigned short int ts; //// time step
-	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF (I think) to choose latent period.
+	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
 	person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
@@ -368,7 +368,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// DoRecover_FromSeverity assigns people to state Recovered (and bookkeeps accordingly).
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 
-	//// moved this from DoRecover as I think threading where DoRecover called from IncubRecoverySweep a little weird. Talk to Gemma/Neil.
+	//// moved this from DoRecover
 	person* a = Hosts + ai;
 
 	if (P.DoSeverity)
@@ -506,7 +506,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
 			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L; //// change person a's listpos, which will now refer to their position among infectious people, not latent.
-			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array? I think because the pointer was moved back one so now that bit of memory needs to refer to person ai. Alternative would be to move everyone back one which would take longer.
+			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array. Pointer was moved back one so now that memory address refers to person ai. Alternative would be to move everyone back one which would take longer.
 		}
 	}
 }
@@ -609,7 +609,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
-				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineHouseDelay));
+				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
@@ -633,7 +633,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 	//// Giant compound if statement. If doing delays by admin unit, then window of case isolation dependent on admin unit-specific duration. This if statement ensures that this timepoint within window, regardless of how window defined.
 	if ((P.DoInterventionDelaysByAdUnit &&
-		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + AdUnits[Mcells[a->mcell].adunit].CaseIsolationDuration)))	||
+		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + AdUnits[Mcells[a->mcell].adunit].CaseIsolationPolicyDuration)))	||
 		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + P.CaseIsolationPolicyDuration))								)
 		if ((P.CaseIsolationProp == 1) || (ranf_mt(tn) < P.CaseIsolationProp))
 		{
@@ -1166,7 +1166,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 						if (Hosts[ai].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
 						{
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-							if ((j1 < 0) || (j2 > P.N)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
+							if ((j1 < 0) || (j2 > P.PopSize)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
 							f = 0;
 #pragma omp critical (closeplace2)
 							{
