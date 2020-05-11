@@ -31,13 +31,14 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int x, y, f, mi;
+	int f, mi;
+	CovidSim::Geometry::Vector2i point;
 	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.bwidth * P.bheight);
+	mi = P.bitmapBounds.width() * P.bitmapBounds.height();
 	if (fst)
 	{
 		fst = 0;
@@ -45,11 +46,11 @@ void CaptureBitmap()
 		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[Hosts[i].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[Hosts[i].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				j = y * bmh->width + x;
+				j = point.y() * bmh->width + point.x();
 				if ((j < bmh->imagesize) && (j >= 0))
 				{
 					bmPopulation[j]++;
@@ -70,22 +71,22 @@ void CaptureBitmap()
 				if ((i >= P.nmch) && (Mcells[i - P.nmch].n > 0) && (Mcells[i].country != Mcells[i - P.nmch].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.mcwidth * (((double)(i / P.nmch)) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.mcheight * (((double)(i % P.nmch)) + 0.5) * P.scaley) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					point.x() = (int)(P.mcwidth * (((double)(i / P.nmch)) + 0.5) * P.scale.diagonal().x()) - P.bmin.x();
+					point.y() = (int)(P.mcheight * (((double)(i % P.nmch)) + 0.5) * P.scale.diagonal().y()) - P.bmin.y();
+					if (P.bitmapBounds.inside(point))
 					{
-						j = y * bmh->width + x;
+						j = point.y() * bmh->width + point.x();
 						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.bitmapBounds.width() / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bitmapBounds.width()) * 2);
 			f = ((int)prev);
 			for (j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.bheight + 5) * bmh->width + P.bwidth / 4 + i] = f;
+				bmPixels[(j + P.bitmapBounds.height() + 5) * bmh->width + P.bitmapBounds.width() / 4 + i] = f;
 			}
 		}
 	}
@@ -224,7 +225,7 @@ void InitBMHead()
 	int i, j, k, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.bwidth * P.bheight2;
+	k = P.bitmapBounds.width() * P.bitmapBounds.total_height();
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
@@ -235,8 +236,8 @@ void InitBMHead()
 	bmh->spare = 0;
 	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.bwidth;
-	bmh->height = P.bheight2;
+	bmh->width = P.bitmapBounds.width();
+	bmh->height = P.bitmapBounds.total_height();
 	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel
 	bmh->compr = 0; // No compression (BI_RGB)

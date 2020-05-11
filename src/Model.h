@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "InfStat.h"
 
+#include "geometry/Geometry.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
@@ -57,7 +58,7 @@ struct Household
 {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
+	CovidSim::Geometry::Vector2f loc;
 	unsigned short int nhr;
 };
 
@@ -210,7 +211,8 @@ struct Results
  */
 struct Events
 {
-	double infectee_x, infectee_y, t, t_infector;
+	CovidSim::Geometry::Vector2d infectee_loc;
+	double t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
 };
 
@@ -250,7 +252,8 @@ struct Airport
 {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int num_connected, *conn_airports;
-	float total_traffic, loc_x, loc_y;
+	float total_traffic;
+	CovidSim::Geometry::Vector2f loc;
 	float* prop_traffic;
 	IndexList* DestMcells, *DestPlaces;
 };
@@ -315,7 +318,7 @@ struct Place
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	float loc_x, loc_y;
+	CovidSim::Geometry::Vector2f loc;
 	float ProbClose;
 	int* group_start, *group_size, *members;
 };

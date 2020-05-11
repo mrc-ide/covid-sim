@@ -21,7 +21,7 @@ void DoImmune(int ai)
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
 	Person* a;
 	int c;
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	a = Hosts + ai;
 	if (a->inf == InfStat_Susceptible)
@@ -54,11 +54,11 @@ void DoImmune(int ai)
 		Cells[c].R++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[a->hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[a->hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = point.y() * bmh->width + point.x();
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -88,8 +88,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
+		x = (Households[a->hh].loc.x() - P.LocationInitialInfection[0].x());
+		y = (Households[a->hh].loc.y() - P.LocationInitialInfection[0].y());
 		q = x * x + y * y;
 		StateT[tn].sumRad2 += q;
 
@@ -126,11 +126,12 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+				CovidSim::Geometry::Vector2i ipoint;
+				ipoint.x() = ((int)(Households[a->hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+				ipoint.y() = ((int)(Households[a->hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+				if (P.bitmapBounds.inside(ipoint))
 				{
-					unsigned j = iy * bmh->width + ix;
+					unsigned j = ipoint.y() * bmh->width + ipoint.x();
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -183,8 +184,7 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 		InfEventLog[*nEvents].t = t;
 		InfEventLog[*nEvents].infectee_ind = ai;
 		InfEventLog[*nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
-		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
+		InfEventLog[*nEvents].infectee_loc = Households[Hosts[ai].hh].loc.cast<double>() + P.SpatialBoundingBox.bottom_left();
 		InfEventLog[*nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[*nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[*nEvents].thread = tn;
@@ -890,7 +890,8 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 
 void DoRecover(int ai, int tn, int run)
 {
-	int i, j, x, y;
+	int i, j;
+	CovidSim::Geometry::Vector2i point;
 	Person* a;
 
 	a = Hosts + ai;
@@ -913,11 +914,11 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				point.x() = ((int)(Households[a->hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+				point.y() = ((int)(Households[a->hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+				if (P.bitmapBounds.inside(point))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = point.y() * bmh->width + point.x();
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -935,7 +936,8 @@ void DoRecover(int ai, int tn, int run)
 
 void DoDeath(int ai, int tn, int run)
 {
-	int i, x, y;
+	int i;
+	CovidSim::Geometry::Vector2i point;
 	Person* a = Hosts + ai;
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
@@ -959,11 +961,11 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				point.x() = ((int)(Households[a->hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+				point.y() = ((int)(Households[a->hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+				if (P.bitmapBounds.inside(point))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = point.y() * bmh->width + point.x();
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -979,7 +981,7 @@ void DoDeath(int ai, int tn, int run)
 
 void DoTreatCase(int ai, unsigned short int ts, int tn)
 {
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -997,11 +999,11 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				point.x() = ((int)(Households[Hosts[ai].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+				point.y() = ((int)(Households[Hosts[ai].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+				if (P.bitmapBounds.inside(point))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = point.y() * bmh->width + point.x();
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -1016,7 +1018,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 void DoProph(int ai, unsigned short int ts, int tn)
 {
 	//// almost identical to DoProphNoDelay, except unsurprisingly this function includes delay between timestep and start of treatment. Also increments StateT[tn].cumT_keyworker by 1 every time.
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -1030,11 +1032,11 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[Hosts[ai].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[Hosts[ai].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = point.y() * bmh->width + point.x();
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1047,7 +1049,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 
 void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 {
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -1061,11 +1063,11 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[Hosts[ai].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[Hosts[ai].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = point.y() * bmh->width + point.x();
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1257,7 +1259,7 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 
 int DoVacc(int ai, unsigned short int ts)
 {
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	if (State.cumV >= P.VaccMaxCourses)
 		return 2;
@@ -1278,11 +1280,11 @@ int DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[Hosts[ai].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[Hosts[ai].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = point.y() * bmh->width + point.x();
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1296,7 +1298,7 @@ int DoVacc(int ai, unsigned short int ts)
 
 void DoVaccNoDelay(int ai, unsigned short int ts)
 {
-	int x, y;
+	CovidSim::Geometry::Vector2i point;
 
 	if ((State.cumVG < P.VaccMaxCourses) && (!HOST_TO_BE_VACCED(ai)) && (Hosts[ai].inf >= InfStat_InfectiousAlmostSymptomatic) && (Hosts[ai].inf < InfStat_Dead_WasAsymp))
 	{
@@ -1312,11 +1314,11 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			point.x() = ((int)(Households[Hosts[ai].hh].loc.x() * P.scale.diagonal().x())) - P.bmin.x();
+			point.y() = ((int)(Households[Hosts[ai].hh].loc.y() * P.scale.diagonal().y())) - P.bmin.y();
+			if (P.bitmapBounds.inside(point))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = point.y() * bmh->width + point.x();
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic

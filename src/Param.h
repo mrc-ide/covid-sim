@@ -4,6 +4,8 @@
 #include "Country.h"
 #include "Constants.h"
 
+#include "geometry/Geometry.h"
+
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
 {
@@ -43,9 +45,8 @@ struct Param
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
-	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	int bminx, bminy;
+	CovidSim::Geometry::BitMapBounds bitmapBounds; ///< Size in pixels of the map area in the bitmap output
+	CovidSim::Geometry::Vector2i bmin;
 	int OutputBitmap; // Whether to output a bitmap
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
@@ -63,7 +64,9 @@ struct Param
 	long nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
+	CovidSim::Geometry::BoundingBox2d SpatialBoundingBox;
+	CovidSim::Geometry::Vector2d LocationInitialInfection[MAX_NUM_SEED_LOCATIONS];
+	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
@@ -82,7 +85,7 @@ struct Param
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
-	double scalex, scaley; // Number of pixels per degree in bitmap output
+	CovidSim::Geometry::DiagonalMatrix2d scale; ///< Number of pixels per degree in bitmap output
 	double width, height; // Size of spatial domain in degrees
 	double cwidth, cheight; // Size of spatial domain in cells
 	double mcwidth, mcheight; // Size of spatial domain in microcells
@@ -127,7 +130,9 @@ struct Param
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
-	double ColourPeriod, BoundingBox[4], BitmapScale;
+	double ColourPeriod;
+	CovidSim::Geometry::BoundingBox2d BoundingBox;
+	double BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;

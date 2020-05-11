@@ -23,11 +23,11 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	y -= yi;
 	x = (1 - x) * sinx[(int)xi] + x * sinx[((int)xi) + 1];
 	y = (1 - y) * sinx[(int)yi] + y * sinx[((int)yi) + 1];
-	yt = fabs(y1 + P.SpatialBoundingBox[1]);
+	yt = fabs(y1 + P.SpatialBoundingBox.bottom_left().y());
 	yi = floor(yt);
 	cy1 = yt - yi;
 	cy1 = (1 - cy1) * cosx[((int)yi)] + cy1 * cosx[((int)yi) + 1];
-	yt = fabs(y2 + P.SpatialBoundingBox[1]);
+	yt = fabs(y2 + P.SpatialBoundingBox.bottom_left().y());
 	yi = floor(yt);
 	cy2 = yt - yi;
 	cy2 = (1 - cy2) * cosx[((int)yi)] + cy2 * cosx[((int)yi) + 1];
@@ -37,16 +37,17 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	y = (1 - x) * asin2sqx[((int)xi)] + x * asin2sqx[((int)xi) + 1];
 	return 4 * EARTHRADIUS * EARTHRADIUS * y;
 }
+
 double dist2(Person* a, Person* b)
 {
 	double x, y;
 
 	if (P.DoUTM_coords)
-		return dist2UTM(Households[a->hh].loc_x, Households[a->hh].loc_y, Households[b->hh].loc_x, Households[b->hh].loc_y);
+		return dist2UTM(Households[a->hh].loc, Households[b->hh].loc);
 	else
 	{
-		x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
-		y = fabs(Households[a->hh].loc_y - Households[b->hh].loc_y);
+		x = fabs(Households[a->hh].loc.x() - Households[b->hh].loc.x());
+		y = fabs(Households[a->hh].loc.y() - Households[b->hh].loc.y());
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.width * 0.5) x = P.width - x;
@@ -55,6 +56,7 @@ double dist2(Person* a, Person* b)
 		return x * x + y * y;
 	}
 }
+
 double dist2_cc(Cell* a, Cell* b)
 {
 	double x, y;
@@ -77,6 +79,7 @@ double dist2_cc(Cell* a, Cell* b)
 		return x * x + y * y;
 	}
 }
+
 double dist2_cc_min(Cell* a, Cell* b)
 {
 	double x, y;
@@ -148,6 +151,7 @@ double dist2_cc_min(Cell* a, Cell* b)
 		return x * x + y * y;
 	}
 }
+
 double dist2_mm(Microcell* a, Microcell* b)
 {
 	double x, y;
@@ -188,4 +192,14 @@ double dist2_raw(double ax, double ay, double bx, double by)
 		}
 		return x * x + y * y;
 	}
+}
+
+double dist2UTM(const CovidSim::Geometry::Vector2f& p1, const CovidSim::Geometry::Vector2f& p2)
+{
+	return dist2UTM(p1.x(), p1.y(), p2.x(), p2.y());
+}
+
+double dist2_raw(const CovidSim::Geometry::Vector2f& p1, const CovidSim::Geometry::Vector2f& p2)
+{
+	return dist2_raw(p1.x(), p1.y(), p2.x(), p2.y());
 }

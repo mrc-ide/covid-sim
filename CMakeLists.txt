@@ -1,7 +1,7 @@
 # CMakeLists.txt
 
 # CMake setup
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 # Project initialisation
 project("CovidSim")
@@ -47,8 +47,13 @@ endif()
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_subdirectory(third_party)
+add_subdirectory(include)
 add_subdirectory(src)
 
+add_subdirectory(unit_tests)
 if(WIN32 AND USE_WIN32_BMP)
   message(WARNING "USE_WIN32_BMP is enabled.  Therefore testing is disabled.")
   message(WARNING "To enable testing invoke with `cmake -DUSE_WIN32_BMP=NO`")

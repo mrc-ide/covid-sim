@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
+#include "geometry/Geometry.h"
+
 void SetupModel(char*, char*, char*, char*);
 void SetupPopulation(char*, char*, char*);
 void SetupAirports(void);
@@ -18,7 +20,8 @@ const int NETWORK_FILE_VERSION = 1;
 
 struct BinFile
 {
-	double x, y, pop;
+	CovidSim::Geometry::Vector2d point;
+	double pop;
 	int cnt, ad;
 };
 

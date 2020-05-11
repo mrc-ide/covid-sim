@@ -125,7 +125,7 @@ void TravelDepartSweep(double t)
 									k = Airports[i].conn_airports[l];
 									if (bm)
 									{
-										if (dist2_raw(Airports[i].loc_x, Airports[i].loc_y, Airports[k].loc_x, Airports[k].loc_y) > P.MoveRestrRadius2)
+										if (dist2_raw(Airports[i].loc, Airports[k].loc) > P.MoveRestrRadius2)
 										{
 											if (ranf_mt(tn) > P.MoveRestrEffect)
 											{
@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.cwidth)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.cheight));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc.x() / P.cwidth)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc.y() / P.cheight));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
@@ -222,7 +222,7 @@ void TravelDepartSweep(double t)
 							}
 							if (f3)
 							{
-								double s2 = dist2_raw(Households[Hosts[i2].hh].loc_x, Households[Hosts[i2].hh].loc_y, Places[P.HotelPlaceType][i].loc_x, Places[P.HotelPlaceType][i].loc_y);
+								double s2 = dist2_raw(Households[Hosts[i2].hh].loc, Places[P.HotelPlaceType][i].loc);
 								int f2 = 1;
 								if ((bm) && (s2 > P.MoveRestrRadius2))
 								{
@@ -367,8 +367,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								Microcell* mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
-									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
-										Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+									if ((dist2_raw(Households[si->hh].loc, Places[k][l].loc) > P.MoveRestrRadius2))
 										s3 *= P.MoveRestrEffect;
 								}
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
@@ -437,8 +436,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 											if (bm)
 											{
-												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+												if ((dist2_raw(Households[Hosts[i3].hh].loc, Places[k][l].loc) > P.MoveRestrRadius2))
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -508,8 +506,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
 											{
-												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+												if ((dist2_raw(Households[Hosts[i3].hh].loc, Places[k][l].loc) > P.MoveRestrRadius2))
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -667,8 +664,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									s *= CalcPersonSusc(i3, ts, ci, tn);
 									if (bm)
 									{
-										if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
-											Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y) > P.MoveRestrRadius2))
+										if ((dist2_raw(Households[si->hh].loc, Households[Hosts[i3].hh].loc) > P.MoveRestrRadius2))
 											s *= P.MoveRestrEffect;
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))

@@ -1,4 +1,7 @@
 # CMakeLists.txt for src directory
+include_directories("${eigen3_SOURCE_DIR}")
+
+ADD_SUBDIRECTORY( geometry )
 
 # Set up the IDE
 set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp)
