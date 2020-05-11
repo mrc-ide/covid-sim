@@ -15,7 +15,6 @@
 #include "Model.h"
 #include "Param.h"
 #include "SetupModel.h"
-#include "SharedFuncs.h"
 #include "ModelMacros.h"
 #include "InfStat.h"
 #include "CalcInfSusc.h"
@@ -5435,5 +5434,3 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
-
-
