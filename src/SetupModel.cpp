@@ -13,7 +13,6 @@
 #include "SetupModel.h"
 #include "Model.h"
 #include "ModelMacros.h"
-#include "SharedFuncs.h"
 #include "InfStat.h"
 #include "Bitmap.h"
 
