@@ -7,17 +7,17 @@ necessarily reflect runs used in published papers.
 
 ## Directories
 
- * *populations*: provides population density information
+- *populations*: provides population density information
 
- * *admin_units*: specifies the administration units for each country
+- *admin_units*: specifies the administration units for each country
 
- * *param_files*: Provides sample parameter files
+- *param_files*: Provides sample parameter files
 
-## Running the sample.
+## Running the sample
 
 The file `./run_sample.py` will build and run a sample for a specified country.
 
-### Usage:
+### Usage
 
 ```sh
 ./run_sample.py <COUNTRY>
@@ -31,14 +31,14 @@ For example:
 
 This will:
 
- 1. Build a copy of the CovidSim executable configured for the appropriate
-    country (in this case the UK)
+1. Build a copy of the CovidSim executable configured for the appropriate
+   country (in this case the UK)
 
- 2. Do a no intervention base run.  This run also provides various `*.bin`
-    files for the later run.
+2. Do a no intervention base run. This run also provides various `*.bin`
+   files for the later run.
 
- 3. Do a run with controls applied.  This is the step to be repeated when
-    doing further tests/runs.
+3. Do a run with controls applied. This is the step to be repeated when
+   doing further tests/runs.
 
 The sample script has more command line options available.  See
 `./run_sample.py --help` for a list.
