@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_SWEEP_H_INCLUDED_
 #define COVIDSIM_SWEEP_H_INCLUDED_
 

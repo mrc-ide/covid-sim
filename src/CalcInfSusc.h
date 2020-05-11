@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_CALCINFSUSC_H_
 #define COVIDSIM_CALCINFSUSC_H_
 
