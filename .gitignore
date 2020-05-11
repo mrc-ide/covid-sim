@@ -15,3 +15,31 @@ build_*/
 .project
 *.vcxproj.user
 tests/*-output/
+
+
+*.pyc
+*~
+# Mercurial:
+.hg*
+# IntelliJ config files:
+/.idea
+# Eclipse config files:
+/.cproject
+/.project
+# QtCreator config files:
+/*.config
+/*.creator
+/*.creator.user
+/*.files
+/*.includes
+/*.autosave
+/CMakeLists.txt.user*
+# Mac Finder:
+.DS_Store
+# CLion/IntelliJ
+*cmake-build-debug
+.idea/*
+# VScode
+.vscode/
+.vscode/*
+build/
