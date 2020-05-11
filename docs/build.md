@@ -72,7 +72,6 @@ as well as building the project.
 CMake options are configured using the `CMakeSettings.json` file, which
 Visual Studio will generate when `CMakeLists.txt` is opened.
 
-<<<<<<< HEAD
 ### Testing
 
 To enable Visual Studio to pick up the tests added by CMake:
