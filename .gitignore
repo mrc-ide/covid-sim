@@ -14,5 +14,4 @@ build-*/
 build_*/
 .project
 *.vcxproj.user
-tests/us-output/
-tests/regressiontest_UK_100th/
+tests/*-output/
