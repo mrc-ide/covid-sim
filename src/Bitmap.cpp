@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "binio.h"
+#include "BinIO.h"
 #include "Bitmap.h"
 #include "Error.h"
 #include "Param.h"

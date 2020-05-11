@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "binio.h"
+#include "BinIO.h"
 #include "Error.h"
 #include "Rand.h"
 #include "Kernels.h"

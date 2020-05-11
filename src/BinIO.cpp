@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "binio.h"
+#include "BinIO.h"
 #include "Param.h"
 /*#include "..\miniz_v111b\miniz.c"
 */
