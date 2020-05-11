@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['main_1398',['main',['../_covid_sim_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97',1,'CovidSim.cpp']]],
-  ['mltmod_1399',['mltmod',['../_rand_8cpp.html#a7918059d0404f6774dbf68b145fb5508',1,'mltmod(long a, long s, long m):&#160;Rand.cpp'],['../_rand_8h.html#adbdde2e53230e3102059a2ace3b2c990',1,'mltmod(long, long, long):&#160;Rand.cpp']]]
+  ['loadpeopletoplaces_1398',['LoadPeopleToPlaces',['../_setup_model_8cpp.html#aa29b782aef9904f648c6a241cc3c89fa',1,'LoadPeopleToPlaces(char *NetworkFile):&#160;SetupModel.cpp'],['../_setup_model_8h.html#a33b6b75a4178a1ea3d826f2ebca4ea56',1,'LoadPeopleToPlaces(char *):&#160;SetupModel.cpp']]],
+  ['loadsnapshot_1399',['LoadSnapshot',['../_covid_sim_8cpp.html#aa8bc51eb89e7eb1aa3ec6e7485314774',1,'CovidSim.cpp']]]
 ];

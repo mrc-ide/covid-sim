@@ -111,8 +111,6 @@ Macros</h2></td></tr>
 <tr class="separator:a53bba8b549fb737795c0137919a62e6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1e88bb4b1ff9546e6803eec85e0684c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#af1e88bb4b1ff9546e6803eec85e0684c">DIRECTORY_SEPARATOR</a>&#160;&#160;&#160;&quot;\\&quot;</td></tr>
 <tr class="separator:af1e88bb4b1ff9546e6803eec85e0684c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b1b99e1f32e7f57b11cd229d7a4a2b5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a4b1b99e1f32e7f57b11cd229d7a4a2b5">WIN32_BM</a></td></tr>
-<tr class="separator:a4b1b99e1f32e7f57b11cd229d7a4a2b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a7c30a576d5706b6c0821834d01cbbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a8a7c30a576d5706b6c0821834d01cbbc">STRICT</a></td></tr>
 <tr class="separator:a8a7c30a576d5706b6c0821834d01cbbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af808a334da52a6588e3079c180f8e4b7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#af808a334da52a6588e3079c180f8e4b7">BWCOLS</a>&#160;&#160;&#160;58</td></tr>
@@ -131,6 +129,8 @@ Functions</h2></td></tr>
 <tr class="separator:aa0c3de0f22f72668731d1233e17bef7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6893b0bada43cd5d136342e2748a181a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a6893b0bada43cd5d136342e2748a181a">InitBMHead</a> ()</td></tr>
 <tr class="separator:a6893b0bada43cd5d136342e2748a181a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55d112cc5b913495be83cc520553ade2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a55d112cc5b913495be83cc520553ade2">Bitmap_Finalise</a> ()</td></tr>
+<tr class="separator:a55d112cc5b913495be83cc520553ade2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -144,8 +144,6 @@ Variables</h2></td></tr>
 <tr class="separator:a7b9def4362a8b45fd7a2b7c2a645224f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a490645de2e27bbe4b5c32b6b57482365"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_bitmap_8h.html#a01214edbb82f32ed7464622f17821059">bitmap_header</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a490645de2e27bbe4b5c32b6b57482365">bmh</a></td></tr>
 <tr class="separator:a490645de2e27bbe4b5c32b6b57482365"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af12b122c239334cdcd9d6922bad12862"><td class="memItemLeft" align="right" valign="top">ULONG_PTR&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#af12b122c239334cdcd9d6922bad12862">m_gdiplusToken</a></td></tr>
-<tr class="separator:af12b122c239334cdcd9d6922bad12862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="af808a334da52a6588e3079c180f8e4b7"></a>
@@ -160,7 +158,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00031">31</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00027">27</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -208,23 +206,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00017">17</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
-
-</div>
-</div>
-<a id="a4b1b99e1f32e7f57b11cd229d7a4a2b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b1b99e1f32e7f57b11cd229d7a4a2b5">&#9670;&nbsp;</a></span>WIN32_BM</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define WIN32_BM</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00014">14</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00015">15</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -244,6 +226,25 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a55d112cc5b913495be83cc520553ade2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55d112cc5b913495be83cc520553ade2">&#9670;&nbsp;</a></span>Bitmap_Finalise()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Bitmap_Finalise </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="_bitmap_8cpp_source.html#l00316">316</a> of file <a class="el" href="_bitmap_8cpp_source.html">Bitmap.cpp</a>.</p>
+
+</div>
+</div>
 <a id="a18219f82be0459815032ddc8e8539694"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a18219f82be0459815032ddc8e8539694">&#9670;&nbsp;</a></span>CaptureBitmap()</h2>
 
@@ -278,7 +279,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8cpp_source.html#l00211">211</a> of file <a class="el" href="_bitmap_8cpp_source.html">Bitmap.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8cpp_source.html#l00221">221</a> of file <a class="el" href="_bitmap_8cpp_source.html">Bitmap.cpp</a>.</p>
 
 </div>
 </div>
@@ -315,7 +316,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00084">84</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -331,7 +332,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00046">46</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00042">42</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -347,7 +348,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00099">99</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00108">108</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -363,7 +364,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00046">46</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00042">42</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -379,23 +380,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00046">46</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
-
-</div>
-</div>
-<a id="af12b122c239334cdcd9d6922bad12862"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af12b122c239334cdcd9d6922bad12862">&#9670;&nbsp;</a></span>m_gdiplusToken</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ULONG_PTR m_gdiplusToken</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_bitmap_8cpp_source.html#l00018">18</a> of file <a class="el" href="_bitmap_8cpp_source.html">Bitmap.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00042">42</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>

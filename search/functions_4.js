@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['fread_5fbig_1373',['fread_big',['../binio_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5',1,'fread_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;binio.cpp'],['../binio_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd',1,'fread_big(void *, size_t, size_t, FILE *):&#160;binio.cpp']]],
-  ['fsign_1374',['fsign',['../_rand_8cpp.html#ab522f7ba08479f35ee7dd3729cf20a44',1,'fsign(double num, double sign):&#160;Rand.cpp'],['../_rand_8h.html#ac6e0be47b93c20eb5700b2b525b9acc7',1,'fsign(double, double):&#160;Rand.cpp']]],
-  ['fwrite_5fbig_1375',['fwrite_big',['../binio_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a',1,'fwrite_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;binio.cpp'],['../binio_8h.html#a881e8183b6e0e8468528614c63b68bab',1,'fwrite_big(void *, size_t, size_t, FILE *):&#160;binio.cpp']]]
+  ['errorcritical_1373',['ErrorCritical',['../_error_8cpp.html#a22f2cc07ee311e35a9d325efe392ccdc',1,'ErrorCritical(const char *fmt, const char *file, int line,...):&#160;Error.cpp'],['../_error_8h.html#a6d7f434fe55f165c85be19c51dbd4ffb',1,'ErrorCritical(const char *msg, const char *file, int line,...):&#160;Error.cpp']]],
+  ['expkernel_1374',['ExpKernel',['../_kernels_8cpp.html#a2515bd672caf564c9c1d92f9bf64f915',1,'ExpKernel(double r2):&#160;Kernels.cpp'],['../_kernels_8h.html#a78b186257dfc32fe7aa36488759633b9',1,'ExpKernel(double):&#160;Kernels.cpp']]]
 ];

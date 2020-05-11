@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['numkernel_1400',['numKernel',['../_kernels_8cpp.html#a4554988cce0ded4c9a7717faf9baa2f0',1,'numKernel(double r2):&#160;Kernels.cpp'],['../_kernels_8h.html#a86fa3469d2f9435cd4630faa06da583a',1,'numKernel(double):&#160;Kernels.cpp']]]
+  ['main_1400',['main',['../_covid_sim_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97',1,'CovidSim.cpp']]],
+  ['mltmod_1401',['mltmod',['../_rand_8cpp.html#a7918059d0404f6774dbf68b145fb5508',1,'mltmod(long a, long s, long m):&#160;Rand.cpp'],['../_rand_8h.html#adbdde2e53230e3102059a2ace3b2c990',1,'mltmod(long, long, long):&#160;Rand.cpp']]]
 ];

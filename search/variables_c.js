@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['m_5fgdiplustoken_1955',['m_gdiplusToken',['../_bitmap_8cpp.html#af12b122c239334cdcd9d6922bad12862',1,'m_gdiplusToken():&#160;Bitmap.cpp'],['../_bitmap_8h.html#af12b122c239334cdcd9d6922bad12862',1,'m_gdiplusToken():&#160;Bitmap.cpp']]],
   ['max_5fabsent_5ftime_1956',['MAX_ABSENT_TIME',['../_country_8h.html#ae3a22f6784274e53941ae746167c1e96',1,'Country.h']]],
   ['max_5fadunits_1957',['MAX_ADUNITS',['../_country_8h.html#ad48f4f08dc32cd1d956e965de3d3a0c1',1,'Country.h']]],
   ['max_5fcountries_1958',['MAX_COUNTRIES',['../_country_8h.html#aa7e7a5fdaa1159a9aa10148b60af3531',1,'Country.h']]],
