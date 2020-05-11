@@ -6,6 +6,13 @@
 #include "Country.h"
 #include "Constants.h"
 
+/** @brief Enumeration of bitmap formats. */
+enum BitmapFormats
+{
+  BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
+  BF_BMP = 1   // BMP - fall-back
+};
+
 /**
  * @brief Stores the parameters for the simulation.
  *
@@ -43,6 +50,7 @@ typedef struct PARAM {
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
 	int bminx, bminy;
 	int OutputBitmap; // Whether to output a bitmap
+	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;

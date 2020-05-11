@@ -55,7 +55,6 @@ CovidSim
     [/T:PreControlClusterIdCaseThreshold]
     SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
-
 Required arguments:
 
 - `/O` - Output file path prefix for simulation data collection. Output file
@@ -74,6 +73,8 @@ Optional Arguments:
 - `/A` - [Administrative division](./glossary.md#Administrative\ Division) parameter file
   - Example: `/A:./data/admin_units/United_Kingdom_admin.txt`
 - `/AP` Air travel data for a specific geography (unused currently)
+- `[/BM:format]`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when 
+ available) `PNG`.  Default is `PNG` if available, otherwise `BMP`.
 - `/c` - Number of parallel threads to use (only used if compiled with OpenMP)
   - Example: `/c:32`
 - `/C` - Sets the `P.PlaceCloseIndepThresh` parameter.
@@ -142,8 +143,8 @@ files. Both files have the same format.
 
 Admin and pre-parameter files contain parameters whose values are *common* to a
 series of runs (i.e. defining geographies and transmission parameters).
-Parameter files group intervention parameters whose values are more likely to
-*differ* between a series of runs.
+Intervention Parameter files group intervention parameters whose values are more
+likely to *differ* between a series of runs.
 
 The format is a sequence of:
 
