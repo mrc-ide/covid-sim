@@ -69,24 +69,22 @@ $(function() {
 <div class="title">Error.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="_error_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_ERROR_H_INCLUDED_</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#define COVIDSIM_ERROR_H_INCLUDED_</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="_error_8h.html#a4be3cf33177afde42cd7f17313f02ea3">    5</a></span>&#160; </div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#define ERR_CRITICAL(msg) ErrorCritical(msg, __FILE__, __LINE__)</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="_error_8h.html#ad74df05c36c5f7e949c2c75b19712260">    7</a></span>&#160;<span class="preprocessor">#define ERR_CRITICAL_FMT(fmt, ...) ErrorCritical(fmt, __FILE__, __LINE__, __VA_ARGS__)</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="_error_8h.html#a3f33eb02fe06645ffc38a943efc45df0">    8</a></span>&#160; </div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#ifdef _MSC_VER</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;__declspec(noreturn)</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="keywordtype">void</span> <a class="code" href="_error_8h.html#a6d7f434fe55f165c85be19c51dbd4ffb">ErrorCritical</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* msg, <span class="keyword">const</span> <span class="keywordtype">char</span>* file, <span class="keywordtype">int</span> line, ...)</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#ifdef __GNUC__</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;                                            __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#endif // COVIDSIM_ERROR_H_INCLUDED_</span></div>
+<a href="_error_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_ERROR_H_INCLUDED_</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define COVIDSIM_ERROR_H_INCLUDED_</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#define ERR_CRITICAL(msg) ErrorCritical(msg, __FILE__, __LINE__)</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="_error_8h.html#ad74df05c36c5f7e949c2c75b19712260">    5</a></span>&#160;<span class="preprocessor">#define ERR_CRITICAL_FMT(fmt, ...) ErrorCritical(fmt, __FILE__, __LINE__, __VA_ARGS__)</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno"><a class="line" href="_error_8h.html#a3f33eb02fe06645ffc38a943efc45df0">    6</a></span>&#160; </div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#ifdef _MSC_VER</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;__declspec(noreturn)</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keywordtype">void</span> <a class="code" href="_error_8h.html#a6d7f434fe55f165c85be19c51dbd4ffb">ErrorCritical</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* msg, <span class="keyword">const</span> <span class="keywordtype">char</span>* file, <span class="keywordtype">int</span> line, ...)</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifdef __GNUC__</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;                                            __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;;</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#endif // COVIDSIM_ERROR_H_INCLUDED_</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="a_error_8h_html_a6d7f434fe55f165c85be19c51dbd4ffb"><div class="ttname"><a href="_error_8h.html#a6d7f434fe55f165c85be19c51dbd4ffb">ErrorCritical</a></div><div class="ttdeci">void ErrorCritical(const char *msg, const char *file, int line,...)</div><div class="ttdef"><b>Definition:</b> <a href="_error_8cpp_source.html#l00006">Error.cpp:6</a></div></div>
 <!-- start footer part -->

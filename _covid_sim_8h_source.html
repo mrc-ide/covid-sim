@@ -69,39 +69,37 @@ $(function() {
 <div class="title">CovidSim.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="_covid_sim_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#define COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a7731c734c80888fa22939f4d74284cfe">    5</a></span>&#160; </div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_machine_defines_8h.html">MachineDefines.h</a>&quot;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#define KMP_LIBRARY throughput</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#aa03cf23529516ebd1b7dc03fddb8031d">    9</a></span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;limits.h&gt;</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;math.h&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;signal.h&gt;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;time.h&gt;</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_country_8h.html">Country.h</a>&quot;</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_constants_8h.html">Constants.h</a>&quot;</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;  <span class="comment">/*</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment">    #define HOST_TREATED(x) (0)</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment">    #define HOST_TO_BE_TREATED(x) (0)</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment">    #define PLACE_TREATED(x,y) (0)</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment">  */</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#define PlaceType_PrimarySchool         0</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a84da9488bdbec238b90afb0244d86d4a">   30</a></span>&#160;<span class="preprocessor">#define PlaceType_SecondarySchool       1</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a1ce6c4df3864dc9581439413fd574cc1">   31</a></span>&#160;<span class="preprocessor">#define PlaceType_University            2</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#ae8ec28980d2f7cc2a5fd22c2522dedd7">   32</a></span>&#160;<span class="preprocessor">#define PlaceType_Office                3</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a57f112c96ccf26de91ef30774049a3c3">   33</a></span>&#160; </div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#endif // COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
+<a href="_covid_sim_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_machine_defines_8h.html">MachineDefines.h</a>&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; </div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#define KMP_LIBRARY throughput</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#aa03cf23529516ebd1b7dc03fddb8031d">    7</a></span>&#160; </div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;limits.h&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;math.h&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;signal.h&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;time.h&gt;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_country_8h.html">Country.h</a>&quot;</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_constants_8h.html">Constants.h</a>&quot;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="comment">/*</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment">    #define HOST_TREATED(x) (0)</span></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment">    #define HOST_TO_BE_TREATED(x) (0)</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment">    #define PLACE_TREATED(x,y) (0)</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment">  */</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#define PlaceType_PrimarySchool         0</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a84da9488bdbec238b90afb0244d86d4a">   28</a></span>&#160;<span class="preprocessor">#define PlaceType_SecondarySchool       1</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a1ce6c4df3864dc9581439413fd574cc1">   29</a></span>&#160;<span class="preprocessor">#define PlaceType_University            2</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#ae8ec28980d2f7cc2a5fd22c2522dedd7">   30</a></span>&#160;<span class="preprocessor">#define PlaceType_Office                3</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="_covid_sim_8h.html#a57f112c96ccf26de91ef30774049a3c3">   31</a></span>&#160; </div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#endif // COVIDSIM_COVIDSIM_H_INCLUDED_</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="a_country_8h_html"><div class="ttname"><a href="_country_8h.html">Country.h</a></div></div>
 <div class="ttc" id="a_machine_defines_8h_html"><div class="ttname"><a href="_machine_defines_8h.html">MachineDefines.h</a></div></div>

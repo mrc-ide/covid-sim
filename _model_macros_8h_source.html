@@ -69,33 +69,31 @@ $(function() {
 <div class="title">ModelMacros.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="_model_macros_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#define COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#aca9a633ca2f02504170ecc4fa90967d1">    5</a></span>&#160; </div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;limits.h&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#define HOST_TREATED(x) ((Hosts[x].treat_stop_time &gt; ts) &amp;&amp; (Hosts[x].treat_start_time &lt;= ts))</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae66746e1f11d41f53bed6d04cddeac6f">    9</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_TREATED(x) (Hosts[x].treat_stop_time &gt; ts)</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a021c0d276055369d1583da0064dcc251">   10</a></span>&#160;<span class="preprocessor">#define PLACE_TREATED(x, y) (Places[x][y].treat_end_time &gt; ts)</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae5e3b8fc412a10167255a8928f2e25ef">   11</a></span>&#160;<span class="preprocessor">#define PLACE_CLOSED(x, y) ((Places[x][y].close_start_time &lt;= ts) &amp;&amp; (Places[x][y].close_end_time &gt; ts))</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a92ebefcf70cd50355d2b12e7aabfe939">   12</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_VACCED(x) (Hosts[x].vacc_start_time &lt; USHRT_MAX - 1)</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a3f398fd88fc61d6287e532b89650dc54">   13</a></span>&#160;<span class="preprocessor">#define HOST_VACCED(x) (Hosts[x].vacc_start_time+P.usVaccTimeToEfficacy&lt;=ts)</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae543c325159c7f6e54f956391f871d80">   14</a></span>&#160;<span class="preprocessor">#define HOST_VACCED_SWITCH(x) (Hosts[x].vacc_start_time &gt;= P.usVaccTimeEfficacySwitch)</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#aab91d3a8d606d0cbc5c41ca8f4c86d53">   15</a></span>&#160;<span class="preprocessor">#define HOST_QUARANTINED(x) ((Hosts[x].quar_comply == 1) &amp;&amp; (Hosts[x].quar_start_time + P.usHQuarantineHouseDuration &gt; ts) &amp;&amp; (Hosts[x].quar_start_time &lt;= ts))</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a82ea6b7b910b7c937d8a8c861adbdcc0">   16</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration &gt; ts) &amp;&amp; (Hosts[x].quar_comply &lt; 2))</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a1ec4282cd891a55eee846cc5659f486f">   17</a></span>&#160;<span class="preprocessor">#define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay &lt;= ts) &amp;&amp; (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration &gt; ts))</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a7069485bb50594d378b9a84d4e4facf5">   18</a></span>&#160;<span class="preprocessor">#define HOST_ABSENT(x) ((Hosts[x].absent_start_time &lt;= ts) &amp;&amp; (Hosts[x].absent_stop_time &gt; ts))</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a647e3cd1890f495c063a9537cc2c6b72">   19</a></span>&#160; </div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment">  #define NO_TREAT_PROPH_CASES</span></div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment">*/</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#define HOST_AGE_YEAR(x) (Hosts[x].age)</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a25a9f97e729e19c3afdd9e94ef9bf1f5">   25</a></span>&#160;<span class="preprocessor">#define HOST_AGE_GROUP(x) (Hosts[x].age / AGE_GROUP_WIDTH)</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#aa5a6525c77db4abd9464ac6a40adaf52">   26</a></span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#endif // COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
+<a href="_model_macros_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;limits.h&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; </div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#define HOST_TREATED(x) ((Hosts[x].treat_stop_time &gt; ts) &amp;&amp; (Hosts[x].treat_start_time &lt;= ts))</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae66746e1f11d41f53bed6d04cddeac6f">    7</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_TREATED(x) (Hosts[x].treat_stop_time &gt; ts)</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a021c0d276055369d1583da0064dcc251">    8</a></span>&#160;<span class="preprocessor">#define PLACE_TREATED(x, y) (Places[x][y].treat_end_time &gt; ts)</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae5e3b8fc412a10167255a8928f2e25ef">    9</a></span>&#160;<span class="preprocessor">#define PLACE_CLOSED(x, y) ((Places[x][y].close_start_time &lt;= ts) &amp;&amp; (Places[x][y].close_end_time &gt; ts))</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a92ebefcf70cd50355d2b12e7aabfe939">   10</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_VACCED(x) (Hosts[x].vacc_start_time &lt; USHRT_MAX - 1)</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a3f398fd88fc61d6287e532b89650dc54">   11</a></span>&#160;<span class="preprocessor">#define HOST_VACCED(x) (Hosts[x].vacc_start_time+P.usVaccTimeToEfficacy&lt;=ts)</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#ae543c325159c7f6e54f956391f871d80">   12</a></span>&#160;<span class="preprocessor">#define HOST_VACCED_SWITCH(x) (Hosts[x].vacc_start_time &gt;= P.usVaccTimeEfficacySwitch)</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#aab91d3a8d606d0cbc5c41ca8f4c86d53">   13</a></span>&#160;<span class="preprocessor">#define HOST_QUARANTINED(x) ((Hosts[x].quar_comply == 1) &amp;&amp; (Hosts[x].quar_start_time + P.usHQuarantineHouseDuration &gt; ts) &amp;&amp; (Hosts[x].quar_start_time &lt;= ts))</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a82ea6b7b910b7c937d8a8c861adbdcc0">   14</a></span>&#160;<span class="preprocessor">#define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration &gt; ts) &amp;&amp; (Hosts[x].quar_comply &lt; 2))</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a1ec4282cd891a55eee846cc5659f486f">   15</a></span>&#160;<span class="preprocessor">#define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay &lt;= ts) &amp;&amp; (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration &gt; ts))</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a7069485bb50594d378b9a84d4e4facf5">   16</a></span>&#160;<span class="preprocessor">#define HOST_ABSENT(x) ((Hosts[x].absent_start_time &lt;= ts) &amp;&amp; (Hosts[x].absent_stop_time &gt; ts))</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a647e3cd1890f495c063a9537cc2c6b72">   17</a></span>&#160; </div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment">/*</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment">  #define NO_TREAT_PROPH_CASES</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment">*/</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#define HOST_AGE_YEAR(x) (Hosts[x].age)</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#a25a9f97e729e19c3afdd9e94ef9bf1f5">   23</a></span>&#160;<span class="preprocessor">#define HOST_AGE_GROUP(x) (Hosts[x].age / AGE_GROUP_WIDTH)</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="_model_macros_8h.html#aa5a6525c77db4abd9464ac6a40adaf52">   24</a></span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#endif // COVIDSIM_MODELMACROS_H_INCLUDED_</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
