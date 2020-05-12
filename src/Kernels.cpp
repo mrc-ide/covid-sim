@@ -6,8 +6,6 @@
 #include "Dist.h"
 #include "Param.h"
 
-double(*Kernel)(double);
-
 // To speed up calculation of kernel values we provide a couple of lookup
 // tables.
 //
@@ -28,6 +26,7 @@ double *nKernel, *nKernelHR;
 void InitKernel(int DoPlaces, double norm)
 {
 	int i, j;
+	double(*Kernel)(double);
 
 	if (P.KernelType == 1)
 		Kernel = ExpKernel;
@@ -43,6 +42,8 @@ void InitKernel(int DoPlaces, double norm)
 		Kernel = PowerKernelUS;
 	else if (P.KernelType == 7)
 		Kernel = PowerExpKernel;
+	else
+		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
 #pragma omp parallel for private(i) schedule(static,500) //added private i
 	for (i = 0; i <= P.NKR; i++)
 	{

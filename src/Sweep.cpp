@@ -13,7 +13,6 @@
 #include "ModelMacros.h"
 #include "Param.h"
 #include "Sweep.h"
-#include "SharedFuncs.h"
 #include "Update.h"
 
 
@@ -608,7 +607,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 
 
-					//// decide on infectee 
+					//// decide on infectee
 					do
 					{
 						//// chooses which cell person will infect
@@ -1763,4 +1762,3 @@ int TreatSweep(double t)
 
 	return (f > 0);
 }
-

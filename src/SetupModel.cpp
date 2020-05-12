@@ -13,7 +13,6 @@
 #include "SetupModel.h"
 #include "Model.h"
 #include "ModelMacros.h"
-#include "SharedFuncs.h"
 #include "InfStat.h"
 #include "Bitmap.h"
 
@@ -192,11 +191,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.KernelDelta = t / P.NKR;
 	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n", sqrt(dist2_raw(P.width / 2, P.height / 2, P.width / 2 + P.mcwidth, P.height / 2)), sqrt(dist2_raw(P.width / 2, P.height / 2, P.width / 2, P.height / 2 + P.mcheight)));
-	P.KernelShape = P.MoveKernelShape;
-	P.KernelScale = P.MoveKernelScale;
-	P.KernelP3 = P.MoveKernelP3;
-	P.KernelP4 = P.MoveKernelP4;
-	P.KernelType = P.MoveKernelType;
 	t2 = 0.0;
 
 	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
@@ -305,6 +299,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	fprintf(stderr, "Initialising kernel...\n");
+	P.KernelShape = P.MoveKernelShape;
+	P.KernelScale = P.MoveKernelScale;
+	P.KernelP3 = P.MoveKernelP3;
+	P.KernelP4 = P.MoveKernelP4;
+	P.KernelType = P.MoveKernelType;
 	InitKernel(0, 1.0);
 
 	if (P.DoPlaces)
@@ -1614,12 +1613,12 @@ void SetupAirports(void)
 				Airports[i].Inv_DestPlaces[l] = j;
 			}
 		}
+	for (i = 0; i < P.Nplace[P.HotelPlaceType]; i++) Places[P.HotelPlaceType][i].n = 0;
 	P.KernelType = P.MoveKernelType;
 	P.KernelScale = P.MoveKernelScale;
 	P.KernelShape = P.MoveKernelShape;
 	P.KernelP3 = P.MoveKernelP3;
 	P.KernelP4 = P.MoveKernelP4;
-	for (i = 0; i < P.Nplace[P.HotelPlaceType]; i++) Places[P.HotelPlaceType][i].n = 0;
 	InitKernel(0, 1.0);
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
@@ -2283,11 +2282,6 @@ void AssignPeopleToPlaces(void)
 			free(Cells[i].susceptible);
 			Cells[i].susceptible = Cells[i].infected;
 		}
-		P.KernelScale = P.MoveKernelScale;
-		P.KernelShape = P.MoveKernelShape;
-		P.KernelType = P.MoveKernelType;
-		P.KernelP3 = P.MoveKernelP3;
-		P.KernelP4 = P.MoveKernelP4;
 	}
 
 }
@@ -2478,10 +2472,6 @@ void LoadPeopleToPlaces(char* NetworkFile)
 			}
 	*/	fprintf(stderr, "\n");
 	fclose(dat);
-	P.KernelScale = P.MoveKernelScale;
-	P.KernelShape = P.MoveKernelShape;
-	P.KernelP3 = P.MoveKernelP3;
-	P.KernelP4 = P.MoveKernelP4;
 }
 void SavePeopleToPlaces(char* NetworkFile)
 {
