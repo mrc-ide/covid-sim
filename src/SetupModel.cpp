@@ -41,61 +41,77 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.DoBin = -1;
 	if (P.DoHeteroDensity)
 	{
+		fprintf(stderr, "Scanning population density file\n");
+		if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+		if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+		{
+			P.DoBin = 1;
+			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
+			BF = (bin_file*)BinFileBuf;
+			fclose(dat);
+		}
+		else
+		{
+			P.DoBin = 0;
+			// Count the number of lines in the density file
+			rewind(dat);
+			P.BinFileLen = 0;
+			while(fgets(buf, sizeof(buf), dat) != NULL) P.BinFileLen++;
+			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			// Read each line, and build the binary structure that corresponds to it
+			rewind(dat);
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			BF = (bin_file*)BinFileBuf;
+			int index = 0;
+			while(fgets(buf, sizeof(buf), dat) != NULL)
+			{
+				// This shouldn't be able to happen, as we just counted the number of lines:
+				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
+				if (P.DoAdUnits)
+				{
+					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
+					if (l / P.CountryDivisor != i2)
+					{
+						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
+					}
+				}
+				else {
+					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
+					l = 0;
+				}
+				BF[index].x = x;
+				BF[index].y = y;
+				BF[index].pop = t;
+				BF[index].cnt = i2;
+				BF[index].ad = l;
+				index++;
+			}
+			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			// This shouldn't be able to happen, as we just counted the number of lines:
+			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
+			fclose(dat);
+		}
+
 		if (P.DoAdunitBoundaries)
 		{
-			fprintf(stderr, "Scanning population density file\n");
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
-			{
-				P.DoBin = 1;
-				fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-				if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-				fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
-				BF = (bin_file*)BinFileBuf;
-				fclose(dat);
-			}
-			else
-			{
-				P.DoBin = 0;
-				fclose(dat);
-				if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-				P.BinFileLen = UINT_MAX - 1;
-			}
 			// We will compute a precise spatial bounding box using the population locations.
 			// Initially, set the min values too high, and the max values too low, and then
 			// we will adjust them as we read population data.
 			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
 			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
 			s2 = 0;
-			if (P.DoBin == 0)
-			{
-				fgets(buf, 2047, dat);
-				if (feof(dat)) rn = P.BinFileLen;
-			}
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
-				if (P.DoBin == 0)
-				{
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
-					if (l / P.CountryDivisor != i2) //temporarily changed this to 10000 from 100 to work with new admin codes - ggilani 30/05/2018, now changed to CountryDivisor - ggilani 13/05/2019
-					{
-						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
-					}
+				x = BF[rn].x;
+				y = BF[rn].y;
+				t = BF[rn].pop;
+				i2 = BF[rn].cnt;
+				l = BF[rn].ad;
+				//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
 
-					fgets(buf, 2047, dat);
-					if (feof(dat)) rn = P.BinFileLen;
-				}
-				else
-				{
-					x = BF[rn].x;
-					y = BF[rn].y;
-					t = BF[rn].pop;
-					i2 = BF[rn].cnt;
-					l = BF[rn].ad;
-					//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
-
-				}
 				m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.AdunitLevel1Lookup[m] >= 0)
 					if (AdUnits[P.AdunitLevel1Lookup[m]].id / P.AdunitLevel1Mask == l / P.AdunitLevel1Mask)
@@ -111,17 +127,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					}
 			}
 			if (!P.DoSpecifyPop) P.N = (int)s2;
-			if (P.DoBin == 0) fclose(dat);
 		}
 
-#ifdef COUNTRY_THAILAND
-		P.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
-		P.ncw = (int)(P.width / P.cwidth);
-		P.nch = (int)(P.height / P.cwidth);
-		P.cwidth = P.width / ((double)P.ncw);
-		P.cheight = P.height / ((double)P.nch);
-#else
 		P.cheight = P.cwidth;
 		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.cwidth) * P.cwidth;
 		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.cheight) * P.cheight;
@@ -135,7 +142,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.height = ((double)P.nch) * P.cheight;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.width;
 		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.height;
-#endif
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
@@ -680,51 +686,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoHeteroDensity)
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
-		if (P.DoBin == -1)
-		{
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file
-			{
-				fprintf(stderr, "Reading binary population density file...\n");
-				P.DoBin = 1;
-				fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-				if (!(BinFileBuf = (void*)malloc(((size_t)P.BinFileLen) * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-				fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
-				BF = (bin_file*)BinFileBuf;
-				fclose(dat);
-			}
-			else
-			{
-				fclose(dat);
-				P.DoBin = 0;
-			}
-		}
-		if (P.DoBin == 0)
-		{
-			P.BinFileLen = UINT_MAX - 1;
-			fprintf(stderr, "Reading ASCII population density file...\n");
-			if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-		}
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
-		if (P.DoBin == 1)
-			fprintf(stderr, "Binary density file contains %i mcells.\n", (int)P.BinFileLen);
-		else
-		{
-			fgets(buf, 2047, dat);
-			if (feof(dat)) rn = P.BinFileLen;
-		}
+		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			if (P.DoAdUnits)
 			{
-				if (P.DoBin == 1)
-				{
-					x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
-					rec = BF[rn];
-				}
-				else
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &country, &j2);
+				x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad; //changed from i to rn to loop over indices properly
+				rec = BF[rn];
 				m = (j2 % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.DoAdunitBoundaries)
 				{
@@ -761,22 +730,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			else
 			{
 				k = 1;
-				if (P.DoBin == 1)
-				{
-					x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
-					rec = BF[rn];
-				}
-				else
-				{
-					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &country);
-					j2 = 0;
-					rec.x = x; rec.y = y; rec.pop = t; rec.cnt = country; rec.ad = j2;
-				}
-			}
-			if (P.DoBin == 0)
-			{
-				fgets(buf, 2047, dat);
-				if (feof(dat)) rn = P.BinFileLen;
+				x = BF[i].x; y = BF[i].y; t = BF[i].pop; country = BF[i].cnt; j2 = BF[i].ad;
+				rec = BF[rn];
 			}
 			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
 			{
@@ -811,9 +766,9 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if ((P.OutputDensFile) && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
-			fclose(dat);
 			if (P.OutputDensFile)
 			{
+				free(BinFileBuf);
 				P.DoBin = 1;
 				P.BinFileLen = 0;
 				for (l = 0; l < P.NMC; l++)
@@ -845,7 +800,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			fwrite_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
-		if (P.DoBin == 1) free(BinFileBuf);
+		free(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
 		maxd = 0;
 		for (i = 0; i < P.NMC; i++)
@@ -1701,12 +1656,8 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while (a[0] < P.NoChildPersAge);
-#else
 				while ((a[0] < P.NoChildPersAge)
 					|| (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
 			}
 			else if ((P.OnePersHouseProbYoung > 0) && (ranf_mt(tn) < P.OnePersHouseProbYoung / (1 - P.OnePersHouseProbOld)))
 			{
@@ -1727,22 +1678,14 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while (a[0] < P.NoChildPersAge);
-#else
 				while ((a[0] < P.NoChildPersAge)
 					|| (ranf_mt(tn) > (((double)a[0]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
 				do
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
 				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.NoChildPersAge)
 					|| (ranf_mt(tn) > (((double)a[1]) - P.NoChildPersAge + 1) / (P.OldPersAge - P.NoChildPersAge + 1)));
-#endif
 			}
 			else if (ranf_mt(tn) < P.OneChildTwoPersProb / (1 - P.TwoPersHouseProbOld))
 			{
@@ -1751,11 +1694,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap));
-#else
 				while ((a[1] > a[0] + P.MaxParentAgeGap) || (a[1] < a[0] + P.MinParentAgeGap) || (a[1] < P.MinAdultAge));
-#endif
 			}
 			else if ((P.TwoPersHouseProbYoung > 0) && (ranf_mt(tn) < P.TwoPersHouseProbYoung / (1 - P.TwoPersHouseProbOld - P.OneChildTwoPersProb)))
 			{
@@ -1768,11 +1707,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[1] >= a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
 				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#endif
 			}
 			else
 			{
@@ -1784,11 +1719,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
 				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#else
-				while ((a[1] > a[0] + P.MaxMFPartnerAgeGap) || (a[1] < a[0] - P.MaxFMPartnerAgeGap) || (a[1] < P.MinAdultAge));
-#endif
 			}
 
 		}
@@ -1806,14 +1737,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 			else if (n == 5)
 				nc = (ranf_mt(tn) < P.ThreeChildFivePersProb) ? 3 : 2;
 			else
-#ifdef COUNTRY_INDONESIA
-				do
-				{
-					nc = ignpoi_mt(FRAC_CHILDREN_BIG_HOUSEHOLDS * ((double)n), tn);
-				} while ((nc > n - 2) || (nc < 2));
-#else
 				nc = n - 2 - (int)(3 * ranf_mt(tn));
-#endif
 			if (nc <= 0)
 			{
 				do
@@ -1821,54 +1745,15 @@ void AssignHouseholdAges(int n, int pers, int tn)
 					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					a[1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
-				while ((a[0] < P.MinAdultAge) || (a[1] >= a[0] + P.MaxParentAgeGap)
-					|| (a[1] < a[0] + P.MinParentAgeGap) || (a[1] > P.NoChildPersAge));
-#else
 				while ((a[1] < P.MinAdultAge) || (a[0] < P.MinAdultAge));
-#endif
 				do
 				{
 					a[2] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 				}
-#ifdef COUNTRY_THAILAND
 				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
-#else
-				while ((a[2] >= a[1] + P.MaxMFPartnerAgeGap) || (a[2] < a[1] - P.MaxFMPartnerAgeGap));
-#endif
 			}
 			else
 			{
-#ifdef COUNTRY_THAILAND
-				a[0] = 0;
-				for (i = 1; i < nc; i++)
-					a[i] = a[i - 1] + 1 + ((int)ignpoi_mt(P.MeanChildAgeGap - 1, tn));
-				j = a[nc - 1] - (P.MaxParentAgeGap - P.MinParentAgeGap);
-				if (j > 0)
-					j += P.MaxParentAgeGap;
-				else
-					j = P.MaxParentAgeGap;
-				do
-				{
-					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					a[0] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					k = ((nc > 1) ? a[nc - 1] : 0) + a[0];
-					l = k - P.MaxChildAge;
-					if (ranf_mt(tn) < P.OneChildProbYoungestChildUnderFive) l = k - 5;
-				} while ((l > 0) || (a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap));
-				for (i = 1; i < nc; i++) a[i] += a[0];
-				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
-				{
-					do
-					{
-						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
-					} while ((a[nc + 1] >= a[nc] + P.MaxMFPartnerAgeGap)
-						|| (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap));
-					l = nc + 2;
-				}
-				else
-					l = nc + 1;
-#else
 				do
 				{
 					a[0] = 0;
@@ -1901,14 +1786,9 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				}
 				else
 					l = nc + 1;
-#endif
 				if (n > nc + 2)
 				{
-#ifdef COUNTRY_THAILAND
-					j = a[nc] + P.MinParentAgeGap;
-#else
 					j = ((a[nc + 1] > a[nc]) ? a[nc + 1] : a[nc]) + P.OlderGenGap;
-#endif
 					if (j >= NUM_AGE_GROUPS * AGE_GROUP_WIDTH) j = NUM_AGE_GROUPS * AGE_GROUP_WIDTH - 1;
 					if (j < P.NoChildPersAge) j = P.NoChildPersAge;
 					for (i = nc + 2; i < n; i++)

@@ -87,7 +87,6 @@ bitmap_header* bmh;
 events* InfEventLog;
 int* nEvents;
 
-double ** PopDensity;
 double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
 double indivR0[MAX_SEC_REC][MAX_GEN_REC], indivR0_av[MAX_SEC_REC][MAX_GEN_REC];
 double inf_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], denom_household[MAX_HOUSEHOLD_SIZE + 1];
@@ -106,7 +105,6 @@ int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 char OutFile[1024], OutFileBase[1024], OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024], AdunitFile[1024];
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
-unsigned int cntr = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 
@@ -116,10 +114,10 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 int main(int argc, char* argv[])
 {
 	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotP, GotPP, GotO, GotL, GotS, GotA, GotAP, GotScF, Perr, cl;
+	int i, GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, Perr, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotP = GotO = GotL = GotS = GotA = GotAP = GotScF = GotPP = 0;
+	GotP = GotO = GotL = GotS = GotAP = GotScF = GotPP = 0;
 
 	Perr = 0;
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
@@ -166,7 +164,6 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'A' && argv[i][2] == ':')
 			{
-				GotA = 1;
 				sscanf(&argv[i][3], "%s", AdunitFile);
 			}
 			else if (argv[i][1] == 'L' && argv[i][2] == ':')
@@ -2780,10 +2777,9 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	int j /*microcell number*/;
 	int k, l /*k,l are grid coords at first, then l changed to be person within Microcell j, then k changed to be index of new infection*/;
 	int m = 0/*guard against too many infections and infinite loop*/;
-	int f /*range = {0, 1000}*/, f2 /*not used, think extraneous*/;
+	int f /*range = {0, 1000}*/;
 	int n /*number of seed locations?*/;
 
-	f2 = ((t >= 0) && (P.DoImportsViaAirports));
 	n = ((rf == 0) ? P.NumSeedLocations : 1);
 	for (i = 0; i < n; i++)
 	{
@@ -4452,13 +4448,11 @@ void RecordSample(double t, int n)
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	cell* ct;
 	unsigned short int ts;
-	float nsy;
 	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
 
-	nsy = (float)(DAYS_PER_YEAR / P.SampleStep);
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// initialize to zero
