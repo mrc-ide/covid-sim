@@ -42,7 +42,8 @@ enum class ArgType {
 	DOUBLE,
 	INTEGER,
 	STRING,
-	FILE,
+	RFILE, // file to be read
+	WFILE, // file to be written
 	DIR
 };
 
@@ -196,10 +197,10 @@ int main(int argc, char* argv[])
 			case 'A':
 				switch(opt[2]) {
 					case ':':
-						ParseArg(ArgType::FILE, &opt[2], AdunitFile);
+						ParseArg(ArgType::RFILE, &opt[2], AdunitFile);
 						break;
 					case 'P':
-						ParseArg(ArgType::FILE, &opt[3], AirTravelFile);
+						ParseArg(ArgType::RFILE, &opt[3], AirTravelFile);
 						GotAP = 1;
 						break;
 				}
@@ -263,16 +264,16 @@ int main(int argc, char* argv[])
 				break;
 			}
 			case 'd':
-				ParseArg(ArgType::FILE, &opt[2], RegDemogFile);
+				ParseArg(ArgType::RFILE, &opt[2], RegDemogFile);
 				P.DoAdunitDemog = 1;
 				break;
 			case 'D':
-				ParseArg(ArgType::FILE, &opt[2], DensityFile);
+				ParseArg(ArgType::RFILE, &opt[2], DensityFile);
 				P.DoHeteroDensity = 1;
 				P.DoPeriodicBoundaries = 0;
 				break;
 			case 'I':
-				ParseArg(ArgType::FILE, &opt[2], InterventionFile[P.DoInterventionFile]);
+				ParseArg(ArgType::RFILE, &opt[2], InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
 				break;
 			// added Kernel Power and Offset scaling so that it can easily
@@ -292,18 +293,18 @@ int main(int argc, char* argv[])
 			case 'L':
 				switch(opt[2]) {
 					case ':':
-						ParseArg(ArgType::FILE, &opt[2], NetworkFile);
+						ParseArg(ArgType::RFILE, &opt[2], NetworkFile);
 						GotL = 1;
 						P.LoadSaveNetwork = 1;
 						break;
 					case 'S':
-						ParseArg(ArgType::FILE, &opt[3], SnapshotLoadFile);
+						ParseArg(ArgType::RFILE, &opt[3], SnapshotLoadFile);
 						P.DoLoadSnapshot = 1;
 						break;
 				}
 				break;
 			case 'M':
-				ParseArg(ArgType::FILE, &opt[2], OutDensFile);
+				ParseArg(ArgType::WFILE, &opt[2], OutDensFile);
 				P.OutputDensFile = 1;
 				break;
 			case 'N':
@@ -320,11 +321,11 @@ int main(int argc, char* argv[])
 			case 'P':
 				switch(opt[2]) {
 					case ':':
-						ParseArg(ArgType::FILE, &opt[2], ParamFile);
+						ParseArg(ArgType::RFILE, &opt[2], ParamFile);
 						GotP = 1;
 						break;
 					case 'P':
-						ParseArg(ArgType::FILE, &opt[3], PreParamFile);
+						ParseArg(ArgType::RFILE, &opt[3], PreParamFile);
 						GotPP = 1;
 						break;
 				}
@@ -333,13 +334,13 @@ int main(int argc, char* argv[])
 				ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
 				break;
 			case 's':
-				ParseArg(ArgType::FILE, &opt[2], SchoolFile);
+				ParseArg(ArgType::RFILE, &opt[2], SchoolFile);
 				GotScF = 1;
 				break;
 			case 'S':
 				switch(opt[2]) {
 					case ':':
-						ParseArg(ArgType::FILE, &opt[2], NetworkFile);
+						ParseArg(ArgType::WFILE, &opt[2], NetworkFile);
 						P.LoadSaveNetwork = 2;
 						GotS = 1;
 						break;
@@ -417,7 +418,10 @@ int main(int argc, char* argv[])
 	if (GotScF) P.DoSchoolFile = 1;
 	if (P.DoAirports)
 	{
-		if (!GotAP) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile /AP:AirTravelFile [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
+		if (!GotAP) {
+			std::cerr << "Parameter file indicated airports should be used but '/AP' file was not given" << std::endl;
+			PrintHelpAndExit();
+		}
 		ReadAirTravel(AirTravelFile);
 	}
 
@@ -554,7 +558,7 @@ void ParseArg(ArgType type, char* input, void* output)
 		case ArgType::STRING:
 			sscanf(&input[1], "%s", (char*) output);
 			break;
-		case ArgType::FILE: {
+		case ArgType::RFILE: {
 			char* str_out = (char*) output;
 			sscanf(&input[1], "%s", str_out);
 			// check to see if the file exists and error out if it doesn't
@@ -564,15 +568,18 @@ void ParseArg(ArgType type, char* input, void* output)
 			}
 			break;
 		}
+		case ArgType::WFILE:
 		case ArgType::DIR: {
 			char* str_out = (char*) output;
 			sscanf(&input[1], "%s", str_out);
-			// check to see if this path already exists as a file and error out
+			// check to see if this prefix already exists as a file and error out
 			if (static_cast<bool>(std::ifstream(str_out)) == true) {
-				std::cerr << "Cannot create a directory, this path already exists"
+				std::cerr << "Cannot use this prefix, this path already exists"
 							 " as a file: " << str_out << std::endl;
 				std::exit(1);
 			}
+			// TODO: add a platform-independent check to see if the prefix could
+			// be added as a directory or file
 			break;
 		}
 	}
