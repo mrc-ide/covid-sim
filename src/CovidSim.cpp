@@ -23,13 +23,6 @@
 #include <omp.h>
 #endif // _OPENMP
 
-#ifndef max
-#define max(a,b) ((a) > (b) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#endif
-
 // Use the POSIX name for case-insensitive string comparison: strcasecmp.
 #ifdef _WIN32
 // Windows calls it _stricmp so make strcasecmp an alias.
