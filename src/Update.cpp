@@ -227,6 +227,8 @@ void DoMild(int ai, int tn)
 			a->Severity_Current = Severity_Mild;
 			StateT[tn].Mild++;
 			StateT[tn].cumMild++;
+			StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
@@ -245,6 +247,8 @@ void DoILI(int ai, int tn)
 			a->Severity_Current = Severity_ILI;
 			StateT[tn].ILI++;
 			StateT[tn].cumILI++;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit	[Mcells[a->mcell].adunit]++;
@@ -262,9 +266,11 @@ void DoSARI(int ai, int tn)
 		{
 			a->Severity_Current = Severity_SARI;
 			StateT[tn].ILI--;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].SARI++;
 			StateT[tn].cumSARI++;
-
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumSARI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit		[Mcells[a->mcell].adunit]--;
@@ -283,9 +289,11 @@ void DoCritical(int ai, int tn)
 		{
 			a->Severity_Current = Severity_Critical;
 			StateT[tn].SARI--;
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].Critical++;
 			StateT[tn].cumCritical++;
-
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumCritical_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
@@ -307,9 +315,11 @@ void DoRecoveringFromCritical(int ai, int tn)
 		{
 			a->Severity_Current = Severity_RecoveringFromCritical;
 			StateT[tn].Critical--;
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].CritRecov++;
 			StateT[tn].cumCritRecov++;
-
+			StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumCritRecov_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
@@ -327,7 +337,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		if (a->Severity_Current == Severity_Critical)
 		{
 			StateT[tn].Critical--;
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_Critical++;
+			StateT[tn].cumDeath_Critical_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
@@ -339,7 +351,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		else if (a->Severity_Current == Severity_SARI)
 		{
 			StateT[tn].SARI--;
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_SARI++;
+			StateT[tn].cumDeath_SARI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
@@ -351,7 +365,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		else if (a->Severity_Current == Severity_ILI)
 		{
 			StateT[tn].ILI--;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_ILI++;
+			StateT[tn].cumDeath_ILI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
@@ -377,6 +393,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			if (a->Severity_Current == Severity_Mild)
 			{
 				StateT[tn].Mild--;
+				StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -384,6 +401,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_ILI)
 			{
 				StateT[tn].ILI--;
+				StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -391,6 +409,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_SARI)
 			{
 				StateT[tn].SARI--;
+				StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -398,6 +417,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
 				StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
+				StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
