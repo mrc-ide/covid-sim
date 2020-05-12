@@ -4054,17 +4054,17 @@ void LoadSnapshot(void)
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	zfread_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fread_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	for (i = 0; i < P.NC; i++)
 	{
@@ -4128,19 +4128,19 @@ void SaveSnapshot(void)
 	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fwrite_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fclose(dat);
