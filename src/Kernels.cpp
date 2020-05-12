@@ -100,7 +100,7 @@ double GaussianKernel(double r2)
 }
 double StepKernel(double r2)
 {
-	return (r2 > P.KernelScale * P.KernelScale) ? 0 : 1;
+	return r2 <= P.KernelScale * P.KernelScale;
 }
 double PowerExpKernel(double r2)
 {
