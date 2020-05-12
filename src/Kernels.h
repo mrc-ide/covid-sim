@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_KERNELS_H_INCLUDED_
 #define COVIDSIM_KERNELS_H_INCLUDED_
 

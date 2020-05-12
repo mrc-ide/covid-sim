@@ -1,0 +1,189 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+
+[Administrative unit to seed initial infection into]
+0
+
+
+[Population size]
+216027882
+[ONS pop proj]
+
+[Fix population size at specified value]
+1
+
+[Number of countries to include]
+1
+
+[List of names of countries to include]
+Nigeria
+
+[Number of level 1 administrative units to include]
+0
+
+[List of level 1 administrative units to include]
+Abia	Adamawa	Akwa_Ibom	Anambra	Bauchi	Bayelsa	Benue	Borno	Cross_River	Delta	Ebonyi	Edo	Ekiti	Enugu	Federal_Capital_Territory	Gombe	Imo	Jigawa	Kaduna	Kano	Katsina	Kebbi	Kogi	Kwara	Lagos	Nassarawa	Niger	Ogun	Ondo	Osun	Oyo	Plateau	Rivers	Sokoto	Taraba	Yobe	Zamfara
+
+[Codes and country/province names for admin units]
+100100	Nigeria	Abia
+100200	Nigeria	Adamawa
+100300	Nigeria	Akwa_Ibom
+100400	Nigeria	Anambra
+100500	Nigeria	Bauchi
+100600	Nigeria	Bayelsa
+100700	Nigeria	Benue
+100800	Nigeria	Borno
+100900	Nigeria	Cross_River
+101000	Nigeria	Delta
+101100	Nigeria	Ebonyi
+101200	Nigeria	Edo
+101300	Nigeria	Ekiti
+101400	Nigeria	Enugu
+101500	Nigeria	Federal_Capital_Territory
+101600	Nigeria	Gombe
+101700	Nigeria	Imo
+101800	Nigeria	Jigawa
+101900	Nigeria	Kaduna
+102000	Nigeria	Kano
+102100	Nigeria	Katsina
+102200	Nigeria	Kebbi
+102300	Nigeria	Kogi
+102400	Nigeria	Kwara
+102500	Nigeria	Lagos
+102600	Nigeria	Nassarawa
+102700	Nigeria	Niger
+102800	Nigeria	Ogun
+102900	Nigeria	Ondo
+103000	Nigeria	Osun
+103100	Nigeria	Oyo
+103200	Nigeria	Plateau
+103300	Nigeria	Rivers
+103400	Nigeria	Sokoto
+103500	Nigeria	Taraba
+103600	Nigeria	Yobe
+103700	Nigeria	Zamfara
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.171870126	0.145835934	0.123598981	0.102909709	0.086475448	0.074845363	0.065073706	0.054539959	0.043958547	0.034878873	0.028500352	0.022785184	0.017372338	0.012884172	0.008321438	0.004221082	0.001928789
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.144569333	0.11635381	0.139910992	0.147717876	0.130314267	0.101613902	0.069810567	0.048075332	0.02877732	0.072856602
+(ONS 2020 with IPUMS and national statistics)
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+
+(note this isn't used - currently assume identity matrix)
+
+[Number of types of places]
+4
+
+[Proportion of age group 1 in place types]
+0.645	0.453	0	0.85
+
+[Minimum age for age group 1 in place types]
+5	11	18	16	
+
+[Maximum age for age group 1 in place types]
+11	16	65	18	
+
+[Proportion of age group 2 in place types]
+0	0.4	0.15	0.6
+
+[Minimum age for age group 2 in place types]
+3	16	18	18
+
+[Maximum age for age group 2 in place types]
+5	18	21	21
+
+[Proportion of age group 3 in place types]
+0.002502239	0.005361903	0.05	0.590297113
+
+[Minimum age for age group 3 in place types]
+21	21	21	21
+
+[Maximum age for age group 3 in place types]
+65	65	65	65	
+
+[Kernel shape params for place types]
+3 3 3 3
+
+
+[Kernel scale params for place types]
+4000  4000  4000  4000
+
+[Mean size of place types]
+230 1010  3300  14.28
+
+(inc teachers)
+
+[Number of closest places people pick from (0=all) for place types]
+3 3 6 0
+
+[Param 1 of place group size distribution]
+25  25  100 10
+
+[Power of place size distribution]
+0 0 0 1.34
+
+[Offset of place size distribution]
+0 0 0 5.35
+
+[Maximum of place size distribution]
+0 0 0 5927
+
+[Kernel type]
+2
+
+[Kernel scale]
+4000
+
+[Kernel Shape]
+3
+
+===================================
+[Include holidays]
+0
+
+[Proportion of places remaining open during holidays by place type]
+0 0 1 1
+
+[Number of holidays]
+22
+
+[Holiday start times]
+94	152	199	297	347	407	456	514	561	659	709	458	516	563	661	711	771	820	878	925	1023	1073	
+
+
+[Holiday durations]
+16	7	51	9	20	9	16	7	51	9	19	16	7	51	9	20	9	16	7	51	9	19	
+
+===================================
+

@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
@@ -21,7 +19,7 @@ typedef struct PERSON {
 	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
 
 	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc;
+	float infectiousness, susc,ProbAbsent,ProbCare;
 
 	unsigned int esocdist_comply : 1;
 	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
@@ -42,13 +40,13 @@ typedef struct PERSON {
 	unsigned short int quar_start_time, isolation_start_time;
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease.
 	unsigned short int recovery_or_death_time;	// set in DoIncub function
+	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned int digitalContactTraced : 1;
 	unsigned int index_case_dct : 2;
 	unsigned int digitalContactTracingUser : 1;
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
-	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
 
 } person;
 
@@ -91,15 +89,15 @@ typedef struct CONTACTEVENT {
  */
 typedef struct POPVAR {
 
-	int NL, S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumInf_h, cumInf_n, cumInf_s, cumDC, trigDC;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
 	int H, cumH; //Added total and cumulative hospitalisation: ggilani 28/10/14
 	int CT, cumCT, CC, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
 	int cumHQ, cumAC, cumAA, cumAH, cumACS, cumAPC, cumAPA, cumAPCS;
 	//// age specific versions of above variables. e.g. cumI is cumulative infections. cumIa is cumulative infections by age group.
-	int Na[NUM_AGE_GROUPS], cumIa[NUM_AGE_GROUPS], cumCa[NUM_AGE_GROUPS], cumDa[NUM_AGE_GROUPS];
-	int cumI_adunit[MAX_ADUNITS], cumC_adunit[MAX_ADUNITS], cumD_adunit[MAX_ADUNITS], cumT_adunit[MAX_ADUNITS], cumH_adunit[MAX_ADUNITS], H_adunit[MAX_ADUNITS], cumDC_adunit[MAX_ADUNITS]; //added cumulative hospitalisation per admin unit: ggilani 28/10/14, cumulative detected cases per adunit: ggilani 03/02/15
-	int cumCT_adunit[MAX_ADUNITS], CT_adunit[MAX_ADUNITS], cumCC_adunit[MAX_ADUNITS], CC_adunit[MAX_ADUNITS], trigDC_adunit[MAX_ADUNITS]; //added cumulative and CT per admin unit: ggilani 15/06/17
+	int cumIa[NUM_AGE_GROUPS], cumCa[NUM_AGE_GROUPS], cumDa[NUM_AGE_GROUPS];
+	int cumI_adunit[MAX_ADUNITS], cumC_adunit[MAX_ADUNITS], cumD_adunit[MAX_ADUNITS], cumT_adunit[MAX_ADUNITS], cumH_adunit[MAX_ADUNITS], cumDC_adunit[MAX_ADUNITS]; //added cumulative hospitalisation per admin unit: ggilani 28/10/14, cumulative detected cases per adunit: ggilani 03/02/15
+	int cumCT_adunit[MAX_ADUNITS], cumCC_adunit[MAX_ADUNITS], trigDC_adunit[MAX_ADUNITS]; //added cumulative CT per admin unit: ggilani 15/06/17
 	int cumDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added cumulative and overall digital contact tracing per adunit: ggilani 11/03/20
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
 	infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
@@ -112,8 +110,7 @@ typedef struct POPVAR {
 	int** InvAgeDist;
 	int* mvacc_queue;
 	int dum[CACHE_LINE_SIZE];
-	int* h_queue[MAX_ADUNITS], nh_queue[MAX_ADUNITS], *hd_queue[MAX_ADUNITS], nhd_queue[MAX_ADUNITS]; //queues for hospitalisation by admin unit: ggilani 30/10/14. h_queue and hd_queue actually 2D. Weirdly one dimension allocated on stack and other is pointer. d refers to discharge. n to length of queue.
-	int* ct_queue[MAX_ADUNITS], nct_queue[MAX_ADUNITS]; // queues for contact tracing: ggilani 12/06/17
+	int nct_queue[MAX_ADUNITS]; // queue for contact tracing: ggilani 12/06/17
 	contactevent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
 	int ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
 	int contact_dist[MAX_CONTACTS+1]; //added this to store contact distribution: ggilani 13/04/20
@@ -149,7 +146,7 @@ typedef struct POPVAR {
  */
 typedef struct RESULTS {
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incL, incI, incR, incD, incDC ;
+	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
 	double H, incH; //added total hospitalisation and incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
@@ -158,8 +155,8 @@ typedef struct RESULTS {
 	double incIa[NUM_AGE_GROUPS], incCa[NUM_AGE_GROUPS], incDa[NUM_AGE_GROUPS];
 	double incItype[INFECT_TYPE_MASK], Rtype[INFECT_TYPE_MASK], Rage[NUM_AGE_GROUPS], Rdenom;
 	double rmsRad, maxRad, PropPlacesClosed[NUM_PLACE_TYPES], PropSocDist;
-	double incI_adunit[MAX_ADUNITS], incC_adunit[MAX_ADUNITS], cumT_adunit[MAX_ADUNITS], incD_adunit[MAX_ADUNITS], cumD_adunit[MAX_ADUNITS], incH_adunit[MAX_ADUNITS], H_adunit[MAX_ADUNITS], incDC_adunit[MAX_ADUNITS]; //added incidence of hospitalisation per day: ggilani 28/10/14, incidence of detected cases per adunit,: ggilani 03/02/15
-	double incCT_adunit[MAX_ADUNITS], CT_adunit[MAX_ADUNITS], incCC_adunit[MAX_ADUNITS], CC_adunit[MAX_ADUNITS], incDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added incidence of contact tracing and number of people being contact traced per admin unit: ggilani 15/06/17
+	double incI_adunit[MAX_ADUNITS], incC_adunit[MAX_ADUNITS], cumT_adunit[MAX_ADUNITS], incD_adunit[MAX_ADUNITS], cumD_adunit[MAX_ADUNITS], incH_adunit[MAX_ADUNITS], incDC_adunit[MAX_ADUNITS]; //added incidence of hospitalisation per day: ggilani 28/10/14, incidence of detected cases per adunit,: ggilani 03/02/15
+	double incCT_adunit[MAX_ADUNITS], incCC_adunit[MAX_ADUNITS], incDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added incidence of contact tracing and number of people being contact traced per admin unit: ggilani 15/06/17
 	double incI_keyworker[2], incC_keyworker[2], cumT_keyworker[2];
 
 	///@{
@@ -297,6 +294,7 @@ typedef struct PLACE {
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
 	float loc_x, loc_y;
+	float ProbClose;
 	int* group_start, *group_size, *members;
 } place;
 
@@ -324,7 +322,7 @@ typedef struct ADMINUNIT {
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
 	//adding in admin level delays and durations for admin units: ggilani 17/03/20
 	double SocialDistanceDelay, HQuarantineDelay, CaseIsolationDelay, PlaceCloseDelay, DCTDelay;
-	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationDuration, PlaceCloseDuration, DCTDuration;
+	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationPolicyDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
 } adminunit;
@@ -349,7 +347,6 @@ extern events* InfEventLog;
 extern int* nEvents;
 
 
-extern double ** PopDensity;
 extern double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
 extern double indivR0[MAX_SEC_REC][MAX_GEN_REC], indivR0_av[MAX_SEC_REC][MAX_GEN_REC];
 extern double inf_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], denom_household[MAX_HOUSEHOLD_SIZE + 1];

@@ -116,7 +116,6 @@
     <ClInclude Include="src\Param.h" />
     <ClInclude Include="src\Rand.h" />
     <ClInclude Include="src\SetupModel.h" />
-    <ClInclude Include="src\SharedFuncs.h" />
     <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />

@@ -1,7 +1,0 @@
-#pragma once
-
-#ifndef COVIDSIM_SHAREDFUNCS_H_INCLUDED_
-#define COVIDSIM_SHAREDFUNCS_H_INCLUDED_
-void UpdateProbs(int);
-
-#endif // COVIDSIM_SHAREDFUNCS_H_INCLUDED_
