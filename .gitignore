@@ -15,6 +15,7 @@ build_*/
 .project
 *.vcxproj.user
 tests/*-output/
+.idea/
 
 # VScode
 .vscode/
