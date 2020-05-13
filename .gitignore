@@ -9,6 +9,7 @@ x64
 *.bin
 wpop_*.txt
 out/
+build/
 build-*/
 build_*/
 .project
@@ -17,7 +18,6 @@ tests/*-output/
 
 # VScode
 .vscode/
-build/
 
 # Executables
 *.exe
