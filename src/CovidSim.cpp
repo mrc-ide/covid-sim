@@ -2498,7 +2498,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
 			State.cumD_adunit[AdminUnit] = 0;
 		}
-		for (int AgeGroup = 0; AgeGroup <= NUM_AGE_GROUPS; AgeGroup++)
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 		{
 			State.Mild_age[AgeGroup] = State.ILI_age[AgeGroup] =
 				State.SARI_age[AgeGroup] = State.Critical_age[AgeGroup] = State.CritRecov_age[AgeGroup] =
@@ -2560,7 +2560,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumDeath_ILI_adunit[AdminUnit] = StateT[j].cumDeath_SARI_adunit[AdminUnit] = StateT[j].cumDeath_Critical_adunit[AdminUnit] =
 				StateT[j].cumD_adunit[AdminUnit] =  0;
 			}
-			for (int AgeGroup = 0; AgeGroup <= NUM_AGE_GROUPS; AgeGroup++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
 				StateT[j].Mild_age[AgeGroup] = StateT[j].ILI_age[AgeGroup] =
 					StateT[j].SARI_age[AgeGroup] = StateT[j].Critical_age[AgeGroup] = StateT[j].CritRecov_age[AgeGroup] =
@@ -4670,7 +4670,7 @@ void RecordSample(double t, int n)
 		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
 		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
 
-		for (i = 0; i <= NUM_AGE_GROUPS; i++)
+		for (i = 0; i < NUM_AGE_GROUPS; i++)
 		{
 			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 			//// First subtract old total while unchanged.
