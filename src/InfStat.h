@@ -15,16 +15,13 @@
 #define InfStat_Dead_WasSymp					-5				//// Dead was symptomatic
 #define InfStat_Dead							5				//// Dead (will use this for abs() values) so code reads correctly
 
-
-#define NUM_SYMPTO_SEVERITY_CLASSES 4
-
 // SeverityClass defintions / labels (numbers arbitrary but must be different to each other).
 #define Severity_Asymptomatic				-1		//// Flag value.
 #define Severity_Mild						0
 #define Severity_ILI						1
 #define Severity_SARI						2
 #define Severity_Critical					3
-#define Severity_RecoveringFromCritical		4		//// Recovering from Critical (not recovered yet). Not included in NUM_SYMPTO_SEVERITY_CLASSES but could change. Also doesn't count as person.Severity_Final
+#define Severity_RecoveringFromCritical		4		//// Recovering from Critical (not recovered yet).
 #define Severity_Dead						5		//// label to avoid double counting. Not sure you need.
 #define Severity_Recovered					6		//// label to avoid double counting. Not sure you need.
 
