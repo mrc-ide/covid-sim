@@ -30,7 +30,7 @@ case "$distro_id" in
 
     'centos'|'rhel')
         yum -y install epel-release
-        yum -y install cmake3 make gcc-c++
+        yum -y install cmake3 make gcc-c++ python3
         ln -s /bin/cmake3 /bin/cmake
         ;;
 
