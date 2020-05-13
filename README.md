@@ -6,8 +6,12 @@ for Global Infectious Disease Analysis hosted at Imperial College, London.
 CovidSim models the transmission dynamics and severity of COVID-19 infections
 throughout a spatially and socially structured population over time.  It enables
 modelling of how intervention policies and healthcare provision affect the
-spread of COVID-19. With parameter changes, it can be used to model other
-respiratory viruses, such as influenza.
+spread of COVID-19. It is used to inform health policy by making quantitative 
+forecasts of death rates, and how these will vary depending on which specific 
+interventions, such as social-distancing, are enacted.
+
+With parameter changes, it can be used to model other respiratory viruses, such
+as influenza.
 
 ## IMPORTANT NOTES
 
