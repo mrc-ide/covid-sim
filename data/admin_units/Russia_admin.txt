@@ -16,6 +16,11 @@
 [Fix population size at specified value]
 1
 
+[Longitude cut line]
+0.0
+# Russia goes from around 19 degrees to -170 dgrees longitude, so need
+# different cut line to default of -180.0
+
 [Number of countries to include]
 1
 

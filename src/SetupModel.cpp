@@ -81,7 +81,14 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
 					l = 0;
 				}
-				BF[index].x = x;
+				// Ensure we use an x which gives us a contiguous whole for the
+				// geography.
+				if (x >= P.LongitudeCutLine) {
+					BF[index].x = x;
+				}
+				else {
+					BF[index].x = x + 360;
+				}
 				BF[index].y = y;
 				BF[index].pop = t;
 				BF[index].cnt = i2;
@@ -145,6 +152,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
+		if (P.width > 180) {
+			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+		}
+		if (P.height > 90) {
+			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
 	}
@@ -184,7 +197,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
 		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
 	}
+	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.width, P.height);
+	double tw = dist2_raw(0, 0, P.width, 0);
+	double th = dist2_raw(0, 0, 0, P.height);
+	if (tw > t) t = tw;
+	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
 	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
 	if (!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
