@@ -191,7 +191,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
 		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
 	}
+	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.width, P.height);
+	double tw = dist2_raw(0, 0, P.width, 0);
+	double th = dist2_raw(0, 0, 0, P.height);
+	if (tw > t) t = tw;
+	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
 	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
 	if (!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
