@@ -39,8 +39,9 @@ var searchData=
   ['airporttrafficscale_36',['AirportTrafficScale',['../struct_p_a_r_a_m.html#a9b97c830458109abc8f906b9f217dd77',1,'PARAM']]],
   ['airtraveldist_37',['AirTravelDist',['../_covid_sim_8cpp.html#a16205fc0e82fcde95f8779add3b5bd12',1,'AirTravelDist():&#160;CovidSim.cpp'],['../_model_8h.html#a16205fc0e82fcde95f8779add3b5bd12',1,'AirTravelDist():&#160;Model.h']]],
   ['alerttriggerafterintervthreshold_38',['AlertTriggerAfterIntervThreshold',['../struct_p_a_r_a_m.html#a904826bca1f7b78bb41a32ff28edd62c',1,'PARAM']]],
-  ['asin2sqx_39',['asin2sqx',['../_dist_8cpp.html#ad53e5a9d6a4705bd452ec362ef9631ff',1,'asin2sqx():&#160;Dist.cpp'],['../_dist_8h.html#ad53e5a9d6a4705bd452ec362ef9631ff',1,'asin2sqx():&#160;Dist.h']]],
-  ['assignhouseholdages_40',['AssignHouseholdAges',['../_setup_model_8cpp.html#ab0495adcfe30e2475f5cdde704e11c63',1,'AssignHouseholdAges(int n, int pers, int tn):&#160;SetupModel.cpp'],['../_setup_model_8h.html#a4d19838a80a5d05bb9dcdebc0fce648e',1,'AssignHouseholdAges(int, int, int):&#160;SetupModel.cpp']]],
-  ['assignpeopletoplaces_41',['AssignPeopleToPlaces',['../_setup_model_8cpp.html#ab52150d409ff7173e2f5c1b426a1219b',1,'AssignPeopleToPlaces(void):&#160;SetupModel.cpp'],['../_setup_model_8h.html#ab52150d409ff7173e2f5c1b426a1219b',1,'AssignPeopleToPlaces(void):&#160;SetupModel.cpp']]],
-  ['availbyage_42',['AvailByAge',['../struct_p_l_a_c_e.html#ae4378420c830fef061cb0af3ee8aa2c2',1,'PLACE']]]
+  ['arcminutes_5fper_5fdegree_39',['ARCMINUTES_PER_DEGREE',['../_constants_8h.html#ac59540e256553e6e4efba9ae8097d2b5',1,'Constants.h']]],
+  ['asin2sqx_40',['asin2sqx',['../_dist_8cpp.html#ad53e5a9d6a4705bd452ec362ef9631ff',1,'asin2sqx():&#160;Dist.cpp'],['../_dist_8h.html#ad53e5a9d6a4705bd452ec362ef9631ff',1,'asin2sqx():&#160;Dist.h']]],
+  ['assignhouseholdages_41',['AssignHouseholdAges',['../_setup_model_8cpp.html#ab0495adcfe30e2475f5cdde704e11c63',1,'AssignHouseholdAges(int n, int pers, int tn):&#160;SetupModel.cpp'],['../_setup_model_8h.html#a4d19838a80a5d05bb9dcdebc0fce648e',1,'AssignHouseholdAges(int, int, int):&#160;SetupModel.cpp']]],
+  ['assignpeopletoplaces_42',['AssignPeopleToPlaces',['../_setup_model_8cpp.html#ab52150d409ff7173e2f5c1b426a1219b',1,'AssignPeopleToPlaces(void):&#160;SetupModel.cpp'],['../_setup_model_8h.html#ab52150d409ff7173e2f5c1b426a1219b',1,'AssignPeopleToPlaces(void):&#160;SetupModel.cpp']]],
+  ['availbyage_43',['AvailByAge',['../struct_p_l_a_c_e.html#ae4378420c830fef061cb0af3ee8aa2c2',1,'PLACE']]]
 ];

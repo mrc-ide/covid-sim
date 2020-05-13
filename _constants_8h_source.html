@@ -72,44 +72,62 @@ $(function() {
 <a href="_constants_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef COVIDSIM_CONSTANTS_H_INCLUDED_</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define COVIDSIM_CONSTANTS_H_INCLUDED_</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#define PI 3.1415926535</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="_constants_8h.html#a598a3330b3c21701223ee0ca14316eca">    5</a></span>&#160;<span class="preprocessor">#define EARTHRADIUS 6366707.0</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno"><a class="line" href="_constants_8h.html#aa3270b347ccf1c183729014926a4a88f">    6</a></span>&#160; </div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#define OUTPUT_DIST_SCALE 1000</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="_constants_8h.html#aeb451d55dc170a297329e41347ef0dce">    8</a></span>&#160;<span class="preprocessor">#define MAX_PLACE_SIZE 20000</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="_constants_8h.html#ada26848e9bfb32c816a5de5b62388b06">    9</a></span>&#160;<span class="preprocessor">#define MAX_NUM_SEED_LOCATIONS 10000</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno"><a class="line" href="_constants_8h.html#ae05eb88a838662c977461ede1b3d2238">   10</a></span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#define CDF_RES 20</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno"><a class="line" href="_constants_8h.html#aea13911f89320cd19c39c76ddc03579c">   12</a></span>&#160;<span class="preprocessor">#define INFPROF_RES 56</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="_constants_8h.html#a447653fa5dc42023c7cb795f5f65dbe8">   13</a></span>&#160;<span class="comment">/* Max household size of 16 */</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#define NUM_AGE_GROUPS 17</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="_constants_8h.html#a60272d047c68590cd8b70e52cf385e80">   16</a></span>&#160;<span class="preprocessor">#define AGE_GROUP_WIDTH 5</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="_constants_8h.html#a84d95d9674690907eeb9bd94bd69e919">   17</a></span>&#160;<span class="preprocessor">#define DAYS_PER_YEAR 364</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno"><a class="line" href="_constants_8h.html#ab8b198f8809cbf6e5135c0a7750b3b45">   18</a></span>&#160;<span class="preprocessor">#define INFECT_TYPE_MASK 16</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="_constants_8h.html#a6594f145a52ef782d2568f3c9d21f44e">   19</a></span>&#160;<span class="preprocessor">#define MAX_GEN_REC 20</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno"><a class="line" href="_constants_8h.html#aeecc4d8aacdc72eea3dd2a8654456333">   20</a></span>&#160;<span class="preprocessor">#define MAX_SEC_REC 500</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="_constants_8h.html#a7f4ea069228ebd6cfa95ce5013c8578f">   21</a></span>&#160;<span class="preprocessor">#define INF_QUEUE_SCALE 5</span></div>
-<div class="line"><a name="l00022"></a><span class="lineno"><a class="line" href="_constants_8h.html#a94b0747c533e5cd35f65055877713b8c">   22</a></span>&#160;<span class="preprocessor">#define MAX_TRAVEL_TIME 14</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="_constants_8h.html#a9b00abc6a03c3a27b2aa27be29367e33">   23</a></span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment">//#define MAX_INFECTIOUS_STEPS 255 //// orig</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#define MAX_INFECTIOUS_STEPS 2550</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="_constants_8h.html#a8ea6fec714b1f86a086aa848bf25afc4">   26</a></span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment">// define maximum number of contacts</span></div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#define MAX_CONTACTS 500</span></div>
-<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="_constants_8h.html#a84bfa512ba2269b77a80f391fbdde0a3">   29</a></span>&#160; </div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#define MAX_DUR_IMPORT_PROFILE 10245</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="_constants_8h.html#a99c90393bd788408fb22e34686ecef5a">   31</a></span>&#160; </div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#define MAX_AIRPORTS 5000</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="_constants_8h.html#a06194fdcf31c0d7bf1e38e07e9ef5cce">   33</a></span>&#160;<span class="preprocessor">#define NNA 10</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno"><a class="line" href="_constants_8h.html#a5a5487a75a95b999ca1efc617b993ddb">   34</a></span>&#160;<span class="preprocessor">#define MAX_DIST_AIRPORT_TO_HOTEL 200000.0</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno"><a class="line" href="_constants_8h.html#acde3cebbdcf97ae6d6c4084148d1d748">   35</a></span>&#160;<span class="preprocessor">#define MIN_HOTELS_PER_AIRPORT 20</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="_constants_8h.html#a315d54e5ec7dcdbabe7ff326d9739db6">   36</a></span>&#160;<span class="preprocessor">#define HOTELS_PER_1000PASSENGER 10</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno"><a class="line" href="_constants_8h.html#a300a3bb30e49af541eed470ed14ca0a8">   37</a></span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor">#define MAX_NUM_INTERVENTION_CHANGE_TIMES   100 </span></div>
-<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="_constants_8h.html#a8c79afe1328352c44a6d80c97b45c829">   39</a></span>&#160;<span class="preprocessor"></span> </div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#endif // COVIDSIM_CONSTANTS_H_INCLUDED_</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno"><a class="line" href="_constants_8h.html#a299aabc5fc8285cbf99025330a3d0d0d">   14</a></span>&#160;constexpr <span class="keywordtype">double</span> <a class="code" href="_constants_8h.html#a299aabc5fc8285cbf99025330a3d0d0d">PI</a> = 3.1415926535; <span class="comment">// full double precision: 3.14159265358979323846</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="_constants_8h.html#a6f68e73e7e160de8071329e674506496">   23</a></span>&#160;constexpr <span class="keywordtype">int</span> <a class="code" href="_constants_8h.html#a6f68e73e7e160de8071329e674506496">NMI</a> = 1852;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
+<div class="line"><a name="l00030"></a><span class="lineno"><a class="line" href="_constants_8h.html#ac59540e256553e6e4efba9ae8097d2b5">   30</a></span>&#160;constexpr <span class="keywordtype">int</span> <a class="code" href="_constants_8h.html#ac59540e256553e6e4efba9ae8097d2b5">ARCMINUTES_PER_DEGREE</a> = 60;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
+<div class="line"><a name="l00037"></a><span class="lineno"><a class="line" href="_constants_8h.html#ab7b06ec471e2f7990683de55a2d97e8c">   37</a></span>&#160;constexpr <span class="keywordtype">int</span> <a class="code" href="_constants_8h.html#ab7b06ec471e2f7990683de55a2d97e8c">DEGREES_PER_TURN</a> = 360;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="_constants_8h.html#adf5ec8a684e0f9dbe27ba5ae725ac0ab">   45</a></span>&#160;constexpr <span class="keywordtype">int</span> <a class="code" href="_constants_8h.html#adf5ec8a684e0f9dbe27ba5ae725ac0ab">EARTH_CIRCUMFERENCE</a> = <a class="code" href="_constants_8h.html#a6f68e73e7e160de8071329e674506496">NMI</a> * <a class="code" href="_constants_8h.html#ac59540e256553e6e4efba9ae8097d2b5">ARCMINUTES_PER_DEGREE</a> * <a class="code" href="_constants_8h.html#ab7b06ec471e2f7990683de55a2d97e8c">DEGREES_PER_TURN</a>;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="_constants_8h.html#aa4a5798f68731fa24d1b157603b44e82">   50</a></span>&#160;constexpr <span class="keywordtype">double</span> <a class="code" href="_constants_8h.html#aa4a5798f68731fa24d1b157603b44e82">EARTH_DIAMETER</a> = <a class="code" href="_constants_8h.html#adf5ec8a684e0f9dbe27ba5ae725ac0ab">EARTH_CIRCUMFERENCE</a> / <a class="code" href="_constants_8h.html#a299aabc5fc8285cbf99025330a3d0d0d">PI</a>;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="_constants_8h.html#a1c7d68474221fa1eb1a30c5e5ec09806">   64</a></span>&#160;constexpr <span class="keywordtype">double</span> <a class="code" href="_constants_8h.html#a1c7d68474221fa1eb1a30c5e5ec09806">EARTHRADIUS</a> = <a class="code" href="_constants_8h.html#aa4a5798f68731fa24d1b157603b44e82">EARTH_DIAMETER</a> / 2;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="preprocessor">#define OUTPUT_DIST_SCALE 1000</span></div>
+<div class="line"><a name="l00067"></a><span class="lineno"><a class="line" href="_constants_8h.html#aeb451d55dc170a297329e41347ef0dce">   67</a></span>&#160;<span class="preprocessor">#define MAX_PLACE_SIZE 20000</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno"><a class="line" href="_constants_8h.html#ada26848e9bfb32c816a5de5b62388b06">   68</a></span>&#160;<span class="preprocessor">#define MAX_NUM_SEED_LOCATIONS 10000</span></div>
+<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="_constants_8h.html#ae05eb88a838662c977461ede1b3d2238">   69</a></span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="preprocessor">#define CDF_RES 20</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="_constants_8h.html#aea13911f89320cd19c39c76ddc03579c">   71</a></span>&#160;<span class="preprocessor">#define INFPROF_RES 56</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="_constants_8h.html#a447653fa5dc42023c7cb795f5f65dbe8">   72</a></span>&#160;<span class="comment">/* Max household size of 16 */</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="preprocessor">#define NUM_AGE_GROUPS 17</span></div>
+<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="_constants_8h.html#a60272d047c68590cd8b70e52cf385e80">   75</a></span>&#160;<span class="preprocessor">#define AGE_GROUP_WIDTH 5</span></div>
+<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="_constants_8h.html#a84d95d9674690907eeb9bd94bd69e919">   76</a></span>&#160;<span class="preprocessor">#define DAYS_PER_YEAR 364</span></div>
+<div class="line"><a name="l00077"></a><span class="lineno"><a class="line" href="_constants_8h.html#ab8b198f8809cbf6e5135c0a7750b3b45">   77</a></span>&#160;<span class="preprocessor">#define INFECT_TYPE_MASK 16</span></div>
+<div class="line"><a name="l00078"></a><span class="lineno"><a class="line" href="_constants_8h.html#a6594f145a52ef782d2568f3c9d21f44e">   78</a></span>&#160;<span class="preprocessor">#define MAX_GEN_REC 20</span></div>
+<div class="line"><a name="l00079"></a><span class="lineno"><a class="line" href="_constants_8h.html#aeecc4d8aacdc72eea3dd2a8654456333">   79</a></span>&#160;<span class="preprocessor">#define MAX_SEC_REC 500</span></div>
+<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="_constants_8h.html#a7f4ea069228ebd6cfa95ce5013c8578f">   80</a></span>&#160;<span class="preprocessor">#define INF_QUEUE_SCALE 5</span></div>
+<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="_constants_8h.html#a94b0747c533e5cd35f65055877713b8c">   81</a></span>&#160;<span class="preprocessor">#define MAX_TRAVEL_TIME 14</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="_constants_8h.html#a9b00abc6a03c3a27b2aa27be29367e33">   82</a></span>&#160; </div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="comment">//#define MAX_INFECTIOUS_STEPS 255 //// orig</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;<span class="preprocessor">#define MAX_INFECTIOUS_STEPS 2550</span></div>
+<div class="line"><a name="l00085"></a><span class="lineno"><a class="line" href="_constants_8h.html#a8ea6fec714b1f86a086aa848bf25afc4">   85</a></span>&#160; </div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="comment">// define maximum number of contacts</span></div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="preprocessor">#define MAX_CONTACTS 500</span></div>
+<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="_constants_8h.html#a84bfa512ba2269b77a80f391fbdde0a3">   88</a></span>&#160; </div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="preprocessor">#define MAX_DUR_IMPORT_PROFILE 10245</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="_constants_8h.html#a99c90393bd788408fb22e34686ecef5a">   90</a></span>&#160; </div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="preprocessor">#define MAX_AIRPORTS 5000</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno"><a class="line" href="_constants_8h.html#a06194fdcf31c0d7bf1e38e07e9ef5cce">   92</a></span>&#160;<span class="preprocessor">#define NNA 10</span></div>
+<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="_constants_8h.html#a5a5487a75a95b999ca1efc617b993ddb">   93</a></span>&#160;<span class="preprocessor">#define MAX_DIST_AIRPORT_TO_HOTEL 200000.0</span></div>
+<div class="line"><a name="l00094"></a><span class="lineno"><a class="line" href="_constants_8h.html#acde3cebbdcf97ae6d6c4084148d1d748">   94</a></span>&#160;<span class="preprocessor">#define MIN_HOTELS_PER_AIRPORT 20</span></div>
+<div class="line"><a name="l00095"></a><span class="lineno"><a class="line" href="_constants_8h.html#a315d54e5ec7dcdbabe7ff326d9739db6">   95</a></span>&#160;<span class="preprocessor">#define HOTELS_PER_1000PASSENGER 10</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno"><a class="line" href="_constants_8h.html#a300a3bb30e49af541eed470ed14ca0a8">   96</a></span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="preprocessor">#define MAX_NUM_INTERVENTION_CHANGE_TIMES   100 </span></div>
+<div class="line"><a name="l00098"></a><span class="lineno"><a class="line" href="_constants_8h.html#a8c79afe1328352c44a6d80c97b45c829">   98</a></span>&#160;<span class="preprocessor"></span> </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="preprocessor">#endif // COVIDSIM_CONSTANTS_H_INCLUDED_</span></div>
 </div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="a_constants_8h_html_a299aabc5fc8285cbf99025330a3d0d0d"><div class="ttname"><a href="_constants_8h.html#a299aabc5fc8285cbf99025330a3d0d0d">PI</a></div><div class="ttdeci">constexpr double PI</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00014">Constants.h:14</a></div></div>
+<div class="ttc" id="a_constants_8h_html_a1c7d68474221fa1eb1a30c5e5ec09806"><div class="ttname"><a href="_constants_8h.html#a1c7d68474221fa1eb1a30c5e5ec09806">EARTHRADIUS</a></div><div class="ttdeci">constexpr double EARTHRADIUS</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00064">Constants.h:64</a></div></div>
+<div class="ttc" id="a_constants_8h_html_adf5ec8a684e0f9dbe27ba5ae725ac0ab"><div class="ttname"><a href="_constants_8h.html#adf5ec8a684e0f9dbe27ba5ae725ac0ab">EARTH_CIRCUMFERENCE</a></div><div class="ttdeci">constexpr int EARTH_CIRCUMFERENCE</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00045">Constants.h:45</a></div></div>
+<div class="ttc" id="a_constants_8h_html_aa4a5798f68731fa24d1b157603b44e82"><div class="ttname"><a href="_constants_8h.html#aa4a5798f68731fa24d1b157603b44e82">EARTH_DIAMETER</a></div><div class="ttdeci">constexpr double EARTH_DIAMETER</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00050">Constants.h:50</a></div></div>
+<div class="ttc" id="a_constants_8h_html_ac59540e256553e6e4efba9ae8097d2b5"><div class="ttname"><a href="_constants_8h.html#ac59540e256553e6e4efba9ae8097d2b5">ARCMINUTES_PER_DEGREE</a></div><div class="ttdeci">constexpr int ARCMINUTES_PER_DEGREE</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00030">Constants.h:30</a></div></div>
+<div class="ttc" id="a_constants_8h_html_ab7b06ec471e2f7990683de55a2d97e8c"><div class="ttname"><a href="_constants_8h.html#ab7b06ec471e2f7990683de55a2d97e8c">DEGREES_PER_TURN</a></div><div class="ttdeci">constexpr int DEGREES_PER_TURN</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00037">Constants.h:37</a></div></div>
+<div class="ttc" id="a_constants_8h_html_a6f68e73e7e160de8071329e674506496"><div class="ttname"><a href="_constants_8h.html#a6f68e73e7e160de8071329e674506496">NMI</a></div><div class="ttdeci">constexpr int NMI</div><div class="ttdef"><b>Definition:</b> <a href="_constants_8h_source.html#l00023">Constants.h:23</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
