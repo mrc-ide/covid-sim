@@ -108,3 +108,27 @@ but it should not be considered the source of truth for the project.
 
 The regression tests are not supported in the Visual Studio stand-alone
 solution.
+
+## Doxygen
+
+The CMake custom target `doxygen` builds the Doxygen documentation
+(`make doxygen`). Some IDEs do not expose this so alternatively setting the
+`BUILD_DOC` CMake option to `ON` will cause the documentation to be built
+every time the software is built regardless of whether anything has changed.
+
+To generate any diagrams [GraphViz](https://graphviz.org/) must be installed.
+
+### Replaying warnings in Visual Studio
+
+The Doxygen warnings can be navigated to in Visual Studio:
+1. From the `Tools` menu select `External Tools...` to launch the
+`External Tools` dialogue box.
+2. Press the `Add` button.
+3. For `Title` enter `CovidSim`.
+4. For `Command` enter `cmd.exe`.
+5. For `Arguments` enter `/c type \path\to\warnings.txt`.
+6. Check `Use Output window`.
+7. Click `Apply`.
+8. From the `Tools` menu select `CovidSim` to replay the file.
+9. Double click on a line in the `Output` window which begins with a filename
+to jump to that file.
