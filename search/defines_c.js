@@ -1,12 +1,9 @@
 var searchData=
 [
-  ['severity_5fasymptomatic_2534',['Severity_Asymptomatic',['../_inf_stat_8h.html#adbb602da0ee4f3ed3c90b5909d69c2b4',1,'InfStat.h']]],
-  ['severity_5fcritical_2535',['Severity_Critical',['../_inf_stat_8h.html#a4a37df9eeae3eb0abcb295bbf43f39bd',1,'InfStat.h']]],
-  ['severity_5fdead_2536',['Severity_Dead',['../_inf_stat_8h.html#a1f3865c6686df5b1f3645fed999d04a7',1,'InfStat.h']]],
-  ['severity_5fili_2537',['Severity_ILI',['../_inf_stat_8h.html#ae27261a5be453fff5585c66946fc3e94',1,'InfStat.h']]],
-  ['severity_5fmild_2538',['Severity_Mild',['../_inf_stat_8h.html#adb45224e2f3aad8dab687adac60ea2e3',1,'InfStat.h']]],
-  ['severity_5frecovered_2539',['Severity_Recovered',['../_inf_stat_8h.html#a3620f3a529bae76c50aacdd87bdf7202',1,'InfStat.h']]],
-  ['severity_5frecoveringfromcritical_2540',['Severity_RecoveringFromCritical',['../_inf_stat_8h.html#a156cecefcc1ffc38a39448f0537ee9ed',1,'InfStat.h']]],
-  ['severity_5fsari_2541',['Severity_SARI',['../_inf_stat_8h.html#a3ebf07882bfbea9d1682a54796964062',1,'InfStat.h']]],
-  ['strict_2542',['STRICT',['../_bitmap_8h.html#a8a7c30a576d5706b6c0821834d01cbbc',1,'Bitmap.h']]]
+  ['xa1_2539',['Xa1',['../_rand_8h.html#a73ee21f6ffe24405f78796404c037faf',1,'Rand.h']]],
+  ['xa1vw_2540',['Xa1vw',['../_rand_8h.html#a6633522cb17d040ea7ec5b7fc8b64ace',1,'Rand.h']]],
+  ['xa2_2541',['Xa2',['../_rand_8h.html#af83edcfbc8d3db3b7ce51a95fd101605',1,'Rand.h']]],
+  ['xa2vw_2542',['Xa2vw',['../_rand_8h.html#a82d35b2b69afa99257c4dec9db7c41cb',1,'Rand.h']]],
+  ['xm1_2543',['Xm1',['../_rand_8h.html#a46f027760b3d7a48a31ff4f9f9eb2635',1,'Rand.h']]],
+  ['xm2_2544',['Xm2',['../_rand_8h.html#ab97dc86ab666a550c5dddfc344dece6e',1,'Rand.h']]]
 ];

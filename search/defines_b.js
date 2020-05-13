@@ -1,10 +1,12 @@
 var searchData=
 [
-  ['place_5fclosed_2527',['PLACE_CLOSED',['../_model_macros_8h.html#a92ebefcf70cd50355d2b12e7aabfe939',1,'ModelMacros.h']]],
-  ['place_5ftreated_2528',['PLACE_TREATED',['../_model_macros_8h.html#ae5e3b8fc412a10167255a8928f2e25ef',1,'ModelMacros.h']]],
-  ['placetype_5foffice_2529',['PlaceType_Office',['../_covid_sim_8h.html#a57f112c96ccf26de91ef30774049a3c3',1,'CovidSim.h']]],
-  ['placetype_5fprimaryschool_2530',['PlaceType_PrimarySchool',['../_covid_sim_8h.html#a84da9488bdbec238b90afb0244d86d4a',1,'CovidSim.h']]],
-  ['placetype_5fsecondaryschool_2531',['PlaceType_SecondarySchool',['../_covid_sim_8h.html#a1ce6c4df3864dc9581439413fd574cc1',1,'CovidSim.h']]],
-  ['placetype_5funiversity_2532',['PlaceType_University',['../_covid_sim_8h.html#ae8ec28980d2f7cc2a5fd22c2522dedd7',1,'CovidSim.h']]],
-  ['prop_5fother_5fparent_5faway_2533',['PROP_OTHER_PARENT_AWAY',['../_setup_model_8cpp.html#ad1eb17ad77734897306fd4905e3c3443',1,'SetupModel.cpp']]]
+  ['severity_5fasymptomatic_2530',['Severity_Asymptomatic',['../_inf_stat_8h.html#adbb602da0ee4f3ed3c90b5909d69c2b4',1,'InfStat.h']]],
+  ['severity_5fcritical_2531',['Severity_Critical',['../_inf_stat_8h.html#a4a37df9eeae3eb0abcb295bbf43f39bd',1,'InfStat.h']]],
+  ['severity_5fdead_2532',['Severity_Dead',['../_inf_stat_8h.html#a1f3865c6686df5b1f3645fed999d04a7',1,'InfStat.h']]],
+  ['severity_5fili_2533',['Severity_ILI',['../_inf_stat_8h.html#ae27261a5be453fff5585c66946fc3e94',1,'InfStat.h']]],
+  ['severity_5fmild_2534',['Severity_Mild',['../_inf_stat_8h.html#adb45224e2f3aad8dab687adac60ea2e3',1,'InfStat.h']]],
+  ['severity_5frecovered_2535',['Severity_Recovered',['../_inf_stat_8h.html#a3620f3a529bae76c50aacdd87bdf7202',1,'InfStat.h']]],
+  ['severity_5frecoveringfromcritical_2536',['Severity_RecoveringFromCritical',['../_inf_stat_8h.html#a156cecefcc1ffc38a39448f0537ee9ed',1,'InfStat.h']]],
+  ['severity_5fsari_2537',['Severity_SARI',['../_inf_stat_8h.html#a3ebf07882bfbea9d1682a54796964062',1,'InfStat.h']]],
+  ['strict_2538',['STRICT',['../_bitmap_8h.html#a8a7c30a576d5706b6c0821834d01cbbc',1,'Bitmap.h']]]
 ];
