@@ -1,8 +1,67 @@
 #ifndef COVIDSIM_CONSTANTS_H_INCLUDED_
 #define COVIDSIM_CONSTANTS_H_INCLUDED_
 
-#define PI 3.1415926535
-#define EARTHRADIUS 6366707.0
+/**
+ * Math constant defined as the ratio of a circle's circumference to its diameter.
+ *
+ * TODO: since all calculations using this constant are being automatically
+ * type-casted to double, should the precision be extended for more accuracy in
+ * the simulations?
+ *
+ * Eventually could be replaced with C++20's std::numbers::pi.
+ * https://en.cppreference.com/w/cpp/header/numbers
+ */
+constexpr double PI = 3.1415926535; // full double precision: 3.14159265358979323846
+
+/**
+ * An arc minute of latitude along any line of longitude in meters.
+ *
+ * Also known as the International Nautical Mile.
+ *
+ * @see https://en.wikipedia.org/wiki/Nautical_mile
+ */
+constexpr int NMI = 1852;
+
+/**
+ * The number of arc minutes in one degree.
+ *
+ * @see https://en.wikipedia.org/wiki/Minute_and_second_of_arc
+ */
+constexpr int ARCMINUTES_PER_DEGREE = 60;
+
+/**
+ * The number of degrees in a complete rotation.
+ *
+ * @see https://en.wikipedia.org/wiki/Turn_(angle)
+ */
+constexpr int DEGREES_PER_TURN = 360;
+
+/**
+ * The earth's circumference in meters.
+ *
+ * The units of cancellation:
+ *    meters/minute * minutes/degree * degrees = meters
+ */
+constexpr int EARTH_CIRCUMFERENCE = NMI * ARCMINUTES_PER_DEGREE * DEGREES_PER_TURN;
+
+/**
+ * The earth's diameter in meters.
+ */
+constexpr double EARTH_DIAMETER = EARTH_CIRCUMFERENCE / PI;
+
+/**
+ * The Earth's radius in meters.
+ *
+ * The previous hardcoded value used 6366707 which was derived from the
+ * following formula:
+ *
+ *     Earth's radius (m) = Earth's circumference / 2 * Pi
+ *
+ * where Earth's circumference can be derived with the following formula:
+ *
+ *     Earth's circumference (m) = NMI * ARCMINUTES_PER_DEGREE * DEGREES_PER_TURN
+ */
+constexpr double EARTHRADIUS = EARTH_DIAMETER / 2;
 
 #define OUTPUT_DIST_SCALE 1000
 #define MAX_PLACE_SIZE 20000
