@@ -81,7 +81,14 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
 					l = 0;
 				}
-				BF[index].x = x;
+				// Ensure we use an x which gives us a contiguous whole for the
+				// geography.
+				if (x >= P.LongitudeCutLine) {
+					BF[index].x = x;
+				}
+				else {
+					BF[index].x = x + 360;
+				}
 				BF[index].y = y;
 				BF[index].pop = t;
 				BF[index].cnt = i2;
