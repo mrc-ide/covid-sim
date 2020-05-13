@@ -27,15 +27,10 @@ double snorm(void);
 double snorm_mt(int);
 double fsign(double, double);
 //added some new beta, gamma generating functions: ggilani 27/11/14
-double gen_norm(double, double);
 double gen_norm_mt(double, double, int);
-double gen_gamma(double, double);
 double gen_gamma_mt(double, double, int);
 //added some new lognormal sampling functions: ggilani 09/02/17
 double gen_lognormal(double, double);
-double gen_lognormal_mt(double, double, int);
-double sgamma(double);
-double sgamma_mt(double, int);
 void SampleWithoutReplacement(int, int, int);
 
 #endif // COVIDSIM_RAND_H_INCLUDED_

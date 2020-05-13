@@ -3,8 +3,6 @@
 
 #include "MachineDefines.h"
 
-#define KMP_LIBRARY throughput
-
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>

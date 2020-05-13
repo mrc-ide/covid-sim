@@ -81,7 +81,14 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
 					l = 0;
 				}
-				BF[index].x = x;
+				// Ensure we use an x which gives us a contiguous whole for the
+				// geography.
+				if (x >= P.LongitudeCutLine) {
+					BF[index].x = x;
+				}
+				else {
+					BF[index].x = x + 360;
+				}
 				BF[index].y = y;
 				BF[index].pop = t;
 				BF[index].cnt = i2;
@@ -145,6 +152,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
+		if (P.width > 180) {
+			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+		}
+		if (P.height > 90) {
+			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
 	}
@@ -184,7 +197,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
 		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
 	}
+	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.width, P.height);
+	double tw = dist2_raw(0, 0, P.width, 0);
+	double th = dist2_raw(0, 0, 0, P.height);
+	if (tw > t) t = tw;
+	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
 	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
 	if (!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
@@ -208,13 +226,13 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			TSMean[i].S = TSMean[i].I = TSMean[i].R = TSMean[i].D = TSMean[i].L =
 				TSMean[i].incI = TSMean[i].incR = TSMean[i].incC = TSMean[i].incDC = TSMean[i].cumDC =
-				TSMean[i].incTC = TSMean[i].cumT = TSMean[i].cumTP = TSMean[i].cumUT = TSMean[i].cumV = TSMean[i].H = TSMean[i].incH =
+				TSMean[i].incTC = TSMean[i].cumT = TSMean[i].cumTP = TSMean[i].cumUT = TSMean[i].cumV = TSMean[i].incH =
 				TSMean[i].incCT = TSMean[i].CT = TSMean[i].incCC = TSMean[i].incDCT = TSMean[i].DCT = //added contact tracing, cases who are contacts
 				TSMean[i].cumTmax = TSMean[i].cumVmax = TSMean[i].incD = TSMean[i].incHQ = TSMean[i].incAC =
 				TSMean[i].incAH = TSMean[i].incAA = TSMean[i].incACS = TSMean[i].incAPC =
 				TSMean[i].incAPA = TSMean[i].incAPCS = TSMean[i].Rdenom = 0;
 			TSVar[i].S = TSVar[i].I = TSVar[i].R = TSVar[i].D = TSVar[i].L =
-				TSVar[i].incI = TSVar[i].incR = TSVar[i].incC = TSVar[i].incTC = TSVar[i].incD = TSVar[i].H = TSVar[i].incH = TSVar[i].incCT = TSVar[i].CT = TSVar[i].incCC = TSMean[i].incDCT = TSVar[i].DCT = 0;
+				TSVar[i].incI = TSVar[i].incR = TSVar[i].incC = TSVar[i].incTC = TSVar[i].incD = TSVar[i].incH = TSVar[i].incCT = TSVar[i].CT = TSVar[i].incCC = TSMean[i].incDCT = TSVar[i].DCT = 0;
 			for (j = 0; j < NUM_PLACE_TYPES; j++) TSMean[i].PropPlacesClosed[j] = TSVar[i].PropPlacesClosed[j] = 0;
 			for (j = 0; j < INFECT_TYPE_MASK; j++) TSMean[i].incItype[j] = TSMean[i].Rtype[j] = 0;
 			for (j = 0; j < NUM_AGE_GROUPS; j++) TSMean[i].incCa[j] = TSMean[i].incIa[j] = TSMean[i].incDa[j] = TSMean[i].Rage[j] = 0;

@@ -83,6 +83,7 @@ args = parse_args()
 united_states = [ "United_States" ]
 canada = [ "Canada" ]
 usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US", "Puerto_Rico", "American_Samoa"]
+nigeria = ["Nigeria"]
 
 # Determine whether we need to build the tool or use a user supplied one:
 if args.covidsim is not None:
@@ -127,6 +128,8 @@ if args.country in united_states + canada:
     wpop_file_root = "usacan"
 elif args.country in usa_territories:
     wpop_file_root = "us_terr"
+elif args.country in nigeria:
+    wpop_file_root = "nga_adm1"
 else:
     wpop_file_root = "eur"
 
@@ -157,6 +160,8 @@ with gzip.open(wpop_file_gz, 'rb') as f_in:
 # Configure pre-parameter file.  This file doesn't change between runs:
 if args.country in united_states:
     pp_file = os.path.join(args.paramdir, "preUS_R0=2.0.txt")
+elif args.country in nigeria:
+    pp_file = os.path.join(args.paramdir, "preNGA_R0=2.0.txt")
 else:
     pp_file = os.path.join(args.paramdir, "preUK_R0=2.0.txt")
 if not os.path.exists(pp_file):
