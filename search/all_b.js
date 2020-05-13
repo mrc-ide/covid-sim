@@ -21,5 +21,6 @@ var searchData=
   ['loc_5fy_650',['loc_y',['../struct_h_o_u_s_e_h_o_l_d.html#a54b006bcef7d22ef1127ac53f37b0299',1,'HOUSEHOLD::loc_y()'],['../struct_a_i_r_p_o_r_t.html#a7336d7f50bf3c7c9936fefa0e968d2c8',1,'AIRPORT::loc_y()'],['../struct_p_l_a_c_e.html#aaeb86044e41d5230813efc46eed73bcf',1,'PLACE::loc_y()']]],
   ['localbeta_651',['LocalBeta',['../struct_p_a_r_a_m.html#a323ddf7e1f7dd4063f285d8087ee3a5f',1,'PARAM']]],
   ['localjourneydurationdistrib_652',['LocalJourneyDurationDistrib',['../struct_p_a_r_a_m.html#a53b710f71c317e67e96391e33cc01822',1,'PARAM']]],
-  ['locationinitialinfection_653',['LocationInitialInfection',['../struct_p_a_r_a_m.html#aa20a1804d83f5616981b8294e7b680b2',1,'PARAM']]]
+  ['locationinitialinfection_653',['LocationInitialInfection',['../struct_p_a_r_a_m.html#aa20a1804d83f5616981b8294e7b680b2',1,'PARAM']]],
+  ['longitudecutline_654',['LongitudeCutLine',['../struct_p_a_r_a_m.html#a6ad2e7a2569ac9e36846b3f0a5baf94c',1,'PARAM']]]
 ];
