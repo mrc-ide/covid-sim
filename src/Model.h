@@ -12,7 +12,7 @@
 
 #pragma pack(push, 2)
 
-typedef struct PERSON {
+struct person {
 	int pcell;			// place cell, Cells[person->pcell] holds this person
 	int mcell;			// microcell, Mcells[person->mcell] holds this person
 	int hh;				// Household[person->hh] holds this person
@@ -50,14 +50,14 @@ typedef struct PERSON {
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
-} person;
+};
 
-typedef struct HOUSEHOLD {
+struct household {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
 	float loc_x, loc_y;
 	unsigned short int nhr;
-} household;
+};
 
 /*
 In the main InfectSweep loop, we cannot safely set
@@ -66,11 +66,11 @@ threads might be trying to set the values differently. We therefore
 make a queue of `infection`s in `inf_queue` containing the information
 we need, so that we can set the values after the main loop has finished.
 */
-typedef struct INFECTION {
+struct infection {
 	int infector;
 	int infectee;
 	short int infect_type;
-} infection;
+};
 
 /**
  * @brief Contact event used for tracking contact tracing events
@@ -78,18 +78,18 @@ typedef struct INFECTION {
  * Currently stores: contact and index case (both ints) and contact time (unsigned short int)
  * Thanks to igfoo
  */
-typedef struct CONTACTEVENT {
+struct contactevent {
 	int contact;
 	int index;
 	unsigned short int contact_time;
-} contactevent;
+};
 
 /**
  * @brief The global state of the model.
  *
  * TODO: Detailed explanation.
  */
-typedef struct POPVAR {
+struct popvar {
 
 	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
@@ -139,7 +139,7 @@ typedef struct POPVAR {
 	//// v) SaveSummaryResults
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
 
-} popvar;
+};
 
 /**
  * @brief Recorded time-series variables (typically populated from the `POPVAR` state)
@@ -150,7 +150,7 @@ typedef struct POPVAR {
  * NOTE: This struct must contain only doubles (and arrays of doubles) for the TSMean
  * 	     averaging code to work.
  */
-typedef struct RESULTS {
+struct results {
 
 	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
 	double incH; //added incidence of hospitalisation: ggilani 28/10/14
@@ -197,7 +197,7 @@ typedef struct RESULTS {
 	//// iii) SaveResults and SaveSummary results.
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
 
-} results;
+};
 
 /**
  * Supports producing individual infection events from the simulation (and is not used that
@@ -205,10 +205,10 @@ typedef struct RESULTS {
  *
  * Added Events struct to allow us to log and write out infection events: ggilani 10/10/14
  */
-typedef struct EVENTS {
+struct events {
 	double infectee_x, infectee_y, t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
-} events;
+};
 
 /*
   HQ - quarantined households
@@ -230,10 +230,10 @@ typedef struct EVENTS {
 /**
  * @brief Used for computing spatial interactions more efficiently.
  */
-typedef struct INDEXLIST {
+struct indexlist {
 	int id;
 	float prob;
-} indexlist;
+};
 
 /**
  * @brief Airport state.
@@ -241,13 +241,13 @@ typedef struct INDEXLIST {
  * Not used for COVID-19 right now. Might be more relevant for USA and
  * other countries that have lots of internal flights. Slows the simulation.
  */
-typedef struct AIRPORT {
+struct airport {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int country, adunit, num_connected, control, *conn_airports;
 	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
 	indexlist* DestMcells, *DestPlaces;
-} airport;
+};
 
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
@@ -256,7 +256,7 @@ typedef struct AIRPORT {
  * members (people), places (schools, universities, workplaces etc.), road networks, links to
  * airports etc.
  */
-typedef struct MICROCELL {
+struct microcell {
 	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
@@ -273,7 +273,7 @@ typedef struct MICROCELL {
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
 	indexlist* AirportList;
-} microcell;
+};
 
 /**
  * @brief Holds microcells.
@@ -282,13 +282,13 @@ typedef struct MICROCELL {
  * is vaccinated, treated etc.) Also contains data for the spatial gravity model for social
  * interactions (probability distributions).
 */
-typedef struct CELL {
+struct cell {
 	int n, S, L, I, R, D, cumTC, S0, tot_treat, tot_vacc;
 	int* members, *susceptible, *latent, *infected; //// pointers to people in cell. e.g. *susceptible identifies where the final susceptible member of cel is.
 	int* InvCDF;
 	float tot_prob, *cum_trans, *max_trans;
 	short int CurInterv[MAX_INTERVENTION_TYPES];
-} cell;
+};
 
 /**
  * @brief Represents an institution that people may belong to.
@@ -300,7 +300,7 @@ typedef struct CELL {
  * Places can have different groups (to model differential interaction strengths between groups
  * in the same place).
  */
-typedef struct PLACE {
+struct place {
 	int n, mcell;
 	unsigned short int ng, treat, control_trig, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
@@ -309,24 +309,24 @@ typedef struct PLACE {
 	float loc_x, loc_y;
 	float ProbClose;
 	int* group_start, *group_size, *members;
-} place;
+};
 
 /**
  * @brief Deprecated intervention mechanism.
  *
  * Not currently being used, but may be reinstated.
  */
-typedef struct INTERVENTION {
+struct intervention {
 	int InterventionType, DoAUThresh, NoStartAfterMin;
 	double StartTime, StopTime, MinDuration, RepeatInterval, TimeOffset;
 	double StartThresholdHigh, StartThresholdLow, StopThreshold, Level, LevelCellVar, LevelAUVar, LevelCountryVar, ControlParam, LevelClustering;
 	unsigned int MaxRounds, MaxResource;
-} intervention;
+};
 
 /**
  * @brief A political entity that administers a geographical area.
  */
-typedef struct ADMINUNIT {
+struct adminunit {
 	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
 	intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
 	char cnt_name[100], ad_name[200];
@@ -338,7 +338,7 @@ typedef struct ADMINUNIT {
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationPolicyDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
-} adminunit;
+};
 
 #pragma pack(pop)
 

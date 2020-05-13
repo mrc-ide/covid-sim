@@ -16,10 +16,10 @@ void UpdateProbs(int);
 // network file, to ensure old/incompatible files are not loaded.
 const int NETWORK_FILE_VERSION = 1;
 
-typedef struct BIN_FILE {
+struct bin_file {
 	double x, y, pop;
 	int cnt, ad;
-} bin_file;
+};
 
 extern char OutFile[1024],OutDensFile[1024];
 

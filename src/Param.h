@@ -15,7 +15,7 @@ enum BitmapFormats
  * @brief Stores the parameters for the simulation.
  *
  */
-typedef struct PARAM {
+struct param {
 
 
 	int PopSize; /**< Population size */
@@ -284,7 +284,7 @@ typedef struct PARAM {
 	int OldPersAge;
 	double ThreeChildFivePersProb;
 	int OlderGenGap;
-} param;
+};
 
 extern param P;
 
