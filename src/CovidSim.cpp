@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 #include "CovidSim.h"
-#include "binio.h"
+#include "BinIO.h"
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"

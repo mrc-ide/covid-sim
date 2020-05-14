@@ -89,7 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\binio.cpp" />
+    <ClCompile Include="src\BinIO.cpp" />
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
     <ClCompile Include="src\Dist.cpp" />
@@ -102,8 +102,7 @@
     <ClCompile Include="src\Update.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\avi_utils.h" />
-    <ClInclude Include="src\binio.h" />
+    <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
     <ClInclude Include="src\Constants.h" />
