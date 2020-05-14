@@ -6,7 +6,7 @@ var searchData=
   ['filesize_389',['filesize',['../struct_b_i_t_m_a_p___h_e_a_d_e_r.html#a85856115f907af90388c27b10c7d79a2',1,'BITMAP_HEADER']]],
   ['findcontactsofdctcontacts_390',['FindContactsOfDCTContacts',['../struct_p_a_r_a_m.html#a887c7574324b15b3b5f73de21dc24008',1,'PARAM']]],
   ['firstperson_391',['FirstPerson',['../struct_h_o_u_s_e_h_o_l_d.html#a865df4654230b4d92a901da6cca71226',1,'HOUSEHOLD']]],
-  ['fread_5fbig_392',['fread_big',['../binio_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5',1,'fread_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;binio.cpp'],['../binio_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd',1,'fread_big(void *, size_t, size_t, FILE *):&#160;binio.cpp']]],
+  ['fread_5fbig_392',['fread_big',['../_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5',1,'fread_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;BinIO.cpp'],['../_bin_i_o_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd',1,'fread_big(void *, size_t, size_t, FILE *):&#160;BinIO.cpp']]],
   ['fsign_393',['fsign',['../_rand_8cpp.html#ab522f7ba08479f35ee7dd3729cf20a44',1,'fsign(double num, double sign):&#160;Rand.cpp'],['../_rand_8h.html#ac6e0be47b93c20eb5700b2b525b9acc7',1,'fsign(double, double):&#160;Rand.cpp']]],
-  ['fwrite_5fbig_394',['fwrite_big',['../binio_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a',1,'fwrite_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;binio.cpp'],['../binio_8h.html#a881e8183b6e0e8468528614c63b68bab',1,'fwrite_big(void *, size_t, size_t, FILE *):&#160;binio.cpp']]]
+  ['fwrite_5fbig_394',['fwrite_big',['../_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a',1,'fwrite_big(void *buffer, size_t size, size_t count, FILE *stream):&#160;BinIO.cpp'],['../_bin_i_o_8h.html#a881e8183b6e0e8468528614c63b68bab',1,'fwrite_big(void *, size_t, size_t, FILE *):&#160;BinIO.cpp']]]
 ];

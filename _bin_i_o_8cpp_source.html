@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>covid-sim: src/binio.cpp Source File</title>
+<title>covid-sim: src/BinIO.cpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -66,17 +66,17 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">binio.cpp</div>  </div>
+<div class="title">BinIO.cpp</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="binio_8cpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="binio_8h.html">binio.h</a>&quot;</span></div>
+<a href="_bin_i_o_8cpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_bin_i_o_8h.html">BinIO.h</a>&quot;</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_param_8h.html">Param.h</a>&quot;</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment">/*#include &quot;..\miniz_v111b\miniz.c&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">*/</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#define COMP_LEVEL 1</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="binio_8cpp.html#a68dbdba3db66e82334f63331df05a871">    7</a></span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="binio_8h.html#a881e8183b6e0e8468528614c63b68bab">    8</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="binio_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="_bin_i_o_8cpp.html#a68dbdba3db66e82334f63331df05a871">    7</a></span>&#160; </div>
+<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a881e8183b6e0e8468528614c63b68bab">    8</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;{</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
@@ -95,7 +95,7 @@ $(function() {
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keywordflow">return</span> ret;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;}</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="binio_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd">   27</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="binio_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd">   27</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;{</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
@@ -114,9 +114,9 @@ $(function() {
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keywordflow">return</span> ret;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;}</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="binio_8h.html#ac145c6ac4051a278f42475933f42381c">   46</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="binio_8cpp.html#a7a059c7ad9586ea2a8a3be7d43a7fd7d">zfwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#ac145c6ac4051a278f42475933f42381c">   46</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a7a059c7ad9586ea2a8a3be7d43a7fd7d">zfwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;{</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="binio_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(buffer,size,count,stream);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(buffer,size,count,stream);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="comment">/*</span></div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment">    const unsigned long long mx=0x40000000;</span></div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment">    unsigned long long j,n,st;</span></div>
@@ -173,9 +173,9 @@ $(function() {
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment">    */</span></div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;}</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="binio_8h.html#ab9ccbf114e53c42751b671655c64770b">  105</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="binio_8cpp.html#af967b000220dc847de2d086cbde6e5f6">zfread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#ab9ccbf114e53c42751b671655c64770b">  105</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#af967b000220dc847de2d086cbde6e5f6">zfread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;{</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="binio_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(buffer,size,count,stream);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(buffer,size,count,stream);</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="comment">/*</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment">    const unsigned long long mx=0x40000000;</span></div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="comment">    unsigned long long j,n,st;</span></div>
@@ -234,12 +234,12 @@ $(function() {
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;<span class="comment">    */</span></div>
 <div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="abinio_8h_html"><div class="ttname"><a href="binio_8h.html">binio.h</a></div></div>
-<div class="ttc" id="abinio_8cpp_html_a9dfa82809bd434bd7d6e2a8dc9d2f18a"><div class="ttname"><a href="binio_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a></div><div class="ttdeci">size_t fwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="binio_8cpp_source.html#l00008">binio.cpp:8</a></div></div>
-<div class="ttc" id="abinio_8cpp_html_a7a059c7ad9586ea2a8a3be7d43a7fd7d"><div class="ttname"><a href="binio_8cpp.html#a7a059c7ad9586ea2a8a3be7d43a7fd7d">zfwrite_big</a></div><div class="ttdeci">size_t zfwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="binio_8cpp_source.html#l00046">binio.cpp:46</a></div></div>
-<div class="ttc" id="abinio_8cpp_html_a1bc8d1ad11acf37bf8af06899bb5eef5"><div class="ttname"><a href="binio_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a></div><div class="ttdeci">size_t fread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="binio_8cpp_source.html#l00027">binio.cpp:27</a></div></div>
-<div class="ttc" id="abinio_8cpp_html_af967b000220dc847de2d086cbde6e5f6"><div class="ttname"><a href="binio_8cpp.html#af967b000220dc847de2d086cbde6e5f6">zfread_big</a></div><div class="ttdeci">size_t zfread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="binio_8cpp_source.html#l00105">binio.cpp:105</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_a1bc8d1ad11acf37bf8af06899bb5eef5"><div class="ttname"><a href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a></div><div class="ttdeci">size_t fread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00027">BinIO.cpp:27</a></div></div>
+<div class="ttc" id="a_bin_i_o_8h_html"><div class="ttname"><a href="_bin_i_o_8h.html">BinIO.h</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_a9dfa82809bd434bd7d6e2a8dc9d2f18a"><div class="ttname"><a href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a></div><div class="ttdeci">size_t fwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00008">BinIO.cpp:8</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_a7a059c7ad9586ea2a8a3be7d43a7fd7d"><div class="ttname"><a href="_bin_i_o_8cpp.html#a7a059c7ad9586ea2a8a3be7d43a7fd7d">zfwrite_big</a></div><div class="ttdeci">size_t zfwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00046">BinIO.cpp:46</a></div></div>
 <div class="ttc" id="a_param_8h_html"><div class="ttname"><a href="_param_8h.html">Param.h</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_af967b000220dc847de2d086cbde6e5f6"><div class="ttname"><a href="_bin_i_o_8cpp.html#af967b000220dc847de2d086cbde6e5f6">zfread_big</a></div><div class="ttdeci">size_t zfread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00105">BinIO.cpp:105</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
