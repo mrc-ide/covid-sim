@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
+#include <vector>
+
 #include "Country.h"
 #include "MachineDefines.h"
 #include "Constants.h"
@@ -332,8 +334,10 @@ typedef struct ADMINUNIT {
 extern person* Hosts;
 extern household* Households;
 extern popvar State, StateT[MAX_NUM_THREADS];
-extern cell* Cells, ** CellLookup;
-extern microcell* Mcells, ** McellLookup;
+extern std::vector<cell> Cells;
+extern std::vector<cell*> CellLookup;
+extern std::vector<microcell> Mcells;
+extern std::vector<microcell*> McellLookup;
 extern place** Places;
 extern adminunit AdUnits[MAX_ADUNITS];
 
