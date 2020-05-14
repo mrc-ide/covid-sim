@@ -1,5 +1,5 @@
 #include <cmath>
-#include <stdio.h>
+#include <iostream>
 #include "Kernels.h"
 #include "Error.h"
 #include "Dist.h"
