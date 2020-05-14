@@ -42,14 +42,17 @@ void InitKernel(double norm)
 		Kernel = PowerExpKernel;
 	else
 		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
-#pragma omp parallel for schedule(static,500)
+
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, Kernel, nKernel, nKernelHR, norm)
 	for (int i = 0; i <= P.NKR; i++)
 	{
 		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
 		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
 	}
 
-#pragma omp parallel for schedule(static,500)
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, CellLookup)
 	for (int i = 0; i < P.NCP; i++)
 	{
 		cell *l = CellLookup[i];
