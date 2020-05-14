@@ -24,7 +24,6 @@
 double *nKernel, *nKernelHR;
 void InitKernel(int DoPlaces, double norm)
 {
-	int i, j;
 	double(*Kernel)(double);
 
 	if (P.KernelType == 1)
@@ -43,19 +42,19 @@ void InitKernel(int DoPlaces, double norm)
 		Kernel = PowerExpKernel;
 	else
 		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
-#pragma omp parallel for private(i) schedule(static,500) //added private i
-	for (i = 0; i <= P.NKR; i++)
+#pragma omp parallel for schedule(static,500)
+	for (int i = 0; i <= P.NKR; i++)
 	{
 		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
 		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
 	}
 
-#pragma omp parallel for schedule(static,500) private(i,j)
-	for (i = 0; i < P.NCP; i++)
+#pragma omp parallel for schedule(static,500)
+	for (int i = 0; i < P.NCP; i++)
 	{
 		cell *l = CellLookup[i];
 		l->tot_prob = 0;
-		for (j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.NCP; j++)
 		{
 			cell *m = CellLookup[j];
 			l->tot_prob += (l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m))) * m->n;
