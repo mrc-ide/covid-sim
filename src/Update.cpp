@@ -1199,7 +1199,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 {
-	int k, ai, j1, j2, l, f, m;
+	int k, ai, j1, j2, l, f;
 
 #pragma omp critical (closeplace)
 	{

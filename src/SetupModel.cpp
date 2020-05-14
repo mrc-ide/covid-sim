@@ -1653,7 +1653,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 		- other adults in large households are assumed to be grandparents
 		- for Thailand, 2 person households are 95% couples without children, 5% 1 parent families
 	*/
-	int i, j, k, l, nc, ad;
+	int i, j, k, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
 
 	ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
@@ -1789,7 +1789,6 @@ void AssignHouseholdAges(int n, int pers, int tn)
 				{
 					a[nc] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					k = a[nc - 1];
-					l = k - P.MaxChildAge;
 				} while ((a[nc] > a[0] + j) || (a[nc] < k + P.MinParentAgeGap) || (a[nc] < P.MinAdultAge));
 				if ((n > nc + 1) && (ranf_mt(tn) > PROP_OTHER_PARENT_AWAY))
 				{
@@ -1798,10 +1797,8 @@ void AssignHouseholdAges(int n, int pers, int tn)
 						a[nc + 1] = State.InvAgeDist[ad][(int)(1000.0 * ranf_mt(tn))];
 					} while ((a[nc + 1] > a[nc] + P.MaxMFPartnerAgeGap) || (a[nc + 1] < a[nc] - P.MaxFMPartnerAgeGap)
 						|| (a[nc + 1] > a[0] + j) || (a[nc + 1] < k + P.MinParentAgeGap) || (a[nc + 1] < P.MinAdultAge));
-					l = nc + 2;
 				}
-				else
-					l = nc + 1;
+
 				if (n > nc + 2)
 				{
 					j = ((a[nc + 1] > a[nc]) ? a[nc + 1] : a[nc]) + P.OlderGenGap;
@@ -1821,7 +1818,7 @@ void AssignPeopleToPlaces(void)
 	int i, i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, mx, my, a, cnt, tn, ca, nt, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
-	double s, t, s2, *NearestPlacesProb[MAX_NUM_THREADS];
+	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
 	cell* ct;
 	int npt;
 
@@ -2200,7 +2197,6 @@ void AssignPeopleToPlaces(void)
 				{
 					k2 = cnt - ca;
 					m2 = cnt;
-					s2 = 0;
 					a = k2 / 1000;
 					f = k2;
 					for (ic = 0; ic <= 30; ic++)
