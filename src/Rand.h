@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_RAND_H_INCLUDED_
-#define COVIDSIM_RAND_H_INCLUDED_
+#pragma once
 
 #include <inttypes.h>
 
@@ -34,5 +33,3 @@ double gen_gamma_mt(double, double, int);
 //added some new lognormal sampling functions: ggilani 09/02/17
 double gen_lognormal(double, double);
 void SampleWithoutReplacement(int, int, int);
-
-#endif // COVIDSIM_RAND_H_INCLUDED_

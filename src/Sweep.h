@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_SWEEP_H_INCLUDED_
-#define COVIDSIM_SWEEP_H_INCLUDED_
+#pragma once
 
 void TravelReturnSweep(double);
 void TravelDepartSweep(double);
@@ -8,5 +7,3 @@ void IncubRecoverySweep(double, int); //added int as argument to record run numb
 int TreatSweep(double);
 //void HospitalSweep(double); //added hospital sweep function: ggilani - 10/11/14
 void DigitalContactTracingSweep(double); // added function to update contact tracing number
-
-#endif // COVIDSIM_SWEEP_H_INCLUDED_

@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_PARAM_H_INCLUDED_
-#define COVIDSIM_PARAM_H_INCLUDED_
+#pragma once
 
 #include <inttypes.h>
 
@@ -337,5 +336,3 @@ struct Param
 };
 
 extern Param P;
-
-#endif // COVIDSIM_PARAM_H_INCLUDED_

@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_KERNELS_H_INCLUDED_
-#define COVIDSIM_KERNELS_H_INCLUDED_
+#pragma once
 
 extern double *nKernel, *nKernelHR;
 
@@ -12,5 +11,3 @@ double PowerExpKernel(double);
 double GaussianKernel(double);
 double StepKernel(double);
 double numKernel(double);
-
-#endif // COVIDSIM_KERNELS_H_INCLUDED_

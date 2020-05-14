@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_MODEL_H_INCLUDED_
-#define COVIDSIM_MODEL_H_INCLUDED_
+#pragma once
 
 #include <cstddef>
 
@@ -395,5 +394,3 @@ extern double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES], Ai
 extern double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
 
 extern int DoInitUpdateProbs;
-
-#endif // COVIDSIM_MODEL_H_INCLUDED_

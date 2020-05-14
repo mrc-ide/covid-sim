@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_MODELMACROS_H_INCLUDED_
-#define COVIDSIM_MODELMACROS_H_INCLUDED_
+#pragma once
 
 #include <climits>
 
@@ -21,5 +20,3 @@
 
 #define HOST_AGE_YEAR(x) (Hosts[x].age)
 #define HOST_AGE_GROUP(x) (Hosts[x].age / AGE_GROUP_WIDTH)
-
-#endif // COVIDSIM_MODELMACROS_H_INCLUDED_

@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_COVIDSIM_H_INCLUDED_
-#define COVIDSIM_COVIDSIM_H_INCLUDED_
+#pragma once
 
 // Compiling with Clang from VS requires libomp.lib to be included in
 // Project, Properties, Input, Additional Dependencies, however
@@ -24,5 +23,3 @@
 
 #include "Country.h"
 #include "Constants.h"
-
-#endif // COVIDSIM_COVIDSIM_H_INCLUDED_

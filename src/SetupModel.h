@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
-#define COVIDSIM_SETUPMODEL_H_INCLUDED_
+#pragma once
 
 void SetupModel(char*, char*, char*, char*);
 void SetupPopulation(char*, char*);
@@ -23,5 +22,3 @@ struct BinFile
 };
 
 extern char OutFile[1024],OutDensFile[1024];
-
-#endif // COVIDSIM_SETUPMODEL_H_INCLUDED_

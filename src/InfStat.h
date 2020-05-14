@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_INFSTAT_H_INCLUDED_
-#define COVIDSIM_INFSTAT_H_INCLUDED_
+#pragma once
 
 //// Infection Status definitons / labels (generally positive value indicates asymptomatic infection, negative value indicates symptomatic infection).
 enum InfStat {
@@ -28,5 +27,3 @@ enum Severity {
 	Severity_Dead = 5,													//// label to avoid double counting. Not sure you need.
 	Severity_Recovered = 6											//// label to avoid double counting. Not sure you need.
 };
-
-#endif // COVIDSIM_INFSTAT_H_INCLUDED_

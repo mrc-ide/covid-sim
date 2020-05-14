@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_BITMAP_H_INCLUDED_
-#define COVIDSIM_BITMAP_H_INCLUDED_
+#pragma once
 
 #include <cstdint>
 
@@ -46,5 +45,3 @@ void OutputBitmap(int);
 void InitBMHead();
 
 void Bitmap_Finalise();
-
-#endif // COVIDSIM_BITMAP_H_INCLUDED_

@@ -1,5 +1,4 @@
-#ifndef COVIDSIM_CONSTANTS_H_INCLUDED_
-#define COVIDSIM_CONSTANTS_H_INCLUDED_
+#pragma once
 
 /**
  * Math constant defined as the ratio of a circle's circumference to its diameter.
@@ -97,5 +96,3 @@ const int MIN_HOTELS_PER_AIRPORT = 20;
 const int HOTELS_PER_1000PASSENGER = 10;
 
 const int MAX_NUM_INTERVENTION_CHANGE_TIMES = 100; // may want to make this intervention-specifc, but keep simple for now.
-
-#endif // COVIDSIM_CONSTANTS_H_INCLUDED_
