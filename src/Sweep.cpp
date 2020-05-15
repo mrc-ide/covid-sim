@@ -277,9 +277,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
-	int j, l, m,ad;
+	int l, m,ad;
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells.
-	int i2, b, i3, f, f2,fct, tn, cq /*cell queue*/, bm, ci /*person index*/;
+	int i2, i3, f, f2,fct, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
 	double s; // household FOI on fellow household member, then place susceptibility, then random number for spatial infections allocation* / ;
@@ -303,14 +303,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
-#pragma omp parallel for private(j,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1) default(none) \
+#pragma omp parallel for private(l,m,n,i2,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1) default(none) \
 		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr)
-	for (tn = 0; tn < P.NumThreads; tn++)
-		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
+	for (int tn = 0; tn < P.NumThreads; tn++)
+		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
 			c = CellLookup[b];
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
-			for (j = 0; j < c->I; j++) //// Loop over all infectious people c->I in cell c. Loop 1a)
+			for (int j = 0; j < c->I; j++) //// Loop over all infectious people c->I in cell c. Loop 1a)
 			{
 				//// get person index ci
 				ci = c->infected[j];
@@ -574,12 +574,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
-					for (j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] /= ((float) s5);
+					for (int j = 0; j < i2 - 1; j++) StateT[tn].cell_inf[j] /= ((float) s5);
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[tn].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[tn].cell_inf[i2 - 1] = (StateT[tn].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
 				for (int k = 0; k < n; k++)  //// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
 				{
+					int j;
 					//// decide on infector ci/si from cell c.
 					if (i2 == 1)	j = 0;
 					else				//// roughly speaking, this determines which infectious person in cell c infects which person elsewhere
@@ -701,7 +702,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(t, run, P, StateT, Hosts, ts)
-	for (j = 0; j < P.NumThreads; j++)
+	for (int j = 0; j < P.NumThreads; j++)
 	{
 		for (int k = 0; k < P.NumThreads; k++)
 		{
