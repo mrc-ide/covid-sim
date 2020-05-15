@@ -69,7 +69,7 @@ void TravelReturnSweep(double t)
 
 void TravelDepartSweep(double t)
 {
-	int k, d, mps, nld, nad, nsk, bm;
+	int d, mps, nld, nad, nsk, bm;
 	double nl;
 
 	// Convince static analysers that values are set correctly:
@@ -79,10 +79,10 @@ void TravelDepartSweep(double t)
 	{
 		bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 		mps = 2 * ((int)P.PlaceTypeMeanSize[P.HotelPlaceType]) - P.NumThreads - 1;
-		k = (int)floor(t);
-		d = k % MAX_TRAVEL_TIME;
+		int floorOfTime = (int)floor(t);
+		d = floorOfTime % MAX_TRAVEL_TIME;
 		nad = nld = nsk = 0;
-#pragma omp parallel for private(k) reduction(+:nad,nsk) schedule(static,1)
+#pragma omp parallel for reduction(+:nad,nsk) schedule(static,1)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nairports; i += P.NumThreads)
 				if ((Airports[i].total_traffic > 0) && (Airports[i].num_mcell > 0))
@@ -99,7 +99,7 @@ void TravelDepartSweep(double t)
 						int l = Airports[i].Inv_DestMcells[(int)floor(s * 1024)];
 						while (Airports[i].DestMcells[l].prob < s) l++;
 						l = Airports[i].DestMcells[l].id;
-						k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
+						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
 						if ((abs(Hosts[i2].inf) < InfStat_InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat_Case))
 						{
