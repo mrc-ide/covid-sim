@@ -303,7 +303,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
-#pragma omp parallel for private(j,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
+#pragma omp parallel for private(j,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1) default(none) \
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -698,7 +699,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		}
 
 
-#pragma omp parallel for schedule(static,1)
+#pragma omp parallel for schedule(static,1) default(none) \
+		shared(t, run, P, StateT, Hosts, ts)
 	for (j = 0; j < P.NumThreads; j++)
 	{
 		for (int k = 0; k < P.NumThreads; k++)
