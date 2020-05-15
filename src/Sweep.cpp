@@ -838,13 +838,12 @@ void DigitalContactTracingSweep(double t)
 	 *
 	 * Author: ggilani, 10/03/20 - updated 24/03/20, 14/04/2020
 	 */
-	int contact, infector;
 	unsigned short int ts, dct_start_time, dct_end_time, contact_time;
 
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-#pragma omp parallel for private(contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1) default(none) \
+#pragma omp parallel for private(contact_time,dct_start_time,dct_end_time) schedule(static,1) default(none) \
 		shared(t, P, AdUnits, StateT, Hosts, ts, stderr)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
@@ -858,8 +857,8 @@ void DigitalContactTracingSweep(double t)
 					{
 						//start by finding theoretical start and end isolation times for each contact;
 						//these are calculated here for each time step instead of InfectSweep when contact event is added as trigger times will be updated for asymptomatic cases detected by testing.
-						infector = StateT[j].dct_queue[i][k].index;
-						contact = StateT[j].dct_queue[i][k].contact;
+						int infector = StateT[j].dct_queue[i][k].index;
+						int contact = StateT[j].dct_queue[i][k].contact;
 						contact_time = StateT[j].dct_queue[i][k].contact_time;
 
 						//this condition is only ever met when a symptomatic case is detected in DoDetectedCase and is not already an index case. If they have already
@@ -1065,7 +1064,7 @@ void DigitalContactTracingSweep(double t)
 		}
 	}
 
-#pragma omp parallel for private(contact) schedule(static,1) default(none) \
+#pragma omp parallel for schedule(static,1) default(none) \
 		shared(t, P, AdUnits, Hosts, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
@@ -1075,7 +1074,7 @@ void DigitalContactTracingSweep(double t)
 			{
 				for (int j = 0; j < AdUnits[i].ndct;)
 				{
-					contact = AdUnits[i].dct[j];
+					int contact = AdUnits[i].dct[j];
 
 					//first do testing of index cases and their contacts
 					if (P.DoDCTTest)
@@ -1162,15 +1161,13 @@ void DigitalContactTracingSweep(double t)
 			}
 		}
 	}
-
 }
-
 
 int TreatSweep(double t)
 {
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
-	int i2, j2, l, m, b;
+	int i2, j2, b;
 	int f, f1, f2, f3, f4; //// various fail conditions. Used for other things
 	int tn, bs, adi, ad, ad2;
 	int minx, maxx, miny, trig_thresh, nckwp;
@@ -1206,18 +1203,18 @@ int TreatSweep(double t)
 	{
 		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
 
-#pragma omp parallel for private(l,m,f) reduction(+:f1) schedule(static,1) default(none) \
+#pragma omp parallel for private(f) reduction(+:f1) schedule(static,1) default(none) \
 			shared(P, StateT, Places, Hosts, ts, tstf)
 		for (int i = 0; i < P.NumThreads; i++)
 			for (int j = 0; j < P.PlaceTypeNum; j++)
 			{
 				for (int k = 0; k < StateT[i].np_queue[j]; k++)
 				{
-					l = StateT[i].p_queue[j][k];
+					int l = StateT[i].p_queue[j][k];
 					if (P.DoPlaceGroupTreat)
 					{
 						f = StateT[i].pg_queue[j][k];
-						for (m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
+						for (int m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
 						{
 							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.PopSize-1))
 															fprintf(stderr,"\n*** npq=%i gn=%i h=%i m=%i j=%i l=%i f=%i s=%i n=%i ***\n",
@@ -1239,7 +1236,7 @@ int TreatSweep(double t)
 						{
 							f1 = 1;
 							Places[j][l].treat_end_time = tstf;
-							for (m = 0; m < Places[j][l].n; m++)
+							for (int m = 0; m < Places[j][l].n; m++)
 								if (!HOST_TO_BE_TREATED(Places[j][l].members[m]))
 								{
 									if ((P.TreatPlaceTotalProp[j] == 1) || (ranf_mt(i) < P.TreatPlaceTotalProp[j]))
@@ -1257,7 +1254,7 @@ int TreatSweep(double t)
 	if ((P.DoMassVacc) && (t >= P.VaccTimeStart))
 		for (int j = 0; j < 2; j++)
 		{
-			m = (int)P.VaccMaxCourses;
+			int m = (int)P.VaccMaxCourses;
 			if (m > State.n_mvacc) m = State.n_mvacc;
 #pragma omp parallel for schedule(static,1000) default(none) \
 				shared(State, m, ts)
@@ -1277,7 +1274,7 @@ int TreatSweep(double t)
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
-#pragma omp parallel for private(tn,i2,j2,l,m,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1) default(none) \
+#pragma omp parallel for private(tn,i2,j2,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
@@ -1310,7 +1307,7 @@ int TreatSweep(double t)
 						Mcells[b].treat_end_time = tstf;
 						for (int i = 0; i < Mcells[b].n; i++)
 						{
-							l = Mcells[b].members[i];
+							int l = Mcells[b].members[i];
 							if ((!HOST_TO_BE_TREATED(l)) && ((P.TreatPropRadial == 1) || (ranf_mt(tn) < P.TreatPropRadial)))
 								DoProphNoDelay(l, ts, tn, 1);
 						}
@@ -1332,7 +1329,7 @@ int TreatSweep(double t)
 						minx = (b / P.nmch); miny = (b % P.nmch);
 						int k = b;
 						maxx = 0;
-						int i, j;
+						int i, j, m, l;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.TreatByAdminUnit) || (ad > 0))
@@ -1393,7 +1390,7 @@ int TreatSweep(double t)
 						{
 							for (int i = 0; i < Mcells[b].n; i++)
 							{
-								l = Mcells[b].members[i];
+								int l = Mcells[b].members[i];
 								//#pragma omp critical (state_cumV_daily) //added this
 								if (((P.VaccProp == 1) || (ranf_mt(tn) < P.VaccProp)))
 								{
@@ -1420,7 +1417,7 @@ int TreatSweep(double t)
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
 						int k = b;
-						int i, j;
+						int i, j, l, m;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.VaccByAdminUnit) || (ad > 0))
@@ -1586,7 +1583,7 @@ int TreatSweep(double t)
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
 						int k = b;
-						int i, j;
+						int i, j, l, m;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.MoveRestrByAdminUnit) || (ad > 0))
@@ -1718,7 +1715,7 @@ int TreatSweep(double t)
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
 						int k = b;
-						int i,j;
+						int i, j, l, m;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						do
