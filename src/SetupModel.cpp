@@ -410,7 +410,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 			//NOTE: Are we still okay with this kind of openmp parallelisation. I know there have been some discussions re:openmp, but not followed them completely
 			l = m = 0;
-#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l,m)
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l,m) default(none) \
+				shared(P, Households, Hosts)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (i = tn; i < P.NH; i += P.NumThreads)
@@ -446,7 +447,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			//for use with non-clustered
 			l = 0;
-#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l)
+#pragma omp parallel for private(tn,i,i1,i2,j,age) schedule(static,1) reduction(+:l) default(none) \
+				shared(P, Hosts)
 			for (tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (i = tn; i < P.PopSize; i += P.NumThreads)
@@ -486,7 +488,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t2 = s = 0;
 	s3 = 1.0;
 
-#pragma omp parallel for private(i,s2,j,k,q,l,d,y,m,tn) schedule(static,1) reduction(+:s,t2) //schedule(static,1000)
+#pragma omp parallel for private(i,s2,j,k,q,l,d,y,m,tn) schedule(static,1) reduction(+:s,t2) default(none) \
+		shared(P, Households, Hosts)
 	for (tn = 0; tn < P.NumThreads; tn++) //changed this looping to allow for multi-threaded random numbers
 	{
 		for (i = tn; i < P.PopSize; i += P.NumThreads)
@@ -529,7 +532,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
 			{
-#pragma omp parallel for private(i,k,d,q,s2,s3,t3,l,m,x,y) schedule(static,1000) reduction(+:t)
+#pragma omp parallel for private(i,k,d,q,s2,s3,t3,l,m,x,y) schedule(static,1000) reduction(+:t) default(none) \
+					shared(P, Hosts, Places, j)
 				for (i = 0; i < P.PopSize; i++)
 				{
 					k = Hosts[i].PlaceLinks[j];
@@ -560,7 +564,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		double recovery_time_days = 0;
 		double recovery_time_timesteps = 0;
-#pragma omp parallel for private(i) schedule(static,500) reduction(+:recovery_time_days,recovery_time_timesteps)
+#pragma omp parallel for private(i) schedule(static,500) reduction(+:recovery_time_days,recovery_time_timesteps) default(none) \
+			shared(P, Hosts)
 		for (i = 0; i < P.PopSize; i++)
 		{
 			recovery_time_days += Hosts[i].recovery_or_death_time * P.TimeStep;
@@ -1090,7 +1095,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(Households = (household*)malloc(P.NH * sizeof(household)))) ERR_CRITICAL("Unable to allocate household storage\n");
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", i);
-#pragma omp parallel for private(tn,j2,j,i,k,x,y,xh,yh,i2,m) schedule(static,1)
+#pragma omp parallel for private(tn,j2,j,i,k,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
@@ -1183,7 +1189,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		}
 
 		// make age adjustments to population
-#pragma omp parallel for private(tn,j,i,k,m,s) schedule(static,1)
+#pragma omp parallel for private(tn,j,i,k,m,s) schedule(static,1) default(none) \
+			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (i = tn; i < P.PopSize; i += P.NumThreads)
 			{
@@ -1348,7 +1355,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoPlaces)
 	{
 		fprintf(stderr, "Configuring places...\n");
-#pragma omp parallel for private(tn,j2,i,j,k,t,m,s,x,y,xh,yh) schedule(static,1)
+#pragma omp parallel for private(tn,j2,i,j,k,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
+			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
@@ -1409,7 +1417,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (l < Cells[j].n) l = Cells[j].n;
 	if (!(SamplingQueue = (int**)malloc(P.NumThreads * sizeof(int*)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
-#pragma omp parallel for private(i,k) schedule(static,1)
+#pragma omp parallel for private(i,k) schedule(static,1) default(none) \
+		shared(P, SamplingQueue, StateT, l)
 	for (i = 0; i < P.NumThreads; i++)
 	{
 		if (!(SamplingQueue[i] = (int*)malloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE) * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
@@ -1490,7 +1499,8 @@ void SetupAirports(void)
 			Mcells[i].AirportList = cur;
 			cur += NNA;
 		}
-#pragma omp parallel for private(i,j,k,l,x,y,t,tmin) schedule(static,10000)
+#pragma omp parallel for private(i,j,k,l,x,y,t,tmin) schedule(static,10000) default(none) \
+		shared(P, Airports, Mcells, stderr)
 	for (i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
@@ -1534,7 +1544,8 @@ void SetupAirports(void)
 		cur += Airports[i].num_mcell;
 		Airports[i].num_mcell = 0;
 	}
-#pragma omp parallel for private(i,j,k,l,t,tmin) schedule(static,10000)
+#pragma omp parallel for private(i,j,k,l,t,tmin) schedule(static,10000) default(none) \
+		shared(P, Airports, Mcells, stderr)
 	for (i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
@@ -1587,7 +1598,8 @@ void SetupAirports(void)
 		}
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
 	free(base);
-#pragma omp parallel for private(i,j,l,m,t,tmin) schedule(static,1)
+#pragma omp parallel for private(i,j,l,m,t,tmin) schedule(static,1) default(none) \
+		shared(P, Airports, Places, stderr)
 	for (i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
@@ -2072,7 +2084,8 @@ void AssignPeopleToPlaces(void)
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{
-#pragma omp parallel for private(i,i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,tn,s,t,mx,my) firstprivate(a,nt,nn) reduction(+:ca) schedule(static,1) //added i3, nh_assigned to private
+#pragma omp parallel for private(i,i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,tn,s,t,mx,my) firstprivate(a,nt,nn) reduction(+:ca) schedule(static,1) default(none) \
+						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp, stderr)
 					for (tn = 0; tn < P.NumThreads; tn++)
 					{
 						for (j = tn; j < a; j += nt)
@@ -2213,7 +2226,8 @@ void AssignPeopleToPlaces(void)
 						{
 							m2 = k2 - 1; f = 0;
 						}
-#pragma omp parallel for private(i,i2,j,k,l,m,f2,f3,t,ct,s) reduction(+:ca) /* schedule(dynamic,500)*/ //add s to private variables, added g,g1,g2,i3 and nh_assigned to private variables
+#pragma omp parallel for private(i,i2,j,k,l,m,f2,f3,t,ct,s) reduction(+:ca) default(none) \
+							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp, stderr)
 						for (i2 = m2; i2 >= f; i2--)
 						{
 							if (i2 % 1000 == 0)
@@ -2307,14 +2321,16 @@ void StratifyPlaces(void)
 	if (P.DoPlaces)
 	{
 		fprintf(stderr, "Initialising groups in places\n");
-#pragma omp parallel for private(i,j) schedule(static,500)
+#pragma omp parallel for private(i,j) schedule(static,500) default(none) \
+			shared(P, Hosts)
 		for (i = 0; i < P.PopSize; i++)
 			for (j = 0; j < NUM_PLACE_TYPES; j++)
 				Hosts[i].PlaceGroupLinks[j] = 0;
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			for (i = 0; i < P.Nplace[j]; i++)
 				Places[j][i].n = 0;
-#pragma omp parallel for private(i,j,k,l,m,n,t,tn) schedule(static,1)
+#pragma omp parallel for private(i,j,k,l,m,n,t,tn) schedule(static,1) default(none) \
+			shared(P, Places, Hosts)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (j = tn; j < P.PlaceTypeNum; j += P.NumThreads)
 			{
@@ -2387,7 +2403,8 @@ void StratifyPlaces(void)
 				}
 			}
 
-#pragma omp parallel for private(i,j,k,l) schedule(static,1)
+#pragma omp parallel for private(i,j,k,l) schedule(static,1) default (none) \
+			shared(P, Places, StateT)
 		for (i = 0; i < P.NumThreads; i++)
 		{
 			for (k = 0; k < P.PlaceTypeNum; k++)

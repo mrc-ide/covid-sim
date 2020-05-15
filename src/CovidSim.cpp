@@ -2559,7 +2559,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 	nim = 0;
 
-#pragma omp parallel for private(tn,k) schedule(static,1)
+#pragma omp parallel for private(tn,k) schedule(static,1) default(none) \
+		shared(P, Hosts)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (k = tn; k < P.PopSize; k+= P.NumThreads)
 		{
@@ -2594,7 +2595,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 
-#pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1)
+#pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1) default(none) \
+		shared(P, Cells, Hosts, Households)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NC; i+=P.NumThreads)
@@ -2647,7 +2649,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-#pragma omp parallel for private(i,j,k,l) schedule(static,500)
+#pragma omp parallel for private(i,j,k,l) schedule(static,500) default(none) \
+		shared(P, Mcells, McellLookup)
 	for (l = 0; l < P.NMCP; l++)
 	{
 		i = (int)(McellLookup[l] - Mcells);
@@ -2661,7 +2664,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
 	}
 	if (P.DoPlaces)
-#pragma omp parallel for private(m,l) schedule(static,1)
+#pragma omp parallel for private(m,l) schedule(static,1) default(none) \
+			shared(P, Places)
 		for (m = 0; m < P.PlaceTypeNum; m++)
 		{
 			for(l=0;l<P.Nplace[m];l++)
@@ -4152,7 +4156,8 @@ void UpdateProbs(int DoPlace)
 
 	if (!DoPlace)
 	{
-#pragma omp parallel for private(j) schedule(static,500)
+#pragma omp parallel for private(j) schedule(static,500) default(none) \
+			shared(P, CellLookup)
 		for (j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->tot_prob = 0;
@@ -4166,14 +4171,16 @@ void UpdateProbs(int DoPlace)
 	}
 	else
 	{
-#pragma omp parallel for private(j) schedule(static,500)
+#pragma omp parallel for private(j) schedule(static,500) default(none) \
+			shared(P, CellLookup)
 		for (j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->S0 = CellLookup[j]->S;
 			CellLookup[j]->tot_prob = 0;
 		}
 	}
-#pragma omp parallel for private(j) schedule(static,500)
+#pragma omp parallel for private(j) schedule(static,500) default(none) \
+		shared(P, CellLookup)
 	for (j = 0; j < P.NCP; j++)
 	{
 		int m, k;
@@ -4352,7 +4359,8 @@ void RecordSample(double t, int n)
 	if (P.DoSeverity)
 		Mild = ILI = SARI = Critical = CritRecov = cumMild = cumILI = cumSARI = cumCritical = cumCritRecov = cumDeath_ILI = cumDeath_SARI = cumDeath_Critical = 0;
 
-#pragma omp parallel for private(i,ct) schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) //added i to private
+#pragma omp parallel for private(i,ct) schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
+		shared(P, CellLookup)
 	for (i = 0; i < P.NCP; i++)
 	{
 		ct = CellLookup[i];
@@ -5090,7 +5098,8 @@ void CalcOriginDestMatrix_adunit()
 	double total_flow, flow;
 	ptrdiff_t cl_from, cl_to, cl_from_mcl, cl_to_mcl, mcl_from, mcl_to;
 
-#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) //reduction(+:s,t2)
+#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) default(none) \
+		shared(P, Cells, CellLookup, Mcells, StateT)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NCP; i += P.NumThreads)
