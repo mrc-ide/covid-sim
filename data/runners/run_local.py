@@ -91,12 +91,17 @@ run_dir = tempfile.mkdtemp()
 # Copy input into run directory
 shutil.copytree(args.input, run_dir, dirs_exist_ok=True)
 atexit.register(shutil.rmtree, path=run_dir, ignore_errors=True)
+os.makedirs(os.path.join(run_dir, "output"), exist_ok=True)
 
 # Change to directory and run command
 cwd = os.getcwd()
 os.chdir(run_dir)
-print(args.cmd)
-result = subprocess.run(args.cmd)
+with open(os.path.join(os.curdir, "output", "stdout.txt"), "w") as outf, \
+     open(os.path.join(os.curdir, "output", "stderr.txt"), "w") as errf:
+    result = subprocess.run(
+            args.cmd,
+            stdout=outf,
+            stderr=errf)
 if result.returncode != 0:
     print("Command failed: " + " ".join(args.cmd))
 
