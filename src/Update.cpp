@@ -527,7 +527,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (Mcells[a->mcell].socdist_trig			< USHRT_MAX - 1) Mcells[a->mcell].socdist_trig++;
 	if (Mcells[a->mcell].keyworkerproph_trig	< USHRT_MAX - 1) Mcells[a->mcell].keyworkerproph_trig++;
 
-	if (!P.AbsenteeismPlaceClosure) 
+	if (!P.AbsenteeismPlaceClosure)
 	{
 		if (P.PlaceCloseRoundHousehold)
 		{
