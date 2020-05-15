@@ -61,7 +61,8 @@ void InitKernel(double norm)
 		for (int j = 0; j < P.NCP; j++)
 		{
 			cell *m = CellLookup[j];
-			l->tot_prob += (l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m))) * (float)m->n;
+			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));
+			l->tot_prob += l->max_trans[j] * (float)m->n;
 		}
 	}
 }
