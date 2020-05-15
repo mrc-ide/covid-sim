@@ -742,7 +742,8 @@ void IncubRecoverySweep(double t, int run)
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1)
+#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1) default(none) \
+		shared(P, Places, Hosts, i, j, ht)
 					for(tn=0;tn<P.NumThreads;tn++)
 						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
@@ -765,7 +766,8 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1)
+#pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1) default(none) \
+		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
@@ -844,8 +846,8 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-
-#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1)
+#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1) default(none) \
+		shared(t, P, AdUnits, StateT, Hosts, ts, stderr)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -1066,7 +1068,8 @@ void DigitalContactTracingSweep(double t)
 		}
 	}
 
-#pragma omp parallel for private(i,j,k,tn,contact) schedule(static,1)
+#pragma omp parallel for private(i,j,k,tn,contact) schedule(static,1) default(none) \
+		shared(t, P, AdUnits, Hosts, ts)
 	for (tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -1206,7 +1209,9 @@ int TreatSweep(double t)
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
 	{
 		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
-#pragma omp parallel for private(i,j,k,l,m,f) reduction(+:f1) schedule(static,1)
+
+#pragma omp parallel for private(i,j,k,l,m,f) reduction(+:f1) schedule(static,1) default(none) \
+			shared(P, StateT, Places, Hosts, ts, tstf)
 		for (i = 0; i < P.NumThreads; i++)
 			for (j = 0; j < P.PlaceTypeNum; j++)
 			{
@@ -1258,7 +1263,8 @@ int TreatSweep(double t)
 		{
 			m = (int)P.VaccMaxCourses;
 			if (m > State.n_mvacc) m = State.n_mvacc;
-#pragma omp parallel for private(i) schedule(static,1000)
+#pragma omp parallel for private(i) schedule(static,1000) default(none) \
+				shared(State, m, ts)
 			for (i = State.mvacc_cum; i < m; i++)
 				DoVacc(State.mvacc_queue[i], ts);
 			State.mvacc_cum = m;
@@ -1275,7 +1281,8 @@ int TreatSweep(double t)
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
-#pragma omp parallel for private(tn,i,i2,j,j2,k,l,m,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1)
+#pragma omp parallel for private(tn,i,i2,j,j2,k,l,m,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1) default(none) \
+			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
 			{
