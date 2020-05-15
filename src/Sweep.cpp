@@ -82,7 +82,8 @@ void TravelDepartSweep(double t)
 		int floorOfTime = (int)floor(t);
 		d = floorOfTime % MAX_TRAVEL_TIME;
 		nad = nld = nsk = 0;
-#pragma omp parallel for reduction(+:nad,nsk) schedule(static,1)
+#pragma omp parallel for reduction(+:nad,nsk) schedule(static,1) default(none) \
+			shared(t, P, Airports, Mcells, Hosts, Places, bm, mps, d)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nairports; i += P.NumThreads)
 				if ((Airports[i].total_traffic > 0) && (Airports[i].num_mcell > 0))
@@ -185,7 +186,8 @@ void TravelDepartSweep(double t)
 		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
 		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
-#pragma omp parallel for reduction(+:nld,nsk) schedule(static,1)
+#pragma omp parallel for reduction(+:nld,nsk) schedule(static,1) default(none) \
+			shared(P, Places, Cells, CellLookup, Hosts, Households, nl, bm, mps, d)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
