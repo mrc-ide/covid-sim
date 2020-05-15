@@ -12,7 +12,8 @@
 
 #pragma pack(push, 2)
 
-struct person {
+struct Person
+{
 	int pcell;			// place cell, Cells[person->pcell] holds this person
 	int mcell;			// microcell, Mcells[person->mcell] holds this person
 	int hh;				// Household[person->hh] holds this person
@@ -52,7 +53,8 @@ struct person {
 
 };
 
-struct household {
+struct Household
+{
 	int FirstPerson;
 	unsigned short int nh; // number people in household
 	float loc_x, loc_y;
@@ -66,7 +68,8 @@ threads might be trying to set the values differently. We therefore
 make a queue of `infection`s in `inf_queue` containing the information
 we need, so that we can set the values after the main loop has finished.
 */
-struct infection {
+struct Infection
+{
 	int infector;
 	int infectee;
 	short int infect_type;
@@ -78,7 +81,8 @@ struct infection {
  * Currently stores: contact and index case (both ints) and contact time (unsigned short int)
  * Thanks to igfoo
  */
-struct contactevent {
+struct ContactEvent
+{
 	int contact;
 	int index;
 	unsigned short int contact_time;
@@ -89,8 +93,8 @@ struct contactevent {
  *
  * TODO: Detailed explanation.
  */
-struct popvar {
-
+struct PopVar
+{
 	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
 	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
@@ -102,7 +106,7 @@ struct popvar {
 	int cumCT_adunit[MAX_ADUNITS], cumCC_adunit[MAX_ADUNITS], trigDC_adunit[MAX_ADUNITS]; //added cumulative CT per admin unit: ggilani 15/06/17
 	int cumDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added cumulative and overall digital contact tracing per adunit: ggilani 11/03/20
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
-	infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
+	Infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
 	int n_queue[MAX_NUM_THREADS]; 	// number of infections in inf_queue
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
@@ -112,7 +116,7 @@ struct popvar {
 	int** InvAgeDist;
 	int* mvacc_queue;
 	int nct_queue[MAX_ADUNITS]; // queue for contact tracing: ggilani 12/06/17
-	contactevent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
+	ContactEvent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
 	int ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
 	int contact_dist[MAX_CONTACTS+1]; //added this to store contact distribution: ggilani 13/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
@@ -149,8 +153,8 @@ struct popvar {
  * NOTE: This struct must contain only doubles (and arrays of doubles) for the TSMean
  * 	     averaging code to work.
  */
-struct results {
-
+struct Results
+{
 	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
 	double incH; //added incidence of hospitalisation: ggilani 28/10/14
 	double CT, incCT, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
@@ -204,7 +208,8 @@ struct results {
  *
  * Added Events struct to allow us to log and write out infection events: ggilani 10/10/14
  */
-struct events {
+struct Events
+{
 	double infectee_x, infectee_y, t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
 };
@@ -229,7 +234,8 @@ struct events {
 /**
  * @brief Used for computing spatial interactions more efficiently.
  */
-struct indexlist {
+struct IndexList
+{
 	int id;
 	float prob;
 };
@@ -240,12 +246,13 @@ struct indexlist {
  * Not used for COVID-19 right now. Might be more relevant for USA and
  * other countries that have lots of internal flights. Slows the simulation.
  */
-struct airport {
+struct Airport
+{
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int num_connected, *conn_airports;
 	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
-	indexlist* DestMcells, *DestPlaces;
+	IndexList* DestMcells, *DestPlaces;
 };
 
 /**
@@ -255,7 +262,8 @@ struct airport {
  * members (people), places (schools, universities, workplaces etc.), road networks, links to
  * airports etc.
  */
-struct microcell {
+struct Microcell
+{
 	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
@@ -271,7 +279,7 @@ struct microcell {
 	unsigned short int treat, vacc, treat_trig, vacc_trig;
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
-	indexlist* AirportList;
+	IndexList* AirportList;
 };
 
 /**
@@ -281,7 +289,8 @@ struct microcell {
  * is vaccinated, treated etc.) Also contains data for the spatial gravity model for social
  * interactions (probability distributions).
 */
-struct cell {
+struct Cell
+{
 	int n, S, L, I, R, D, cumTC, S0, tot_treat, tot_vacc;
 	int* members, *susceptible, *latent, *infected; //// pointers to people in cell. e.g. *susceptible identifies where the final susceptible member of cel is.
 	int* InvCDF;
@@ -299,7 +308,8 @@ struct cell {
  * Places can have different groups (to model differential interaction strengths between groups
  * in the same place).
  */
-struct place {
+struct Place
+{
 	int n, mcell;
 	unsigned short int ng, treat, control_trig, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
@@ -315,7 +325,8 @@ struct place {
  *
  * Not currently being used, but may be reinstated.
  */
-struct intervention {
+struct Intervention
+{
 	int InterventionType, DoAUThresh, NoStartAfterMin;
 	double StartTime, StopTime, MinDuration, RepeatInterval, TimeOffset;
 	double StartThresholdHigh, StartThresholdLow, StopThreshold, Level, LevelCellVar, LevelAUVar, LevelCountryVar, ControlParam, LevelClustering;
@@ -325,9 +336,10 @@ struct intervention {
 /**
  * @brief A political entity that administers a geographical area.
  */
-struct adminunit {
+struct AdminUnit
+{
 	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
-	intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
+	Intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
 	char cnt_name[100], ad_name[200];
 	int NP, place_close_trig;
 	double CaseIsolationTimeStart, HQuarantineTimeStart, DigitalContactTracingTimeStart;
@@ -341,21 +353,21 @@ struct adminunit {
 
 #pragma pack(pop)
 
-extern person* Hosts;
-extern household* Households;
-extern popvar State, StateT[MAX_NUM_THREADS];
-extern cell* Cells, ** CellLookup;
-extern microcell* Mcells, ** McellLookup;
-extern place** Places;
-extern adminunit AdUnits[MAX_ADUNITS];
+extern Person* Hosts;
+extern Household* Households;
+extern PopVar State, StateT[MAX_NUM_THREADS];
+extern Cell* Cells, ** CellLookup;
+extern Microcell* Mcells, ** McellLookup;
+extern Place** Places;
+extern AdminUnit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-extern results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 
-extern airport* Airports;
-extern events* InfEventLog;
+extern Airport* Airports;
+extern Events* InfEventLog;
 extern int* nEvents;
 
 

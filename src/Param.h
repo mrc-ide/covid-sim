@@ -15,9 +15,8 @@ enum BitmapFormats
  * @brief Stores the parameters for the simulation.
  *
  */
-struct param {
-
-
+struct Param
+{
 	int PopSize; /**< Population size */
 	int NH; // Number of households
 	int NumRealisations; /**< Number of Realisations */
@@ -286,6 +285,6 @@ struct param {
 	int OlderGenGap;
 };
 
-extern param P;
+extern Param P;
 
 #endif // COVIDSIM_PARAM_H_INCLUDED_

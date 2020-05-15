@@ -23,7 +23,8 @@
 
 const int BWCOLS = 58;
 
-struct bitmap_header {
+struct BitmapHeader
+{
 	unsigned int filesize;
 	unsigned int spare;
 	unsigned int boffset;
@@ -38,7 +39,7 @@ struct bitmap_header {
 };
 
 extern int32_t *bmPopulation, *bmInfected, *bmRecovered, *bmTreated;
-extern bitmap_header* bmh;
+extern BitmapHeader* bmh;
 
 void CaptureBitmap();
 void OutputBitmap(int);

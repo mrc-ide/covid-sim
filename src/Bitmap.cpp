@@ -211,7 +211,7 @@ void OutputBitmap(int tp)
 	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
 	  }
 	  fprintf(dat, "BM");
-	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(bitmap_header) / sizeof(unsigned char) + bmh->imagesize, dat);
+	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
 	  fclose(dat);
 	}
 	else
@@ -225,15 +225,15 @@ void InitBMHead()
 
 	fprintf(stderr, "Initialising bitmap\n");
 	k = P.bwidth * P.bheight2;
-	k2 = sizeof(bitmap_header) / sizeof(unsigned char);
+	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
-	bmh = (bitmap_header*)bmf;
+	bmh = (BitmapHeader*)bmf;
 	bmh->spare = 0;
-	bmh->boffset = 2 + sizeof(bitmap_header);
+	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
 	bmh->width = P.bwidth;
 	bmh->height = P.bheight2;
@@ -242,7 +242,7 @@ void InitBMHead()
 	bmh->compr = 0; // No compression (BI_RGB)
 	bmh->imagesize = bmh->width * bmh->height;
 	bmh->filesize = 2 // "BM"
-	              + ((unsigned int) sizeof(bitmap_header)) // BITMAP_HEADER
+	              + ((unsigned int) sizeof(BitmapHeader)) // BITMAP_HEADER
 	              + bmh->imagesize; // Image data
 	bmh->hres = bmh->vres = (int)(bmh->width * 10); // Resolution, in pixels per metre
 	bmh->colours = BWCOLS * 4; // Number of colours in the palette

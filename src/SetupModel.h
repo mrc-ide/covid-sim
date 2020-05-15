@@ -16,7 +16,8 @@ void UpdateProbs(int);
 // network file, to ensure old/incompatible files are not loaded.
 const int NETWORK_FILE_VERSION = 1;
 
-struct bin_file {
+struct BinFile
+{
 	double x, y, pop;
 	int cnt, ad;
 };
