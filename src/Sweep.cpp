@@ -277,9 +277,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
-	int l, m,ad;
+	int ad;
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells.
-	int i2, i3, f, f2,fct, cq /*cell queue*/, bm, ci /*person index*/;
+	int f, f2, fct, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
 	double s; // household FOI on fellow household member, then place susceptibility, then random number for spatial infections allocation* / ;
@@ -303,7 +303,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
-#pragma omp parallel for private(l,m,n,i2,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1) default(none) \
+#pragma omp parallel for private(n,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1) default(none) \
 		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
@@ -326,14 +326,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				{
 					if ((Households[si->hh].nh > 1) && (!si->Travelling))
 					{
-						l = Households[si->hh].FirstPerson;
-						m = l + Households[si->hh].nh;
+						int l = Households[si->hh].FirstPerson;
+						int m = l + Households[si->hh].nh;
 						s3 = hbeta * CalcHouseInf(ci, ts);
 						f = 0;
-						for (i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
+						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
 							f = HOST_ABSENT(i3);
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
-						for (i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
+						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
 								s = s3 * CalcHouseSusc(i3, ts, ci, tn);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
@@ -363,7 +363,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						mi = Mcells + si->mcell;
 						for (int k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
-							l = si->PlaceLinks[k];
+							int l = si->PlaceLinks[k];
 							if (l >= 0)  //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
 								{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
@@ -381,7 +381,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 								if ((k != P.HotelPlaceType) && (!si->Travelling))
 								{
-									i2 = (si->PlaceGroupLinks[k]);
+									int i2 = (si->PlaceGroupLinks[k]);
 									if (fct)
 									{
 										s4 = s3;
@@ -406,9 +406,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
 										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
-									for (m = 0; m < n; m++)
+									for (int m = 0; m < n; m++)
 									{
-										i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
+										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
@@ -478,9 +478,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else
 										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
-									for (m = 0; m < n; m++)
+									for (int m = 0; m < n; m++)
 									{
-										i3 = Places[k][l].members[SamplingQueue[tn][m]];
+										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
@@ -570,7 +570,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 			{
 				n = (int)ignpoi_mt(s5 * sbeta * ((double)c->tot_prob), tn); //// number people this cell's population might infect elsewhere. poisson random number based on spatial infectiousness s5, sbeta (seasonality) and this cell's "probability" (guessing this is a function of its population and geographical size).
 
-				i2 = c->I;
+				int i2 = c->I;
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
@@ -585,6 +585,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					if (i2 == 1)	j = 0;
 					else				//// roughly speaking, this determines which infectious person in cell c infects which person elsewhere
 					{
+						int m;
 						s = ranf_mt(tn);	///// choose random number between 0 and 1
 						j = m = i2 / 2;		///// assign j and m to be halfway between zero and number of infected people i2 = c->I.
 						f = 1;
@@ -618,13 +619,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					{
 						//// chooses which cell person will infect
 						s = ranf_mt(tn);
-						l = c->InvCDF[(int)floor(s * 1024)];
+						int l = c->InvCDF[(int)floor(s * 1024)];
 						while (c->cum_trans[l] < s) l++;
 						ct = CellLookup[l];
 
 						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
-						m = (int)(ranf_mt(tn) * ((double)ct->S0));
-						i3 = ct->susceptible[m];
+						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
+						int i3 = ct->susceptible[m];
 						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
 						f2 = 0;
@@ -725,38 +726,33 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 void IncubRecoverySweep(double t, int run)
 {
-	int i, j, k, l, b, tn, ci;
 	double ht;
-	cell* c;
-	person* si;
 	unsigned short int ts; //// this timestep
-	unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
-
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	if (P.DoPlaces)
-		for (i = 0; i < P.NumHolidays; i++)
+		for (int i = 0; i < P.NumHolidays; i++)
 		{
 			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
 			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
-				for (j = 0; j < P.PlaceTypeNum; j++)
+				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for private(ci,k,l,b,tn) schedule(static,1) default(none) \
+#pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, Places, Hosts, i, j, ht)
-					for(tn=0;tn<P.NumThreads;tn++)
-						for (k = tn; k < P.Nplace[j]; k+=P.NumThreads)
+					for(int tn=0;tn<P.NumThreads;tn++)
+						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
-								l = (int)(ht * P.TimeStepsPerDay);
+								int l = (int)(ht * P.TimeStepsPerDay);
 								if (Places[j][k].close_start_time > l)
 									Places[j][k].close_start_time = (unsigned short) l;
-								b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
+								int b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
 								if (Places[j][k].close_end_time < b)
 									Places[j][k].close_end_time = (unsigned short) b;
-								for (ci = 0; ci < Places[j][k].n;ci++)
+								for (int ci = 0; ci < Places[j][k].n; ci++)
 								{
 									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
 									if (Hosts[Places[j][k].members[ci]].absent_stop_time < b) Hosts[Places[j][k].members[ci]].absent_stop_time = (unsigned short)b;
@@ -767,21 +763,22 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for private(j,b,c,tn,tc,ci,si) schedule(static,1) default(none) \
+#pragma omp parallel for schedule(static,1) default(none) \
 		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
-	for (tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
-		for (b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
+	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
+		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
-			c = CellLookup[b]; //// find (pointer-to) cell.
-			for (j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
+			cell* c = CellLookup[b]; //// find (pointer-to) cell.
+			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
 				if (ts >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
 					DoIncub(c->latent[j], ts, tn, run); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
-			for (j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
+			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
-				ci = c->infected[j];	//// person index
-				si = Hosts + ci;		//// person
+				int ci = c->infected[j];	//// person index
+				person* si = Hosts + ci;		//// person
 
+				unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
 				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
 				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
@@ -841,24 +838,23 @@ void DigitalContactTracingSweep(double t)
 	 *
 	 * Author: ggilani, 10/03/20 - updated 24/03/20, 14/04/2020
 	 */
-	int i, j, k, contact, infector, tn;
+	int contact, infector;
 	unsigned short int ts, dct_start_time, dct_end_time, contact_time;
 
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-#pragma omp parallel for private(i,j,k,tn,contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1) default(none) \
+#pragma omp parallel for private(contact,infector,contact_time,dct_start_time,dct_end_time) schedule(static,1) default(none) \
 		shared(t, P, AdUnits, StateT, Hosts, ts, stderr)
-	for (tn = 0; tn < P.NumThreads; tn++)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
+		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
 		{
 			if (t >= AdUnits[i].DigitalContactTracingTimeStart)
 			{
-
-				for (j = 0; j < P.NumThreads; j++)
+				for (int j = 0; j < P.NumThreads; j++)
 				{
-					for (k = 0; k < StateT[j].ndct_queue[i];)
+					for (int k = 0; k < StateT[j].ndct_queue[i];)
 					{
 						//start by finding theoretical start and end isolation times for each contact;
 						//these are calculated here for each time step instead of InfectSweep when contact event is added as trigger times will be updated for asymptomatic cases detected by testing.
@@ -1069,16 +1065,15 @@ void DigitalContactTracingSweep(double t)
 		}
 	}
 
-#pragma omp parallel for private(i,j,k,tn,contact) schedule(static,1) default(none) \
+#pragma omp parallel for private(contact) schedule(static,1) default(none) \
 		shared(t, P, AdUnits, Hosts, ts)
-	for (tn = 0; tn < P.NumThreads; tn++)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NumAdunits; i += P.NumThreads)
+		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
 		{
 			if (t >= AdUnits[i].DigitalContactTracingTimeStart)
 			{
-
-				for (j = 0; j < AdUnits[i].ndct;)
+				for (int j = 0; j < AdUnits[i].ndct;)
 				{
 					contact = AdUnits[i].dct[j];
 
@@ -1175,7 +1170,7 @@ int TreatSweep(double t)
 {
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
-	int i, j, i2, j2, k, l, m, b;
+	int i2, j2, l, m, b;
 	int f, f1, f2, f3, f4; //// various fail conditions. Used for other things
 	int tn, bs, adi, ad, ad2;
 	int minx, maxx, miny, trig_thresh, nckwp;
@@ -1211,12 +1206,12 @@ int TreatSweep(double t)
 	{
 		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
 
-#pragma omp parallel for private(i,j,k,l,m,f) reduction(+:f1) schedule(static,1) default(none) \
+#pragma omp parallel for private(l,m,f) reduction(+:f1) schedule(static,1) default(none) \
 			shared(P, StateT, Places, Hosts, ts, tstf)
-		for (i = 0; i < P.NumThreads; i++)
-			for (j = 0; j < P.PlaceTypeNum; j++)
+		for (int i = 0; i < P.NumThreads; i++)
+			for (int j = 0; j < P.PlaceTypeNum; j++)
 			{
-				for (k = 0; k < StateT[i].np_queue[j]; k++)
+				for (int k = 0; k < StateT[i].np_queue[j]; k++)
 				{
 					l = StateT[i].p_queue[j][k];
 					if (P.DoPlaceGroupTreat)
@@ -1260,13 +1255,13 @@ int TreatSweep(double t)
 
 	///// block vaccinates everyone in mass vaccination queue. Don't know why loop is done twice (although State.mvacc_cum is reset at end so will relate to that)
 	if ((P.DoMassVacc) && (t >= P.VaccTimeStart))
-		for (j = 0; j < 2; j++)
+		for (int j = 0; j < 2; j++)
 		{
 			m = (int)P.VaccMaxCourses;
 			if (m > State.n_mvacc) m = State.n_mvacc;
-#pragma omp parallel for private(i) schedule(static,1000) default(none) \
+#pragma omp parallel for schedule(static,1000) default(none) \
 				shared(State, m, ts)
-			for (i = State.mvacc_cum; i < m; i++)
+			for (int i = State.mvacc_cum; i < m; i++)
 				DoVacc(State.mvacc_queue[i], ts);
 			State.mvacc_cum = m;
 		}
@@ -1282,7 +1277,7 @@ int TreatSweep(double t)
 		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
-#pragma omp parallel for private(tn,i,i2,j,j2,k,l,m,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1) default(none) \
+#pragma omp parallel for private(tn,i2,j2,l,m,b,bs,minx,maxx,miny,f2,f3,f4,trig_thresh,r,ad,ad2,adi,interventionFlag) reduction(+:f) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
 		for (tn = 0; tn < P.NumThreads; tn++)
 			for (bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
@@ -1313,7 +1308,7 @@ int TreatSweep(double t)
 						Mcells[b].treat = 2;
 						Mcells[b].treat_trig = 0;
 						Mcells[b].treat_end_time = tstf;
-						for (i = 0; i < Mcells[b].n; i++)
+						for (int i = 0; i < Mcells[b].n; i++)
 						{
 							l = Mcells[b].members[i];
 							if ((!HOST_TO_BE_TREATED(l)) && ((P.TreatPropRadial == 1) || (ranf_mt(tn) < P.TreatPropRadial)))
@@ -1335,8 +1330,9 @@ int TreatSweep(double t)
 					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
-						k = b;
+						int k = b;
 						maxx = 0;
+						int i, j;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.TreatByAdminUnit) || (ad > 0))
@@ -1395,7 +1391,7 @@ int TreatSweep(double t)
 						Mcells[b].vacc_trig = 0;
 						//if(State.cumVG+P.NumThreads*Mcells[b].n<P.VaccMaxCourses) //changed to VG - commented this out for now, we'll add everyone to queues and deal with the number of doses available in the vaccination function
 						{
-							for (i = 0; i < Mcells[b].n; i++)
+							for (int i = 0; i < Mcells[b].n; i++)
 							{
 								l = Mcells[b].members[i];
 								//#pragma omp critical (state_cumV_daily) //added this
@@ -1423,7 +1419,8 @@ int TreatSweep(double t)
 					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
-						k = b;
+						int k = b;
+						int i, j;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.VaccByAdminUnit) || (ad > 0))
@@ -1588,7 +1585,8 @@ int TreatSweep(double t)
 					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
-						k = b;
+						int k = b;
+						int i, j;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.MoveRestrByAdminUnit) || (ad > 0))
@@ -1719,7 +1717,8 @@ int TreatSweep(double t)
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
 						minx = (b / P.nmch); miny = (b % P.nmch);
-						k = b;
+						int k = b;
+						int i,j;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						do
@@ -1762,7 +1761,7 @@ int TreatSweep(double t)
 					}
 
 			}
-		for (i = 0; i < P.NumThreads; i++)
+		for (int i = 0; i < P.NumThreads; i++)
 		{
 			State.cumT += StateT[i].cumT;
 			State.cumTP += StateT[i].cumTP;
