@@ -69,7 +69,7 @@ void TravelReturnSweep(double t)
 
 void TravelDepartSweep(double t)
 {
-	int c, i, i2, j, k, l, d, d2, m, n, f, f2, f3, mps, nld, nad, nsk, tn, bm, hp;
+	int c, i2, j, k, l, d, d2, m, n, f, f2, f3, mps, nld, nad, nsk, bm, hp;
 	double s, s2, nl;
 	cell* ct;
 
@@ -83,9 +83,9 @@ void TravelDepartSweep(double t)
 		k = (int)floor(t);
 		d = k % MAX_TRAVEL_TIME;
 		nad = nld = nsk = 0;
-#pragma omp parallel for private(i,i2,j,k,l,d2,m,n,s,f,f2,f3,tn,hp) reduction(+:nad,nsk) schedule(static,1)
-		for (tn = 0; tn < P.NumThreads; tn++)
-			for (i = tn; i < P.Nairports; i += P.NumThreads)
+#pragma omp parallel for private(i2,j,k,l,d2,m,n,s,f,f2,f3,hp) reduction(+:nad,nsk) schedule(static,1)
+		for (int tn = 0; tn < P.NumThreads; tn++)
+			for (int i = tn; i < P.Nairports; i += P.NumThreads)
 				if ((Airports[i].total_traffic > 0) && (Airports[i].num_mcell > 0))
 				{
 					s = Airports[i].total_traffic;
@@ -185,9 +185,9 @@ void TravelDepartSweep(double t)
 		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
 		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
-#pragma omp parallel for private(c,i,i2,j,l,d2,m,n,s,s2,ct,f,f2,f3,tn,hp) reduction(+:nld,nsk) schedule(static,1)
-		for (tn = 0; tn < P.NumThreads; tn++)
-			for (i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
+#pragma omp parallel for private(c,i2,j,l,d2,m,n,s,s2,ct,f,f2,f3,tn,hp) reduction(+:nld,nsk) schedule(static,1)
+		for (int tn = 0; tn < P.NumThreads; tn++)
+			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
 				c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.cwidth)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.cheight));
 				n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
