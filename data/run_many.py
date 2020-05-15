@@ -1,0 +1,386 @@
+#!/usr/bin/env python3
+r"""Do multiple runs locally or remotely.
+
+This Python script provides a framework for doing multiple runs of CovidSim
+either locally or remotely.
+
+It should be invoked as follows:
+
+    python3 run_many.py [--covidsim <binary>] [--data <dir>] \
+                        [--output <dir>] --runner runner_script... \
+                        [--srcdir <srcdir>] config.json
+
+For example:
+    python3 run_many.py --runner runner/local.py run_us.json
+
+Options:
+    --covidsim Path to CovidSim binary to use, if not specified will build
+    one using srcdir as the directory of the source (default parent dir of
+    script).
+
+    --output Output directory root.  If not specified will use the
+    current directory
+
+    --runner Script to run to actually call CovidSim, use multiple times if
+    you need to specify more than one parameter to invoke the runner.
+
+    --data Directory containing the admin units and population data (default
+    script dir).
+
+Operand
+
+    config.json: Configuration file.
+
+The runner script does the actual invocation of CovidSim.  It will be invoked
+with the following command-line:
+
+    <RUNNER> --input <input-dir> --output <output-dir> <command...>
+
+Its execution is the following steps:
+
+    1. Copy all contents of <input-dir> to the (remote) location where
+    execution will take place.
+
+    2. Change to that (remote) location.
+
+    3. Execute <comamnd...>
+
+    4. Copy/move the (remote) contents of ./output/ to <output-dir>.
+
+    5. Exit (0 for success, non-zero for failure).
+
+The JSON configuration takes a set of config options which control what gets
+invoked:
+
+{
+    "threads" : <NUM> # Number of threads to specify for CovidSim to use
+    "num_runs" : <NUM> # Number of runs with different run seeds
+    "network_seed0" : <NUM> # Network seed 0
+    "network_seed1" : <NUM> # Network seed 1
+    "r0" : [<r0>] # R0 values to test
+    "geographies" : [<geography>] # Geographies to test
+    "param_files" : [<Param file>] # Parameter files to test
+}
+
+There will be num_runs runs run for each combination of r0, geography, and
+param-file.
+"""
+
+import argparse
+import gzip
+import json
+import multiprocessing
+import os
+import shutil
+import subprocess
+import time
+
+
+def try_remove(f):
+    """Try and remove file f.
+
+    No error if removing is impossible.
+    """
+    try:
+        os.remove(f)
+    except OSError:
+        pass
+
+
+def parse_args():
+    """Parse the arguments.
+
+    On exit: Returns the result of calling argparse.parse()
+
+    args.covidsim is the name of the CovidSim executable
+    args.data is the directory with the input data
+    args.output is the directory where output will be stored
+    args.srcdir is the directory for the source code
+    args.runner is the list of arguments to invoke runner
+    args.config is the config file
+    """
+    parser = argparse.ArgumentParser()
+    try:
+        cpu_count = len(os.sched_getaffinity(0))
+    except AttributeError:
+        # os.sched_getaffinity isn't available
+        cpu_count = multiprocessing.cpu_count()
+    if cpu_count is None or cpu_count == 0:
+        cpu_count = 2
+
+    script_path = os.path.dirname(os.path.realpath(__file__))
+
+    # Default values
+    data_dir = script_path
+    output_dir = os.getcwd()
+    src_dir = os.path.join(data_dir, os.pardir)
+
+    parser.add_argument(
+            "--covidsim",
+            help="Location of CovidSim binary, if none specified will build")
+    parser.add_argument(
+            "--data",
+            help="Directory at root of input data",
+            default=data_dir)
+    parser.add_argument(
+            "--srcdir",
+            help="Directory with source in - needed if --covidsim " +
+            "isn't specified",
+            default=src_dir)
+    parser.add_argument(
+            "--output",
+            help="Directory to store output data",
+            default=output_dir)
+    parser.add_argument(
+            "--runner",
+            help="Command line for runner",
+            action="append")
+    parser.add_argument(
+            "config",
+            help="Configuration file")
+    args = parser.parse_args()
+
+    return args
+
+
+args = parse_args()
+
+# Lists of places that need to be handled specially
+united_states = ["United_States"]
+canada = ["Canada"]
+usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US",
+                   "Puerto_Rico", "American_Samoa"]
+nigeria = ["Nigeria"]
+
+# Determine whether we need to build the tool or use a user supplied one:
+if args.covidsim is not None:
+    exe = args.covidsim
+else:
+    build_dir = os.path.join(args.output, "build")
+
+    # Ensure we do a clean build
+    shutil.rmtree(build_dir, ignore_errors=True)
+    os.makedirs(build_dir, exist_ok=False)
+    cwd = os.getcwd()
+    os.chdir(build_dir)
+
+    # Build
+    subprocess.run(['cmake', args.srcdir], check=True)
+    subprocess.run(['cmake', '--build', '.'], check=True)
+
+    # Where the exe ends up depends on the OS.
+    if os.name == 'nt':
+        exe = os.path.join(build_dir, "Debug", "src", "CovidSim.exe")
+    else:
+        exe = os.path.join(build_dir, "src", "CovidSim")
+
+    os.chdir(cwd)
+
+# Ensure output directory exists
+os.makedirs(args.output, exist_ok=True)
+
+# Read the config file
+if not os.path.exists(args.config):
+    print("Unable to find config file: {0}".format(args.config))
+    exit(1)
+with open(args.config, 'r') as cf:
+    config = json.load(cf)
+
+# If we have no threads variable set use 1:
+if config["threads"] is None:
+    config["threads"] = 1
+
+if config["network_seed1"] is None:
+    print("Need network_seed1 in config")
+    exit(1)
+
+if config["network_seed2"] is None:
+    print("Need network_seed2 in config")
+    exit(1)
+
+# Generate the input data directories.  We have the following layout:
+#  - input-setup/
+#  - input/<geography>/
+#
+# input-setup contains the data needed to run the initial network generation
+# run for all geographies.  input-<geography> contains the files needed for
+# the runs in a particular geography (including the binary pop data and
+# network file).
+
+input_setup = os.path.join(args.output, "input-setup")
+os.makedirs(input_setup, exist_ok=True)
+os.makedirs(os.path.join(input_setup, "output"), exist_ok=True)
+
+# Run through the setup runs:
+setup_jobs = {}
+for geography in config["geographies"]:
+    input_geography = os.path.join(args.output, "input", geography)
+    output_geography = os.path.join(args.output, "output", geography, "setup")
+    os.makedirs(input_geography, exist_ok=True)
+    os.makedirs(output_geography, exist_ok=True)
+
+    # The admin file to use
+    admin_base = "{0}_admin.txt".format(geography)
+    admin_file = os.path.join(args.data, "admin_units", admin_base)
+
+    if not os.path.exists(admin_file):
+        print("Unable to find admin file for geography: {0}".format(geography))
+        print("Data directory: {0}".format(args.data))
+        print("Looked for: {0}".format(admin_file))
+        exit(1)
+
+    shutil.copyfile(admin_file, os.path.join(input_setup, admin_base))
+    shutil.copyfile(admin_file, os.path.join(input_geography, admin_base))
+
+    # Population density file in gziped form, text file, and binary file as
+    # processed by CovidSim
+    if geography in united_states + canada:
+        wpop_file_root = "usacan"
+    elif geography in usa_territories:
+        wpop_file_root = "us_terr"
+    elif geography in nigeria:
+        wpop_file_root = "nga_adm1"
+    else:
+        wpop_file_root = "eur"
+
+    wpop_file_gz = os.path.join(
+            args.data,
+            "populations",
+            "wpop_{0}.txt.gz".format(wpop_file_root))
+    wpop_file = os.path.join(
+            input_setup,
+            "wpop_{0}.txt".format(wpop_file_root))
+
+    if not os.path.exists(wpop_file):
+        if not os.path.exists(wpop_file_gz):
+            print("Unable to find population file for geography: {0}".
+                  format(geography))
+            print("Data directory: {0}".format(args.data))
+            print("Looked for: {0}".format(wpop_file_gz))
+            exit(1)
+
+    # Uncompress
+    with gzip.open(wpop_file_gz, 'rb') as f_in:
+        with open(wpop_file, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    # We need to run CovidSim to generate the binary - and we don't have that
+    # yet.
+
+    # Configure pre-parameter file.  This file doesn't change between runs:
+    if geography in united_states:
+        pp_base = "preUS_R0=2.0.txt"
+    elif geography in nigeria:
+        pp_base = "preNGA_R0=2.0.txt"
+    else:
+        pp_base = "preUK_R0=2.0.txt"
+
+    pp_file = os.path.join(args.data, "param_files", pp_base)
+    if not os.path.exists(os.path.join(input_setup, pp_base)):
+        if not os.path.exists(pp_file):
+            print("Unable to find pre-parameter file")
+            print("Data directory: {0}".format(args.data))
+            print("Looked for: {0}".format(pp_file))
+            exit(1)
+
+        shutil.copyfile(pp_file, os.path.join(input_setup, pp_base))
+
+    # Copy pre-parameter file into Geography
+    shutil.copyfile(pp_file, os.path.join(input_geography, pp_base))
+
+    # Copy the parameter files
+    # We copy all of them into each Geo input directory, but only the first
+    # into the input-setup directory.
+    for param_file in config["param_files"]:
+        if not os.path.exists(param_file):
+            print("Unable to find parameter file: {0}".format(param_file))
+            exit(1)
+
+        param_base = os.path.basename(param_file)
+        if os.path.exists(os.path.join(input_geography, param_base)):
+            print("Parameter files with the same basename: {0}".
+                  format(param_base))
+            exit(1)
+
+    param_base = os.path.basename(config["param_files"][0])
+    shutil.copyfile(config["param_files"][0], os.path.join(input_setup,
+                    param_base))
+
+    covidsim_cmd = [
+        exe,
+        "/c:{0}".format(config["threads"]),
+        "/A:" + os.path.join(os.path.curdir, admin_base),
+        "/PP:" + os.path.join(os.path.curdir, pp_base),
+        "/P:" + os.path.join(os.path.curdir, param_base),
+        "/O:" + os.path.join(os.path.curdir, "output", "setup"),
+        "/D:" + os.path.join(os.path.curdir,
+                             "wpop_{0}.txt".format(wpop_file_root)),
+        "/M:" + os.path.join(os.path.curdir, "output", "pop.bin"),
+        "/S:" + os.path.join(os.path.curdir, "output", "network.bin"),
+        "/R:{0}".format(config["r0"][0]),
+        "{0}".format(config["network_seed1"]),
+        "{0}".format(config["network_seed2"]),
+        "17389101",  # Run seed doesn't matter as we're going to drop this
+        "4797132"    # run
+        ]
+
+    runner_cmd = args.runner + [
+                 "--input",
+                 input_setup,
+                 "--outpt",
+                 output_geography
+                 ] + covidsim_cmd
+
+    print("Starting setup job for geography {0}".format(geography))
+    print("  Command line: " + " ".join(runner_cmd))
+    setup_jobs[geography] = subprocess.Popen(runner_cmd)
+
+all_jobs = {}
+
+def start_many_runs(geography):
+    pass
+
+# Have started all jobs loop over the setup_jobs dict until they're all
+# complete.
+print("Waiting for setup jobs to end:")
+while setup_jobs:
+    print("\rNumber of pending setup jobs: {0}".format(len(setup_jobs)), end="")
+    do_sleep = True
+    for geography, process in setup_jobs.items():
+        if process.poll() is not None:
+            if process.returncode != 0:
+                print("\nSetup job for Geography {0} failed".format(geography))
+                exit(1)
+
+            print("\nCompleted setup for geography {0}".format(geography))
+            start_many_runs(geography)
+            del setup_jobs[geography]
+            do_sleep = False
+            break
+
+    # Sleep before we poll again
+    if do_sleep:
+        time.sleep(10)
+
+pending = 1
+while pending:
+    pending = 0
+    for code, job in all_jobs:
+        if job.poll is None:
+            pending += 1
+    print("\rNumber of pending jobs: {0}".format(pending), end="")
+    if pending:
+        time.sleep(10)
+
+
+print("\nAll runs completed")
+
+# Check exit codes:
+any_failed = 0
+for code, job in all_jobs:
+    if job.returncode != 0:
+        print("Run failed: {0}".format(code))
+        any_failed = 1
+
+if any_failed:
+    exit(1)
