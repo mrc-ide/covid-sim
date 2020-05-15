@@ -101,14 +101,6 @@ def parse_args():
     args.config is the config file
     """
     parser = argparse.ArgumentParser()
-    try:
-        cpu_count = len(os.sched_getaffinity(0))
-    except AttributeError:
-        # os.sched_getaffinity isn't available
-        cpu_count = multiprocessing.cpu_count()
-    if cpu_count is None or cpu_count == 0:
-        cpu_count = 2
-
     script_path = os.path.dirname(os.path.realpath(__file__))
 
     # Default values
@@ -237,6 +229,9 @@ input_setup = os.path.join(args.output, "input-setup")
 os.makedirs(input_setup, exist_ok=True)
 os.makedirs(os.path.join(input_setup, "output"), exist_ok=True)
 
+# Copy the executable - use copy2 to preserve exe bit
+shutil.copy2(exe, os.path.join(input_setup, "CovidSim.exe"))
+
 # Run through the setup runs:
 setup_jobs = {}
 for geography in config["geographies"]:
@@ -245,6 +240,9 @@ for geography in config["geographies"]:
     os.makedirs(input_geography, exist_ok=True)
     os.makedirs(output_geography, exist_ok=True)
     os.makedirs(os.path.join(input_geography, "output"), exist_ok=True)
+
+    # Copy the executable
+    shutil.copy2(exe, os.path.join(input_geography, "CovidSim.exe"))
 
     # The admin file to use
     admin_file = os.path.join(args.data, "admin_units", admin_base(geography))
@@ -323,13 +321,14 @@ for geography in config["geographies"]:
             print("Parameter files with the same basename: {0}".
                   format(param_base))
             exit(1)
+        shutil.copyfile(param_file, os.path.join(input_geography, param_base))
 
     param_base = os.path.basename(config["param_files"][0])
     shutil.copyfile(config["param_files"][0], os.path.join(input_setup,
                     param_base))
 
     covidsim_cmd = [
-        exe,
+        os.path.join(os.path.curdir, "CovidSim.exe"),
         "/c:{0}".format(config["threads"]),
         "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
         "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
@@ -349,7 +348,7 @@ for geography in config["geographies"]:
     runner_cmd = args.runner + [
                  "--input",
                  input_setup,
-                 "--outpt",
+                 "--output",
                  output_geography
                  ] + covidsim_cmd
 
@@ -376,12 +375,13 @@ def copy_bin_files(geography):
 def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
     """Call the runner for a particular set of values."""
     covidsim_cmd = [
-        exe,
+        os.path.join(os.path.curdir, "CovidSim.exe"),
         "/c:{0}".format(config["threads"]),
         "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
         "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
         "/P:" + os.path.join(os.path.curdir, os.path.basename(param_file)),
-        "/O:" + os.path.join(os.path.curdir, "output"),
+        "/O:" + os.path.join(os.path.curdir, "output",
+            os.path.basename(output)),
         "/D:" + os.path.join(os.path.curdir, "pop.bin"),
         "/L:" + os.path.join(os.path.curdir, "network.bin"),
         "/R:{0}".format(r0 / 2),
