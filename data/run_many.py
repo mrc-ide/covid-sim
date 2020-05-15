@@ -71,6 +71,7 @@ import gzip
 import json
 import multiprocessing
 import os
+import random
 import shutil
 import subprocess
 import time
@@ -152,6 +153,20 @@ usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US",
                    "Puerto_Rico", "American_Samoa"]
 nigeria = ["Nigeria"]
 
+def admin_base(geography):
+    """Get the admin file basename for a particular geography."""
+    return "{0}_admin.txt".format(geography)
+
+def pp_base(geography):
+    """Get the basename of the pre-parameter file for a particular
+    geography."""
+    if geography in united_states:
+        return "preUS_R0=2.0.txt"
+    elif geography in nigeria:
+        return "preNGA_R0=2.0.txt"
+    else:
+        return "preUK_R0=2.0.txt"
+
 # Determine whether we need to build the tool or use a user supplied one:
 if args.covidsim is not None:
     exe = args.covidsim
@@ -198,6 +213,17 @@ if config["network_seed2"] is None:
     print("Need network_seed2 in config")
     exit(1)
 
+if config["num_runs"] is None:
+    config["num_runs"] = 1
+
+# Run Seed reference gives the list of run seeds to use for each set of runs.
+# We need 2 seeds for each run - so it will be config["num_runs"] * 2 elements
+# long.
+run_seed_reference = []
+random.seed()
+for i in range(config["num_runs"] * 2):
+    run_seed_reference.append(random.randint(0, 0x7fffffff))
+
 # Generate the input data directories.  We have the following layout:
 #  - input-setup/
 #  - input/<geography>/
@@ -218,10 +244,10 @@ for geography in config["geographies"]:
     output_geography = os.path.join(args.output, "output", geography, "setup")
     os.makedirs(input_geography, exist_ok=True)
     os.makedirs(output_geography, exist_ok=True)
+    os.makedirs(os.path.join(input_geography, "output"), exist_ok=True)
 
     # The admin file to use
-    admin_base = "{0}_admin.txt".format(geography)
-    admin_file = os.path.join(args.data, "admin_units", admin_base)
+    admin_file = os.path.join(args.data, "admin_units", admin_base(geography))
 
     if not os.path.exists(admin_file):
         print("Unable to find admin file for geography: {0}".format(geography))
@@ -229,8 +255,10 @@ for geography in config["geographies"]:
         print("Looked for: {0}".format(admin_file))
         exit(1)
 
-    shutil.copyfile(admin_file, os.path.join(input_setup, admin_base))
-    shutil.copyfile(admin_file, os.path.join(input_geography, admin_base))
+    shutil.copyfile(admin_file, os.path.join(input_setup,
+        admin_base(geography)))
+    shutil.copyfile(admin_file, os.path.join(input_geography,
+        admin_base(geography)))
 
     # Population density file in gziped form, text file, and binary file as
     # processed by CovidSim
@@ -268,25 +296,19 @@ for geography in config["geographies"]:
     # yet.
 
     # Configure pre-parameter file.  This file doesn't change between runs:
-    if geography in united_states:
-        pp_base = "preUS_R0=2.0.txt"
-    elif geography in nigeria:
-        pp_base = "preNGA_R0=2.0.txt"
-    else:
-        pp_base = "preUK_R0=2.0.txt"
 
-    pp_file = os.path.join(args.data, "param_files", pp_base)
-    if not os.path.exists(os.path.join(input_setup, pp_base)):
+    pp_file = os.path.join(args.data, "param_files", pp_base(geography))
+    if not os.path.exists(os.path.join(input_setup, pp_base(geography))):
         if not os.path.exists(pp_file):
             print("Unable to find pre-parameter file")
             print("Data directory: {0}".format(args.data))
             print("Looked for: {0}".format(pp_file))
             exit(1)
 
-        shutil.copyfile(pp_file, os.path.join(input_setup, pp_base))
+        shutil.copyfile(pp_file, os.path.join(input_setup, pp_base(geography)))
 
     # Copy pre-parameter file into Geography
-    shutil.copyfile(pp_file, os.path.join(input_geography, pp_base))
+    shutil.copyfile(pp_file, os.path.join(input_geography, pp_base(geography)))
 
     # Copy the parameter files
     # We copy all of them into each Geo input directory, but only the first
@@ -309,15 +331,15 @@ for geography in config["geographies"]:
     covidsim_cmd = [
         exe,
         "/c:{0}".format(config["threads"]),
-        "/A:" + os.path.join(os.path.curdir, admin_base),
-        "/PP:" + os.path.join(os.path.curdir, pp_base),
+        "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
+        "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
         "/P:" + os.path.join(os.path.curdir, param_base),
         "/O:" + os.path.join(os.path.curdir, "output", "setup"),
         "/D:" + os.path.join(os.path.curdir,
                              "wpop_{0}.txt".format(wpop_file_root)),
         "/M:" + os.path.join(os.path.curdir, "output", "pop.bin"),
         "/S:" + os.path.join(os.path.curdir, "output", "network.bin"),
-        "/R:{0}".format(config["r0"][0]),
+        "/R:{0}".format(config["r0"][0] / 2),
         "{0}".format(config["network_seed1"]),
         "{0}".format(config["network_seed2"]),
         "17389101",  # Run seed doesn't matter as we're going to drop this
@@ -337,8 +359,69 @@ for geography in config["geographies"]:
 
 all_jobs = {}
 
+def copy_bin_files(geography):
+    """Copy the binary files from the setup run to the input places."""
+    input_geography = os.path.join(args.output, "input", geography)
+    output_geography = os.path.join(args.output, "output", geography, "setup")
+
+    for f in ["pop.bin", "network.bin"]:
+        if not os.path.exists(os.path.join(output_geography, f)):
+                print("Failed to find {1} for geography: {0}".format(geography, f))
+                print("Looked in {0}".format(os.path.join(output_geography,
+                f)))
+                return
+        shutil.copyfile(os.path.join(output_geography, f),
+                        os.path.join(input_geography, f))
+
+def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
+    """Call the runner for a particular set of values."""
+    covidsim_cmd = [
+        exe,
+        "/c:{0}".format(config["threads"]),
+        "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
+        "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
+        "/P:" + os.path.join(os.path.curdir, os.path.basename(param_file)),
+        "/O:" + os.path.join(os.path.curdir, "output"),
+        "/D:" + os.path.join(os.path.curdir, "pop.bin"),
+        "/L:" + os.path.join(os.path.curdir, "network.bin"),
+        "/R:{0}".format(r0 / 2),
+        "{0}".format(config["network_seed1"]),
+        "{0}".format(config["network_seed2"]),
+        "{0}".format(run_seed1),
+        "{0}".format(run_seed2)
+        ]
+
+    runner_cmd = args.runner + [
+                 "--input",
+                 os.path.join(args.output, "input", geography),
+                 "--output",
+                 output,
+                 ] + covidsim_cmd
+
+    print("  Command line: " + " ".join(runner_cmd))
+    return subprocess.Popen(runner_cmd)
+
+
 def start_many_runs(geography):
-    pass
+    """Given a geography do all the runs for it once setup is complete."""
+    copy_bin_files(geography)
+    for r0 in config["r0"]:
+        for param_file in config["param_files"]:
+            pf = os.path.basename(param_file)
+            run_seeds = run_seed_reference.copy()
+            run_id = 0
+            while run_seeds:
+                run_seed1 = run_seeds.pop()
+                run_seed2 = run_seeds.pop()
+                output = os.path.join(args.output, "output", geography,
+                        str(r0),
+                        pf, "{0}_{1}_{2}_{3}".format(geography, r0,
+                            pf, run_id))
+                print("Starting run job for geography {0}, r0={1}, param_file={2}, run={3}".format(geography, r0,
+                            param_file, run_id))
+                all_jobs[output] = call_runner(geography, r0, param_file,
+                        run_seed1, run_seed2, output)
+                run_id += 1
 
 # Have started all jobs loop over the setup_jobs dict until they're all
 # complete.
@@ -365,8 +448,8 @@ while setup_jobs:
 pending = 1
 while pending:
     pending = 0
-    for code, job in all_jobs:
-        if job.poll is None:
+    for job_id, job in all_jobs.items():
+        if job.poll() is None:
             pending += 1
     print("\rNumber of pending jobs: {0}".format(pending), end="")
     if pending:
@@ -377,9 +460,9 @@ print("\nAll runs completed")
 
 # Check exit codes:
 any_failed = 0
-for code, job in all_jobs:
+for job_id, job in all_jobs.items():
     if job.returncode != 0:
-        print("Run failed: {0}".format(code))
+        print("Run failed: {0}".format(job_id))
         any_failed = 1
 
 if any_failed:
