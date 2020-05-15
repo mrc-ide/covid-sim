@@ -1,8 +1,5 @@
 #include <stdio.h>
 #include "BinIO.h"
-#include "Param.h"
-/*#include "..\miniz_v111b\miniz.c"
-*/
 
 size_t fwrite_big(void *buffer,size_t size,size_t count, FILE *stream)
 {
