@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "covid-sim", "covid-sim\covid-sim.vcxproj", "{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestNoddy", "test-noddy\test-noddy.vcxproj", "{BAF9D191-6F90-48F2-A8B5-2FB563C38AF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Debug|x64.Build.0 = Debug|x64
 		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Release|x64.ActiveCfg = Release|x64
 		{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}.Release|x64.Build.0 = Release|x64
+		{BAF9D191-6F90-48F2-A8B5-2FB563C38AF9}.Debug|x64.ActiveCfg = Debug|x64
+		{BAF9D191-6F90-48F2-A8B5-2FB563C38AF9}.Debug|x64.Build.0 = Debug|x64
+		{BAF9D191-6F90-48F2-A8B5-2FB563C38AF9}.Release|x64.ActiveCfg = Release|x64
+		{BAF9D191-6F90-48F2-A8B5-2FB563C38AF9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

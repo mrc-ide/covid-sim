@@ -794,6 +794,7 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/data \
                          @CMAKE_CURRENT_SOURCE_DIR@/docs \
                          @CMAKE_CURRENT_SOURCE_DIR@/Rscripts \
+                         @CMAKE_CURRENT_SOURCE_DIR@/visual_studio \
                          @CMAKE_CURRENT_SOURCE_DIR@/CODE_OF_CONDUCT.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/LICENSE.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/NOTICE.md \
