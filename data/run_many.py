@@ -199,11 +199,11 @@ if config["threads"] is None:
     config["threads"] = 1
 
 if config["network_seed1"] is None:
-    print("Need network_seed1 in config")
+    config["network_seed1"] = random.randint(0, 0x7fffffff)
     exit(1)
 
 if config["network_seed2"] is None:
-    print("Need network_seed2 in config")
+    config["network_seed2"] = random.randint(0, 0x7fffffff)
     exit(1)
 
 if config["num_runs"] is None:
