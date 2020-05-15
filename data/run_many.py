@@ -69,7 +69,6 @@ param-file.
 import argparse
 import gzip
 import json
-import multiprocessing
 import os
 import random
 import shutil
@@ -145,19 +144,21 @@ usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US",
                    "Puerto_Rico", "American_Samoa"]
 nigeria = ["Nigeria"]
 
+
 def admin_base(geography):
     """Get the admin file basename for a particular geography."""
     return "{0}_admin.txt".format(geography)
 
+
 def pp_base(geography):
-    """Get the basename of the pre-parameter file for a particular
-    geography."""
+    """Get the basename of the pre-param file for a particular geography."""
     if geography in united_states:
         return "preUS_R0=2.0.txt"
     elif geography in nigeria:
         return "preNGA_R0=2.0.txt"
     else:
         return "preUK_R0=2.0.txt"
+
 
 # Determine whether we need to build the tool or use a user supplied one:
 if args.covidsim is not None:
@@ -232,8 +233,11 @@ os.makedirs(os.path.join(input_setup, "output"), exist_ok=True)
 # Copy the executable - use copy2 to preserve exe bit
 shutil.copy2(exe, os.path.join(input_setup, "CovidSim.exe"))
 
+# Dictionaries of jobs:
+setup_jobs = {}  # Geography -> Setup run, emptied as jobs finish
+all_jobs = {}  # ID -> Intervention run
+
 # Run through the setup runs:
-setup_jobs = {}
 for geography in config["geographies"]:
     input_geography = os.path.join(args.output, "input", geography)
     output_geography = os.path.join(args.output, "output", geography, "setup")
@@ -253,10 +257,10 @@ for geography in config["geographies"]:
         print("Looked for: {0}".format(admin_file))
         exit(1)
 
-    shutil.copyfile(admin_file, os.path.join(input_setup,
-        admin_base(geography)))
-    shutil.copyfile(admin_file, os.path.join(input_geography,
-        admin_base(geography)))
+    shutil.copyfile(admin_file,
+                    os.path.join(input_setup, admin_base(geography)))
+    shutil.copyfile(admin_file,
+                    os.path.join(input_geography, admin_base(geography)))
 
     # Population density file in gziped form, text file, and binary file as
     # processed by CovidSim
@@ -285,10 +289,9 @@ for geography in config["geographies"]:
             print("Looked for: {0}".format(wpop_file_gz))
             exit(1)
 
-    # Uncompress
-    with gzip.open(wpop_file_gz, 'rb') as f_in:
-        with open(wpop_file, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+        # Uncompress
+        with gzip.open(wpop_file_gz, 'rb') as fi, open(wpop_file, 'wb') as fo:
+            shutil.copyfileobj(fi, fo)
 
     # We need to run CovidSim to generate the binary - and we don't have that
     # yet.
@@ -356,7 +359,6 @@ for geography in config["geographies"]:
     print("  Command line: " + " ".join(runner_cmd))
     setup_jobs[geography] = subprocess.Popen(runner_cmd)
 
-all_jobs = {}
 
 def copy_bin_files(geography):
     """Copy the binary files from the setup run to the input places."""
@@ -365,12 +367,13 @@ def copy_bin_files(geography):
 
     for f in ["pop.bin", "network.bin"]:
         if not os.path.exists(os.path.join(output_geography, f)):
-                print("Failed to find {1} for geography: {0}".format(geography, f))
-                print("Looked in {0}".format(os.path.join(output_geography,
-                f)))
-                return
-        shutil.copyfile(os.path.join(output_geography, f),
-                        os.path.join(input_geography, f))
+            print("ERROR: Failed to find {1} for geography: {0}".
+                  format(geography, f))
+            print("Looked in {0}".format(os.path.join(output_geography, f)))
+        else:
+            shutil.copyfile(os.path.join(output_geography, f),
+                            os.path.join(input_geography, f))
+
 
 def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
     """Call the runner for a particular set of values."""
@@ -381,7 +384,7 @@ def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
         "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
         "/P:" + os.path.join(os.path.curdir, os.path.basename(param_file)),
         "/O:" + os.path.join(os.path.curdir, "output",
-            os.path.basename(output)),
+                             os.path.basename(output)),
         "/D:" + os.path.join(os.path.curdir, "pop.bin"),
         "/L:" + os.path.join(os.path.curdir, "network.bin"),
         "/R:{0}".format(r0 / 2),
@@ -414,30 +417,50 @@ def start_many_runs(geography):
                 run_seed1 = run_seeds.pop()
                 run_seed2 = run_seeds.pop()
                 output = os.path.join(args.output, "output", geography,
-                        str(r0),
-                        pf, "{0}_{1}_{2}_{3}".format(geography, r0,
-                            pf, run_id))
-                print("Starting run job for geography {0}, r0={1}, param_file={2}, run={3}".format(geography, r0,
-                            param_file, run_id))
+                                      str(r0), pf,
+                                      "{0}_{1}_{2}_{3}".format(geography, r0,
+                                                               pf, run_id))
+                print("Starting run job for geography {0}, r0={1}, "
+                      "param_file={2}, run={3}".format(geography, r0,
+                                                       param_file, run_id))
                 all_jobs[output] = call_runner(geography, r0, param_file,
-                        run_seed1, run_seed2, output)
+                                               run_seed1, run_seed2, output)
                 run_id += 1
 
-# Have started all jobs loop over the setup_jobs dict until they're all
-# complete.
-print("Waiting for setup jobs to end:")
-while setup_jobs:
-    print("\rNumber of pending setup jobs: {0}".format(len(setup_jobs)), end="")
-    do_sleep = True
+
+# Wait for the jobs to end, giving status as we go along
+print("Waiting for jobs to end:")
+total_pending = 1
+message_len = 0
+while total_pending:
+    setup_pending = len(setup_jobs)
+    runs_pending = 0
+    for job_id, job in all_jobs.items():
+        if job.poll() is None:
+            runs_pending += 1
+
+    total_pending = setup_pending + runs_pending
+    message = "Number of pending jobs: {0} (Setup={1} Runs={2})".format(
+            total_pending, setup_pending, runs_pending)
+    extra_space = " " * max(0, message_len - len(message))
+    print("\r{0}{1}".format(message, extra_space), end="")
+    message_len = len(message)
+    do_sleep = total_pending > 0
+
+    # When setup jobs complete we need to start their intervention runs
     for geography, process in setup_jobs.items():
         if process.poll() is not None:
             if process.returncode != 0:
-                print("\nSetup job for Geography {0} failed".format(geography))
-                exit(1)
+                print("\nERROR: Setup job for geography {0} failed".
+                      format(geography))
+            else:
+                print("\nCompleted setup for geography {0}".format(geography))
+                start_many_runs(geography)
 
-            print("\nCompleted setup for geography {0}".format(geography))
-            start_many_runs(geography)
             del setup_jobs[geography]
+
+            # We assume that if we've started a set of runs we need to update
+            # the status immediately
             do_sleep = False
             break
 
@@ -445,24 +468,13 @@ while setup_jobs:
     if do_sleep:
         time.sleep(10)
 
-pending = 1
-while pending:
-    pending = 0
-    for job_id, job in all_jobs.items():
-        if job.poll() is None:
-            pending += 1
-    print("\rNumber of pending jobs: {0}".format(pending), end="")
-    if pending:
-        time.sleep(10)
-
-
 print("\nAll runs completed")
 
 # Check exit codes:
 any_failed = 0
 for job_id, job in all_jobs.items():
     if job.returncode != 0:
-        print("Run failed: {0}".format(job_id))
+        print("ERROR: Run failed: {0}".format(job_id))
         any_failed = 1
 
 if any_failed:
