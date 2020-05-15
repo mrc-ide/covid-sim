@@ -277,7 +277,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
-	int i, j, k, l, m,ad;
+	int j, l, m,ad;
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells.
 	int i2, b, i3, f, f2,fct, tn, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
@@ -303,7 +303,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
-#pragma omp parallel for private(j,k,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
+#pragma omp parallel for private(j,l,m,n,i2,b,i3,f,f2,fct,s,s2,s3,s4,s5,s6,c,ct,mi,mt,mp,cq,ci,si,ad,s3_scaled,s4_scaled) schedule(static,1)
 	for (tn = 0; tn < P.NumThreads; tn++)
 		for (b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -360,7 +360,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					if (!HOST_ABSENT(ci))
 					{
 						mi = Mcells + si->mcell;
-						for (k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
+						for (int k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
 							l = si->PlaceLinks[k];
 							if (l >= 0)  //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
@@ -577,7 +577,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[tn].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[tn].cell_inf[i2 - 1] = (StateT[tn].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
-				for (k = 0; k < n; k++)  //// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
+				for (int k = 0; k < n; k++)  //// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
 				{
 					//// decide on infector ci/si from cell c.
 					if (i2 == 1)	j = 0;
@@ -698,12 +698,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		}
 
 
-#pragma omp parallel for private(i,k) schedule(static,1)
+#pragma omp parallel for schedule(static,1)
 	for (j = 0; j < P.NumThreads; j++)
 	{
-		for (k = 0; k < P.NumThreads; k++)
+		for (int k = 0; k < P.NumThreads; k++)
 		{
-			for (i = 0; i < StateT[k].n_queue[j]; i++)
+			for (int i = 0; i < StateT[k].n_queue[j]; i++)
 			{
 				int infector = StateT[k].inf_queue[j][i].infector;
 				int infectee = StateT[k].inf_queue[j][i].infectee;
