@@ -89,7 +89,8 @@ void CaptureBitmap()
 			}
 		}
 	}
-#pragma omp parallel for schedule(static,5000)
+#pragma omp parallel for schedule(static,5000) default(none) \
+		shared(mi, bmPixels, bmPopulation, bmInfected, bmTreated, bmRecovered, logMaxPop)
 	for (int i = 0; i < mi; i++)
 	{
 		if (bmPopulation[i] == -1)
