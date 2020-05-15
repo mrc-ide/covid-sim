@@ -1,7 +1,6 @@
 # VS
 *~
 *.xls
-x64
 .vs
 *.opendb
 *.swp
@@ -14,9 +13,9 @@ build-*/
 build_*/
 cmake-build-debug/
 .project
-*.vcxproj.user
 tests/*-output/
 .idea/
+/CMakeSettings.json
 
 # VScode
 .vscode/

@@ -89,42 +89,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\BinIO.cpp" />
-    <ClCompile Include="src\Bitmap.cpp" />
-    <ClCompile Include="src\CalcInfSusc.cpp" />
-    <ClCompile Include="src\Dist.cpp" />
-    <ClCompile Include="src\Error.cpp" />
-    <ClCompile Include="src\Kernels.cpp" />
-    <ClCompile Include="src\Rand.cpp" />
-    <ClCompile Include="src\SetupModel.cpp" />
-    <ClCompile Include="src\CovidSim.cpp" />
-    <ClCompile Include="src\Sweep.cpp" />
-    <ClCompile Include="src\Update.cpp" />
-    <ClCompile Include="src\Param.cpp" />
-    <ClCompile Include="src\MicroCellPosition.cpp" />
-    <ClCompile Include="src\Direction.cpp" />
+    <ClCompile Include="..\..\src\BinIO.cpp" />
+    <ClCompile Include="..\..\src\Bitmap.cpp" />
+    <ClCompile Include="..\..\src\CalcInfSusc.cpp" />
+    <ClCompile Include="..\..\src\Dist.cpp" />
+    <ClCompile Include="..\..\src\Error.cpp" />
+    <ClCompile Include="..\..\src\Kernels.cpp" />
+    <ClCompile Include="..\..\src\Rand.cpp" />
+    <ClCompile Include="..\..\src\SetupModel.cpp" />
+    <ClCompile Include="..\..\src\CovidSim.cpp" />
+    <ClCompile Include="..\..\src\Sweep.cpp" />
+    <ClCompile Include="..\..\src\Update.cpp" />
+    <ClCompile Include="..\..\src\Param.cpp" />
+    <ClCompile Include="..\..\src\MicroCellPosition.cpp" />
+    <ClCompile Include="..\..\src\Direction.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\BinIO.h" />
-    <ClInclude Include="src\Bitmap.h" />
-    <ClInclude Include="src\CalcInfSusc.h" />
-    <ClInclude Include="src\Constants.h" />
-    <ClInclude Include="src\Country.h" />
-    <ClInclude Include="src\Dist.h" />
-    <ClInclude Include="src\Error.h" />
-    <ClInclude Include="src\InfStat.h" />
-    <ClInclude Include="src\Kernels.h" />
-    <ClInclude Include="src\MachineDefines.h" />
-    <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\ModelMacros.h" />
-    <ClInclude Include="src\Param.h" />
-    <ClInclude Include="src\Rand.h" />
-    <ClInclude Include="src\SetupModel.h" />
-    <ClInclude Include="src\CovidSim.h" />
-    <ClInclude Include="src\Sweep.h" />
-    <ClInclude Include="src\Update.h" />
-    <ClInclude Include="src\MicroCellPosition.hpp" />
-    <ClInclude Include="src\Direction.hpp" />
+    <ClInclude Include="..\..\src\BinIO.h" />
+    <ClInclude Include="..\..\src\Bitmap.h" />
+    <ClInclude Include="..\..\src\CalcInfSusc.h" />
+    <ClInclude Include="..\..\src\Constants.h" />
+    <ClInclude Include="..\..\src\Country.h" />
+    <ClInclude Include="..\..\src\Dist.h" />
+    <ClInclude Include="..\..\src\Error.h" />
+    <ClInclude Include="..\..\src\InfStat.h" />
+    <ClInclude Include="..\..\src\Kernels.h" />
+    <ClInclude Include="..\..\src\MachineDefines.h" />
+    <ClInclude Include="..\..\src\Model.h" />
+    <ClInclude Include="..\..\src\ModelMacros.h" />
+    <ClInclude Include="..\..\src\Param.h" />
+    <ClInclude Include="..\..\src\Rand.h" />
+    <ClInclude Include="..\..\src\SetupModel.h" />
+    <ClInclude Include="..\..\src\CovidSim.h" />
+    <ClInclude Include="..\..\src\Sweep.h" />
+    <ClInclude Include="..\..\src\Update.h" />
+    <ClInclude Include="..\..\src\MicroCellPosition.hpp" />
+    <ClInclude Include="..\..\src\Direction.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

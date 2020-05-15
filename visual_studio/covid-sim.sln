@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "covid-sim", "covid-sim.vcxproj", "{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "covid-sim", "covid-sim\covid-sim.vcxproj", "{1284B4EE-852B-4BB5-B6EF-60D8D9EB46DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
