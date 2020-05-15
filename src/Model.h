@@ -93,7 +93,7 @@ struct popvar {
 
 	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
-	int CT, cumCT, CC, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
+	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
 	int cumHQ, cumAC, cumAA, cumAH, cumACS, cumAPC, cumAPA, cumAPCS;
 	//// age specific versions of above variables. e.g. cumI is cumulative infections. cumIa is cumulative infections by age group.
@@ -111,7 +111,6 @@ struct popvar {
 	int* CellMemberArray, *CellSuscMemberArray;
 	int** InvAgeDist;
 	int* mvacc_queue;
-	int dum[CACHE_LINE_SIZE];
 	int nct_queue[MAX_ADUNITS]; // queue for contact tracing: ggilani 12/06/17
 	contactevent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
 	int ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
@@ -154,7 +153,7 @@ struct results {
 
 	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
 	double incH; //added incidence of hospitalisation: ggilani 28/10/14
-	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
+	double CT, incCT, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
 	double cumT, cumUT, cumTP, cumV, cumTmax, cumVmax, cumDC, extinct, cumVG; //added cumVG
 	double incHQ, incAC, incAH, incAA, incACS, incAPC, incAPA, incAPCS;
@@ -243,7 +242,7 @@ struct indexlist {
  */
 struct airport {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
-	unsigned short int country, adunit, num_connected, control, *conn_airports;
+	unsigned short int num_connected, *conn_airports;
 	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
 	indexlist* DestMcells, *DestPlaces;
