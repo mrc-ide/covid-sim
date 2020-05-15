@@ -185,7 +185,7 @@ void TravelDepartSweep(double t)
 		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
 		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
-#pragma omp parallel for private(c,i2,j,l,d2,m,n,s,s2,ct,f,f2,f3,tn,hp) reduction(+:nld,nsk) schedule(static,1)
+#pragma omp parallel for private(c,i2,j,l,d2,m,n,s,s2,ct,f,f2,f3,hp) reduction(+:nld,nsk) schedule(static,1)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
