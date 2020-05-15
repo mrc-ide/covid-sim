@@ -18,7 +18,7 @@
 
 void TravelReturnSweep(double t)
 {
-	int i, j, k, l, n, nr, ner, tn;
+	int l, nr, ner;
 
 	// Convince static analysers that values are set correctly:
 	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
@@ -26,17 +26,18 @@ void TravelReturnSweep(double t)
 	if (floor(1 + t + P.TimeStep) != floor(1 + t))
 	{
 		nr = ner = 0;
-		k = (int)floor(t);
-		l = 1 + k % MAX_TRAVEL_TIME;
-#pragma omp parallel for private(i,j,k,n,tn) reduction(+:nr,ner) schedule(static,1)
-		for (tn = 0; tn < P.NumThreads; tn++)
+		int floorOfTime = (int)floor(t);
+		l = 1 + floorOfTime % MAX_TRAVEL_TIME;
+#pragma omp parallel for reduction(+:nr,ner) schedule(static,1) default(none) \
+			shared(P, Places, Hosts, l, stderr)
+		for (int tn = 0; tn < P.NumThreads; tn++)
 		{
-			for (j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
+			for (int j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
 			{
-				n = Places[P.HotelPlaceType][j].n;
-				for (k = n - 1; k >= 0; k--)
+				int n = Places[P.HotelPlaceType][j].n;
+				for (int k = n - 1; k >= 0; k--)
 				{
-					i = Places[P.HotelPlaceType][j].members[k];
+					int i = Places[P.HotelPlaceType][j].members[k];
 					if (Hosts[i].Travelling == l)
 					{
 						n--;
