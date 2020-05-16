@@ -28,8 +28,9 @@ void TravelReturnSweep(double t)
 		nr = ner = 0;
 		int floorOfTime = (int)floor(t);
 		l = 1 + floorOfTime % MAX_TRAVEL_TIME;
-#pragma omp parallel for reduction(+:nr,ner) schedule(static,1) default(none) \
-			shared(P, Places, Hosts, l, stderr)
+#pragma omp parallel for reduction(+:nr, ner) schedule(static, 1) default(none) \
+			firstprivate(stderr) \
+			shared(P, Places, Hosts, l)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 		{
 			for (int j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
@@ -300,7 +301,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr)
+		firstprivate(stderr) \
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -840,7 +842,8 @@ void DigitalContactTracingSweep(double t)
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 #pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, P, AdUnits, StateT, Hosts, ts, stderr)
+		firstprivate(stderr) \
+		shared(t, P, AdUnits, StateT, Hosts, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
