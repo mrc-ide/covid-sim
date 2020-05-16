@@ -663,69 +663,10 @@ S170:
 	ignbin_mt = ix;
 	return ignbin_mt;
 }
+
 double sexpo(void)
-/*
-**********************************************************************
-
-
-	 (STANDARD-)  E X P O N E N T I A L   DISTRIBUTION
-
-
-**********************************************************************
-**********************************************************************
-
-	 FOR DETAILS SEE:
-
-			   AHRENS, J.H. AND DIETER, U.
-			   COMPUTER METHODS FOR SAMPLING FROM THE
-			   EXPONENTIAL AND NORMAL DISTRIBUTIONS.
-			   COMM. ACM, 15,10 (OCT. 1972), 873 - 882.
-
-	 ALL STATEMENT NUMBERS CORRESPOND TO THE STEPS OF ALGORITHM
-	 'SA' IN THE ABOVE PAPER (SLIGHTLY MODIFIED IMPLEMENTATION)
-
-	 Modified by Barry W. Brown, Feb 3, 1988 to use RANF instead of
-	 SUNIF.  The argument IR thus goes away.
-
-**********************************************************************
-	 Q(N) = SUM(ALOG(2.0)**K/K!)    K=1,..,N ,      THE HIGHEST N
-	 (HERE 8) IS DETERMINED BY Q(N)=1.0 WITHIN STANDARD PRECISION
-*/
 {
-	static double q[8] = {
-		0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,
-		.9999999
-	};
-	int32_t i;
-	double sexpo, a, u, ustar, umin;
-
-	a = 0.0;
-	u = ranf();
-	goto S30;
-S20:
-	a += q[0];
-S30:
-	u += u;
-	/*
-	 * JJV changed the following to reflect the true algorithm and prevent
-	 * JJV unpredictable behavior if U is initially 0.5.
-	 *  if(u <= 1.0) goto S20;
-	 */
-	if (u < 1.0) goto S20;
-	u -= 1.0;
-	if (u > q[0]) goto S60;
-	sexpo = a + u;
-	return sexpo;
-S60:
-	i = 1;
-	ustar = ranf();
-	umin = ustar;
-S70:
-	ustar = ranf();
-	if (ustar < umin) umin = ustar;
-	i += 1;
-	if (u > q[i - 1]) goto S70;
-	return  a + umin * q[0];
+	return sexpo_mt(OMP_GET_THREAD_NUM);
 }
 
 double sexpo_mt(int tn)
