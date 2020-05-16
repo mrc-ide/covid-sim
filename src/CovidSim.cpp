@@ -1,6 +1,7 @@
 /*
 (c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
 */
+#include <filesystem>
 
 #include <errno.h>
 #include <stddef.h>
@@ -4100,6 +4101,11 @@ void SaveSnapshot(void)
 {
 	FILE* dat;
 	int i = 1;
+
+	if (std::filesystem::exists(SnapshotSaveFile))
+	{
+		printf("SnapshotSaveFile exists");
+	}
 
 	if (!(dat = fopen(SnapshotSaveFile, "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 
