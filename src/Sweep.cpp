@@ -28,9 +28,9 @@ void TravelReturnSweep(double t)
 		nr = ner = 0;
 		int floorOfTime = (int)floor(t);
 		l = 1 + floorOfTime % MAX_TRAVEL_TIME;
+		FILE* stderr_shared = stderr;
 #pragma omp parallel for reduction(+:nr, ner) schedule(static, 1) default(none) \
-			firstprivate(stderr) \
-			shared(P, Places, Hosts, l)
+			shared(P, Places, Hosts, l, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 		{
 			for (int j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
@@ -55,7 +55,7 @@ void TravelReturnSweep(double t)
 						nr++;
 						if (Hosts[i].PlaceLinks[P.HotelPlaceType] != j)
 						{
-							ner++; fprintf(stderr, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
+							ner++; fprintf(stderr_shared, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
 						}
 						Hosts[i].PlaceLinks[P.HotelPlaceType] = -1;
 						Hosts[i].Travelling = 0;
@@ -299,10 +299,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	sbeta = seasonality * fp * P.LocalBeta;
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
-
+	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
-		firstprivate(stderr) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm)
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -396,7 +395,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 									if (s4_scaled < 0)
 									{
-										fprintf(stderr, "@@@ %lg\n", s4_scaled);
+										fprintf(stderr_shared, "@@@ %lg\n", s4_scaled);
 										exit(1);
 									}
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
@@ -424,7 +423,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 												else
 												{
-													fprintf(stderr, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
 										}
@@ -496,7 +495,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 												else
 												{
-													fprintf(stderr, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
 										}
@@ -656,7 +655,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else
 											{
-												fprintf(stderr, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+												fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 											}
 										}
 									}
@@ -841,9 +840,9 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
+	FILE* stderr_shared = stderr;
 #pragma omp parallel for schedule(static,1) default(none) \
-		firstprivate(stderr) \
-		shared(t, P, AdUnits, StateT, Hosts, ts)
+		shared(t, P, AdUnits, StateT, Hosts, ts, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -980,8 +979,8 @@ void DigitalContactTracingSweep(double t)
 								}
 								else
 								{
-									fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, AdUnits[i].n);
-									fprintf(stderr, "Error!\n");
+									fprintf(stderr_shared, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, AdUnits[i].n);
+									fprintf(stderr_shared, "Error!\n");
 									k++;
 								}
 							}

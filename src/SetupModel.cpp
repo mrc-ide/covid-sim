@@ -1112,9 +1112,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(Households = (household*)malloc(P.NH * sizeof(household)))) ERR_CRITICAL("Unable to allocate household storage\n");
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
+
+	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
-		firstprivate(stderr) \
-		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits)
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
@@ -1123,7 +1124,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			y = (double)(j % P.nmch);
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
-				fprintf(stderr, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+				fprintf(stderr_shared, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 			for (int k = 0; k < Mcells[j].n;)
 			{
 				m = Hosts[i].listpos;
@@ -1373,9 +1374,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoPlaces)
 	{
 		fprintf(stderr, "Configuring places...\n");
+
+		FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
-			firstprivate(stderr) \
-			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i)
+			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
@@ -1384,7 +1386,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				for (int i = 0; i < P.PopSize; i++)
 					t += PropPlaces[HOST_AGE_YEAR(i)][j2];
 				P.Nplace[j2] = (int)ceil(t / P.PlaceTypeMeanSize[j2]);
-				fprintf(stderr, "[%i:%i %g] ", j2, P.Nplace[j2], t);
+				fprintf(stderr_shared, "[%i:%i %g] ", j2, P.Nplace[j2], t);
 				if (!(Places[j2] = (place*)calloc(P.Nplace[j2], sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 				t = 1.0;
 				int k;
@@ -1518,13 +1520,14 @@ void SetupAirports(void)
 			Mcells[i].AirportList = cur;
 			cur += NNA;
 		}
+
+	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(k,l,x,y,t,tmin) schedule(static,10000) default(none) \
-		firstprivate(stderr) \
-		shared(P, Airports, Mcells)
+		shared(P, Airports, Mcells, stderr_shared)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr, "\n%i           ", i);
+			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
 			x = (((double)(i / P.nmch)) + 0.5) * P.mcwidth;
 			y = (((double)(i % P.nmch)) + 0.5) * P.mcheight;
 			k = l = 0;
@@ -1565,12 +1568,11 @@ void SetupAirports(void)
 		Airports[i].num_mcell = 0;
 	}
 #pragma omp parallel for private(k,l,t,tmin) schedule(static,10000) default(none) \
-		firstprivate(stderr) \
-		shared(P, Airports, Mcells)
+		shared(P, Airports, Mcells, stderr_shared)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr, "\n%i           ", i);
+			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
 			t = 0;
 			for (int j = 0; j < NNA; j++)
 			{
@@ -1620,14 +1622,13 @@ void SetupAirports(void)
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
 	free(base);
 #pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) \
-		firstprivate(stderr) \
-		shared(P, Airports, Places)
+		shared(P, Airports, Places, stderr_shared)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
 			m = (int)(Airports[i].total_traffic / HOTELS_PER_1000PASSENGER / 1000);
 			if (m < MIN_HOTELS_PER_AIRPORT) m = MIN_HOTELS_PER_AIRPORT;
-			fprintf(stderr, "\n%i    ", i);
+			fprintf(stderr_shared, "\n%i    ", i);
 			tmin = MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL * 0.75;
 			do
 			{
@@ -1638,7 +1639,7 @@ void SetupAirports(void)
 						Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
-			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
+			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
 			if (!(Airports[i].DestPlaces = (indexlist*)calloc(Airports[i].num_place, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
@@ -2105,14 +2106,15 @@ void AssignPeopleToPlaces(void)
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{
+					FILE* stderr_shared = stderr;
 #pragma omp parallel for private(i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,s,t,mx,my) reduction(+:ca) schedule(static,1) default(none) \
-						firstprivate(a,nt,nn, stderr) \
-						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp)
+						firstprivate(a,nt,nn) \
+						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp, stderr_shared)
 					for (int tn = 0; tn < P.NumThreads; tn++)
 					{
 						for (j = tn; j < a; j += nt)
 						{
-							if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
+							if (j % 1000 == 0) fprintf(stderr_shared, "(%i) %i      \r", tp, j);
 							for (i2 = 0; i2 < nn; i2++)
 								NearestPlacesProb[tn][i2] = 0;
 							l = 1; k = m = m2 = f2 = 0;
@@ -2131,7 +2133,7 @@ void AssignPeopleToPlaces(void)
 										{
 											for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 											{
-												if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+												if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr_shared, "#%i %i %i  ", tp, ic, cnt);
 												t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
 													Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
 												s = numKernel(t);
@@ -2194,10 +2196,10 @@ void AssignPeopleToPlaces(void)
 								}
 
 								s = 0;
-								if (k > nn) fprintf(stderr, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
+								if (k > nn) fprintf(stderr_shared, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
 								if (k == 0)
 								{
-									fprintf(stderr, "# %i %i     \r", i, j);
+									fprintf(stderr_shared, "# %i %i     \r", i, j);
 									Hosts[i].PlaceLinks[tp] = -1;
 								}
 								else
@@ -2220,7 +2222,7 @@ void AssignPeopleToPlaces(void)
 											}
 										}
 										if (!f) Hosts[i].PlaceLinks[tp] = -1;
-										if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr, "@%i %i %i  ", tp, i, j);
+										if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr_shared, "@%i %i %i  ", tp, i, j);
 									}
 								}
 							}
@@ -2248,13 +2250,14 @@ void AssignPeopleToPlaces(void)
 						{
 							m2 = k2 - 1; f = 0;
 						}
+
+						FILE* stderr_shared = stderr;
 #pragma omp parallel for private(i2,j,k,l,m,f2,f3,t,ct,s) reduction(+:ca) default(none) \
-							firstprivate(stderr) \
-							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp)
+							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp, stderr_shared)
 						for (i2 = m2; i2 >= f; i2--)
 						{
 							if (i2 % 1000 == 0)
-								fprintf(stderr, "(%i) %i            \r", tp, i2);
+								fprintf(stderr_shared, "(%i) %i            \r", tp, i2);
 							k = PeopleArray[i2];
 							int i = Hosts[k].pcell;
 							f2 = 1;
@@ -2282,7 +2285,7 @@ void AssignPeopleToPlaces(void)
 									} while (j < 0);
 									if (j >= P.Nplace[tp])
 									{
-										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
+										fprintf(stderr_shared, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc_x, Households[Hosts[k].hh].loc_y, Places[tp][j].loc_x, Places[tp][j].loc_y);
