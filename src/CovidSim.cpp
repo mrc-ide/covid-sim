@@ -2331,8 +2331,8 @@ void ReadAirTravel(char* AirTravelFile)
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x > P.SpatialBoundingBox[2])
-			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y > P.SpatialBoundingBox[3]))
+		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
+			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y >= P.SpatialBoundingBox[3]))
 		{
 			Airports[i].loc_x = Airports[i].loc_y = -1;
 			Airports[i].total_traffic = 0;
