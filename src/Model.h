@@ -2,7 +2,6 @@
 #define COVIDSIM_MODEL_H_INCLUDED_
 
 #include "Country.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 
 
