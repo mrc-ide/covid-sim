@@ -4,8 +4,12 @@
 #include "Rand.h"
 #include "Constants.h"
 #include "Error.h"
+
 #ifdef _OPENMP
 #include <omp.h>
+#define OMP_GET_THREAD_NUM omp_get_thread_num()
+#else
+#define OMP_GET_THREAD_NUM 0
 #endif
 
 /* RANDLIB static variables */
@@ -18,27 +22,7 @@ int **SamplingQueue = nullptr;
 
 double ranf(void)
 {
-	int32_t k, s1, s2, z;
-	unsigned int curntg;
-
-#ifdef _OPENMP
-	curntg = CACHE_LINE_SIZE * omp_get_thread_num();
-#else
-	curntg = 0;
-#endif
-	s1 = Xcg1[curntg];
-	s2 = Xcg2[curntg];
-	k = s1 / 53668;
-	s1 = Xa1 * (s1 - k * 53668) - k * 12211;
-	if (s1 < 0) s1 += Xm1;
-	k = s2 / 52774;
-	s2 = Xa2 * (s2 - k * 52774) - k * 3791;
-	if (s2 < 0) s2 += Xm2;
-	Xcg1[curntg] = s1;
-	Xcg2[curntg] = s2;
-	z = s1 - s2;
-	if (z < 1) z += (Xm1 - 1);
-	return ((double)z) / Xm1;
+	return ranf_mt(OMP_GET_THREAD_NUM);
 }
 
 double ranf_mt(int tn)
