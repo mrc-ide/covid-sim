@@ -25,7 +25,6 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* RegDemogFile)
 {
 	int j, k, l, m, i1, i2, j2, l2, m2;
-	int age; //added age (group): ggilani 09/03/20
 	unsigned int rn;
 	double t, s, s2, s3, x, y, t2, t3, d, q;
 	char buf[2048];
@@ -409,7 +408,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 			//NOTE: Are we still okay with this kind of openmp parallelisation. I know there have been some discussions re:openmp, but not followed them completely
 			l = m = 0;
-#pragma omp parallel for private(i1,i2,j,age) schedule(static,1) reduction(+:l,m) default(none) \
+#pragma omp parallel for private(i1,i2,j) schedule(static,1) reduction(+:l,m) default(none) \
 				shared(P, Households, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
@@ -424,7 +423,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 						for (j = i1; j < i2; j++)
 						{
 							//get age of host
-							age = HOST_AGE_GROUP(j);
+							int age = HOST_AGE_GROUP(j);
 							if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 							//check to see if host will be a user based on age group
 							if (ranf_mt(tn) < P.ProportionSmartphoneUsersByAge[age])
@@ -446,13 +445,13 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			//for use with non-clustered
 			l = 0;
-#pragma omp parallel for private(i1,i2,j,age) schedule(static,1) reduction(+:l) default(none) \
+#pragma omp parallel for private(i1,i2,j) schedule(static,1) reduction(+:l) default(none) \
 				shared(P, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
 				for (int i = tn; i < P.PopSize; i += P.NumThreads)
 				{
-					age = HOST_AGE_GROUP(i);
+					int age = HOST_AGE_GROUP(i);
 					if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
 					if (ranf_mt(tn) < (P.ProportionSmartphoneUsersByAge[age] * P.PropPopUsingDigitalContactTracing))
@@ -677,7 +676,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 {
-	int j, k, l, m, i2, j2, last_i, mr, ad, *mcl, country;
+	int j, l, m, i2, j2, last_i, mr, ad, *mcl, country;
 	unsigned int rn, rn2;
 	double t, s, x, y, xh, yh, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
 	char buf[4096], *col;
@@ -711,6 +710,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
+			int k;
 			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
 			rec = BF[rn];
 			if (P.DoAdUnits)
@@ -854,7 +854,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (int i = 0; i < P.NumAdunits; i++)
 			if (!(State.InvAgeDist[i] = (int*)malloc(1000 * sizeof(int)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
 		if (!(dat = fopen(RegDemogFile, "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
-		for (k = 0; k < P.NumAdunits; k++)
+		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
 				P.PropAgeGroup[k][i] = 0;
@@ -868,7 +868,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			col = strtok(buf, delimiters);
 			sscanf(col, "%i", &l);
 			m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
-			k = P.AdunitLevel1Lookup[m];
+			int k = P.AdunitLevel1Lookup[m];
 			if (k >= 0)
 				if (l / P.AdunitLevel1Mask == AdUnits[k].id / P.AdunitLevel1Mask)
 				{
@@ -896,7 +896,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				}
 		}
 		fclose(dat);
-		for (k = 0; k < P.NumAdunits; k++)
+		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			t = 0;
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1004,7 +1004,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
 		Cells[i].n = 0;
-		k = (i / P.nch) * P.NMCL * P.nmch + (i % P.nch) * P.NMCL;
+		int k = (i / P.nch) * P.NMCL * P.nmch + (i % P.nch) * P.NMCL;
 		Cells[i].members = mcl + j2;
 		for (l = 0; l < P.NMCL; l++)
 			for (m = 0; m < P.NMCL; m++)
@@ -1029,13 +1029,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(CellLookup = (cell * *)malloc(P.NCP * sizeof(cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	State.CellSuscMemberArray = mcl;
-	i2 = k = 0;
+	int susceptibleAccumulator = 0;
+	i2 = 0;
 	for (j = 0; j < P.NC; j++)
 		if (Cells[j].n > 0)
 		{
 			CellLookup[i2++] = Cells + j;
-			Cells[j].susceptible = mcl + k;
-			k += Cells[j].n;
+			Cells[j].susceptible = mcl + susceptibleAccumulator;
+			susceptibleAccumulator += Cells[j].n;
 		}
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
 	i2 = 0;
@@ -1060,12 +1061,13 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Cells assigned\n");
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NH = 0;
-	for (int i = j2 = 0; j2 < P.NMCP; j2++)
+	int numberOfPeople = 0;
+	for (j2 = 0; j2 < P.NMCP; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
 		l = ((j / P.nmch) / P.NMCL) * P.nch + ((j % P.nmch) / P.NMCL);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
-		for (k = 0; k < Mcells[j].n;)
+		for (int k = 0; k < Mcells[j].n;)
 		{
 			m = 1;
 			if (P.DoHouseholds)
@@ -1077,23 +1079,23 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			for (i2 = 0; i2 < m; i2++)
 			{
 				//				fprintf(stderr,"%i ",i+i2);
-				Hosts[i + i2].listpos = m; //used temporarily to store household size
-				Mcells[j].members[k + i2] = i + i2;
-				Cells[l].susceptible[Cells[l].cumTC] = i + i2;
-				Cells[l].members[Cells[l].cumTC++] = i + i2;
-				Hosts[i + i2].pcell = l;
-				Hosts[i + i2].mcell = j;
-				Hosts[i + i2].hh = P.NH;
+				Hosts[numberOfPeople + i2].listpos = m; //used temporarily to store household size
+				Mcells[j].members[k + i2] = numberOfPeople + i2;
+				Cells[l].susceptible[Cells[l].cumTC] = numberOfPeople + i2;
+				Cells[l].members[Cells[l].cumTC++] = numberOfPeople + i2;
+				Hosts[numberOfPeople + i2].pcell = l;
+				Hosts[numberOfPeople + i2].mcell = j;
+				Hosts[numberOfPeople + i2].hh = P.NH;
 			}
 			P.NH++;
-			i += m;
+			numberOfPeople += m;
 			k += m;
 		}
 	}
 	if (!(Households = (household*)malloc(P.NH * sizeof(household)))) ERR_CRITICAL("Unable to allocate household storage\n");
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
-	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", i);
-#pragma omp parallel for private(j2,j,k,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
+	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
+#pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
 		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
@@ -1104,7 +1106,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
 				fprintf(stderr, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
-			for (k = 0; k < Mcells[j].n;)
+			for (int k = 0; k < Mcells[j].n;)
 			{
 				m = Hosts[i].listpos;
 				xh = P.mcwidth * (ranf_mt(tn) + x);
@@ -1145,11 +1147,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				AgeDistAd[i][j] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
+			int k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
 		}
 		// normalize AgeDistAd[i][j], so it's the proportion of people in adunit i that are in age group j
-		k = (P.DoAdunitDemog) ? P.NumAdunits : 1;
+		int k = (P.DoAdunitDemog) ? P.NumAdunits : 1;
 		for (int i = 0; i < k; i++)
 		{
 			s = 0.0;
@@ -1223,7 +1225,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 
 	if (!P.DoRandomInitialInfectionLoc)
 	{
-		k = (int)(P.LocationInitialInfection[0][0] / P.mcwidth);
+		int k = (int)(P.LocationInitialInfection[0][0] / P.mcwidth);
 		l = (int)(P.LocationInitialInfection[0][1] / P.mcheight);
 		j = k * P.nmch + l;
 
@@ -1256,7 +1258,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0) last_i = i;
 	fprintf(stderr, "Allocating place/age groups...\n");
-	for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
+	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 	{
 		for (l = 0; l < P.PlaceTypeNum; l++)
 		{
@@ -1298,10 +1300,10 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		{
 			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
 			if (!(Places[j] = (place*)calloc(m, sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
-			for (i = 0; i < m; i++)
+			for (int i = 0; i < m; i++)
 				if (!(Places[j][i].AvailByAge = (unsigned short int*) malloc(P.PlaceTypeMaxAgeRead[j] * sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			P.Nplace[j] = 0;
-			for (i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
+			for (int i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
 		}
 		mr = 0;
 		while (!feof(dat))
@@ -1316,7 +1318,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				if (Cells[i].n == 0) mr++;
 				Places[j][P.Nplace[j]].n = m;
 				i = (int)(Places[j][P.Nplace[j]].loc_x / P.mcwidth);
-				k = (int)(Places[j][P.Nplace[j]].loc_y / P.mcheight);
+				int k = (int)(Places[j][P.Nplace[j]].loc_y / P.mcheight);
 				j2 = i * P.nmch + k;
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
@@ -1340,7 +1342,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				t += PropPlaces[HOST_AGE_YEAR(i)][j];
 			for (int i = 0; i < P.Nplace[j]; i++)
 			{
-				k = Places[j][i].mcell;
+				int k = Places[j][i].mcell;
 				Mcells[k].places[j][Mcells[k].np[j]++] = i;
 				s += (double)Places[j][i].n;
 			}
@@ -1353,7 +1355,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoPlaces)
 	{
 		fprintf(stderr, "Configuring places...\n");
-#pragma omp parallel for private(j2,j,k,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
+#pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
 			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
@@ -1366,6 +1368,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				fprintf(stderr, "[%i:%i %g] ", j2, P.Nplace[j2], t);
 				if (!(Places[j2] = (place*)calloc(P.Nplace[j2], sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 				t = 1.0;
+				int k;
 				for (int i = m = k = 0; i < P.NMC; i++)
 				{
 					s = ((double) Mcells[i].n) / maxd / t;
@@ -1395,7 +1398,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					}
 				}
 			}
-		for (k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
+		for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 			for (l = 1; l < P.PlaceTypeNum; l++)
 				if (l != P.HotelPlaceType)
 				{
@@ -1415,12 +1418,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		if (l < Cells[j].n) l = Cells[j].n;
 	if (!(SamplingQueue = (int**)malloc(P.NumThreads * sizeof(int*)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
-#pragma omp parallel for private(k) schedule(static,1) default(none) \
+#pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, SamplingQueue, StateT, l)
 	for (int i = 0; i < P.NumThreads; i++)
 	{
 		if (!(SamplingQueue[i] = (int*)malloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE) * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-		for (k = 0; k < P.NumThreads; k++)
+		for (int k = 0; k < P.NumThreads; k++)
 			if (!(StateT[i].inf_queue[k] = (infection*)malloc(P.InfQueuePeakLength * sizeof(infection)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		if (!(StateT[i].cell_inf = (float*)malloc((l + 1) * sizeof(float)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	}
