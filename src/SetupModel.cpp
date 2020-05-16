@@ -24,9 +24,9 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 ///// INITIALIZE / SET UP FUNCTIONS
 void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* RegDemogFile)
 {
-	int j, k, l, m, i1, i2, j2, l2, m2;
+	int l, m, j2, l2, m2;
 	unsigned int rn;
-	double t, s, s2, s3, x, y, t2, t3, d, q;
+	double t, s, s2, s3, t2, t3, d, q;
 	char buf[2048];
 	FILE* dat;
 
@@ -66,6 +66,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			int index = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL)
 			{
+				int i2;
+				double x, y;
 				// This shouldn't be able to happen, as we just counted the number of lines:
 				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
 				if (P.DoAdUnits)
@@ -110,10 +112,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			s2 = 0;
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
-				x = BF[rn].x;
-				y = BF[rn].y;
+				double x = BF[rn].x;
+				double y = BF[rn].y;
 				t = BF[rn].pop;
-				i2 = BF[rn].cnt;
+				int i2 = BF[rn].cnt;
 				l = BF[rn].ad;
 				//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
 
@@ -232,15 +234,15 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				TSMean[i].incAPA = TSMean[i].incAPCS = TSMean[i].Rdenom = 0;
 			TSVar[i].S = TSVar[i].I = TSVar[i].R = TSVar[i].D = TSVar[i].L =
 				TSVar[i].incI = TSVar[i].incR = TSVar[i].incC = TSVar[i].incTC = TSVar[i].incD = TSVar[i].incH = TSVar[i].incCT = TSVar[i].CT = TSVar[i].incCC = TSMean[i].incDCT = TSVar[i].DCT = 0;
-			for (j = 0; j < NUM_PLACE_TYPES; j++) TSMean[i].PropPlacesClosed[j] = TSVar[i].PropPlacesClosed[j] = 0;
-			for (j = 0; j < INFECT_TYPE_MASK; j++) TSMean[i].incItype[j] = TSMean[i].Rtype[j] = 0;
-			for (j = 0; j < NUM_AGE_GROUPS; j++) TSMean[i].incCa[j] = TSMean[i].incIa[j] = TSMean[i].incDa[j] = TSMean[i].Rage[j] = 0;
-			for (j = 0; j < 2; j++)
+			for (int j = 0; j < NUM_PLACE_TYPES; j++) TSMean[i].PropPlacesClosed[j] = TSVar[i].PropPlacesClosed[j] = 0;
+			for (int j = 0; j < INFECT_TYPE_MASK; j++) TSMean[i].incItype[j] = TSMean[i].Rtype[j] = 0;
+			for (int j = 0; j < NUM_AGE_GROUPS; j++) TSMean[i].incCa[j] = TSMean[i].incIa[j] = TSMean[i].incDa[j] = TSMean[i].Rage[j] = 0;
+			for (int j = 0; j < 2; j++)
 				TSMean[i].incI_keyworker[j] = TSVar[i].incI_keyworker[j] =
 				TSMean[i].incC_keyworker[j] = TSVar[i].incC_keyworker[j] =
 				TSMean[i].cumT_keyworker[j] = TSVar[i].cumT_keyworker[j] = 0;
 			if (P.DoAdUnits)
-				for (j = 0; j <= P.NumAdunits; j++)
+				for (int j = 0; j <= P.NumAdunits; j++)
 					TSMean[i].incI_adunit[j] = TSVar[i].incI_adunit[j] =
 					TSMean[i].incC_adunit[j] = TSVar[i].incC_adunit[j] =
 					TSMean[i].incD_adunit[j] = TSVar[i].incD_adunit[j] =
@@ -267,7 +269,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 				//// TSMean admin unit (each severity for prevalence, incidence and cumulative incidence by admin unit)
 				if (P.DoAdUnits)
-					for (j = 0; j <= P.NumAdunits; j++)
+					for (int j = 0; j <= P.NumAdunits; j++)
 						TSMean[i].Mild_adunit[j] = TSMean[i].ILI_adunit[j] = TSMean[i].SARI_adunit[j] = TSMean[i].Critical_adunit[j] = TSMean[i].CritRecov_adunit[j] =
 						TSMean[i].incMild_adunit[j] = TSMean[i].incILI_adunit[j] = TSMean[i].incSARI_adunit[j] = TSMean[i].incCritical_adunit[j] = TSMean[i].incCritRecov_adunit[j] =
 						TSMean[i].incDeath_ILI_adunit[j] = TSMean[i].incDeath_SARI_adunit[j] = TSMean[i].incDeath_Critical_adunit[j] =
@@ -295,7 +297,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		else
 			AssignPeopleToPlaces();
 	}
-
 
 	if ((P.DoPlaces) && (P.LoadSaveNetwork == 2))
 		SavePeopleToPlaces(NetworkFile);
@@ -350,13 +351,13 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				}
 			}
 		}
-		for (j = 0; j < P.PlaceTypeNoAirNum; j++)
+		for (int j = 0; j < P.PlaceTypeNoAirNum; j++)
 		{
 			m = l = 0;
 			while ((m < P.KeyWorkerPlaceNum[j]) && (l < 1000))
 			{
-				k = (int)(((double)P.Nplace[j]) * ranf_mt(0));
-				for (i2 = 0; (m < P.KeyWorkerPlaceNum[j]) && (i2 < Places[j][k].n); i2++)
+				int k = (int)(((double)P.Nplace[j]) * ranf_mt(0));
+				for (int i2 = 0; (m < P.KeyWorkerPlaceNum[j]) && (i2 < Places[j][k].n); i2++)
 				{
 					int i = Places[j][k].members[i2];
 					if ((i < 0) || (i >= P.PopSize)) fprintf(stderr, "## %i # ", i);
@@ -385,16 +386,15 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (P.DoAdUnits)
 		{
 			for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].NP = 0;
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (int j = 0; j < P.PlaceTypeNum; j++)
 				if (P.PlaceCloseAdunitPlaceTypes[j] > 0)
 				{
-					for (k = 0; k < P.Nplace[j]; k++)
+					for (int k = 0; k < P.Nplace[j]; k++)
 						AdUnits[Mcells[Places[j][k].mcell].adunit].NP++;
 				}
 		}
 	}
 	fprintf(stderr, "Places intialised.\n");
-
 
 	//Set up the population for digital contact tracing here... - ggilani 09/03/20
 	if (P.DoDigitalContactTracing)
@@ -408,7 +408,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 			//NOTE: Are we still okay with this kind of openmp parallelisation. I know there have been some discussions re:openmp, but not followed them completely
 			l = m = 0;
-#pragma omp parallel for private(i1,i2,j) schedule(static,1) reduction(+:l,m) default(none) \
+#pragma omp parallel for schedule(static,1) reduction(+:l,m) default(none) \
 				shared(P, Households, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
@@ -418,9 +418,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					{
 						//select this household for digital contact app use
 						//loop through household members and check whether they will be selected for use
-						i1 = Households[i].FirstPerson;
-						i2 = i1 + Households[i].nh;
-						for (j = i1; j < i2; j++)
+						int i1 = Households[i].FirstPerson;
+						int i2 = i1 + Households[i].nh;
+						for (int j = i1; j < i2; j++)
 						{
 							//get age of host
 							int age = HOST_AGE_GROUP(j);
@@ -445,7 +445,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			//for use with non-clustered
 			l = 0;
-#pragma omp parallel for private(i1,i2,j) schedule(static,1) reduction(+:l) default(none) \
+#pragma omp parallel for schedule(static,1) reduction(+:l) default(none) \
 				shared(P, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
@@ -472,7 +472,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		P.HouseholdTrans *= P.R0scale;
 		P.R0 *= P.R0scale;
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (int j = 0; j < P.PlaceTypeNum; j++)
 			P.PlaceTypeTrans[j] *= P.R0scale;
 		fprintf(stderr, "Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
 	}
@@ -485,7 +485,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t2 = s = 0;
 	s3 = 1.0;
 
-#pragma omp parallel for private(s2,j,k,q,l,d,y,m) schedule(static,1) reduction(+:s,t2) default(none) \
+#pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2) default(none) \
 		shared(P, Households, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
@@ -498,7 +498,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
 			if (ranf_mt(tn) < q) //made this multi-threaded: 28/11/14
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
-			j = (int)floor((q = ranf_mt(tn) * CDF_RES)); //made this multi-threaded: 28/11/14
+			int j = (int)floor((q = ranf_mt(tn) * CDF_RES)); //made this multi-threaded: 28/11/14
 			q -= ((double)j);
 			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
 
@@ -506,53 +506,69 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			{
 				s2 = P.TimeStep * P.HouseholdTrans * fabs(Hosts[i].infectiousness) * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
-				for (k = 0; k < l; k++) { y = 1.0 - s2 * P.infectiousness[k]; d *= ((y < 0) ? 0 : y); }
+				for (int k = 0; k < l; k++) {
+					double y = 1.0 - s2 * P.infectiousness[k];
+					d *= ((y < 0) ? 0 : y);
+				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				for (k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
+				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
 			l = (int)(q / P.TimeStep);
+
+			int k;
 			for (k = 0; k < l; k++) t2 += s2 * P.infectiousness[k];
 			s2 *= ((Hosts[i].infectiousness < 0) ? P.SymptSpatialContactRate : 1);
 			l = (int)Hosts[i].recovery_or_death_time;
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
-
 		}
 	}
 	t2 *= (s3 / ((double)P.PopSize));
 	s /= ((double)P.PopSize);
 	fprintf(stderr, "Household mean size=%lg\nHousehold R0=%lg\n", t, P.R0household = s);
-	t = x = y = 0;
+	t = 0;
 	if (P.DoPlaces)
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (int j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
 			{
-#pragma omp parallel for private(k,d,q,s2,s3,t3,l,m,x,y) schedule(static,1000) reduction(+:t) default(none) \
+#pragma omp parallel for private(d,q,s2,s3,t3,l,m) schedule(static,1000) reduction(+:t) default(none) \
 					shared(P, Hosts, Places, j)
 				for (int i = 0; i < P.PopSize; i++)
 				{
-					k = Hosts[i].PlaceLinks[j];
+					int k = Hosts[i].PlaceLinks[j];
 					if (k >= 0)
 					{
 						q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 						s2 = fabs(Hosts[i].infectiousness) * P.TimeStep * P.PlaceTypeTrans[j];
-						x = s2 / P.PlaceTypeGroupSizeParam1[j];
+						double x = s2 / P.PlaceTypeGroupSizeParam1[j];
 						d = 1.0; l = (int)(q / P.TimeStep);
-						for (m = 0; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
+						for (m = 0; m < l; m++) {
+							double y = 1.0 - x * P.infectiousness[m];
+							d *= ((y < 0) ? 0 : y);
+						}
 						s3 = ((double)(Places[j][k].group_size[Hosts[i].PlaceGroupLinks[j]] - 1));
 						x *= ((Hosts[i].infectiousness < 0) ? (P.SymptPlaceTypeContactRate[j] * (1 - P.SymptPlaceTypeWithdrawalProp[j])) : 1);
 						l = (int)Hosts[i].recovery_or_death_time;
-						for (; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
+						for (; m < l; m++) {
+							double y = 1.0 - x * P.infectiousness[m];
+							d *= ((y < 0) ? 0 : y);
+						}
 
 						t3 = d;
 						x = P.PlaceTypePropBetweenGroupLinks[j] * s2 / ((double)Places[j][k].n);
 						d = 1.0; l = (int)(q / P.TimeStep);
-						for (m = 0; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
+						for (m = 0; m < l; m++) {
+							double y = 1.0 - x * P.infectiousness[m];
+							d *= ((y < 0) ? 0 : y);
+						}
 						x *= ((Hosts[i].infectiousness < 0) ? (P.SymptPlaceTypeContactRate[j] * (1 - P.SymptPlaceTypeWithdrawalProp[j])) : 1);
 						l = (int)Hosts[i].recovery_or_death_time;
-						for (; m < l; m++) { y = 1.0 - x * P.infectiousness[m]; d *= ((y < 0) ? 0 : y); }
+						for (; m < l; m++) {
+							double y = 1.0 - x * P.infectiousness[m];
+							d *= ((y < 0) ? 0 : y);
+						}
 						t += (1 - t3 * d) * s3 + (1 - d) * (((double)(Places[j][k].n - 1)) - s3);
 					}
 				}
@@ -590,10 +606,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	for (int i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] = 0;
 	for (int i = 0; i < MAX_COUNTRIES; i++) infcountry_av[i] = infcountry_num[i] = 0;
 	for (int i = 0; i < MAX_SEC_REC; i++)
-		for (j = 0; j < MAX_GEN_REC; j++)
+		for (int j = 0; j < MAX_GEN_REC; j++)
 			indivR0_av[i][j] = 0;
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
-		for (j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
+		for (int j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household_av[i][j] = case_household_av[i][j] = 0;
 	DoInitUpdateProbs = 1;
 	for (int i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
@@ -605,10 +621,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			l = Households[i].FirstPerson;
 			m = l + Households[i].nh;
-			i2 = 0;
-			for (k = l; k < m; k++) if (Hosts[k].esocdist_comply) i2=1;
+			int i2 = 0;
+			for (int k = l; k < m; k++) if (Hosts[k].esocdist_comply) i2=1;
 			if (i2)
-				for (k = l; k < m; k++) Hosts[k].esocdist_comply = 1;
+				for (int k = l; k < m; k++) Hosts[k].esocdist_comply = 1;
 		}
 	}
 
@@ -619,37 +635,38 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (P.DoMassVacc)
 	{
 		if (!(State.mvacc_queue = (int*)calloc(P.PopSize, sizeof(int)))) ERR_CRITICAL("Unable to allocate host storage\n");
-		for (int i = j = 0; i < P.PopSize; i++)
+		int queueIndex = 0;
+		for (int i = 0; i < P.PopSize; i++)
 		{
 			if ((HOST_AGE_YEAR(i) >= P.VaccPriorityGroupAge[0]) && (HOST_AGE_YEAR(i) <= P.VaccPriorityGroupAge[1]))
 			{
 				if (ranf() < P.VaccProp)
-					State.mvacc_queue[j++] = i;
+					State.mvacc_queue[queueIndex++] = i;
 			}
 		}
-		k = j;
+		int vaccineCount = queueIndex;
 		for (int i = 0; i < P.PopSize; i++)
 		{
 			if ((HOST_AGE_YEAR(i) < P.VaccPriorityGroupAge[0]) || (HOST_AGE_YEAR(i) > P.VaccPriorityGroupAge[1]))
 			{
 				if (ranf() < P.VaccProp)
-					State.mvacc_queue[j++] = i;
+					State.mvacc_queue[queueIndex++] = i;
 			}
 		}
-		State.n_mvacc = j;
+		State.n_mvacc = queueIndex;
 		fprintf(stderr, "Number to be vaccinated=%i\n", State.n_mvacc);
 		for (int i = 0; i < 2; i++)
 		{
-			for (j = 0; j < k; j++)
+			for (int j = 0; j < vaccineCount; j++)
 			{
-				l = (int)(ranf() * ((double)k));
+				l = (int)(ranf() * ((double)vaccineCount));
 				m = State.mvacc_queue[j];
 				State.mvacc_queue[j] = State.mvacc_queue[l];
 				State.mvacc_queue[l] = m;
 			}
-			for (j = k; j < State.n_mvacc; j++)
+			for (int j = vaccineCount; j < State.n_mvacc; j++)
 			{
-				l = k + ((int)(ranf() * ((double)(State.n_mvacc - k))));
+				l = vaccineCount + ((int)(ranf() * ((double)(State.n_mvacc - vaccineCount))));
 				m = State.mvacc_queue[j];
 				State.mvacc_queue[j] = State.mvacc_queue[l];
 				State.mvacc_queue[l] = m;
@@ -659,7 +676,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	PeakHeightSum = PeakHeightSS = PeakTimeSum = PeakTimeSS = 0;
 	int i = (P.ncw / 2) * P.nch + P.nch / 2;
-	j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
+	int j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
 	fprintf(stderr, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
 	j = (P.ncw / 2) * P.nch + P.nch / 2 + 2;
 	fprintf(stderr, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
