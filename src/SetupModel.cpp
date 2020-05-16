@@ -1113,7 +1113,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
-		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr)
+		firstprivate(stderr) \
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
@@ -1373,7 +1374,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		fprintf(stderr, "Configuring places...\n");
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
-			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr)
+			firstprivate(stderr) \
+			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
@@ -1517,7 +1519,8 @@ void SetupAirports(void)
 			cur += NNA;
 		}
 #pragma omp parallel for private(k,l,x,y,t,tmin) schedule(static,10000) default(none) \
-		shared(P, Airports, Mcells, stderr)
+		firstprivate(stderr) \
+		shared(P, Airports, Mcells)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
@@ -1562,7 +1565,8 @@ void SetupAirports(void)
 		Airports[i].num_mcell = 0;
 	}
 #pragma omp parallel for private(k,l,t,tmin) schedule(static,10000) default(none) \
-		shared(P, Airports, Mcells, stderr)
+		firstprivate(stderr) \
+		shared(P, Airports, Mcells)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
@@ -1616,7 +1620,8 @@ void SetupAirports(void)
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
 	free(base);
 #pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) \
-		shared(P, Airports, Places, stderr)
+		firstprivate(stderr) \
+		shared(P, Airports, Places)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
@@ -2100,8 +2105,9 @@ void AssignPeopleToPlaces(void)
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{
-#pragma omp parallel for private(i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,s,t,mx,my) firstprivate(a,nt,nn) reduction(+:ca) schedule(static,1) default(none) \
-						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp, stderr)
+#pragma omp parallel for private(i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,s,t,mx,my) reduction(+:ca) schedule(static,1) default(none) \
+						firstprivate(a,nt,nn, stderr) \
+						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp)
 					for (int tn = 0; tn < P.NumThreads; tn++)
 					{
 						for (j = tn; j < a; j += nt)
@@ -2243,7 +2249,8 @@ void AssignPeopleToPlaces(void)
 							m2 = k2 - 1; f = 0;
 						}
 #pragma omp parallel for private(i2,j,k,l,m,f2,f3,t,ct,s) reduction(+:ca) default(none) \
-							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp, stderr)
+							firstprivate(stderr) \
+							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp)
 						for (i2 = m2; i2 >= f; i2--)
 						{
 							if (i2 % 1000 == 0)
