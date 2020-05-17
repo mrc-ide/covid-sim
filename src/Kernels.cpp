@@ -23,7 +23,7 @@
 //          nKernel[0]   ... nKernel[P.NKR / P.NK_HR] ... nKernel[P.NKR]
 //          nKernelHR[0] ... nKernelHR[P.NKR]
 double *nKernel, *nKernelHR;
-void InitKernel(int DoPlaces, double norm)
+void InitKernel(double norm)
 {
 	int i, j;
 	double(*Kernel)(double);
