@@ -14,7 +14,7 @@
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
 unsigned short int ChooseFromICDF(double *, double, int);
-int ChooseFinalDiseaseSeverity(int, int);
+Severity ChooseFinalDiseaseSeverity(int, int);
 
 void DoImmune(int ai)
 {
@@ -907,7 +907,7 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = InfStat_Recovered * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
 
 		if (P.OutputBitmap)
 		{
@@ -940,7 +940,7 @@ void DoDeath(int ai, int tn, int run)
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
-		a->inf = InfStat_Dead * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
 		Cells[a->pcell].D++;
 		Cells[a->pcell].I--;
 		i = a->listpos;
@@ -1328,9 +1328,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 }
 
 ///// Change person status functions (e.g. change person from susceptible to latently infected).
-int ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
+Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 {
-	int DiseaseSeverity;
+	Severity DiseaseSeverity;
 	double x;
 
 	// assume normalised props

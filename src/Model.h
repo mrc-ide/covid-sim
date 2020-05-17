@@ -4,6 +4,7 @@
 #include "Country.h"
 #include "MachineDefines.h"
 #include "Constants.h"
+#include "InfStat.h"
 
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
@@ -30,10 +31,11 @@ typedef struct PERSON {
 	unsigned char age;
 	unsigned char quar_comply;		// can be 0, 1, or 2
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	signed char Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
+	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
-	short int inf, infect_type;		// INFECT_TYPE_MASK
+	short int infect_type;		// INFECT_TYPE_MASK
+	InfStat inf;
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
@@ -127,7 +129,7 @@ typedef struct POPVAR {
 
 	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
-	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];	
+	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS]; 
 
 	//// above quantities need to be amended in following parts of code:
 	//// i) InitModel (set to zero); Done
