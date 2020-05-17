@@ -23,7 +23,7 @@
 //          nKernel[0]   ... nKernel[P.NKR / P.NK_HR] ... nKernel[P.NKR]
 //          nKernelHR[0] ... nKernelHR[P.NKR]
 double *nKernel, *nKernelHR;
-void InitKernel(double norm)
+void InitKernel()
 {
 	int i, j;
 	double(*Kernel)(double);
@@ -47,8 +47,8 @@ void InitKernel(double norm)
 #pragma omp parallel for private(i) schedule(static,500) //added private i
 	for (i = 0; i <= P.NKR; i++)
 	{
-		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
-		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
+		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta);
+		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR);
 	}
 
 #pragma omp parallel for schedule(static,500) private(i,j)

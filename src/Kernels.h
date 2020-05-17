@@ -3,7 +3,7 @@
 
 extern double *nKernel, *nKernelHR;
 
-void InitKernel(double);
+void InitKernel();
 double ExpKernel(double);
 double PowerKernel(double);
 double PowerKernelB(double);
