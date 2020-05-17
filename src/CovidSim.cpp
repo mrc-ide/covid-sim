@@ -508,6 +508,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
@@ -1097,21 +1098,51 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if(P.DoSeverity == 1)
 	{
 		//// Means for icdf's.
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery"		, "%lf", (void*) & (P.Mean_MildToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery"			, "%lf", (void*) & (P.Mean_ILIToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery"		, "%lf", (void*) & (P.Mean_SARIToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov"	, "%lf", (void*) & (P.Mean_CriticalToCritRecov)	, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov"		, "%lf", (void*) & (P.Mean_CritRecovToRecov)	, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI"				, "%lf", (void*) & (P.Mean_ILIToSARI)			, 1, 1, 0);
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath"			, "%lf", (void*) & (P.Mean_ILIToDeath)			, 1, 1, 0)) P.Mean_ILIToDeath=7.0;
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical"		, "%lf", (void*) & (P.Mean_SARIToCritical)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath"			, "%lf", (void*) & (P.Mean_SARIToDeath)			, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath"		, "%lf", (void*) & (P.Mean_CriticalToDeath)		, 1, 1, 0);
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest=0.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCriticalOffset", "%lf", (void*)&(P.Mean_TimeToTestCriticalOffset), 1, 1, 0)) P.Mean_TimeToTestCriticalOffset = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCritRecovOffset", "%lf", (void*)&(P.Mean_TimeToTestCritRecovOffset), 1, 1, 0)) P.Mean_TimeToTestCritRecovOffset = 1.0;
-
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age dependent severity delays", "%i", (void*)&i, 1, 1, 0)) i = 0;
+		if (!i)
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)&(P.Mean_MildToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)&(P.Mean_ILIToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)&(P.Mean_SARIToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)&(P.Mean_CriticalToCritRecov[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)&(P.Mean_CritRecovToRecov[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)&(P.Mean_ILIToSARI[0]), 1, 1, 0);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)&(P.Mean_ILIToDeath[0]), 1, 1, 0)) P.Mean_ILIToDeath[0] = 7.0;
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)&(P.Mean_SARIToCritical[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)&(P.Mean_SARIToDeath[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)&(P.Mean_CriticalToDeath[0]), 1, 1, 0);
+			for (j = 1; j < NUM_AGE_GROUPS; j++)
+			{
+				P.Mean_MildToRecovery[j] = P.Mean_MildToRecovery[0];
+				P.Mean_ILIToRecovery[j] = P.Mean_ILIToRecovery[0];
+				P.Mean_SARIToRecovery[j] = P.Mean_SARIToRecovery[0];
+				P.Mean_CriticalToCritRecov[j] = P.Mean_CriticalToCritRecov[0];
+				P.Mean_CritRecovToRecov[j] = P.Mean_CritRecovToRecov[0];
+				P.Mean_ILIToSARI[j] = P.Mean_ILIToSARI[0];
+				P.Mean_ILIToDeath[j] = P.Mean_ILIToDeath[0];
+				P.Mean_SARIToCritical[j] = P.Mean_SARIToCritical[0];
+				P.Mean_SARIToDeath[j] = P.Mean_SARIToDeath[0];
+				P.Mean_CriticalToDeath[j] = P.Mean_CriticalToDeath[0];
+			}
+		}
+		else
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)(P.Mean_MildToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)(P.Mean_ILIToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)(P.Mean_SARIToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)(P.Mean_CriticalToCritRecov), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)(P.Mean_CritRecovToRecov), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)(P.Mean_ILIToSARI), NUM_AGE_GROUPS, 1, 0);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)(P.Mean_ILIToDeath), NUM_AGE_GROUPS, 1, 0))
+				for (j = 0; j < NUM_AGE_GROUPS; j++) P.Mean_ILIToDeath[j] = 7.0;
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)(P.Mean_SARIToCritical), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)(P.Mean_SARIToDeath), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
+		}
 		//// Get ICDFs
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
@@ -2498,6 +2529,14 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
 			State.cumD_adunit[AdminUnit] = 0;
 		}
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			State.Mild_age[AgeGroup] = State.ILI_age[AgeGroup] =
+				State.SARI_age[AgeGroup] = State.Critical_age[AgeGroup] = State.CritRecov_age[AgeGroup] =
+				State.cumMild_age[AgeGroup] = State.cumILI_age[AgeGroup] =
+				State.cumSARI_age[AgeGroup] = State.cumCritical_age[AgeGroup] = State.cumCritRecov_age[AgeGroup] =
+				State.cumDeath_ILI_age[AgeGroup] = State.cumDeath_SARI_age[AgeGroup] = State.cumDeath_Critical_age[AgeGroup] = 0;
+		}
 	}
 
 	for (i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
@@ -2552,6 +2591,15 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumDeath_ILI_adunit[AdminUnit] = StateT[j].cumDeath_SARI_adunit[AdminUnit] = StateT[j].cumDeath_Critical_adunit[AdminUnit] =
 				StateT[j].cumD_adunit[AdminUnit] =  0;
 			}
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				StateT[j].Mild_age[AgeGroup] = StateT[j].ILI_age[AgeGroup] =
+					StateT[j].SARI_age[AgeGroup] = StateT[j].Critical_age[AgeGroup] = StateT[j].CritRecov_age[AgeGroup] =
+					StateT[j].cumMild_age[AgeGroup] = StateT[j].cumILI_age[AgeGroup] =
+					StateT[j].cumSARI_age[AgeGroup] = StateT[j].cumCritical_age[AgeGroup] = StateT[j].cumCritRecov_age[AgeGroup] =
+					StateT[j].cumDeath_ILI_age[AgeGroup] = StateT[j].cumDeath_SARI_age[AgeGroup] = StateT[j].cumDeath_Critical_age[AgeGroup] = 0;
+			}
+
 		}
 		//resetting thread specific parameters for storing contact distribution
 		for (i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
@@ -3840,7 +3888,128 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				c * TSMean[i].cumDeath_ILI, c * TSMean[i].cumDeath_SARI, c * TSMean[i].cumDeath_Critical);
 		}
 		fclose(dat);
+		if (P.OutputSeverityAge)
+		{
+			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
+			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
+			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
+			sc4a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
+			//// output severity results by age group
+			sprintf(outname, "%s.severity.age.xls", OutFile);
+			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			fprintf(dat, "t");
+
+			/////// ****** /////// ****** /////// ****** COLNAMES
+			//// prevalance
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARIP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCriticalP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecovP_%i", i);
+
+			//// incidence
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARIP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCriticalP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecovP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_ILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_SARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath__Critical_%i", i);
+
+			//// cumulative incidence
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_ILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_SARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_Critical_%i", i);
+
+			fprintf(dat, "\n");
+
+			/////// ****** /////// ****** /////// ****** Populate table.
+			for (i = 0; i < P.NumSamples; i++)
+			{
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+				{
+					if (i > 0)
+					{
+						SARI_a[j] = (TSMean[i].SARI_age[j] - TSMean[i - 1].SARI_age[j]) * sc2a + SARI_a[j] * sc1a;
+						Critical_a[j] = (TSMean[i].Critical_age[j] - TSMean[i - 1].Critical_age[j]) * sc3a + Critical_a[j] * sc1a;
+						CritRecov_a[j] = (TSMean[i].CritRecov_age[j] - TSMean[i - 1].CritRecov_age[j]) * sc4a + CritRecov_a[j] * sc1a;
+						incSARI_a[j] = TSMean[i].incSARI_age[j] * (1.0 - sc2a) + incSARI_a[j] * sc1a;
+						incCritical_a[j] = TSMean[i].incCritical_age[j] * (1.0 - sc3a) + incCritical_a[j] * sc1a;
+						incCritRecov_a[j] = TSMean[i].incCritRecov_age[j] * (1.0 - sc4a) + incCritRecov_a[j] * sc1a;
+					}
+					else
+					{
+						SARI_a[j] = TSMean[i].SARI_age[j] * sc2a;
+						Critical_a[j] = TSMean[i].Critical_age[j] * sc3a;
+						CritRecov_a[j] = TSMean[i].CritRecov_age[j] * sc4a;
+					}
+				}
+				fprintf(dat, "%.10f", c * TSMean[i].t);
+				//// prevalance
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Mild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Critical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].SARI_age[j] - SARI_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].Critical_age[j] - Critical_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_age[j] - CritRecov_a[j]));
+
+				//// incidence
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incSARI_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritical_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_age[j]);
+
+				//// cumulative incidence
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].cumDeath_ILI_age[j] + TSMean[i].cumDeath_SARI_age[j] + TSMean[i].cumDeath_Critical_age[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_age[j]);
+				fprintf(dat, "\n");
+			}
+			fclose(dat);
+			free(SARI_a); free(Critical_a); free(CritRecov_a);
+			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
+		}
 		if ((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
@@ -3958,7 +4127,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_adunit[j]);
 
-				if (i != P.NumSamples - 1) fprintf(dat, "\n");
+				fprintf(dat, "\n");
 			}
 			fclose(dat);
 			free(SARI_a); free(Critical_a); free(CritRecov_a);
@@ -4312,7 +4481,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants.
 				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
-						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] - 1;
+					P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime]; // -1;
 				//fprintf(stderr, "\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
 			}
 	}
@@ -4531,6 +4700,76 @@ void RecordSample(double t, int n)
 		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
 		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
 
+		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		{
+			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
+			//// First subtract old total while unchanged.
+			TimeSeries[n].incMild_age[i] = (double)(-State.cumMild_age[i]);
+			TimeSeries[n].incILI_age[i] = (double)(-State.cumILI_age[i]);
+			TimeSeries[n].incSARI_age[i] = (double)(-State.cumSARI_age[i]);
+			TimeSeries[n].incCritical_age[i] = (double)(-State.cumCritical_age[i]);
+			TimeSeries[n].incCritRecov_age[i] = (double)(-State.cumCritRecov_age[i]);
+			TimeSeries[n].incDeath_ILI_age[i] = (double)(-State.cumDeath_ILI_age[i]);
+			TimeSeries[n].incDeath_SARI_age[i] = (double)(-State.cumDeath_SARI_age[i]);
+			TimeSeries[n].incDeath_Critical_age[i] = (double)(-State.cumDeath_Critical_age[i]);
+
+			State.Mild_age[i] = 0;
+			State.ILI_age[i] = 0;
+			State.SARI_age[i] = 0;
+			State.Critical_age[i] = 0;
+			State.CritRecov_age[i] = 0;
+			State.cumMild_age[i] = 0;
+			State.cumILI_age[i] = 0;
+			State.cumSARI_age[i] = 0;
+			State.cumCritical_age[i] = 0;
+			State.cumCritRecov_age[i] = 0;
+			State.cumDeath_ILI_age[i] = 0;
+			State.cumDeath_SARI_age[i] = 0;
+			State.cumDeath_Critical_age[i] = 0;
+
+			for (j = 0; j < P.NumThreads; j++)
+			{
+				//// collate from threads
+				State.Mild_age[i] += StateT[j].Mild_age[i];
+				State.ILI_age[i] += StateT[j].ILI_age[i];
+				State.SARI_age[i] += StateT[j].SARI_age[i];
+				State.Critical_age[i] += StateT[j].Critical_age[i];
+				State.CritRecov_age[i] += StateT[j].CritRecov_age[i];
+				State.cumMild_age[i] += StateT[j].cumMild_age[i];
+				State.cumILI_age[i] += StateT[j].cumILI_age[i];
+				State.cumSARI_age[i] += StateT[j].cumSARI_age[i];
+				State.cumCritical_age[i] += StateT[j].cumCritical_age[i];
+				State.cumCritRecov_age[i] += StateT[j].cumCritRecov_age[i];
+				State.cumDeath_ILI_age[i] += StateT[j].cumDeath_ILI_age[i];
+				State.cumDeath_SARI_age[i] += StateT[j].cumDeath_SARI_age[i];
+				State.cumDeath_Critical_age[i] += StateT[j].cumDeath_Critical_age[i];
+			}
+
+			//// Record incidence. Need new total minus old total. Add new total
+			TimeSeries[n].incMild_age[i] += (double)(State.cumMild_age[i]);
+			TimeSeries[n].incILI_age[i] += (double)(State.cumILI_age[i]);
+			TimeSeries[n].incSARI_age[i] += (double)(State.cumSARI_age[i]);
+			TimeSeries[n].incCritical_age[i] += (double)(State.cumCritical_age[i]);
+			TimeSeries[n].incCritRecov_age[i] += (double)(State.cumCritRecov_age[i]);
+			TimeSeries[n].incDeath_ILI_age[i] += (double)(State.cumDeath_ILI_age[i]);
+			TimeSeries[n].incDeath_SARI_age[i] += (double)(State.cumDeath_SARI_age[i]);
+			TimeSeries[n].incDeath_Critical_age[i] += (double)(State.cumDeath_Critical_age[i]);
+
+			//// Record new totals for time series. (Must be done with old State totals)
+			TimeSeries[n].Mild_age[i] = State.Mild_age[i];
+			TimeSeries[n].ILI_age[i] = State.ILI_age[i];
+			TimeSeries[n].SARI_age[i] = State.SARI_age[i];
+			TimeSeries[n].Critical_age[i] = State.Critical_age[i];
+			TimeSeries[n].CritRecov_age[i] = State.CritRecov_age[i];
+			TimeSeries[n].cumMild_age[i] = State.cumMild_age[i];
+			TimeSeries[n].cumILI_age[i] = State.cumILI_age[i];
+			TimeSeries[n].cumSARI_age[i] = State.cumSARI_age[i];
+			TimeSeries[n].cumCritical_age[i] = State.cumCritical_age[i];
+			TimeSeries[n].cumCritRecov_age[i] = State.cumCritRecov_age[i];
+			TimeSeries[n].cumDeath_ILI_age[i] = State.cumDeath_ILI_age[i];
+			TimeSeries[n].cumDeath_SARI_age[i] = State.cumDeath_SARI_age[i];
+			TimeSeries[n].cumDeath_Critical_age[i] = State.cumDeath_Critical_age[i];
+		}
 		if (P.DoAdUnits)
 			for (i = 0; i <= P.NumAdunits; i++)
 			{
