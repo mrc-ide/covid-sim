@@ -66,7 +66,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
@@ -74,8 +73,8 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
-<code>#include &lt;math.h&gt;</code><br />
-<code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &quot;<a class="el" href="_rand_8h_source.html">Rand.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_machine_defines_8h_source.html">MachineDefines.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_constants_8h_source.html">Constants.h</a>&quot;</code><br />
@@ -85,28 +84,19 @@ Include dependency graph for Rand.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="_rand_8cpp__incl.png" border="0" usemap="#src_2_rand_8cpp" alt=""/></div>
 <map name="src_2_rand_8cpp" id="src_2_rand_8cpp">
-<area shape="rect" title=" " alt="" coords="242,5,341,32"/>
+<area shape="rect" title=" " alt="" coords="254,5,353,32"/>
 <area shape="rect" title=" " alt="" coords="5,80,65,107"/>
-<area shape="rect" title=" " alt="" coords="90,80,151,107"/>
-<area shape="rect" title=" " alt="" coords="176,80,236,107"/>
-<area shape="rect" href="_rand_8h.html" title=" " alt="" coords="260,80,323,107"/>
-<area shape="rect" href="_machine_defines_8h.html" title=" " alt="" coords="347,80,471,107"/>
-<area shape="rect" href="_constants_8h.html" title=" " alt="" coords="495,80,586,107"/>
-<area shape="rect" href="_error_8h.html" title=" " alt="" coords="610,80,669,107"/>
+<area shape="rect" title=" " alt="" coords="90,80,149,107"/>
+<area shape="rect" title=" " alt="" coords="173,80,247,107"/>
+<area shape="rect" href="_rand_8h.html" title=" " alt="" coords="272,80,335,107"/>
+<area shape="rect" href="_machine_defines_8h.html" title=" " alt="" coords="359,80,483,107"/>
+<area shape="rect" href="_constants_8h.html" title=" " alt="" coords="507,80,598,107"/>
+<area shape="rect" href="_error_8h.html" title=" " alt="" coords="622,80,681,107"/>
 </map>
 </div>
 </div>
 <p><a href="_rand_8cpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a996f7be338ccb40d1a2a5abc1ad61759"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_rand_8cpp.html#a996f7be338ccb40d1a2a5abc1ad61759">ABS</a>(x)&#160;&#160;&#160;((x) &gt;= 0 ? (x) : -(x))</td></tr>
-<tr class="separator:a996f7be338ccb40d1a2a5abc1ad61759"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3e69dcecb1f6ec71a2022f0068dbe33"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_rand_8cpp.html#ac3e69dcecb1f6ec71a2022f0068dbe33">minF</a>(a,  b)&#160;&#160;&#160;((a) &lt;= (b) ? (a) : (b))</td></tr>
-<tr class="separator:ac3e69dcecb1f6ec71a2022f0068dbe33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a571b7829b81c5868eb89e92bf749321a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_rand_8cpp.html#a571b7829b81c5868eb89e92bf749321a">maxF</a>(a,  b)&#160;&#160;&#160;((a) &gt;= (b) ? (a) : (b))</td></tr>
-<tr class="separator:a571b7829b81c5868eb89e92bf749321a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a0576ba455127db74f31b5a8eee738f44"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_rand_8cpp.html#a0576ba455127db74f31b5a8eee738f44">ranf</a> (void)</td></tr>
@@ -153,87 +143,6 @@ Variables</h2></td></tr>
 <tr class="memitem:a27488915fe3fa82c70d9166c321fd510"><td class="memItemLeft" align="right" valign="top">int **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_rand_8cpp.html#a27488915fe3fa82c70d9166c321fd510">SamplingQueue</a> = nullptr</td></tr>
 <tr class="separator:a27488915fe3fa82c70d9166c321fd510"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="a996f7be338ccb40d1a2a5abc1ad61759"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a996f7be338ccb40d1a2a5abc1ad61759">&#9670;&nbsp;</a></span>ABS</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define ABS</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">x</td><td>)</td>
-          <td>&#160;&#160;&#160;((x) &gt;= 0 ? (x) : -(x))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00013">13</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a571b7829b81c5868eb89e92bf749321a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a571b7829b81c5868eb89e92bf749321a">&#9670;&nbsp;</a></span>maxF</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define maxF</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">a, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">b&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;((a) &gt;= (b) ? (a) : (b))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00015">15</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ac3e69dcecb1f6ec71a2022f0068dbe33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3e69dcecb1f6ec71a2022f0068dbe33">&#9670;&nbsp;</a></span>minF</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define minF</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">a, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">b&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;((a) &lt;= (b) ? (a) : (b))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00014">14</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ab522f7ba08479f35ee7dd3729cf20a44"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab522f7ba08479f35ee7dd3729cf20a44">&#9670;&nbsp;</a></span>fsign()</h2>
@@ -261,7 +170,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01553">1553</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01549">1549</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -297,7 +206,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01593">1593</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01589">1589</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -327,7 +236,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01666">1666</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01662">1662</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -363,7 +272,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01565">1565</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01561">1561</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -393,7 +302,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00179">179</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00175">175</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -429,7 +338,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00909">909</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00905">905</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -449,7 +358,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00441">441</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00437">437</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -479,7 +388,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00675">675</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00671">671</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -515,7 +424,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00102">102</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00098">98</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -535,7 +444,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00024">24</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00020">20</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -555,7 +464,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00048">48</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00044">44</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -591,7 +500,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01675">1675</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01671">1671</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -621,7 +530,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00069">69</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00065">65</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -641,7 +550,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01171">1171</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01167">1167</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -661,7 +570,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01235">1235</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01231">1231</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -681,7 +590,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01299">1299</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01295">1295</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -701,7 +610,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01426">1426</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l01422">1422</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -718,7 +627,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00018">18</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00014">14</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -734,7 +643,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00017">17</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00013">13</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
@@ -750,7 +659,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00017">17</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_rand_8cpp_source.html#l00013">13</a> of file <a class="el" href="_rand_8cpp_source.html">Rand.cpp</a>.</p>
 
 </div>
 </div>
