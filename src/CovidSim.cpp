@@ -105,7 +105,7 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 
 
 /* int NumPC,NumPCD; */
-#define MAXINTFILE 10
+const int MAXINTFILE = 10;
 
 int main(int argc, char* argv[])
 {

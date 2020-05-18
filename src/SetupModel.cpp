@@ -1676,7 +1676,7 @@ void SetupAirports(void)
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
 
-#define PROP_OTHER_PARENT_AWAY 0.0
+const double PROP_OTHER_PARENT_AWAY = 0.0;
 
 
 void AssignHouseholdAges(int n, int pers, int tn)
