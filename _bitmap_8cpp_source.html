@@ -235,7 +235,7 @@ $(function() {
 <div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;      ColorRGB white(1.0, 1.0, 1.0);</div>
 <div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;      bmap.transparent(white);</div>
 <div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;      bmap.write(buf);</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;<span class="preprocessor">#elif defined(_WIN32)   </span></div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;<span class="preprocessor">#elif defined(_WIN32)</span></div>
 <div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;      <span class="comment">//Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library</span></div>
 <div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;      <span class="keyword">using namespace </span>Gdiplus;</div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160; </div>
@@ -257,7 +257,7 @@ $(function() {
 <div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;          <span class="keywordflow">if</span> (!palette) <a class="code" href="_error_8h.html#ad74df05c36c5f7e949c2c75b19712260">ERR_CRITICAL</a>(<span class="stringliteral">&quot;Unable to allocate palette memory\n&quot;</span>);</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;          (void)gdip_bmp-&gt;GetPalette(palette, palsize);</div>
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;          palette-&gt;Flags = PaletteFlagsHasAlpha;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;          palette-&gt;Entries[0] = 0x00ffffff; <span class="comment">// Transparent white </span></div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;          palette-&gt;Entries[0] = 0x00ffffff; <span class="comment">// Transparent white</span></div>
 <div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;          gdip_bmp-&gt;SetPalette(palette);</div>
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;      }</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;      <span class="comment">//Now save as png</span></div>
