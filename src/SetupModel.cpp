@@ -41,8 +41,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		fprintf(stderr, "Scanning population density file\n");
 		if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-		fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-		if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+		unsigned int density_file_header;
+		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
+		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
 			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
