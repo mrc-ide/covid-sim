@@ -191,103 +191,110 @@ for i in ["pre-params.txt", "input-noint-params.txt",
 # Population density file in gziped form, text file, and binary file as
 # processed by CovidSim
 wpop_file = os.path.join(args.output, "pop.txt")
-wpop_bin = os.path.join(args.output, "pop.bin")
 
 # gunzip wpop fie
 with gzip.open(args.popfile, 'rb') as f_in,  open(wpop_file, 'wb') as f_out:
     shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
-print('=== RUN 1: No Intervention - Build network:')
-cmd = [
-        covidsim_exe,
-        '/c:1',
-        '/BM:bmp',
-        '/PP:' + os.path.join(args.input, 'pre-params.txt'),
-        '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
-        '/O:' + os.path.join(args.output, 'results-noint'),
-        '/D:' + wpop_file,
-        '/M:' + wpop_bin,
-        '/A:' + os.path.join(args.input, 'admin-params.txt')
-]
-if args.schools:
-    cmd.extend(["/s:" + args.schools])
-cmd.extend([
-        '/S:' + os.path.join(args.output, 'network.bin'),
-        '/R:' + args.r,
-        '98798150',
-        '729101',
-        '17389101',
-        '4797132'
-])
-print("Command line: " + " ".join(cmd))
-process = subprocess.run(cmd, check=True)
+mt_loop = {}
+mt_loop[1] = 'st-'
+mt_loop[2] = 'mt-'
 
-print('=== RUN 2: No Intervention - Load network:')
-cmd = [
-        covidsim_exe,
-        '/c:1',
-        '/BM:bmp',
-        '/PP:' + os.path.join(args.input, 'pre-params.txt'),
-        '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
-        '/O:' + os.path.join(args.output, 'results-noint-repeat'),
-        '/D:' + wpop_bin,
-        '/A:' + os.path.join(args.input, 'admin-params.txt')
-]
-if args.schools:
-    cmd.extend(["/s:" + args.schools])
-cmd.extend([
-        '/L:' + os.path.join(args.output, 'network.bin'),
-        '/R:' + args.r,
-        '98798150',
-        '729101',
-        '17389101',
-        '4797132'
-])
-print("Command line: " + " ".join(cmd))
-process = subprocess.run(cmd, check=True)
+for threads, prefix in mt_loop.items():
 
-print('=== RUN 3: Intervention - Load network:')
-cmd = [
-        covidsim_exe,
-        '/c:1',
-        '/BM:bmp',
-        '/PP:' + os.path.join(args.input, 'pre-params.txt'),
-        '/P:' + os.path.join(args.input, 'input-params.txt'),
-        '/O:' + os.path.join(args.output, 'results-int'),
-        '/D:' + wpop_bin,
-        '/A:' + os.path.join(args.input, 'admin-params.txt')
-]
-if args.schools:
-    cmd.extend(["/s:" + args.schools])
-cmd.extend([
-        '/L:' + os.path.join(args.output, 'network.bin'),
-        '/R:' + args.r,
-        '98798150',
-        '729101',
-        '17389101',
-        '4797132'
-])
-print("Command line: " + " ".join(cmd))
-process = subprocess.run(cmd, check=True)
+    wpop_bin = os.path.join(args.output, prefix + "pop.bin")
+    network_bin = os.path.join(args.output, prefix + "network.bin")
+    print('=== RUN 1: No Intervention - Build network {0}:'.format(prefix))
+    cmd = [
+            covidsim_exe,
+            '/c:{0}'.format(threads),
+            '/BM:bmp',
+            '/PP:' + os.path.join(args.input, 'pre-params.txt'),
+            '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
+            '/O:' + os.path.join(args.output, prefix + 'results-noint'),
+            '/D:' + wpop_file,
+            '/M:' + wpop_bin,
+            '/A:' + os.path.join(args.input, 'admin-params.txt')
+    ]
+    if args.schools:
+        cmd.extend(["/s:" + args.schools])
+    cmd.extend([
+            '/S:' + network_bin,
+            '/R:' + args.r,
+            '98798150',
+            '729101',
+            '17389101',
+            '4797132'
+    ])
+    print("Command line: " + " ".join(cmd))
+    process = subprocess.run(cmd, check=True)
 
-repeat_files_checked = 0
-for fn2 in glob.glob(os.path.join(args.output, 'results-noint-repeat*.xls')):
-    fn1 = fn2.replace('-repeat', '')
-    with open(fn1, 'rb') as f:
-        dat1 = f.read()
-    with open(fn2, 'rb') as f:
-        dat2 = f.read()
-    # We expect multiple reasonably large files, so only count those that are
-    # at least 10 bytes long
-    if len(dat1) > 10:
-        repeat_files_checked += 1
-    if dat1 != dat2:
-        print('FAILURE: Contents of ' + fn1 + ' does not match that of ' + fn2)
+    print('=== RUN 2: No Intervention - Load network:')
+    cmd = [
+            covidsim_exe,
+            '/c:{0}'.format(threads),
+            '/BM:bmp',
+            '/PP:' + os.path.join(args.input, 'pre-params.txt'),
+            '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
+            '/O:' + os.path.join(args.output, prefix + 'results-noint-repeat'),
+            '/D:' + wpop_bin,
+            '/A:' + os.path.join(args.input, 'admin-params.txt')
+    ]
+    if args.schools:
+        cmd.extend(["/s:" + args.schools])
+    cmd.extend([
+            '/L:' + network_bin,
+            '/R:' + args.r,
+            '98798150',
+            '729101',
+            '17389101',
+            '4797132'
+    ])
+    print("Command line: " + " ".join(cmd))
+    process = subprocess.run(cmd, check=True)
+
+    print('=== RUN 3: Intervention - Load network:')
+    cmd = [
+            covidsim_exe,
+            '/c:{0}'.format(threads),
+            '/BM:bmp',
+            '/PP:' + os.path.join(args.input, 'pre-params.txt'),
+            '/P:' + os.path.join(args.input, 'input-params.txt'),
+            '/O:' + os.path.join(args.output, prefix + 'results-int'),
+            '/D:' + wpop_bin,
+            '/A:' + os.path.join(args.input, 'admin-params.txt')
+    ]
+    if args.schools:
+        cmd.extend(["/s:" + args.schools])
+    cmd.extend([
+            '/L:' + network_bin,
+            '/R:' + args.r,
+            '98798150',
+            '729101',
+            '17389101',
+            '4797132'
+    ])
+    print("Command line: " + " ".join(cmd))
+    process = subprocess.run(cmd, check=True)
+
+    repeat_files_checked = 0
+    for fn2 in glob.glob(os.path.join(args.output, prefix + 'results-noint-repeat*.xls')):
+        fn1 = fn2.replace('-repeat', '')
+        with open(fn1, 'rb') as f:
+            dat1 = f.read()
+        with open(fn2, 'rb') as f:
+            dat2 = f.read()
+        # We expect multiple reasonably large files, so only count those that are
+        # at least 10 bytes long
+        if len(dat1) > 10:
+            repeat_files_checked += 1
+        if dat1 != dat2:
+            print('FAILURE: Contents of ' + fn1 + ' does not match that of ' + fn2)
+            failed = True
+    if repeat_files_checked < 3:
+        print('FAILURE: Not enough repeat files found')
         failed = True
-if repeat_files_checked < 3:
-    print('FAILURE: Not enough repeat files found')
-    failed = True
 
 expected_checksums = os.path.join(args.input, 'results.checksums.txt')
 actual_checksums = os.path.join(args.output, 'results.checksums.txt')
