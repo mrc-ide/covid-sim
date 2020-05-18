@@ -21,8 +21,20 @@ import atexit
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
+
+def copy_dir(src_dir, dest_dir):
+    """Copy src_dir to dest_dir, even if dest_dir exists already."""
+
+    if sys.version_info[0] == 3 and sys.version_info[1] < 8:
+        # We have to do something slightly different for versions of Python
+        # prior to 3.8.0.
+        import distutils.dir_util
+        distutils.dir_util.copy_tree(src_dir, dest_dir)
+    else:
+        shutil.copytree(args.input, run_dir, dirs_exist_ok=True)
 
 def parse_args():
     """Parse the arguments.
@@ -89,7 +101,7 @@ atexit.register(shutil.rmtree, path=lock_dir, ignore_errors=True)
 run_dir = tempfile.mkdtemp()
 
 # Copy input into run directory
-shutil.copytree(args.input, run_dir, dirs_exist_ok=True)
+copy_dir(args.input, run_dir)
 atexit.register(shutil.rmtree, path=run_dir, ignore_errors=True)
 os.makedirs(os.path.join(run_dir, "output"), exist_ok=True)
 
@@ -107,10 +119,7 @@ if result.returncode != 0:
 
 # Copy output tree
 os.chdir(cwd)
-shutil.copytree(
-        os.path.join(run_dir, "output"),
-        args.output,
-        dirs_exist_ok=True)
+copy_dir(os.path.join(run_dir, "output"), args.output)
 
 if result.returncode != 0:
     exit(1)
