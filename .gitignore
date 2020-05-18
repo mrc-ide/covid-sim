@@ -15,7 +15,6 @@ cmake-build-debug/
 .project
 tests/*-output/
 .idea/
-/CMakeSettings.json
 
 # VScode
 .vscode/
