@@ -13,7 +13,7 @@ size_t fwrite_big(void *buffer,size_t size,size_t count, FILE *stream)
 
 	st=mx/((unsigned long long) size);
 	n=count/st;
-	for(j=0;j<n;j++) 
+	for(j=0;j<n;j++)
 		{
 		buf2=((char *)buffer)+j*st*size;
 		ret+=(fwrite(buf2,size,(size_t) st,stream));
@@ -32,7 +32,7 @@ size_t fread_big(void *buffer,size_t size,size_t count, FILE *stream)
 
 	st=mx/((unsigned long long) size);
 	n=count/st;
-	for(j=0;j<n;j++) 
+	for(j=0;j<n;j++)
 		{
 		buf2=((char *)buffer)+j*st*size;
 		ret+=(fread(buf2,size,(size_t) st,stream));

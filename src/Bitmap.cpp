@@ -10,8 +10,8 @@
 #include "Param.h"
 #include "Model.h"
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-//// **** BITMAP stuff. 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+//// **** BITMAP stuff.
 
 #ifdef _WIN32
 //HAVI avi;
@@ -166,7 +166,7 @@ void OutputBitmap(int tp)
 	  ColorRGB white(1.0, 1.0, 1.0);
 	  bmap.transparent(white);
 	  bmap.write(buf);
-#elif defined(_WIN32)	
+#elif defined(_WIN32)
 	  //Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library
 	  using namespace Gdiplus;
 
@@ -188,7 +188,7 @@ void OutputBitmap(int tp)
 		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
-		  palette->Entries[0] = 0x00ffffff; // Transparent white 
+		  palette->Entries[0] = 0x00ffffff; // Transparent white
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png

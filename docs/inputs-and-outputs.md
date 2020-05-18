@@ -73,7 +73,7 @@ Optional Arguments:
 - `/A` - [Administrative division](./glossary.md#Administrative\ Division) parameter file
   - Example: `/A:./data/admin_units/United_Kingdom_admin.txt`
 - `/AP` Air travel data for a specific geography (unused currently)
-- `[/BM:format]`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when 
+- `[/BM:format]`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when
  available) `PNG`.  Default is `PNG` if available, otherwise `BMP`.
 - `/c` - Number of parallel threads to use (only used if compiled with OpenMP)
   - Example: `/c:32`
