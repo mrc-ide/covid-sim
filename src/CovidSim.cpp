@@ -2487,7 +2487,7 @@ void ReadAirTravel(char* AirTravelFile)
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int i, j, k, l, m, tn, nim;
+	int nim;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
@@ -2539,14 +2539,14 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
-	for (i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
-	for (i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
-	for (i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
+	for (int i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
+	for (int i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
+	for (int i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
+	for (int i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
 	//initialise cumulative case counts per country to zero: ggilani 12/11/14
-	for (i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
+	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
 	if (P.DoAdUnits)
-		for (i = 0; i <= P.NumAdunits; i++)
+		for (int i = 0; i <= P.NumAdunits; i++)
 		{
 			State.cumI_adunit[i] = State.cumC_adunit[i] = State.cumD_adunit[i] = State.cumT_adunit[i] = State.cumH_adunit[i] =
 				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
@@ -2556,23 +2556,23 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 
 	//update state variables for storing contact distribution
-	for (i = 0; i < MAX_CONTACTS+1; i++) State.contact_dist[i] = 0;
+	for (int i = 0; i < MAX_CONTACTS+1; i++) State.contact_dist[i] = 0;
 
-	for (j = 0; j < MAX_NUM_THREADS; j++)
+	for (int j = 0; j < MAX_NUM_THREADS; j++)
 	{
 		StateT[j].L = StateT[j].I = StateT[j].R = StateT[j].D = 0;
 		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumH = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC
 			= StateT[j].cumHQ = StateT[j].cumAC = StateT[j].cumACS
 			= StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
 		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
-		for (i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
-		for (i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
-		for (i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
-		for (i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
+		for (int i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
+		for (int i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
+		for (int i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
+		for (int i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
 		//initialise cumulative case counts per country per thread to zero: ggilani 12/11/14
-		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
+		for (int i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
 		if (P.DoAdUnits)
-			for (i = 0; i <= P.NumAdunits; i++)
+			for (int i = 0; i <= P.NumAdunits; i++)
 				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
 				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 
@@ -2602,14 +2602,15 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 		}
 		//resetting thread specific parameters for storing contact distribution
-		for (i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
+		for (int i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
 
 	}
 	nim = 0;
 
-#pragma omp parallel for private(tn,k) schedule(static,1)
-	for (tn = 0; tn < P.NumThreads; tn++)
-		for (k = tn; k < P.PopSize; k+= P.NumThreads)
+#pragma omp parallel for schedule(static,1) default(none) \
+		shared(P, Hosts)
+	for (int tn = 0; tn < P.NumThreads; tn++)
+		for (int k = tn; k < P.PopSize; k+= P.NumThreads)
 		{
 			Hosts[k].absent_start_time = USHRT_MAX - 1;
 			Hosts[k].absent_stop_time = 0;
@@ -2642,16 +2643,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 
-#pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1)
-	for (tn = 0; tn < P.NumThreads; tn++)
+#pragma omp parallel for reduction(+:nim) schedule(static,1) default(none) \
+		shared(P, Cells, Hosts, Households)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NC; i+=P.NumThreads)
+		for (int i = tn; i < P.NC; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
-				for (j = 0; j < Cells[i].n; j++)
+				for (int j = 0; j < Cells[i].n; j++)
 				{
-					k = Cells[i].members[j];
+					int k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
 					Hosts[k].listpos = j;
 				}
@@ -2659,13 +2661,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
 				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
 				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
-				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
+				for (int l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
 
 				// Next loop needs to count down for DoImmune host list reordering to work
 				if(!P.DoPartialImmunity)
-					for (j = Cells[i].n - 1; j >= 0; j--)
+					for (int j = Cells[i].n - 1; j >= 0; j--)
 					{
-						k = Cells[i].members[j];
+						int k = Cells[i].members[j];
 						if (P.DoWholeHouseholdImmunity)
 						{
 	// note that this breaks determinism of runs if executed due to reordering of Cell members list each realisation
@@ -2676,7 +2678,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 									if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
 									{
 										nim += Households[Hosts[k].hh].nh;
-										for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
+										for (int m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
 											DoImmune(k + m);
 									}
 								}
@@ -2684,7 +2686,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 						}
 						else
 						{
-							m = HOST_AGE_GROUP(k);
+							int m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
 							{
 								DoImmune(k); nim += 1;
@@ -2695,10 +2697,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-#pragma omp parallel for private(i,j,k,l) schedule(static,500)
-	for (l = 0; l < P.NMCP; l++)
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, Mcells, McellLookup)
+	for (int l = 0; l < P.NMCP; l++)
 	{
-		i = (int)(McellLookup[l] - Mcells);
+		int i = (int)(McellLookup[l] - Mcells);
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
 		Mcells[i].treat_trig = Mcells[i].vacc_trig = Mcells[i].vacc = Mcells[i].treat = 0;
@@ -2709,10 +2712,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
 	}
 	if (P.DoPlaces)
-#pragma omp parallel for private(m,l) schedule(static,1)
-		for (m = 0; m < P.PlaceTypeNum; m++)
+#pragma omp parallel for schedule(static,1) default(none) \
+			shared(P, Places)
+		for (int m = 0; m < P.PlaceTypeNum; m++)
 		{
-			for(l=0;l<P.Nplace[m];l++)
+			for(int l = 0; l < P.Nplace[m]; l++)
 			{
 				Places[m][l].close_start_time = USHRT_MAX - 1;
 				Places[m][l].treat = Places[m][l].control_trig = 0;
@@ -2780,10 +2784,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 
 
-	for (i = 0; i < MAX_NUM_THREADS; i++)
+	for (int i = 0; i < MAX_NUM_THREADS; i++)
 	{
-		for (j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
-		for (j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
+		for (int j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
+		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
 	}
 	if (DoInitUpdateProbs)
 	{
@@ -2794,7 +2798,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun))
 	{
 		*nEvents = 0;
-		for (i = 0; i < P.MaxInfEvents; i++)
+		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
 			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
@@ -2802,7 +2806,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
+	for (int i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
 	SeedInfection(0, nsi, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -4317,12 +4321,11 @@ void SaveSnapshot(void)
 
 void UpdateProbs(int DoPlace)
 {
-	int j;
-
 	if (!DoPlace)
 	{
-#pragma omp parallel for private(j) schedule(static,500)
-		for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+			shared(P, CellLookup)
+		for (int j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->tot_prob = 0;
 			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
@@ -4335,15 +4338,17 @@ void UpdateProbs(int DoPlace)
 	}
 	else
 	{
-#pragma omp parallel for private(j) schedule(static,500)
-		for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+			shared(P, CellLookup)
+		for (int j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->S0 = CellLookup[j]->S;
 			CellLookup[j]->tot_prob = 0;
 		}
 	}
-#pragma omp parallel for private(j) schedule(static,500)
-	for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, CellLookup)
+	for (int j = 0; j < P.NCP; j++)
 	{
 		int m, k;
 		float t;
@@ -4365,7 +4370,6 @@ void UpdateProbs(int DoPlace)
 		}
 	}
 }
-
 
 int ChooseTriggerVariableAndValue(int AdUnit)
 {
@@ -4499,14 +4503,13 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 void RecordSample(double t, int n)
 {
-	int i, j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC;
+	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC;
 	int cumH; //add number of hospitalised, cumulative hospitalisation: ggilani 28/10/14
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
 	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	cell* ct;
 	unsigned short int ts;
 	double s,thr;
 
@@ -4517,14 +4520,15 @@ void RecordSample(double t, int n)
 
 	//// initialize to zero
 	S = L = I = R = D = cumI = cumC = cumDC = cumTC = cumFC = cumHQ = cumAC = cumAA = cumAH = cumACS = cumAPC = cumAPA = cumAPCS = cumD = cumH = cumCT = cumCC = cumDCT = 0;
-	for (i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
+	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
 	if (P.DoSeverity)
 		Mild = ILI = SARI = Critical = CritRecov = cumMild = cumILI = cumSARI = cumCritical = cumCritRecov = cumDeath_ILI = cumDeath_SARI = cumDeath_Critical = 0;
 
-#pragma omp parallel for private(i,ct) schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) //added i to private
-	for (i = 0; i < P.NCP; i++)
+#pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
+		shared(P, CellLookup)
+	for (int i = 0; i < P.NCP; i++)
 	{
-		ct = CellLookup[i];
+		cell* ct = CellLookup[i];
 		S += (int)ct->S;
 		L += (int)ct->L;
 		I += (int)ct->I;
@@ -4581,7 +4585,7 @@ void RecordSample(double t, int n)
 		}
 
 		//add up cumulative country counts: ggilani - 12/11/14
-		for (i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] += StateT[j].cumC_country[i];
+		for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] += StateT[j].cumC_country[i];
 		if (State.maxRad2 < StateT[j].maxRad2) State.maxRad2 = StateT[j].maxRad2;
 	}
 	for (j = 0; j < P.NumThreads; j++)
@@ -4619,7 +4623,7 @@ void RecordSample(double t, int n)
 	TimeSeries[n].cumDC = cumDC;
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
-	for (i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
 		trigDC = cumCritical;
@@ -4700,7 +4704,7 @@ void RecordSample(double t, int n)
 		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
 		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
 
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
 		{
 			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 			//// First subtract old total while unchanged.
@@ -4771,7 +4775,7 @@ void RecordSample(double t, int n)
 			TimeSeries[n].cumDeath_Critical_age[i] = State.cumDeath_Critical_age[i];
 		}
 		if (P.DoAdUnits)
-			for (i = 0; i <= P.NumAdunits; i++)
+			for (int i = 0; i <= P.NumAdunits; i++)
 			{
 				//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 				//// First subtract old total while unchanged.
@@ -4850,13 +4854,13 @@ void RecordSample(double t, int n)
 	}
 
 	//update cumulative cases per country
-	for (i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = cumC_country[i];
+	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = cumC_country[i];
 	//update overall state variable for cumulative cases per adunit
 
 	TimeSeries[n].rmsRad = (State.cumI > 0) ? sqrt(State.sumRad2 / ((double)State.cumI)) : 0;
 	TimeSeries[n].maxRad = sqrt(State.maxRad2);
 	TimeSeries[n].extinct = ((((P.SmallEpidemicCases >= 0) && (State.R <= P.SmallEpidemicCases)) || (P.SmallEpidemicCases < 0)) && (State.I + State.L == 0)) ? 1 : 0;
-	for (i = 0; i < NUM_AGE_GROUPS; i++)
+	for (int i = 0; i < NUM_AGE_GROUPS; i++)
 	{
 		TimeSeries[n].incCa[i] = TimeSeries[n].incIa[i] = TimeSeries[n].incDa[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4867,7 +4871,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	for (i = 0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		TimeSeries[n].incC_keyworker[i] = TimeSeries[n].incI_keyworker[i] = TimeSeries[n].cumT_keyworker[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4879,7 +4883,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	for (i = 0; i < INFECT_TYPE_MASK; i++)
+	for (int i = 0; i < INFECT_TYPE_MASK; i++)
 	{
 		TimeSeries[n].incItype[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4889,7 +4893,7 @@ void RecordSample(double t, int n)
 		}
 	}
 	if (P.DoAdUnits)
-		for (i = 0; i <= P.NumAdunits; i++)
+		for (int i = 0; i <= P.NumAdunits; i++)
 		{
 			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
@@ -4918,10 +4922,10 @@ void RecordSample(double t, int n)
 			}
 		}
 	if (P.DoDigitalContactTracing)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			TimeSeries[n].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
 	if (P.DoPlaces)
-		for (i = 0; i < NUM_PLACE_TYPES; i++)
+		for (int i = 0; i < NUM_PLACE_TYPES; i++)
 		{
 			numPC = 0;
 			for (j = 0; j < P.Nplace[i]; j++)
@@ -4929,11 +4933,11 @@ void RecordSample(double t, int n)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
+	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
 	//update contact number distribution in State
-	for (i = 0; i < (MAX_CONTACTS+1); i++)
+	for (int i = 0; i < (MAX_CONTACTS+1); i++)
 	{
 		for (j = 0; j < P.NumThreads; j++)
 		{
@@ -5043,7 +5047,7 @@ void RecordSample(double t, int n)
 			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
 
 		//// Set Case isolation start time (by admin unit)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
@@ -5053,7 +5057,7 @@ void RecordSample(double t, int n)
 			}
 
 		//// Set Household Quarantine start time (by admin unit)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
@@ -5064,7 +5068,7 @@ void RecordSample(double t, int n)
 
 		//// Set DigitalContactTracingTimeStart
 		if (P.DoDigitalContactTracing)
-			for (i = 0; i < P.NumAdunits; i++)
+			for (int i = 0; i < P.NumAdunits; i++)
 				if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 				{
 					if (P.DoInterventionDelaysByAdUnit)
@@ -5084,14 +5088,14 @@ void RecordSample(double t, int n)
 				DoOrDontAmendStartTime(&P.SocDistTimeStart, t + P.SocDistTimeStartBase);
 				//added this for admin unit based intervention delays based on a global trigger: ggilani 17/03/20
 				if (P.DoInterventionDelaysByAdUnit)
-					for (i = 0; i < P.NumAdunits; i++)
+					for (int i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].SocialDistanceTimeStart, t + AdUnits[i].SocialDistanceDelay);
 			}
 			if (TriggerValue >= P.PlaceCloseCellIncThresh)
 			{
 				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
 				if (P.DoInterventionDelaysByAdUnit)
-					for (i = 0; i < P.NumAdunits; i++)
+					for (int i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t + AdUnits[i].PlaceCloseDelay);
 			}
 			if (TriggerValue >= P.MoveRestrCellIncThresh)
@@ -5123,7 +5127,7 @@ void RecordSample(double t, int n)
 		P.SocDistSpatialEffectCurrent = P.SocDistSpatialEffect2;
 		P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
 		P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
-		for (i = 0; i < P.PlaceTypeNum; i++)
+		for (int i = 0; i < P.PlaceTypeNum; i++)
 		{
 			P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
 			P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];
@@ -5149,8 +5153,6 @@ void RecordSample(double t, int n)
 			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
 		}
 	}
-
-
 
 	if (P.OutputBitmap >= 1)
 	{
@@ -5325,29 +5327,27 @@ void CalcOriginDestMatrix_adunit()
 	 *
 	 * author: ggilani, date: 28/01/15
 	 */
-	int tn, i, j, k, l, m, p;
-	double total_flow, flow;
-	ptrdiff_t cl_from, cl_to, cl_from_mcl, cl_to_mcl, mcl_from, mcl_to;
 
-#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) //reduction(+:s,t2)
-	for (tn = 0; tn < P.NumThreads; tn++)
+#pragma omp parallel for schedule(static) default(none) \
+		shared(P, Cells, CellLookup, Mcells, StateT)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NCP; i += P.NumThreads)
+		for (int i = tn; i < P.NCP; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
 			double pop_dens_from[MAX_ADUNITS] = {};
 
 			//find index of cell from which flow travels
-			cl_from = CellLookup[i] - Cells;
-			cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from = CellLookup[i] - Cells;
+			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
-			for (k = 0; k < P.NMCL; k++)
+			for (int k = 0; k < P.NMCL; k++)
 			{
-				for (l = 0; l < P.NMCL; l++)
+				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					mcl_from = cl_from_mcl + l + k * P.nmch;
+					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.nmch;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5356,16 +5356,17 @@ void CalcOriginDestMatrix_adunit()
 				}
 			}
 
-			for (j = i; j < P.NCP; j++)
+			for (int j = i; j < P.NCP; j++)
 			{
 				//reset pop density matrix to zero
 				double pop_dens_to[MAX_ADUNITS] = {};
 
 				//find index of cell which flow travels to
-				cl_to = CellLookup[j] - Cells;
-				cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to = CellLookup[j] - Cells;
+				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
+				double total_flow;
 				if (j == 0)
 				{
 					total_flow = Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
@@ -5376,12 +5377,12 @@ void CalcOriginDestMatrix_adunit()
 				}
 
 				//loop over microcells within destination cell
-				for (m = 0; m < P.NMCL; m++)
+				for (int m = 0; m < P.NMCL; m++)
 				{
-					for (p = 0; p < P.NMCL; p++)
+					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						mcl_to = cl_to_mcl + p + m * P.nmch;
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.nmch;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
@@ -5390,13 +5391,13 @@ void CalcOriginDestMatrix_adunit()
 					}
 				}
 
-				for (m = 0; m < P.NumAdunits; m++)
+				for (int m = 0; m < P.NumAdunits; m++)
 				{
-					for (p = 0; p < P.NumAdunits; p++)
+					for (int p = 0; p < P.NumAdunits; p++)
 					{
 						if (m != p)
 						{
-							flow = total_flow * pop_dens_from[m] * pop_dens_to[p]; //updated to remove reference to cross-border flows: ggilani 26/03/20
+							double flow = total_flow * pop_dens_from[m] * pop_dens_to[p]; //updated to remove reference to cross-border flows: ggilani 26/03/20
 							StateT[tn].origin_dest[m][p] += flow;
 							StateT[tn].origin_dest[p][m] += flow;
 						}
@@ -5452,17 +5453,16 @@ void CalcOriginDestMatrix_adunit()
 	}
 
 	//Sum up flow between adunits across threads
-	for (i = 0; i < P.NumAdunits; i++)
+	for (int i = 0; i < P.NumAdunits; i++)
 	{
-		for (j = 0; j < P.NumAdunits; j++)
+		for (int j = 0; j < P.NumAdunits; j++)
 		{
-			for (k = 0; k < P.NumThreads; k++)
+			for (int k = 0; k < P.NumThreads; k++)
 			{
 				AdUnits[i].origin_dest[j] += StateT[k].origin_dest[i][j];
 			}
 		}
 	}
-
 }
 
 //// Get parameters code (called by ReadParams function)
