@@ -40,7 +40,7 @@ var searchData=
   ['cfr_5fili_5fbyage_114',['CFR_ILI_ByAge',['../struct_p_a_r_a_m.html#afa1c618e14239301f06a7fc4c807493c',1,'PARAM']]],
   ['cfr_5fsari_5fbyage_115',['CFR_SARI_ByAge',['../struct_p_a_r_a_m.html#a0187ef56490409e26c5f8127936804ef',1,'PARAM']]],
   ['cheight_116',['cheight',['../struct_p_a_r_a_m.html#a6c70047b06fce8ff13b299a4bbbea14b',1,'PARAM']]],
-  ['choosefinaldiseaseseverity_117',['ChooseFinalDiseaseSeverity',['../_update_8cpp.html#a82f69f2fec4537219d20ff92916ab4c5',1,'Update.cpp']]],
+  ['choosefinaldiseaseseverity_117',['ChooseFinalDiseaseSeverity',['../_update_8cpp.html#a3dfa2cb467dc7fcf8c0b7e32848dcfa4',1,'Update.cpp']]],
   ['choosefromicdf_118',['ChooseFromICDF',['../_update_8cpp.html#add695640ad936019a5de195e52ffbaef',1,'Update.cpp']]],
   ['choosethreshold_119',['ChooseThreshold',['../_covid_sim_8cpp.html#a0b6851cb631df8c24fe6fff095941232',1,'CovidSim.cpp']]],
   ['choosetriggervariableandvalue_120',['ChooseTriggerVariableAndValue',['../_covid_sim_8cpp.html#a625f2a0d53f7ece911b43e5268e8a285',1,'CovidSim.cpp']]],
