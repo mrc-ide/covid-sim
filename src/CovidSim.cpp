@@ -4704,7 +4704,7 @@ void RecordSample(double t, int n)
 		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
 		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
 
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
 		{
 			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 			//// First subtract old total while unchanged.

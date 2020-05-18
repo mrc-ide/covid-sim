@@ -2106,13 +2106,13 @@ void AssignPeopleToPlaces(void)
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{
-					tn = 0;
+					int tn = 0;
 					for (j = 0; j < a; j++)
 					{
 						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
 						l = 1; k = m = m2 = f2 = 0;
-						i = PeopleArray[j];
+						int i = PeopleArray[j];
 						ic = Hosts[i].mcell;
 						mx = ic / P.nmch;
 						my = ic % P.nmch;
@@ -2240,9 +2240,10 @@ void AssignPeopleToPlaces(void)
 						{
 							m2 = k2 - 1; f = 0;
 						}
+
 						for (i2 = m2; i2 >= f; i2--)
 						{
-							tn = 0;
+							int tn = 0;
 							if (i2 % 10000 == 0)
 								fprintf(stderr, "(%i) %i            \r", tp, i2);
 							k = PeopleArray[i2];
@@ -2269,7 +2270,7 @@ void AssignPeopleToPlaces(void)
 									} while (j < 0);
 									if (j >= P.Nplace[tp])
 									{
-										fprintf(stderr_shared, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
+										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc_x, Households[Hosts[k].hh].loc_y, Places[tp][j].loc_x, Places[tp][j].loc_y);
