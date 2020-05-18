@@ -139,7 +139,7 @@ var searchData=
   ['initialinfectionsadminunit_598',['InitialInfectionsAdminUnit',['../struct_p_a_r_a_m.html#a0cdd66dfbff2d77870f87cb1a375fd0d',1,'PARAM']]],
   ['initialinfectionsadminunitid_599',['InitialInfectionsAdminUnitId',['../struct_p_a_r_a_m.html#ad9212a53251b728d7cc504efb0a691fc',1,'PARAM']]],
   ['initialinfectionsadminunitweight_600',['InitialInfectionsAdminUnitWeight',['../struct_p_a_r_a_m.html#af6cbb5aa4660de2e7dd21be4fc2f9f79',1,'PARAM']]],
-  ['initkernel_601',['InitKernel',['../_kernels_8cpp.html#a6cc2e92595dce20560d13e2f65ab3e1b',1,'InitKernel(int DoPlaces, double norm):&#160;Kernels.cpp'],['../_kernels_8h.html#ad1a228a6ad4cc1cfb92da9fbc78fd46b',1,'InitKernel(int, double):&#160;Kernels.cpp']]],
+  ['initkernel_601',['InitKernel',['../_kernels_8cpp.html#a0b43c7575cef1cec81048740f9226043',1,'InitKernel(double norm):&#160;Kernels.cpp'],['../_kernels_8h.html#abb26bdcc470fa96339f2e400441f992e',1,'InitKernel(double):&#160;Kernels.cpp']]],
   ['initmodel_602',['InitModel',['../_covid_sim_8cpp.html#abb8d86424c2c51a5c724c10254fdca32',1,'CovidSim.cpp']]],
   ['interruptrun_603',['InterruptRun',['../_covid_sim_8cpp.html#a7d59c677b9aa9126b0d612d4cfc88ff3',1,'CovidSim.cpp']]],
   ['intervention_604',['INTERVENTION',['../struct_i_n_t_e_r_v_e_n_t_i_o_n.html',1,'INTERVENTION'],['../_model_8h.html#a15a99b415ad435ed33ba86984088656b',1,'intervention():&#160;Model.h']]],
