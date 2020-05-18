@@ -21,7 +21,7 @@ void TravelReturnSweep(double t)
 	int l, nr, ner;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ErrorCritical("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t + P.TimeStep) != floor(1 + t))
 	{
@@ -74,7 +74,7 @@ void TravelDepartSweep(double t)
 	double nl;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ErrorCritical("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t - P.TimeStep) != floor(1 + t))
 	{
@@ -468,7 +468,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									s3_scaled = (fct) ? (s3 * P.ScalingFactorPlaceDigitalContacts) : s3;
 									if (s3_scaled < 0)
 									{
-										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
+										ErrorCritical("@@@ %lg\n", s3);
 									}
 									else if (s3_scaled >= 1)
 										n = Places[k][l].n;

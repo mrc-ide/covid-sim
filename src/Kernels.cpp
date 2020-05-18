@@ -42,7 +42,7 @@ void InitKernel(double norm)
 	else if (P.KernelType == 7)
 		Kernel = PowerExpKernel;
 	else
-		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
+		ErrorCritical("Unknown kernel type %d.\n", P.KernelType);
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, Kernel, nKernel, nKernelHR, norm)
@@ -116,7 +116,7 @@ double numKernel(double r2)
 	if (t > P.NKR)
 	{
 		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, P.KernelDelta, t);
-		ERR_CRITICAL("r too large in NumKernel\n");
+		ErrorCritical("r too large in NumKernel\n");
 	}
 
 	double s = t * P.NK_HR;

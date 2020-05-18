@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BF_PNG ? "png" : "bmp");
-	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
+	if (Perr) ErrorCritical("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** SET UP OMP / THREADS
@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
 	if (GotScF) P.DoSchoolFile = 1;
 	if (P.DoAirports)
 	{
-		if (!GotAP) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile /AP:AirTravelFile [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
+		if (!GotAP) ErrorCritical("Syntax:\n%s /P:ParamFile /O:OutputFile /AP:AirTravelFile [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 		ReadAirTravel(AirTravelFile);
 	}
 
@@ -470,7 +470,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
 	char* AdunitListNames[MAX_ADUNITS];
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
-	if (!(ParamFile_dat = fopen(ParamFile, "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
+	if (!(ParamFile_dat = fopen(ParamFile, "rb"))) ErrorCritical("Unable to open parameter file\n");
 	PreParamFile_dat = fopen(PreParamFile, "rb");
 	if (!(AdminFile_dat = fopen(AdunitFile, "rb"))) AdminFile_dat = ParamFile_dat;
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*) & (P.LongitudeCutLine), 1, 1, 0)) {
@@ -479,7 +479,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	AgeSuscScale = 1.0;
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*) & (P.TimeStep), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*) & (P.SampleStep), 1, 1, 0);
-	if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
+	if (P.TimeStep > P.SampleStep) ErrorCritical("Update step must be smaller than sampling step\n");
 	t = ceil(P.SampleStep / P.TimeStep - 1e-6);
 	P.UpdatesPerSample = (int)t;
 	P.TimeStep = P.SampleStep / t;
@@ -521,12 +521,12 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.NKR, 1, 1, 0)) P.NKR = 4000000;
 	if (P.NKR < 2000000)
 	{
-		ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.NKR);
+		ErrorCritical("[Kernel resolution] needs to be at least 2000000 - not %d", P.NKR);
 	}
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.NK_HR, 1, 1, 0)) P.NK_HR = P.NKR / 1600;
 	if (P.NK_HR < 1 || P.NK_HR >= P.NKR)
 	{
-		ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.NKR, P.NK_HR);
+		ErrorCritical("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.NKR, P.NK_HR);
 	}
 
 	if (P.DoHouseholds)
@@ -553,8 +553,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.DoAdUnits)
 	{
 		char** AdunitNames, * AdunitNamesBuf;
-		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ErrorCritical("Unable to allocate temp storage\n");
+		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ErrorCritical("Unable to allocate temp storage\n");
 
 		for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 		{
@@ -591,7 +591,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			if (P.NumAdunits > 0)
 			{
 				P.DoAdunitBoundaries = 1;
-				if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
+				if (P.NumAdunits > MAX_ADUNITS) ErrorCritical("MAX_ADUNITS too small.\n");
 				GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of level 1 administrative units to include", "%s", (P.NumAdunits > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumAdunits, 1, 0);
 				na = P.NumAdunits;
 				for (i = 0; i < P.NumAdunits; i++)
@@ -753,7 +753,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.PlaceTypeNum = P.DoAirports = 0;
 	if (P.DoPlaces)
 	{
-		if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+		if (P.PlaceTypeNum > NUM_PLACE_TYPES) ErrorCritical("Too many place types\n");
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Proportion of age group 1 in place types", "%lf", (void*) & (P.PlaceTypePropAgeGroup), P.PlaceTypeNum, 1, 0);
@@ -830,10 +830,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
 			if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+				ErrorCritical("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 			}
 			if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+				ErrorCritical("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 			}
 
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
@@ -964,7 +964,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of importation time profile provided", "%i", (void*)&(P.DurImportTimeProfile), 1, 1, 0)) P.DurImportTimeProfile = 0;
 	if (P.DurImportTimeProfile > 0)
 	{
-		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
+		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ErrorCritical("MAX_DUR_IMPORT_PROFILE too small\n");
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Daily importation time profile", "%lf", (void*)P.ImportInfectionTimeProfile, P.DurImportTimeProfile, 1, 0);
 	}
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Reproduction number", "%lf", (void*) & (P.R0), 1, 1, 0);
@@ -985,7 +985,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.infectious_prof[i] = 1;
 		}
 		k = (int)ceil(P.InfectiousPeriod / P.TimeStep);
-		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
+		if (k >= MAX_INFECTIOUS_STEPS) ErrorCritical("MAX_INFECTIOUS_STEPS not big enough\n");
 		s = 0;
 		P.infectious_prof[INFPROF_RES] = 0;
 		for (i = 0; i < MAX_INFECTIOUS_STEPS; i++)	P.infectiousness[i] = 0;
@@ -1012,7 +1012,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.infectious_icdf[i] = -log(1 - ((double)i) / CDF_RES);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
-		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
+		if (k >= MAX_INFECTIOUS_STEPS) ErrorCritical("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
 		for (i = 0; i <= CDF_RES; i++) P.infectious_icdf[i] = exp(-P.infectious_icdf[i]);
@@ -1078,7 +1078,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max absent time", "%i", (void*)&P.MaxAbsentTime, 1, 1, 0)) P.MaxAbsentTime = MAX_ABSENT_TIME;
 			if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
 			{
-				ERR_CRITICAL_FMT("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
+				ErrorCritical("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
 			}
 		}
 		else
@@ -2103,32 +2103,32 @@ void ReadInterventions(char* IntFile)
 	intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
-	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
+	if (!(dat = fopen(IntFile, "rb"))) ErrorCritical("Unable to open intervention file\n");
 	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        ErrorCritical("fscanf failed in ReadInterventions\n");
     }
 	if(fscanf(dat, "<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        ErrorCritical("fscanf failed in ReadInterventions\n");
     }
-	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ERR_CRITICAL("Intervention file not XML.\n");
+	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ErrorCritical("Intervention file not XML.\n");
 	if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        ErrorCritical("fscanf failed in ReadInterventions\n");
     }
-	if (strcmp(txt, "InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level.\n");
+	if (strcmp(txt, "InterventionSettings") != 0) ErrorCritical("Intervention has no top level.\n");
 	ni = 0;
 	while (!feof(dat))
 	{
 		if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-            ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+            ErrorCritical("fscanf failed in ReadInterventions\n");
         }
 		if (strcmp(txt, "intervention") == 0)
 		{
 			ni++;
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                ErrorCritical("fscanf failed in ReadInterventions\n");
             }
-			if (strcmp(txt, "parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (strcmp(txt, "parameters") != 0) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			if (strcmp(txt, "Treatment") == 0)
 				CurInterv.InterventionType = 0;
 			else if (strcmp(txt, "Vaccination") == 0)
@@ -2143,31 +2143,31 @@ void ReadInterventions(char* IntFile)
 				CurInterv.InterventionType = 5;
 			else
 				sscanf(txt, "%i", &CurInterv.InterventionType);
-			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%i", &CurInterv.DoAUThresh);
-			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.StartTime);
 			startt = CurInterv.StartTime;
-			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.StopTime);
 			stopt = CurInterv.StopTime;
-			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.MinDuration);
 			CurInterv.MinDuration *= DAYS_PER_YEAR;
-			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.RepeatInterval);
 			CurInterv.RepeatInterval *= DAYS_PER_YEAR;
-			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.StartThresholdHigh);
-			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.StartThresholdLow);
-			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.StopThreshold);
 			if (GetXMLNode(dat, "NoStartAfterMinDur", "parameters", txt, 1))
 				sscanf(txt, "%i", &CurInterv.NoStartAfterMin);
 			else
 				CurInterv.NoStartAfterMin = 0;
-			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%lf", &CurInterv.Level);
 			if (GetXMLNode(dat, "LevelCellVar", "parameters", txt, 1))
 				sscanf(txt, "%lf", &CurInterv.LevelCellVar);
@@ -2194,9 +2194,9 @@ void ReadInterventions(char* IntFile)
 			else
 				CurInterv.TimeOffset = 0;
 
-			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%u", &CurInterv.MaxRounds);
-			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			sscanf(txt, "%u", &CurInterv.MaxResource);
 			if (GetXMLNode(dat, "NumSequentialReplicas", "parameters", txt, 1))
 				sscanf(txt, "%i", &nsr);
@@ -2204,14 +2204,14 @@ void ReadInterventions(char* IntFile)
 				nsr = 0;
 			do {
                 if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                    ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                    ErrorCritical("fscanf failed in ReadInterventions\n");
                 }
             } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
-			if (strcmp(txt, "/parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (strcmp(txt, "/parameters") != 0) ErrorCritical("Incomplete intervention parameter specification in intervention file\n");
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                ErrorCritical("fscanf failed in ReadInterventions\n");
             }
-			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ERR_CRITICAL("Incomplete adunits/countries specification in intervention file\n");
+			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ErrorCritical("Incomplete adunits/countries specification in intervention file\n");
 			if (strcmp(txt, "adunits") == 0)
 			{
 				while (GetXMLNode(dat, "A", "adunits", buf, 0))
@@ -2292,12 +2292,12 @@ void ReadInterventions(char* IntFile)
 				}
 			}
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                ErrorCritical("fscanf failed in ReadInterventions\n");
             }
-			if (strcmp(txt, "/intervention") != 0) ERR_CRITICAL("Incorrect intervention specification in intervention file\n");
+			if (strcmp(txt, "/intervention") != 0) ErrorCritical("Incorrect intervention specification in intervention file\n");
 		}
 	}
-	if (strcmp(txt, "/InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level closure.\n");
+	if (strcmp(txt, "/InterventionSettings") != 0) ErrorCritical("Intervention has no top level closure.\n");
 	fprintf(stderr, "%i interventions read\n", ni);
 	fclose(dat);
 }
@@ -2314,24 +2314,24 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	do
 	{
 		if(fscanf(dat, "%*[^<]<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
+            ErrorCritical("fscanf failed in GetXMLNode");
         }
 	} while ((strcmp(buf, CloseParent) != 0) && (strcmp(buf, NodeName) != 0) && (!feof(dat)));
 	if (strcmp(buf, CloseParent) == 0)
 		ret = 0;
 	else
 	{
-		if (strcmp(buf, NodeName) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
+		if (strcmp(buf, NodeName) != 0) ErrorCritical("Incomplete node specification in XML file\n");
 		if(fscanf(dat, ">%[^<]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
+            ErrorCritical("fscanf failed in GetXMLNode");
         }
 		if (strlen(buf) < 2048) strcpy(Value, buf);
 		//		fprintf(stderr,"# %s=%s\n",NodeName,Value);
 		if(fscanf(dat, "<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
+            ErrorCritical("fscanf failed in GetXMLNode");
         }
 		sprintf(CloseNode, "/%s", NodeName);
-		if (strcmp(buf, CloseNode) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
+		if (strcmp(buf, CloseNode) != 0) ErrorCritical("Incomplete node specification in XML file\n");
 		ret = 1;
 	}
 	if (ResetFilePos) fseek(dat, CurPos, 0);
@@ -2347,19 +2347,19 @@ void ReadAirTravel(char* AirTravelFile)
 	FILE* dat;
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
-	if (!(dat = fopen(AirTravelFile, "rb"))) ERR_CRITICAL("Unable to open airport file\n");
+	if (!(dat = fopen(AirTravelFile, "rb"))) ErrorCritical("Unable to open airport file\n");
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
-        ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+        ErrorCritical("fscanf failed in void ReadAirTravel\n");
     }
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
-	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
-	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
-	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(Airports = (airport*)calloc(P.Nairports, sizeof(airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (P.Nairports > MAX_AIRPORTS) ErrorCritical("Too many airports\n");
+	if (P.Nairports < 2) ErrorCritical("Too few airports\n");
+	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ErrorCritical("Unable to allocate airport storage\n");
+	if (!(Airports = (airport*)calloc(P.Nairports, sizeof(airport)))) ErrorCritical("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
-            ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+            ErrorCritical("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
 		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
@@ -2379,15 +2379,15 @@ void ReadAirTravel(char* AirTravelFile)
 		for (j = k = 0; j < P.Nairports; j++)
 		{
 			if(fscanf(dat, "%f", buf + j) != 1) {
-                ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+                ErrorCritical("fscanf failed in void ReadAirTravel\n");
             }
 			if (buf[j] > 0) { k++; t += buf[j]; }
 		}
 		Airports[i].num_connected = k;
 		if (Airports[i].num_connected > 0)
 		{
-			if (!(Airports[i].prop_traffic = (float*)calloc(Airports[i].num_connected, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-			if (!(Airports[i].conn_airports = (unsigned short int*) calloc(Airports[i].num_connected, sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+			if (!(Airports[i].prop_traffic = (float*)calloc(Airports[i].num_connected, sizeof(float)))) ErrorCritical("Unable to allocate airport storage\n");
+			if (!(Airports[i].conn_airports = (unsigned short int*) calloc(Airports[i].num_connected, sizeof(unsigned short int)))) ErrorCritical("Unable to allocate airport storage\n");
 			for (j = k = 0; j < P.Nairports; j++)
 				if (buf[j] > 0)
 				{
@@ -2478,7 +2478,7 @@ void ReadAirTravel(char* AirTravelFile)
 			}
 		}
 	sprintf(outname, "%s.airdist.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open air travel output file\n");
+	if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open air travel output file\n");
 	fprintf(dat, "dist\tfreq\n");
 	for (i = 0; i < MAX_DIST; i++)
 		fprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
@@ -3196,7 +3196,7 @@ void SaveDistribs(void)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
 						PlaceSizeDistrib[j][Places[j][i].n]++;
 		sprintf(outname, "%s.placedist.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "dist");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3212,7 +3212,7 @@ void SaveDistribs(void)
 		}
 		fclose(dat);
 		sprintf(outname, "%s.placesize.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "size");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3244,7 +3244,7 @@ void SaveOriginDestMatrix(void)
 	char outname[1024];
 
 	sprintf(outname, "%s.origdestmat.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 	fprintf(dat, "0,");
 	for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 	fprintf(dat, "\n");
@@ -3269,7 +3269,7 @@ void SaveResults(void)
 	if (P.OutputNonSeverity)
 	{
 		sprintf(outname, "%s.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincH\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for(i = 0; i < P.NumSamples; i++)
 		{
@@ -3285,7 +3285,7 @@ void SaveResults(void)
 	if ((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		sprintf(outname, "%s.adunit.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3309,7 +3309,7 @@ void SaveResults(void)
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile); //modifying to csv file
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
     		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3341,7 +3341,7 @@ void SaveResults(void)
 	if ((P.DoDigitalContactTracing) && (P.OutputDigitalContactDist))
 	{
 		sprintf(outname, "%s.digitalcontactdist.xls", OutFile); //modifying to csv file
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		//print headers
 		fprintf(dat, "nContacts\tFrequency\n");
 		for (i = 0; i < (MAX_CONTACTS + 1); i++)
@@ -3354,7 +3354,7 @@ void SaveResults(void)
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
 		{
 		sprintf(outname, "%s.keyworker.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3377,7 +3377,7 @@ void SaveResults(void)
 	if(P.DoInfectionTree)
 		{
 		sprintf(outname, "%s.tree.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
@@ -3400,7 +3400,7 @@ void SaveResults(void)
 		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);
 		if(!(dat = fopen(outname, "wb")))
 			{
-			ERR_CRITICAL("Unable to open output kml file\n");
+			ErrorCritical("Unable to open output kml file\n");
 			}
 		fprintf(dat, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.2\">\n<Document>\n");
 		fprintf(dat, "<name>%s</name>\n", OutFile);
@@ -3445,7 +3445,7 @@ void SaveResults(void)
 	if(P.DoSeverity)
 	{
 		sprintf(outname, "%s.severity.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open severity output file\n");
 		fprintf(dat, "t\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for (i = 0; i < P.NumSamples; i++)
 		{
@@ -3463,7 +3463,7 @@ void SaveResults(void)
 		{
 			//// output severity results by admin unit
 			sprintf(outname, "%s.severity.adunit.xls", OutFile);
-			if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -3553,7 +3553,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputNonSeverity)
 	{
 		sprintf(outname, "%s.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tincH\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvincH\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
 			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
@@ -3587,7 +3587,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputControls)
 	{
 		sprintf(outname, "%s.controls.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t\tS\tincC\tincTC\tincFC\tincH\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
 		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tprClosed_%i", j);
 		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvincH\tvcumT\tvcumUT\tvcumTP\tvcumV");
@@ -3621,7 +3621,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputAge)
 	{
 		sprintf(outname, "%s.age.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
 			fprintf(dat, "\tI%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
@@ -3651,7 +3651,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		sprintf(outname, "%s.adunit.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3678,7 +3678,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		if (P.OutputAdUnitVar)
 		{
 			sprintf(outname, "%s.adunitVar.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 			fprintf(dat, "t");
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3705,7 +3705,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3738,7 +3738,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
 	{
 		sprintf(outname, "%s.keyworker.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3770,7 +3770,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputInfType)
 	{
 		sprintf(outname, "%s.inftype.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		fprintf(dat, "t\tR");
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tRtype_%i", j);
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
@@ -3790,7 +3790,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputR0)
 	{
 		sprintf(outname, "%s.R0.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		for (i = 0; i < MAX_SEC_REC; i++)
 		{
 			fprintf(dat, "%i", i);
@@ -3818,7 +3818,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				t += case_household_av[i][j];
 			case_household_av[i][0] = denom_household[i] / c - t;
 		}
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
 			fprintf(dat, "\t%i", i);
 		fprintf(dat, "\n");
@@ -3846,7 +3846,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.OutputCountry)
 	{
 		sprintf(outname, "%s.country.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 		for (i = 0; i < MAX_COUNTRIES; i++)
 			fprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
 		fclose(dat);
@@ -3857,7 +3857,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		//// output separate severity file (can integrate with main if need be)
 		sprintf(outname, "%s.severity.xls", OutFile);
 
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open severity output file\n");
 		fprintf(dat, "t\tPropSocDist\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
@@ -3896,12 +3896,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -3909,7 +3909,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by age group
 			sprintf(outname, "%s.severity.age.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -4018,12 +4018,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
+			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ErrorCritical("Unable to allocate temp storage\n");
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4031,7 +4031,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
 			sprintf(outname, "%s.severity.adunit.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -4154,7 +4154,7 @@ void SaveRandomSeeds(void)
 	char outname[1024];
 
 	sprintf(outname, "%s.seeds.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 	fprintf(dat, "%li\t%li\n", P.nextRunSeed1, P.nextRunSeed2);
 	fclose(dat);
 }
@@ -4174,7 +4174,7 @@ void SaveEvents(void)
 	char outname[1024];
 
 	sprintf(outname, "%s.infevents.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname, "wb"))) ErrorCritical("Unable to open output file\n");
 	fprintf(dat, "type,t,thread,ind_infectee,cell_infectee,listpos_infectee,adunit_infectee,x_infectee,y_infectee,t_infector,ind_infector,cell_infector\n");
 	for (i = 0; i < *nEvents; i++)
 	{
@@ -4194,12 +4194,12 @@ void LoadSnapshot(void)
 	int** Array_InvCDF;
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
-	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ErrorCritical("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*)))) ERR_CRITICAL("Unable to allocate temp cell storage\n");
-	if (!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*)))) ErrorCritical("Unable to allocate temp cell storage\n");
+	if (!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*)))) ErrorCritical("Unable to temp allocate cell storage\n");
+	if (!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*)))) ErrorCritical("Unable to temp allocate cell storage\n");
+	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ErrorCritical("Unable to temp allocate cell storage\n");
 	for (i = 0; i < P.NCP; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;
@@ -4208,15 +4208,15 @@ void LoadSnapshot(void)
 		Array_tot_prob[i] = Cells[i].tot_prob;
 	}
 
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
-	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ErrorCritical("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ErrorCritical("Incorrect NH in snapshot file.\n");
+	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ErrorCritical("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ErrorCritical("Incorrect NCP in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ErrorCritical("Incorrect ncw in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ErrorCritical("Incorrect nch in snapshot file.\n");
+	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed1) ErrorCritical("Incorrect setupSeed1 in snapshot file.\n");
+	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed2) ErrorCritical("Incorrect setupSeed2 in snapshot file.\n");
+	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ErrorCritical("Incorrect TimeStep in snapshot file.\n");
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
 	fprintf(stderr, ".");
@@ -4274,7 +4274,7 @@ void SaveSnapshot(void)
 	FILE* dat;
 	int i = 1;
 
-	if (!(dat = fopen(SnapshotSaveFile, "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(SnapshotSaveFile, "wb"))) ErrorCritical("Unable to open snapshot file\n");
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5473,7 +5473,7 @@ int GetInputParameter (FILE* dat, FILE* dat2, const char* SItemName, const char*
 	FindFlag = GetInputParameter2(dat, dat2, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
 	if (!FindFlag)
 	{
-		ERR_CRITICAL_FMT("\nUnable to find parameter `%s' in input file. Aborting program...\n", SItemName);
+		ErrorCritical("\nUnable to find parameter `%s' in input file. Aborting program...\n", SItemName);
 	}
 	return FindFlag;
 }
@@ -5497,13 +5497,13 @@ bool readString(const char* SItemName, FILE* dat, char *buf) {
         return true;
     } else if (r == EOF) {
         if(ferror(dat)) {
-            ERR_CRITICAL_FMT("fscanf failed for %s: %s.\n", SItemName, strerror(errno));
+            ErrorCritical("fscanf failed for %s: %s.\n", SItemName, strerror(errno));
         } else {
             // EOF
             return false;
         }
     } else {
-        ERR_CRITICAL_FMT("Unexpected fscanf result %d for %s.\n", r, SItemName);
+        ErrorCritical("Unexpected fscanf result %d for %s.\n", r, SItemName);
     }
 }
 
@@ -5549,7 +5549,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 		{
 			if (NumItem == 1)
 			{
-				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+				if(fscanf(dat, "%s", match) != 1) { ErrorCritical("fscanf failed for %s\n", SItemName); }
 				if ((match[0] == '#') && (match[1] == '1'))
 				{
 					FindFlag++;
@@ -5625,7 +5625,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					if(fscanf(dat, "%s", match) != 1) { ErrorCritical("fscanf failed for %s\n", SItemName); }
 					if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
@@ -5647,7 +5647,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{ //added these braces
 				for (i = 0; i < NumItem2; i++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					if(fscanf(dat, "%s", match) != 1) { ErrorCritical("fscanf failed for %s\n", SItemName); }
 					if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;

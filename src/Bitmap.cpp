@@ -155,7 +155,7 @@ void OutputBitmap(int tp)
 	  using namespace Magick;
 	  fprintf(stderr, "\noutputing ImageMagick stuff");
 	  sprintf(buf, "%s.bmp", OutF);
-	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
+	  if (!(dat = fopen(buf, "wb"))) ErrorCritical("Unable to open bitmap file\n");
 	  fprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
 	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
@@ -185,7 +185,7 @@ void OutputBitmap(int tp)
 		  static ColorPalette* palette;
 		  palsize = gdip_bmp->GetPaletteSize();
 		  palette = (ColorPalette*)malloc(palsize);
-		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
+		  if (!palette) ErrorCritical("Unable to allocate palette memory\n");
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
 		  palette->Entries[0] = 0x00ffffff; // Transparent white
@@ -206,9 +206,9 @@ void OutputBitmap(int tp)
 	  if (!(dat = fopen(buf, "wb"))) {
 	    char* errMsg = strerror(errno);
 	    if (errMsg == nullptr) {
-	      ERR_CRITICAL("strerror failed.\n");
+	      ErrorCritical("strerror failed.\n");
 	    }
-	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
+	    ErrorCritical("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
 	  }
 	  fprintf(dat, "BM");
 	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(bitmap_header) / sizeof(unsigned char) + bmh->imagesize, dat);
@@ -228,7 +228,7 @@ void InitBMHead()
 	k2 = sizeof(bitmap_header) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+		ErrorCritical("Unable to allocate storage for bitmap\n");
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
 	bmh = (bitmap_header*)bmf;
@@ -268,13 +268,13 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
 	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+		ErrorCritical("Unable to allocate storage for bitmap\n");
 	if (!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+		ErrorCritical("Unable to allocate storage for bitmap\n");
 	if (!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+		ErrorCritical("Unable to allocate storage for bitmap\n");
 	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+		ErrorCritical("Unable to allocate storage for bitmap\n");
 
 	if (P.BitmapFormat == BF_PNG)
 	{
@@ -289,7 +289,7 @@ void InitBMHead()
 	  Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 	  Gdiplus::GetImageEncodersSize(&num, &size);
 	  if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
-	    ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	    ErrorCritical("Unable to allocate storage for bitmap\n");
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 	  for (UINT j = 0; j < num; ++j) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()

@@ -295,8 +295,8 @@ long ignbin(long n, double pp)
 	*****SETUP, PERFORM ONLY WHEN PARAMETERS CHANGE
 	JJV added checks to ensure 0.0 <= PP <= 1.0
 	*/
-	if (pp < 0.0F) ERR_CRITICAL("PP < 0.0 in IGNBIN");
-	if (pp > 1.0F) ERR_CRITICAL("PP > 1.0 in IGNBIN");
+	if (pp < 0.0F) ErrorCritical("PP < 0.0 in IGNBIN");
+	if (pp > 1.0F) ErrorCritical("PP > 1.0 in IGNBIN");
 	psave = pp;
 	p = minF(psave, 1.0 - psave);
 	q = 1.0 - p;
@@ -304,7 +304,7 @@ long ignbin(long n, double pp)
 	/*
 	JJV added check to ensure N >= 0
 	*/
-	if (n < 0L) ERR_CRITICAL("N < 0 in IGNBIN");
+	if (n < 0L) ErrorCritical("N < 0 in IGNBIN");
 	xnp = n * p;
 	nsave = n;
 	if (xnp < 30.0) goto S140;
@@ -1025,8 +1025,8 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	*****SETUP, PERFORM ONLY WHEN PARAMETERS CHANGE
 	JJV added checks to ensure 0.0 <= PP <= 1.0
 	*/
-	if (pp < 0.0) ERR_CRITICAL("PP < 0.0 in IGNBIN");
-	if (pp > 1.0) ERR_CRITICAL("PP > 1.0 in IGNBIN");
+	if (pp < 0.0) ErrorCritical("PP < 0.0 in IGNBIN");
+	if (pp > 1.0) ErrorCritical("PP > 1.0 in IGNBIN");
 	psave = pp;
 	p = minF(psave, 1.0 - psave);
 	q = 1.0 - p;
@@ -1034,7 +1034,7 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	/*
 	JJV added check to ensure N >= 0
 	*/
-	if (n < 0) ERR_CRITICAL("N < 0 in IGNBIN");
+	if (n < 0) ErrorCritical("N < 0 in IGNBIN");
 	xnp = n * p;
 	nsave = n;
 	if (xnp < 30.0) goto S140;
@@ -1597,7 +1597,7 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 	//error statment if either beta or alpha are <=0, as gamma distribution is undefined in this case
 	if ((beta <= 0) || (alpha <= 0))
 	{
-		ERR_CRITICAL("Gamma distribution parameters in undefined range!\n");
+		ErrorCritical("Gamma distribution parameters in undefined range!\n");
 	}
 
 	//method is slightly different depending on whether alpha is greater than or equal to 1, or less than 1
