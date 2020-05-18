@@ -2106,124 +2106,114 @@ void AssignPeopleToPlaces(void)
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{
-					FILE* stderr_shared = stderr;
-#pragma omp parallel for private(i2,j,j2,k,k2,l,m,m2,f,f2,ic,cnt,s,t,mx,my) reduction(+:ca) schedule(static,1) default(none) \
-						firstprivate(a,nt,nn) \
-						shared(P, Places, NearestPlaces, NearestPlacesProb, Hosts, PeopleArray, Households, Mcells, tp, stderr_shared)
-					for (int tn = 0; tn < P.NumThreads; tn++)
+					tn = 0;
+					for (j = 0; j < a; j++)
 					{
-						for (j = tn; j < a; j += nt)
+						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
+						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
+						l = 1; k = m = m2 = f2 = 0;
+						i = PeopleArray[j];
+						ic = Hosts[i].mcell;
+						mx = ic / P.nmch;
+						my = ic % P.nmch;
+						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							if (j % 1000 == 0) fprintf(stderr_shared, "(%i) %i      \r", tp, j);
-							for (i2 = 0; i2 < nn; i2++)
-								NearestPlacesProb[tn][i2] = 0;
-							l = 1; k = m = m2 = f2 = 0;
-							int i = PeopleArray[j];
-							ic = Hosts[i].mcell;
-							mx = ic / P.nmch;
-							my = ic % P.nmch;
-							if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
+							while (((k < nn) || (l < 4)) && (l < P.nmcw))
 							{
-								while (((k < nn) || (l < 4)) && (l < P.nmcw))
+								if ((mx >= 0) && (my >= 0) && (mx < P.nmcw) && (my < P.nmch))
 								{
-									if ((mx >= 0) && (my >= 0) && (mx < P.nmcw) && (my < P.nmch))
+									ic = mx * P.nmch + my;
+									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
 									{
-										ic = mx * P.nmch + my;
-										if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
+										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{
-											for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
-											{
-												if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr_shared, "#%i %i %i  ", tp, ic, cnt);
-												t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
-													Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
-												s = numKernel(t);
-												if (tp < P.nsp)
-												{
-													t = ((double)Places[tp][Mcells[ic].places[tp][cnt]].treat_end_time);
-													if (HOST_AGE_YEAR(i) < P.PlaceTypeMaxAgeRead[tp])
-													{
-														if ((t > 0) && (Places[tp][Mcells[ic].places[tp][cnt]].AvailByAge[HOST_AGE_YEAR(i)] > 0))
-															s *= t;
-														else
-															s = 0;
-													}
-													else if (t > 0)
-														s *= t;
-												}
-												k2 = 0; j2 = 0; t = 1e10;
-												if (s > 0)
-												{
-													if (k < nn)
-													{
-														NearestPlaces[tn][k] = Mcells[ic].places[tp][cnt];
-														NearestPlacesProb[tn][k] = s;
-														k++;
-													}
-													else
-													{
-														for (i2 = 0; i2 < nn; i2++)
-														{
-															if (NearestPlacesProb[tn][i2] < t)
-															{
-																t = NearestPlacesProb[tn][i2]; j2 = i2;
-															}
-														}
-														if (s > t)
-														{
-															NearestPlacesProb[tn][j2] = s;
-															NearestPlaces[tn][j2] = Mcells[ic].places[tp][cnt];
-														}
-													}
-												}
-											}
-										}
-									}
-									if (m2 == 0)
-										mx = mx + 1;
-									else if (m2 == 1)
-										my = my - 1;
-									else if (m2 == 2)
-										mx = mx - 1;
-									else if (m2 == 3)
-										my = my + 1;
-									f2 = (f2 + 1) % l;
-									if (f2 == 0)
-									{
-										m2 = (m2 + 1) % 4;
-										m = (m + 1) % 2;
-										if (m == 0) l++;
-									}
-								}
-
-								s = 0;
-								if (k > nn) fprintf(stderr_shared, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
-								if (k == 0)
-								{
-									fprintf(stderr_shared, "# %i %i     \r", i, j);
-									Hosts[i].PlaceLinks[tp] = -1;
-								}
-								else
-								{
-									for (i2 = 1; i2 < k; i2++)
-										NearestPlacesProb[tn][i2] += NearestPlacesProb[tn][i2 - 1];
-									s = NearestPlacesProb[tn][k - 1];
-									t = ranf_mt(tn);
-									f = 0;
-									for (i2 = 0; (i2 < k) && (!f); i2++)
-									{
-										if ((f = (t < NearestPlacesProb[tn][i2] / s)))
-										{
-											Hosts[i].PlaceLinks[tp] = NearestPlaces[tn][i2];
-											ca++;
+											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+											t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
+												Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
+											s = numKernel(t);
 											if (tp < P.nsp)
 											{
-#pragma omp critical (places_treat_time)
-												Places[tp][Hosts[i].PlaceLinks[tp]].treat_end_time--;
+												t = ((double)Places[tp][Mcells[ic].places[tp][cnt]].treat_end_time);
+												if (HOST_AGE_YEAR(i) < P.PlaceTypeMaxAgeRead[tp])
+												{
+													if ((t > 0) && (Places[tp][Mcells[ic].places[tp][cnt]].AvailByAge[HOST_AGE_YEAR(i)] > 0))
+														s *= t;
+													else
+														s = 0;
+												}
+												else if (t > 0)
+													s *= t;
+											}
+											k2 = 0; j2 = 0; t = 1e10;
+											if (s > 0)
+											{
+												if (k < nn)
+												{
+													NearestPlaces[tn][k] = Mcells[ic].places[tp][cnt];
+													NearestPlacesProb[tn][k] = s;
+													k++;
+												}
+												else
+												{
+													for (i2 = 0; i2 < nn; i2++)
+													{
+														if (NearestPlacesProb[tn][i2] < t)
+														{
+															t = NearestPlacesProb[tn][i2]; j2 = i2;
+														}
+													}
+													if (s > t)
+													{
+														NearestPlacesProb[tn][j2] = s;
+														NearestPlaces[tn][j2] = Mcells[ic].places[tp][cnt];
+													}
+												}
 											}
 										}
-										if (!f) Hosts[i].PlaceLinks[tp] = -1;
-										if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr_shared, "@%i %i %i  ", tp, i, j);
 									}
+								}
+								if (m2 == 0)
+									mx = mx + 1;
+								else if (m2 == 1)
+									my = my - 1;
+								else if (m2 == 2)
+									mx = mx - 1;
+								else if (m2 == 3)
+									my = my + 1;
+								f2 = (f2 + 1) % l;
+								if (f2 == 0)
+								{
+									m2 = (m2 + 1) % 4;
+									m = (m + 1) % 2;
+									if (m == 0) l++;
+								}
+							}
+
+							s = 0;
+							if (k > nn) fprintf(stderr, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
+							if (k == 0)
+							{
+								fprintf(stderr, "# %i %i     \r", i, j);
+								Hosts[i].PlaceLinks[tp] = -1;
+							}
+							else
+							{
+								for (i2 = 1; i2 < k; i2++)
+									NearestPlacesProb[tn][i2] += NearestPlacesProb[tn][i2 - 1];
+								s = NearestPlacesProb[tn][k - 1];
+								t = ranf_mt(tn);
+								f = 0;
+								for (i2 = 0; (i2 < k) && (!f); i2++)
+								{
+									if ((f = (t < NearestPlacesProb[tn][i2] / s)))
+									{
+										Hosts[i].PlaceLinks[tp] = NearestPlaces[tn][i2];
+										ca++;
+										if (tp < P.nsp)
+											Places[tp][Hosts[i].PlaceLinks[tp]].treat_end_time--;
+									}
+									if (!f) Hosts[i].PlaceLinks[tp] = -1;
+									if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr, "@%i %i %i  ", tp, i, j);
 								}
 							}
 						}
@@ -2250,14 +2240,11 @@ void AssignPeopleToPlaces(void)
 						{
 							m2 = k2 - 1; f = 0;
 						}
-
-						FILE* stderr_shared = stderr;
-#pragma omp parallel for private(i2,j,k,l,m,f2,f3,t,ct,s) reduction(+:ca) default(none) \
-							shared(P, Cells, CellLookup, Places, PeopleArray, Households, Hosts, Mcells, m2, f, tp, stderr_shared)
 						for (i2 = m2; i2 >= f; i2--)
 						{
-							if (i2 % 1000 == 0)
-								fprintf(stderr_shared, "(%i) %i            \r", tp, i2);
+							tn = 0;
+							if (i2 % 10000 == 0)
+								fprintf(stderr, "(%i) %i            \r", tp, i2);
 							k = PeopleArray[i2];
 							int i = Hosts[k].pcell;
 							f2 = 1;
@@ -2267,21 +2254,18 @@ void AssignPeopleToPlaces(void)
 								{
 									do
 									{
-										s = ranf();
+										s = ranf_mt(tn);
 										l = Cells[i].InvCDF[(int)floor(s * 1024)];
 										while (Cells[i].cum_trans[l] < s) l++;
 										ct = CellLookup[l];
-										m = (int)(ranf() * ((double)ct->S));
+										m = (int)(ranf_mt(tn) * ((double)ct->S));
 										j = -1;
-#pragma omp critical
-										{
-											if (ct->susceptible[m] >= 0)
-												if ((f3) || (Places[tp][ct->susceptible[m]].AvailByAge[HOST_AGE_YEAR(k)] > 0))
-												{
-													j = ct->susceptible[m];
-													ct->susceptible[m] = -1;
-												}
-										}
+										if (ct->susceptible[m] >= 0)
+											if ((f3) || (Places[tp][ct->susceptible[m]].AvailByAge[HOST_AGE_YEAR(k)] > 0))
+											{
+												j = ct->susceptible[m];
+												ct->susceptible[m] = -1;
+											}
 									} while (j < 0);
 									if (j >= P.Nplace[tp])
 									{
@@ -2294,12 +2278,10 @@ void AssignPeopleToPlaces(void)
 									{
 										if (Mcells[Hosts[k].mcell].adunit != Mcells[Places[tp][j].mcell].adunit) s *= (1 - P.InhibitInterAdunitPlaceAssignment[tp]);
 									}
-									if (ranf() < s)
+									if (ranf_mt(tn) < s)
 									{
-#pragma omp critical
 										l = (--ct->S);
 										if (m < l) ct->susceptible[m] = ct->susceptible[l];
-#pragma omp critical (places_treat_time)
 										Places[tp][j].treat_end_time--;
 										ca++;
 										Hosts[k].PlaceLinks[tp] = j;
