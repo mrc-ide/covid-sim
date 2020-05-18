@@ -9,7 +9,7 @@ __declspec(noreturn)
 #endif
 void ErrorCritical(const char* msg, const char* file, int line, ...)
 #ifdef __GNUC__
-                                            __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))
+  __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))
 #endif
 ;
 
