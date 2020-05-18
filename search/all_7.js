@@ -21,7 +21,7 @@ var searchData=
   ['hosts_432',['Hosts',['../_covid_sim_8cpp.html#a425ef0e7fb94382a2c5705eab1f27d63',1,'Hosts():&#160;CovidSim.cpp'],['../_model_8h.html#a425ef0e7fb94382a2c5705eab1f27d63',1,'Hosts():&#160;CovidSim.cpp']]],
   ['hotelplacetype_433',['HotelPlaceType',['../struct_p_a_r_a_m.html#aab7c7263ca8c3fdfa4605e959c4b3623',1,'PARAM']]],
   ['hotelproplocal_434',['HotelPropLocal',['../struct_p_a_r_a_m.html#aee003f63801873b335ea1257f862c233',1,'PARAM']]],
-  ['hotels_5fper_5f1000passenger_435',['HOTELS_PER_1000PASSENGER',['../_constants_8h.html#a300a3bb30e49af541eed470ed14ca0a8',1,'Constants.h']]],
+  ['hotels_5fper_5f1000passenger_435',['HOTELS_PER_1000PASSENGER',['../_constants_8h.html#a0b863ae5f14e3b64b52febe6ba3aeedc',1,'Constants.h']]],
   ['household_436',['HOUSEHOLD',['../struct_h_o_u_s_e_h_o_l_d.html',1,'HOUSEHOLD'],['../_model_8h.html#ad9fcd7464cdffa9c53c4b49d042f6aca',1,'household():&#160;Model.h']]],
   ['householddenomlookup_437',['HouseholdDenomLookup',['../struct_p_a_r_a_m.html#a664d860bfeeb94a5dcc7299e26f2c1d9',1,'PARAM']]],
   ['households_438',['Households',['../_covid_sim_8cpp.html#aa73f7cf5ecb1acf206c5c14987bd9d89',1,'Households():&#160;CovidSim.cpp'],['../_model_8h.html#aa73f7cf5ecb1acf206c5c14987bd9d89',1,'Households():&#160;CovidSim.cpp']]],

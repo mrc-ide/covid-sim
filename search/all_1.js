@@ -31,6 +31,6 @@ var searchData=
   ['bmtreated_71',['bmTreated',['../_bitmap_8h.html#a7b9def4362a8b45fd7a2b7c2a645224f',1,'bmTreated():&#160;Bitmap.h'],['../_covid_sim_8cpp.html#a90a883b2589657ea0874c5cab435997a',1,'bmTreated():&#160;CovidSim.cpp']]],
   ['boffset_72',['boffset',['../struct_b_i_t_m_a_p___h_e_a_d_e_r.html#ad3865a08a674bc35ae627d2303de8319',1,'BITMAP_HEADER']]],
   ['boundingbox_73',['BoundingBox',['../struct_p_a_r_a_m.html#a70f2da3a1912e3eb290e5953c974b6a9',1,'PARAM']]],
-  ['bwcols_74',['BWCOLS',['../_bitmap_8h.html#af808a334da52a6588e3079c180f8e4b7',1,'Bitmap.h']]],
+  ['bwcols_74',['BWCOLS',['../_bitmap_8h.html#a54bcfa9571738d35eea4adcc114d85d1',1,'Bitmap.h']]],
   ['bwidth_75',['bwidth',['../struct_p_a_r_a_m.html#af53ceef932a2c83bc2ff4ec99b3560e6',1,'PARAM']]]
 ];

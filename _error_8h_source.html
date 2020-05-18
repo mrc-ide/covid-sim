@@ -80,7 +80,7 @@ $(function() {
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keywordtype">void</span> <a class="code" href="_error_8h.html#a6d7f434fe55f165c85be19c51dbd4ffb">ErrorCritical</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* msg, <span class="keyword">const</span> <span class="keywordtype">char</span>* file, <span class="keywordtype">int</span> line, ...)</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifdef __GNUC__</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;                                            __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;  __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;;</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>

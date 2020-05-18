@@ -17,7 +17,7 @@ var searchData=
   ['adunitlevel1mask_14',['AdunitLevel1Mask',['../struct_p_a_r_a_m.html#abafc7bd1ca8b41e32f3be74ef2c6e15d',1,'PARAM']]],
   ['adunits_15',['AdUnits',['../_covid_sim_8cpp.html#ae46ef51c0d02788795ea7858abc6685f',1,'AdUnits():&#160;CovidSim.cpp'],['../_model_8h.html#ae46ef51c0d02788795ea7858abc6685f',1,'AdUnits():&#160;CovidSim.cpp']]],
   ['age_16',['age',['../struct_p_e_r_s_o_n.html#ae34653698bb14af41cfb8a7febbe6a29',1,'PERSON']]],
-  ['age_5fgroup_5fwidth_17',['AGE_GROUP_WIDTH',['../_constants_8h.html#a84d95d9674690907eeb9bd94bd69e919',1,'Constants.h']]],
+  ['age_5fgroup_5fwidth_17',['AGE_GROUP_WIDTH',['../_constants_8h.html#a34dc1a445b5f4b82c57f0b3029ecaa32',1,'Constants.h']]],
   ['agedist_18',['AgeDist',['../_covid_sim_8cpp.html#afba453a55f70b5bd34cb7ec9a9e8efb8',1,'AgeDist():&#160;CovidSim.cpp'],['../_model_8h.html#afba453a55f70b5bd34cb7ec9a9e8efb8',1,'AgeDist():&#160;Model.h']]],
   ['agedist2_19',['AgeDist2',['../_covid_sim_8cpp.html#adcb5809ea899ce36627ec090c3b44488',1,'AgeDist2():&#160;CovidSim.cpp'],['../_model_8h.html#adcb5809ea899ce36627ec090c3b44488',1,'AgeDist2():&#160;Model.h']]],
   ['ageinfectiousness_20',['AgeInfectiousness',['../struct_p_a_r_a_m.html#a4ee8a4d1185a084343481943ba901da4',1,'PARAM']]],

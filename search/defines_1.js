@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['bwcols_2513',['BWCOLS',['../_bitmap_8h.html#af808a334da52a6588e3079c180f8e4b7',1,'Bitmap.h']]]
+  ['directory_5fseparator_2545',['DIRECTORY_SEPARATOR',['../_bitmap_8h.html#af1e88bb4b1ff9546e6803eec85e0684c',1,'Bitmap.h']]]
 ];
