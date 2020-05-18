@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <math.h>
-#include <cstdlib>
+#include <cmath>
+#include <algorithm>
 #include "Rand.h"
 #include "MachineDefines.h"
 #include "Constants.h"
@@ -8,10 +8,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-/* RANDLIB macros*/
-#define ABS(x) ((x) >= 0 ? (x) : -(x))
-#define minF(a,b) ((a) <= (b) ? (a) : (b))
-#define maxF(a,b) ((a) >= (b) ? (a) : (b))
 
 /* RANDLIB static variables */
 long* Xcg1, *Xcg2;
@@ -298,7 +294,7 @@ long ignbin(long n, double pp)
 	if (pp < 0.0F) ERR_CRITICAL("PP < 0.0 in IGNBIN");
 	if (pp > 1.0F) ERR_CRITICAL("PP > 1.0 in IGNBIN");
 	psave = pp;
-	p = minF(psave, 1.0 - psave);
+	p = std::min(psave, 1.0 - psave);
 	q = 1.0 - p;
 
 	/*
@@ -342,7 +338,7 @@ S40:
 	*/
 	if (u > p2) goto S50;
 	x = xl + (u - p1) / c;
-	v = v * c + 1.0 - ABS(xm - x) / p1;
+	v = v * c + 1.0 - std::abs(xm - x) / p1;
 	if (v > 1.0 || v <= 0.0) goto S30;
 	ix = (long)x;
 	goto S70;
@@ -366,7 +362,7 @@ S70:
 	/*
 	*****DETERMINE APPROPRIATE WAY TO PERFORM ACCEPT/REJECT TEST
 	*/
-	k = ABS(ix - m);
+	k = std::abs(ix - m);
 	if (k > 20 && k < xnpq / 2 - 1) goto S130;
 	/*
 		 EXPLICIT EVALUATION
@@ -629,7 +625,7 @@ S120:
 		 C A S E  B. (START NEW TABLE AND CALCULATE P0 IF NECESSARY)
 		 JJV changed MUPREV assignment to initial value
 	*/
-	m = maxF(1L, (long)(mu));
+	m = std::max(1L, (long)(mu));
 	l = 0;
 	p = exp(-mu);
 	q = p0 = p;
@@ -647,7 +643,7 @@ S130:
 	*/
 	if (l == 0) goto S150;
 	j = 1;
-	if (u > 0.458) j = minF(l, m);
+	if (u > 0.458) j = std::min(l, m);
 	for (k = j; k <= l; k++) {
 		if (u <= *(pp + k - 1)) goto S180;
 	}
@@ -863,7 +859,7 @@ S120:
 	C A S E  B. (START NEW TABLE AND CALCULATE P0 IF NECESSARY)
 	JJV changed MUPREV assignment to initial value
 	*/
-	m = maxF(1L, (long)(mu));
+	m = std::max(1L, (long)(mu));
 	l = 0;
 	p = exp(-mu);
 	q = p0 = p;
@@ -881,7 +877,7 @@ S130:
 	*/
 	if (l == 0) goto S150;
 	j = 1;
-	if (u > 0.458) j = minF(l, m);
+	if (u > 0.458) j = std::min(l, m);
 	for (k = j; k <= l; k++) {
 		if (u <= *(pp + k - 1)) goto S180;
 	}
@@ -1028,7 +1024,7 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	if (pp < 0.0) ERR_CRITICAL("PP < 0.0 in IGNBIN");
 	if (pp > 1.0) ERR_CRITICAL("PP > 1.0 in IGNBIN");
 	psave = pp;
-	p = minF(psave, 1.0 - psave);
+	p = std::min(psave, 1.0 - psave);
 	q = 1.0 - p;
 
 	/*
@@ -1072,7 +1068,7 @@ S40:
 	*/
 	if (u > p2) goto S50;
 	x = xl + (u - p1) / c;
-	v = v * c + 1.0 - ABS(xm - x) / p1;
+	v = v * c + 1.0 - std::abs(xm - x) / p1;
 	if (v > 1.0 || v <= 0.0) goto S30;
 	ix = (long)x;
 	goto S70;
@@ -1096,7 +1092,7 @@ S70:
 	/*
 	*****DETERMINE APPROPRIATE WAY TO PERFORM ACCEPT/REJECT TEST
 	*/
-	k = ABS(ix - m);
+	k = std::abs(ix - m);
 	if (k > 20 && k < xnpq / 2 - 1) goto S130;
 	/*
 	EXPLICIT EVALUATION
