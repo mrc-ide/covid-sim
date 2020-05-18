@@ -322,7 +322,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.KernelP3 = P.MoveKernelP3;
 	P.KernelP4 = P.MoveKernelP4;
 	P.KernelType = P.MoveKernelType;
-	InitKernel(0, 1.0);
+	InitKernel(1.0);
 
 	if (P.DoPlaces)
 	{
@@ -1509,7 +1509,7 @@ void SetupAirports(void)
 	P.KernelShape = P.AirportKernelShape;
 	P.KernelP3 = P.AirportKernelP3;
 	P.KernelP4 = P.AirportKernelP4;
-	InitKernel(1, 1.0);
+	InitKernel(1.0);
 	if (!(Airports[0].DestMcells = (indexlist*)calloc(P.NMCP * NNA, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	if (!(base = (indexlist*)calloc(P.NMCP * NNA, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
@@ -1672,7 +1672,7 @@ void SetupAirports(void)
 	P.KernelShape = P.MoveKernelShape;
 	P.KernelP3 = P.MoveKernelP3;
 	P.KernelP4 = P.MoveKernelP4;
-	InitKernel(0, 1.0);
+	InitKernel(1.0);
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
 
@@ -2097,7 +2097,7 @@ void AssignPeopleToPlaces(void)
 				P.KernelShape = P.PlaceTypeKernelShape[tp];
 				P.KernelP3 = P.PlaceTypeKernelP3[tp];
 				P.KernelP4 = P.PlaceTypeKernelP4[tp];
-				InitKernel(1, 1.0);
+				InitKernel(1.0);
 				UpdateProbs(1);
 				ca = 0;
 				fprintf(stderr, "Allocating people to place type %i\n", tp);
