@@ -89,30 +89,32 @@ $(function() {
 <code>#include &quot;<a class="el" href="_inf_stat_8h_source.html">InfStat.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_calc_inf_susc_8h_source.html">CalcInfSusc.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_update_8h_source.html">Update.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_sweep_8h_source.html">Sweep.h</a>&quot;</code><br />
 <code>#include &lt;strings.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CovidSim.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="_covid_sim_8cpp__incl.png" border="0" usemap="#src_2_covid_sim_8cpp" alt=""/></div>
 <map name="src_2_covid_sim_8cpp" id="src_2_covid_sim_8cpp">
-<area shape="rect" title=" " alt="" coords="1041,5,1165,32"/>
+<area shape="rect" title=" " alt="" coords="1100,5,1224,32"/>
 <area shape="rect" title=" " alt="" coords="233,80,294,107"/>
 <area shape="rect" title=" " alt="" coords="100,155,168,181"/>
 <area shape="rect" href="_covid_sim_8h.html" title=" " alt="" coords="555,80,643,107"/>
-<area shape="rect" href="_bin_i_o_8h.html" title=" " alt="" coords="1071,80,1136,107"/>
-<area shape="rect" href="_rand_8h.html" title=" " alt="" coords="1160,80,1223,107"/>
-<area shape="rect" href="_error_8h.html" title=" " alt="" coords="1247,80,1306,107"/>
-<area shape="rect" href="_dist_8h.html" title=" " alt="" coords="889,80,944,107"/>
+<area shape="rect" href="_bin_i_o_8h.html" title=" " alt="" coords="1085,80,1151,107"/>
+<area shape="rect" href="_rand_8h.html" title=" " alt="" coords="1175,80,1237,107"/>
+<area shape="rect" href="_error_8h.html" title=" " alt="" coords="1262,80,1321,107"/>
+<area shape="rect" href="_dist_8h.html" title=" " alt="" coords="955,80,1009,107"/>
 <area shape="rect" href="_model_8h.html" title=" " alt="" coords="949,155,1015,181"/>
 <area shape="rect" href="_inf_stat_8h.html" title=" " alt="" coords="1012,229,1083,256"/>
-<area shape="rect" href="_kernels_8h.html" title=" " alt="" coords="1331,80,1407,107"/>
-<area shape="rect" href="_bitmap_8h.html" title=" " alt="" coords="1431,80,1504,107"/>
+<area shape="rect" href="_kernels_8h.html" title=" " alt="" coords="1345,80,1421,107"/>
+<area shape="rect" href="_bitmap_8h.html" title=" " alt="" coords="1445,80,1519,107"/>
 <area shape="rect" href="_param_8h.html" title=" " alt="" coords="5,155,76,181"/>
-<area shape="rect" href="_setup_model_8h.html" title=" " alt="" coords="1529,80,1630,107"/>
+<area shape="rect" href="_setup_model_8h.html" title=" " alt="" coords="1543,80,1645,107"/>
 <area shape="rect" href="_model_macros_8h.html" title=" " alt="" coords="420,80,531,107"/>
-<area shape="rect" href="_calc_inf_susc_8h.html" title=" " alt="" coords="1655,80,1757,107"/>
-<area shape="rect" href="_update_8h.html" title=" " alt="" coords="1782,80,1857,107"/>
-<area shape="rect" title=" " alt="" coords="1881,80,1952,107"/>
+<area shape="rect" href="_calc_inf_susc_8h.html" title=" " alt="" coords="1669,80,1772,107"/>
+<area shape="rect" href="_update_8h.html" title=" " alt="" coords="1797,80,1871,107"/>
+<area shape="rect" href="_sweep_8h.html" title=" " alt="" coords="1895,80,1967,107"/>
+<area shape="rect" title=" " alt="" coords="1992,80,2063,107"/>
 <area shape="rect" href="_machine_defines_8h.html" title=" " alt="" coords="855,229,979,256"/>
 <area shape="rect" title=" " alt="" coords="192,155,255,181"/>
 <area shape="rect" title=" " alt="" coords="279,155,339,181"/>
@@ -123,7 +125,7 @@ Include dependency graph for CovidSim.cpp:</div>
 <area shape="rect" title=" " alt="" coords="816,155,873,181"/>
 <area shape="rect" href="_country_8h.html" title=" " alt="" coords="481,229,557,256"/>
 <area shape="rect" href="_constants_8h.html" title=" " alt="" coords="582,229,673,256"/>
-<area shape="rect" title=" " alt="" coords="1435,155,1499,181"/>
+<area shape="rect" title=" " alt="" coords="1450,155,1514,181"/>
 </map>
 </div>
 </div>
@@ -150,18 +152,6 @@ Functions</h2></td></tr>
 <tr class="separator:a66430df5622fb3fdfd7b9dd3bb335072"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab984bb3a9f43d7e11998005ee1aaae7f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#ab984bb3a9f43d7e11998005ee1aaae7f">RunModel</a> (int)</td></tr>
 <tr class="separator:ab984bb3a9f43d7e11998005ee1aaae7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa1aa4d11b32251ba9cd8bffdd71a333"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#aaa1aa4d11b32251ba9cd8bffdd71a333">TravelReturnSweep</a> (double)</td></tr>
-<tr class="separator:aaa1aa4d11b32251ba9cd8bffdd71a333"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab26d0cb0b3e190972167c56407a9a0a5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#ab26d0cb0b3e190972167c56407a9a0a5">TravelDepartSweep</a> (double)</td></tr>
-<tr class="separator:ab26d0cb0b3e190972167c56407a9a0a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e0134520e81978b29a1d565fd44c34a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#a2e0134520e81978b29a1d565fd44c34a">InfectSweep</a> (double, int)</td></tr>
-<tr class="separator:a2e0134520e81978b29a1d565fd44c34a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28ea9814dd487a5716b0183860f34938"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#a28ea9814dd487a5716b0183860f34938">IncubRecoverySweep</a> (double, int)</td></tr>
-<tr class="separator:a28ea9814dd487a5716b0183860f34938"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8020679604db073302610acd6485f166"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#a8020679604db073302610acd6485f166">TreatSweep</a> (double)</td></tr>
-<tr class="separator:a8020679604db073302610acd6485f166"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f931baf497c800af860bebf6b1554cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#a1f931baf497c800af860bebf6b1554cc">DigitalContactTracingSweep</a> (double)</td></tr>
-<tr class="separator:a1f931baf497c800af860bebf6b1554cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f67fe6ead0cdcad78046cd32eb68b5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#a0f67fe6ead0cdcad78046cd32eb68b5d">SaveDistribs</a> (void)</td></tr>
 <tr class="separator:a0f67fe6ead0cdcad78046cd32eb68b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab50e930046505b16a5aec6667a6e17af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_covid_sim_8cpp.html#ab50e930046505b16a5aec6667a6e17af">SaveOriginDestMatrix</a> (void)</td></tr>
@@ -337,7 +327,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00113">113</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00109">109</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -363,7 +353,7 @@ Variables</h2></td></tr>
 <p>returns: none</p>
 <p>author: ggilani, date: 28/01/15</p>
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05318">5318</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05314">5314</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -393,7 +383,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04389">4389</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04385">4385</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -413,36 +403,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04374">4374</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a1f931baf497c800af860bebf6b1554cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f931baf497c800af860bebf6b1554cc">&#9670;&nbsp;</a></span>DigitalContactTracingSweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DigitalContactTracingSweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Function: DigitalContactTracingSweep</p>
-<p>Purpose: to update and count the number of people in each admin unit who are being digitally contact traced each day and remove those who no longer need to be traced </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">t</td><td>is a double representing the actual simulation time (not the integer timestep) </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>void</dd></dl>
-<p>Author: ggilani, 10/03/20 - updated 24/03/20, 14/04/2020</p>
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l00827">827</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04370">4370</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -472,7 +433,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04402">4402</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04398">4398</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -538,7 +499,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05469">5469</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05465">5465</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -604,7 +565,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05480">5480</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05476">5476</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -664,7 +625,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05510">5510</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05506">5506</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -712,69 +673,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02304">2304</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a28ea9814dd487a5716b0183860f34938"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28ea9814dd487a5716b0183860f34938">&#9670;&nbsp;</a></span>IncubRecoverySweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void IncubRecoverySweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>if they die and this timestep is after they've died.</p>
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l00724">724</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a2e0134520e81978b29a1d565fd44c34a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e0134520e81978b29a1d565fd44c34a">&#9670;&nbsp;</a></span>InfectSweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void InfectSweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>calculate distance squared between this susceptible person and person ci/si identified earlier</p>
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l00271">271</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02300">2300</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -794,7 +693,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02488">2488</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02484">2484</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -814,7 +713,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04187">4187</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04183">4183</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -844,7 +743,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00114">114</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00110">110</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -864,7 +763,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02340">2340</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02336">2336</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -884,7 +783,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02097">2097</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02093">2093</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -914,7 +813,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00462">462</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00458">458</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -950,7 +849,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05494">5494</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05490">5490</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -970,7 +869,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05165">5165</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l05161">5161</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1000,7 +899,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04504">4504</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04500">4500</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1020,7 +919,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02957">2957</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02953">2953</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1040,7 +939,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03150">3150</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03146">3146</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1060,7 +959,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04162">4162</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04158">4158</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1083,7 +982,7 @@ Variables</h2></td></tr>
 <p>purpose: to save the calculated origin destination matrix to file parameters: none returns: none</p>
 <p>author: ggilani, 13/02/15</p>
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03232">3232</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03228">3228</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1103,7 +1002,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04143">4143</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04139">4139</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1123,7 +1022,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03263">3263</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03259">3259</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1143,7 +1042,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04272">4272</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04268">4268</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1163,7 +1062,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03544">3544</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l03540">3540</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1205,68 +1104,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02835">2835</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ab26d0cb0b3e190972167c56407a9a0a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab26d0cb0b3e190972167c56407a9a0a5">&#9670;&nbsp;</a></span>TravelDepartSweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void TravelDepartSweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l00071">71</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
-
-</div>
-</div>
-<a id="aaa1aa4d11b32251ba9cd8bffdd71a333"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa1aa4d11b32251ba9cd8bffdd71a333">&#9670;&nbsp;</a></span>TravelReturnSweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void TravelReturnSweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l00019">19</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a8020679604db073302610acd6485f166"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8020679604db073302610acd6485f166">&#9670;&nbsp;</a></span>TreatSweep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int TreatSweep </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>reset trigger / set (admin-specific) social distancing end time.</p>
-
-<p class="definition">Definition at line <a class="el" href="_sweep_8cpp_source.html#l01165">1165</a> of file <a class="el" href="_sweep_8cpp_source.html">Sweep.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l02831">2831</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1286,7 +1124,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04407">4407</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04403">4403</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1306,7 +1144,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04322">4322</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l04318">4318</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1323,7 +1161,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1339,7 +1177,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00075">75</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1355,7 +1193,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00089">89</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1371,7 +1209,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00089">89</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1387,7 +1225,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00084">84</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00080">80</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1403,7 +1241,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00096">96</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00092">92</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1419,7 +1257,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00085">85</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00081">81</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1435,7 +1273,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00097">97</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1451,7 +1289,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00100">100</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00096">96</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1467,7 +1305,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00102">102</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00098">98</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1483,7 +1321,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00103">103</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00099">99</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1499,7 +1337,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00094">94</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1515,7 +1353,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00094">94</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1531,7 +1369,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00076">76</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00072">72</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1547,7 +1385,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00075">75</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00071">71</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1563,7 +1401,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00092">92</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00088">88</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1579,7 +1417,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00107">107</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00103">103</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1595,7 +1433,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00072">72</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00068">68</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1611,7 +1449,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00073">73</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00069">69</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1627,7 +1465,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00091">91</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00087">87</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1643,7 +1481,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00091">91</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00087">87</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1659,7 +1497,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00092">92</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00088">88</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1675,7 +1513,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00089">89</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1691,7 +1529,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00086">86</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1707,7 +1545,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00086">86</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1723,7 +1561,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00086">86</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1739,7 +1577,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00087">87</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1755,7 +1593,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00086">86</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1771,7 +1609,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00090">90</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00086">86</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1787,7 +1625,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00107">107</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00103">103</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1803,7 +1641,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00077">77</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00073">73</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1819,7 +1657,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00077">77</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00073">73</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1835,7 +1673,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00088">88</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00084">84</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1851,7 +1689,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00107">107</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00103">103</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1867,7 +1705,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1883,7 +1721,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1899,7 +1737,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1915,7 +1753,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00071">71</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00067">67</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1931,7 +1769,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00097">97</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1947,7 +1785,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00097">97</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1963,7 +1801,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00097">97</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1979,7 +1817,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00097">97</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00093">93</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -1995,7 +1833,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00108">108</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00104">104</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2011,7 +1849,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00078">78</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00074">74</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2027,7 +1865,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00108">108</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00104">104</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2043,7 +1881,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00095">95</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00091">91</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2059,7 +1897,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00096">96</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00092">92</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2075,7 +1913,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2091,7 +1929,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00105">105</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00101">101</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2107,7 +1945,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00074">74</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00070">70</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2123,7 +1961,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00074">74</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00070">70</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2139,7 +1977,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2155,7 +1993,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2171,7 +2009,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2187,7 +2025,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2203,7 +2041,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2219,7 +2057,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>
@@ -2235,7 +2073,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00083">83</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_covid_sim_8cpp_source.html#l00079">79</a> of file <a class="el" href="_covid_sim_8cpp_source.html">CovidSim.cpp</a>.</p>
 
 </div>
 </div>

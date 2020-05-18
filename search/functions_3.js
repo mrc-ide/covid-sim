@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['digitalcontacttracingsweep_1338',['DigitalContactTracingSweep',['../_covid_sim_8cpp.html#a1f931baf497c800af860bebf6b1554cc',1,'DigitalContactTracingSweep(double):&#160;Sweep.cpp'],['../_sweep_8cpp.html#ab42e825233f629afd92c571f475809f3',1,'DigitalContactTracingSweep(double t):&#160;Sweep.cpp'],['../_sweep_8h.html#a1f931baf497c800af860bebf6b1554cc',1,'DigitalContactTracingSweep(double):&#160;Sweep.cpp']]],
+  ['digitalcontacttracingsweep_1338',['DigitalContactTracingSweep',['../_sweep_8cpp.html#ab42e825233f629afd92c571f475809f3',1,'DigitalContactTracingSweep(double t):&#160;Sweep.cpp'],['../_sweep_8h.html#a1f931baf497c800af860bebf6b1554cc',1,'DigitalContactTracingSweep(double):&#160;Sweep.cpp']]],
   ['dist2_1339',['dist2',['../_dist_8cpp.html#af3dcb57fe3f8165855e443a8852a57ad',1,'dist2(person *a, person *b):&#160;Dist.cpp'],['../_dist_8h.html#a89e4cad5bcf7cb635ad5117911dda6fd',1,'dist2(person *, person *):&#160;Dist.cpp']]],
   ['dist2_5fcc_1340',['dist2_cc',['../_dist_8cpp.html#aacda190e581d9fc7f2db0e873e5556c9',1,'dist2_cc(cell *a, cell *b):&#160;Dist.cpp'],['../_dist_8h.html#a09f16f2090b4306b2fe9e69671533f44',1,'dist2_cc(cell *, cell *):&#160;Dist.cpp']]],
   ['dist2_5fcc_5fmin_1341',['dist2_cc_min',['../_dist_8cpp.html#a809307a9ebbfa5e84c7e639e7497e5ff',1,'dist2_cc_min(cell *a, cell *b):&#160;Dist.cpp'],['../_dist_8h.html#adbb6e2b2e13305ee29137e506495e330',1,'dist2_cc_min(cell *, cell *):&#160;Dist.cpp']]],
