@@ -19,6 +19,8 @@
 #include "InfStat.h"
 #include "CalcInfSusc.h"
 #include "Update.h"
+#include "Sweep.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif // _OPENMP
@@ -39,13 +41,7 @@ void ReadAirTravel(char*);
 void InitModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 int RunModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
-void TravelReturnSweep(double);
-void TravelDepartSweep(double);
-void InfectSweep(double, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
-void IncubRecoverySweep(double, int); //added int as argument to record run number: ggilani - 15/10/14
-int TreatSweep(double);
-//void HospitalSweep(double); //added hospital sweep function: ggilani - 10/11/14
-void DigitalContactTracingSweep(double); // added function to update contact tracing number
+
 void SaveDistribs(void);
 void SaveOriginDestMatrix(void); //added function to save origin destination matrix so it can be done separately to the main results: ggilani - 13/02/15
 void SaveResults(void);
