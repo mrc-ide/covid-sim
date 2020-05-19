@@ -585,67 +585,6 @@ void ParseArg(ArgType type, char* input, void* output)
 	}
 }
 
-const char* USAGE =
-R"(CovidSim /O /P [/A] [/AP] [/c] [/C] [/CLP[1-6]] [/d] [/D] [/H] [/I] [/KO] [/KP] [/L] [/LS] [/M] [/PP] [/R] [/s] [/S] [/SS] [/T] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
-
-All '/' arguments are followed by a colon ':' and then the value.
-More detailed information can be found in docs/inputs-and-outputs.md.
-)";
-
-const char* DETAILED_USAGE =
-R"(Argument type:
-
-    DIR     Directory path
-    DOUBLE  Floating point number with double precision
-    INT     Integer number
-    FILE    File path
-
-Required arguments:
-
-    /O      DIR     Output file path prefix
-    /P      FILE    Parameter file
-
-    SetupSeed*      RNG seeds when initializing
-    RunSeed*        RNG seeds when running
-
-Optional arguments:
-
-    /A      FILE    Administrative division
-    /AP     FILE    Air travel data file
-    /c      INT     Number of threads to use
-    /C      INT     Sets the P.PlaceCloseIndepThresh parameter
-    /CLP*   DOUBLE  Overwrites wildcards in parameter file
-    /d      FILE    Regional demography file
-    /D      FILE    Population density file
-    /H              Display this help page
-    /I      FILE    Intervention file
-    /KO     DOUBLE  Scales the P.KernelOffsetScale parameter
-    /KP     DOUBLE  Scales the P.KernelPowerScale parameter
-    /L      FILE    Network file to load
-    /LS     FILE    Snapshot file to load
-    /M      FILE    Output density file
-    /PP     FILE    Pre-parameter file
-    /R      DOUBLE  R0 scaling
-    /s      FILE    School file
-    /S      FILE    Network file to save
-    /SS     DOUBLE,FILE	Interval and file to save snapshots
-    /T      FILE    Sets the P.PreControlClusterIdCaseThreshold
-)";
-
-void PrintHelpAndExit()
-{
-	std::cerr << USAGE << std::endl;
-	std::cerr << "Use the '/H' argument to get a detailed listing of "
-				 "required and optional arguments." << std::endl;
-	std::exit(1);
-}
-
-void PrintDetailedHelpAndExit()
-{
-	std::cerr << USAGE << "\n" << DETAILED_USAGE << std::endl;
-	std::exit(1);
-}
-
 void ReadParams(char* ParamFile, char* PreParamFile)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
