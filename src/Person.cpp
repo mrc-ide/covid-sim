@@ -17,7 +17,7 @@ void Person::make_immune() {
 	this->infectionState = InfStat_ImmuneAtStart;
 }
 
-void Person::make_infected() {
+void Person::make_latent() {
 	this->infectionState = InfStat_Latent;
 }
 

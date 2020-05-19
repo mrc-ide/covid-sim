@@ -56,7 +56,7 @@ struct Person
 
 	void make_susceptible();
 	void make_immune();
-	void make_infected();
+	void make_latent();
 	void make_infectious_almost_symptomatic();
 	void make_infectious_asymptomatic();
 	void make_case();

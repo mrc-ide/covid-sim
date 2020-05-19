@@ -79,7 +79,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	if (a->is_susceptible())
 	{
 		ts = (unsigned short int) (P.TimeStepsPerDay * t);
-		a->make_infected();
+		a->make_latent();
 		a->infection_time = (unsigned short int) ts; //// record their infection time
 		///// Change threaded state variables to reflect new infection status of person a.
 		StateT[tn].cumI++;
