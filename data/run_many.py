@@ -418,7 +418,7 @@ def gunzip_file(src, dst):
             shutil.copyfileobj(fi, fo)
 
 
-# Copy the executable - use copy2 to preserve exe bit
+# Copy the executable
 copy_file(exe, os.path.join(input_setup, "CovidSim.exe"))
 
 # Dictionaries of jobs:
@@ -536,16 +536,21 @@ def copy_bin_files(geography):
 
 
 def call_runner(geography, threads, r0, param_file, network_seed1,
-                network_seed2, run_seed1, run_seed2, output):
+                network_seed2, run_seed1, run_seed2, run_id):
     """Call the runner for a particular set of values."""
+    param_base = os.path.basename(param_file)
+    output = os.path.join(args.output, "output", geography, str(r0),
+                          param_base, str(run_id))
+    prefix = "{0}_{1}_{2}_{3}".format(geography, r0, param_base, run_id)
+    print("Starting run job for geography {0}, r0={1}, param_file={2}, "
+          "run={3}".format(geography, r0, param_file, run_id))
     covidsim_cmd = [
         os.path.join(os.path.curdir, "CovidSim.exe"),
         "/c:{0}".format(threads),
         "/A:" + os.path.join(os.path.curdir, "admin.txt"),
         "/PP:" + os.path.join(os.path.curdir, "preparam.txt"),
-        "/P:" + os.path.join(os.path.curdir, os.path.basename(param_file)),
-        "/O:" + os.path.join(os.path.curdir, "output",
-                             os.path.basename(output)),
+        "/P:" + os.path.join(os.path.curdir, param_base),
+        "/O:" + os.path.join(os.path.curdir, "output", prefix),
         "/D:" + os.path.join(os.path.curdir, "pop.bin"),
         "/L:" + os.path.join(os.path.curdir, "network.bin"),
         "/R:{0}".format(r0 / 2),
@@ -563,7 +568,7 @@ def call_runner(geography, threads, r0, param_file, network_seed1,
                  ] + covidsim_cmd
 
     print("  Command line: " + " ".join(runner_cmd))
-    return subprocess.Popen(runner_cmd)
+    all_jobs[prefix] = subprocess.Popen(runner_cmd)
 
 
 def start_many_runs(geography, geography_config):
@@ -571,20 +576,12 @@ def start_many_runs(geography, geography_config):
     copy_bin_files(geography)
     for r0 in geography_config["r0"]:
         for param_file in geography_config["param_files"]:
-            pf = os.path.basename(param_file)
             run_seeds = geography_config["run_seeds"].copy()
             run_id = 0
             # Hack to iterate over run_seeds two at a time
             for run_seed1, run_seed2 in \
                     zip(*[iter(geography_config["run_seeds"])]*2):
-                output = os.path.join(args.output, "output", geography,
-                                      str(r0), pf,
-                                      "{0}_{1}_{2}_{3}".format(geography, r0,
-                                                               pf, run_id))
-                print("Starting run job for geography {0}, r0={1}, "
-                      "param_file={2}, run={3}".format(geography, r0,
-                                                       param_file, run_id))
-                all_jobs[output] = call_runner(
+                call_runner(
                         geography,
                         geography_config["threads"],
                         r0,
@@ -593,7 +590,7 @@ def start_many_runs(geography, geography_config):
                         geography_config["network_seeds"][1],
                         run_seed1,
                         run_seed2,
-                        output)
+                        run_id)
                 run_id += 1
 
 
@@ -601,6 +598,7 @@ def start_many_runs(geography, geography_config):
 print("Waiting for jobs to end:")
 total_pending = 1
 message_len = 0
+any_failed = 0
 while total_pending:
     setup_pending = len(setup_jobs)
     runs_pending = 0
@@ -622,6 +620,7 @@ while total_pending:
             if process.returncode != 0:
                 print("\nERROR: Setup job for geography {0} failed".
                       format(geography))
+                any_failed = 1
             else:
                 print("\nCompleted setup for geography {0}".format(geography))
                 start_many_runs(geography, config["geographies"][geography])
@@ -640,7 +639,6 @@ while total_pending:
 print("\nAll runs completed")
 
 # Check exit codes:
-any_failed = 0
 for job_id, job in all_jobs.items():
     if job.returncode != 0:
         print("ERROR: Run failed: {0}".format(job_id))
