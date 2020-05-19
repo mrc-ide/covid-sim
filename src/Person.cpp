@@ -1,14 +1,6 @@
 #include "Model.h"
 #include <cstdlib>
 
-bool Person::is_alive() const {
-	return !this->is_dead();
-}
-
-bool Person::is_dead() const {
-	return std::abs(this->infectionState) == InfStat_Dead;
-}
-
 void Person::make_susceptible() {
 	this->infectionState = InfStat_Susceptible;
 }
@@ -86,4 +78,12 @@ bool Person::has_not_recovered() const {
 bool Person::is_positive() const {
 	return this->is_infectious()
 		|| this->infectionState == InfStat_InfectiousAlmostSymptomatic;
+}
+
+bool Person::is_alive() const {
+	return !this->is_dead();
+}
+
+bool Person::is_dead() const {
+	return std::abs(this->infectionState) == InfStat_Dead;
 }
