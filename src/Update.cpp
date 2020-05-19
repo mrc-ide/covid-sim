@@ -699,13 +699,17 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (j = j1; (j < j2) && (!f); j++)
-							f = ((abs(Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
+							f = (Hosts[j].isAlive() && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
 
 						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
 							for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
-								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
+								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && Hosts[j].isAlive())
+								{
+									k = j;
+									f = 1;
+								}
 							if (f) //// so finally, if at least one member of household is alive and does not need supervision by an adult, amend absent start and stop times
 							{
 								Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -840,7 +844,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++)
 									if ((place_type != P.HotelPlaceType) && (a->PlaceLinks[place_type] >= 0))
 										DoPlaceClose(place_type, a->PlaceLinks[place_type], ts, tn, 0);
-								
+
 								j = P.PlaceTypeNum;
 							}
 						}
@@ -856,12 +860,12 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 								f = 0;
 								for (int j3 = j1; (j3 < j2) && (!f); j3++)
-									f = ((abs(Hosts[j3].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
+									f = (Hosts[j3].isAlive() && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
 										&& ((Hosts[j3].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)|| (HOST_ABSENT(j3)) || (HOST_QUARANTINED(j3))));
 								if (!f)
 								{
 									for (int j3 = j1; (j3 < j2) && (!f); j3++)
-										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j3].inf) != InfStat_Dead)) { k = j3; f = 1; }
+										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && Hosts[j3].isAlive()) { k = j3; f = 1; }
 									if (f)
 									{
 										if (!HOST_ABSENT(k)) Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -1225,11 +1229,11 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = (Hosts[l].isAlive() && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
 							{
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && Hosts[l].isAlive())
 									{
 										if (Hosts[l].absent_start_time > t_start) Hosts[l].absent_start_time = t_start;
 										if (Hosts[l].absent_stop_time < t_stop) Hosts[l].absent_stop_time = t_stop;
@@ -1272,11 +1276,11 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 							f = 0;
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = (Hosts[l].isAlive() && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f)
 							{
 								for (l = j1; (l < j2) && (!f); l++)
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead) && (HOST_ABSENT(l)))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && Hosts[l].isAlive() && (HOST_ABSENT(l)))
 									{
 										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = ts;
 									}

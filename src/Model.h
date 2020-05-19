@@ -37,6 +37,7 @@ struct Person
 
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 	short int infect_type;		// INFECT_TYPE_MASK
+
 	InfStat inf;
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
@@ -52,6 +53,8 @@ struct Person
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
+	bool isAlive() const;
+	bool isDead() const;
 };
 
 struct Household

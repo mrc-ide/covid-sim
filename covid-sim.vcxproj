@@ -101,6 +101,7 @@
     <ClCompile Include="src\CovidSim.cpp" />
     <ClCompile Include="src\Sweep.cpp" />
     <ClCompile Include="src\Update.cpp" />
+    <ClCompile Include="src\Person.cpp" />
     <ClCompile Include="src\Param.cpp" />
     <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />

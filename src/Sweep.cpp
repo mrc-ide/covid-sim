@@ -641,7 +641,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
 						f2 = 0;
-						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
+						if ((ranf_mt(tn) >= s) || Hosts[i3].isDead()) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
 							f2 = 1;
 						}
