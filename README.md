@@ -27,6 +27,12 @@ endorses outputs it has itself generated.
 
 ## Status
 
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Build%20&%20Publish%20Docker/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Doxygen%20Action/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20different%20Linux%20distributions/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20macOS/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20Windows/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+
 This model is in active development and subject to significant code changes
 to:
 
