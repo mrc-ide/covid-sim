@@ -37,7 +37,7 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	y = (1 - x) * asin2sqx[((int)xi)] + x * asin2sqx[((int)xi) + 1];
 	return 4 * EARTHRADIUS * EARTHRADIUS * y;
 }
-double dist2(person* a, person* b)
+double dist2(Person* a, Person* b)
 {
 	double x, y;
 
@@ -55,7 +55,7 @@ double dist2(person* a, person* b)
 		return x * x + y * y;
 	}
 }
-double dist2_cc(cell* a, cell* b)
+double dist2_cc(Cell* a, Cell* b)
 {
 	double x, y;
 	int l, m;
@@ -77,7 +77,7 @@ double dist2_cc(cell* a, cell* b)
 		return x * x + y * y;
 	}
 }
-double dist2_cc_min(cell* a, cell* b)
+double dist2_cc_min(Cell* a, Cell* b)
 {
 	double x, y;
 	int l, m, i, j;
@@ -148,7 +148,7 @@ double dist2_cc_min(cell* a, cell* b)
 		return x * x + y * y;
 	}
 }
-double dist2_mm(microcell* a, microcell* b)
+double dist2_mm(Microcell* a, Microcell* b)
 {
 	double x, y;
 	int l, m;

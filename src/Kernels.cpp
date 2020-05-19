@@ -56,11 +56,11 @@ void InitKernel(double norm)
 		shared(P, CellLookup)
 	for (int i = 0; i < P.NCP; i++)
 	{
-		cell *l = CellLookup[i];
+		Cell *l = CellLookup[i];
 		l->tot_prob = 0;
 		for (int j = 0; j < P.NCP; j++)
 		{
-			cell *m = CellLookup[j];
+			Cell *m = CellLookup[j];
 			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));
 			l->tot_prob += l->max_trans[j] * (float)m->n;
 		}

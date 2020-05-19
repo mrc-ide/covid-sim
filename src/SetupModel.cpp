@@ -17,7 +17,7 @@
 #include "Bitmap.h"
 
 void* BinFileBuf;
-bin_file* BF;
+BinFile* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
@@ -41,14 +41,15 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		fprintf(stderr, "Scanning population density file\n");
 		if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
-		fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-		if (P.BinFileLen == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+		unsigned int density_file_header;
+		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
+		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
 			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-			fread_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat);
-			BF = (bin_file*)BinFileBuf;
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
+			BF = (BinFile*)BinFileBuf;
 			fclose(dat);
 		}
 		else
@@ -61,8 +62,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
 			// Read each line, and build the binary structure that corresponds to it
 			rewind(dat);
-			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-			BF = (bin_file*)BinFileBuf;
+			if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			BF = (BinFile*)BinFileBuf;
 			int index = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL)
 			{
@@ -213,11 +214,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t2 = 0.0;
 
 	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
-	if (!(TimeSeries = (results*)calloc(P.NumSamples, sizeof(results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanE = (results*)calloc(P.NumSamples, sizeof(results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarE = (results*)calloc(P.NumSamples, sizeof(results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanNE = (results*)calloc(P.NumSamples, sizeof(results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarNE = (results*)calloc(P.NumSamples, sizeof(results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TimeSeries = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSMeanE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSVarE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSMeanNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSVarNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	TSMean = TSMeanE; TSVar = TSVarE;
 
 	///// This loops over index l twice just to reset the pointer TSMean from TSMeanE to TSMeanNE (same for TSVar).
@@ -283,7 +284,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	//added memory allocation and initialisation of infection event log, if DoRecordInfEvents is set to 1: ggilani - 10/10/2014
 	if (P.DoRecordInfEvents)
 	{
-		if (!(InfEventLog = (events*)calloc(P.MaxInfEvents, sizeof(events)))) ERR_CRITICAL("Unable to allocate events storage\n");
+		if (!(InfEventLog = (Events*)calloc(P.MaxInfEvents, sizeof(Events)))) ERR_CRITICAL("Unable to allocate events storage\n");
 		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
@@ -699,12 +700,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	char buf[4096], *col;
 	const char delimiters[] = " \t,";
 	FILE* dat = NULL, *dat2;
-	bin_file rec;
+	BinFile rec;
 	double *mcell_dens;
 	int *mcell_adunits, *mcell_num, *mcell_country;
 
-	if (!(Cells = (cell*)calloc(P.NC, sizeof(cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(Mcells = (microcell*)calloc(P.NMC, sizeof(microcell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(Cells = (Cell*)calloc(P.NC, sizeof(Cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcell_num = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcell_dens = (double*)malloc(P.NMC * sizeof(double)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
@@ -809,8 +810,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				P.BinFileLen = 0;
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
-				if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(bin_file)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-				BF = (bin_file*)BinFileBuf;
+				if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+				BF = (BinFile*)BinFileBuf;
 				fprintf(stderr, "Binary density file should contain %i cells.\n", (int)P.BinFileLen);
 				rn = 0;
 				for (l = 0; l < P.NMC; l++)
@@ -833,7 +834,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
 			fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
-			fwrite_big(BinFileBuf, sizeof(bin_file), (size_t)P.BinFileLen, dat2);
+			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
 		free(BinFileBuf);
@@ -1014,7 +1015,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	free(mcell_adunits);
 	t = 0.0;
 
-	if (!(McellLookup = (microcell * *)malloc(P.NMCP * sizeof(microcell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	State.CellMemberArray = mcl;
 	P.NCP = 0;
@@ -1043,7 +1044,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
-	if (!(CellLookup = (cell * *)malloc(P.NCP * sizeof(cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	State.CellSuscMemberArray = mcl;
 	int susceptibleAccumulator = 0;
@@ -1058,11 +1059,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
 	i2 = 0;
 
-	if (!(Hosts = (person*)calloc(P.PopSize, sizeof(person)))) ERR_CRITICAL("Unable to allocate host storage\n");
-	fprintf(stderr, "sizeof(person)=%i\n", (int) sizeof(person));
+	if (!(Hosts = (Person*)calloc(P.PopSize, sizeof(Person)))) ERR_CRITICAL("Unable to allocate host storage\n");
+	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
 	for (int i = 0; i < P.NCP; i++)
 	{
-		cell *c = CellLookup[i];
+		Cell *c = CellLookup[i];
 		if (c->n > 0)
 		{
 			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
@@ -1109,7 +1110,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			k += m;
 		}
 	}
-	if (!(Households = (household*)malloc(P.NH * sizeof(household)))) ERR_CRITICAL("Unable to allocate household storage\n");
+	if (!(Households = (Household*)malloc(P.NH * sizeof(Household)))) ERR_CRITICAL("Unable to allocate household storage\n");
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
 
@@ -1309,7 +1310,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		free(State.InvAgeDist);
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
-		if (!(Places = (place * *)malloc(P.PlaceTypeNum * sizeof(place*)))) ERR_CRITICAL("Unable to allocate place storage\n");
+		if (!(Places = (Place * *)malloc(P.PlaceTypeNum * sizeof(Place*)))) ERR_CRITICAL("Unable to allocate place storage\n");
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
@@ -1318,7 +1319,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (j = 0; j < P.nsp; j++)
 		{
 			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
-			if (!(Places[j] = (place*)calloc(m, sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
+			if (!(Places[j] = (Place*)calloc(m, sizeof(Place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			for (int i = 0; i < m; i++)
 				if (!(Places[j][i].AvailByAge = (unsigned short int*) malloc(P.PlaceTypeMaxAgeRead[j] * sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			P.Nplace[j] = 0;
@@ -1387,7 +1388,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					t += PropPlaces[HOST_AGE_YEAR(i)][j2];
 				P.Nplace[j2] = (int)ceil(t / P.PlaceTypeMeanSize[j2]);
 				fprintf(stderr_shared, "[%i:%i %g] ", j2, P.Nplace[j2], t);
-				if (!(Places[j2] = (place*)calloc(P.Nplace[j2], sizeof(place)))) ERR_CRITICAL("Unable to allocate place storage\n");
+				if (!(Places[j2] = (Place*)calloc(P.Nplace[j2], sizeof(Place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 				t = 1.0;
 				int k;
 				for (int i = m = k = 0; i < P.NMC; i++)
@@ -1445,7 +1446,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		if (!(SamplingQueue[i] = (int*)malloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE) * sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		for (int k = 0; k < P.NumThreads; k++)
-			if (!(StateT[i].inf_queue[k] = (infection*)malloc(P.InfQueuePeakLength * sizeof(infection)))) ERR_CRITICAL("Unable to allocate state storage\n");
+			if (!(StateT[i].inf_queue[k] = (Infection*)malloc(P.InfQueuePeakLength * sizeof(Infection)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		if (!(StateT[i].cell_inf = (float*)malloc((l + 1) * sizeof(float)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	}
 
@@ -1461,7 +1462,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		{
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				if (!(StateT[i].dct_queue[j] = (contactevent*)malloc(AdUnits[j].n * sizeof(contactevent)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				if (!(StateT[i].dct_queue[j] = (ContactEvent*)malloc(AdUnits[j].n * sizeof(ContactEvent)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
 	}
@@ -1498,7 +1499,7 @@ void SetupAirports(void)
 {
 	int k, l, m;
 	double x, y, t, tmin;
-	indexlist* base, *cur;
+	IndexList* base, *cur;
 
 	fprintf(stderr, "Assigning airports to microcells\n");
 	// Convince static analysers that values are set correctly:
@@ -1510,8 +1511,8 @@ void SetupAirports(void)
 	P.KernelP3 = P.AirportKernelP3;
 	P.KernelP4 = P.AirportKernelP4;
 	InitKernel(1.0);
-	if (!(Airports[0].DestMcells = (indexlist*)calloc(P.NMCP * NNA, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(base = (indexlist*)calloc(P.NMCP * NNA, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(Airports[0].DestMcells = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(base = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
 	for (int i = 0; i < P.NMC; i++)
@@ -1640,7 +1641,7 @@ void SetupAirports(void)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
 			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
-			if (!(Airports[i].DestPlaces = (indexlist*)calloc(Airports[i].num_place, sizeof(indexlist)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+			if (!(Airports[i].DestPlaces = (IndexList*)calloc(Airports[i].num_place, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
 				if ((t = dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
@@ -1676,7 +1677,7 @@ void SetupAirports(void)
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
 
-#define PROP_OTHER_PARENT_AWAY 0.0
+const double PROP_OTHER_PARENT_AWAY = 0.0;
 
 
 void AssignHouseholdAges(int n, int pers, int tn)
@@ -1854,7 +1855,7 @@ void AssignPeopleToPlaces(void)
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
-	cell* ct;
+	Cell* ct;
 	int npt;
 
 	npt = NUM_PLACE_TYPES;
@@ -1885,7 +1886,7 @@ void AssignPeopleToPlaces(void)
 				cnt = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					cell *c = CellLookup[a];
+					Cell *c = CellLookup[a];
 					c->n = 0;
 					for (j = 0; j < c->cumTC; j++)
 					{
@@ -1909,7 +1910,7 @@ void AssignPeopleToPlaces(void)
 				j2 = 0;
 				for (a = 0; a < P.NCP; a++)
 				{
-					cell *c = CellLookup[a];
+					Cell *c = CellLookup[a];
 					for (j = 0; j < c->n; j++)
 					{
 						PeopleArray[j2] = c->susceptible[j];

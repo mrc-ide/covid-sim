@@ -208,7 +208,7 @@ void TravelDepartSweep(double t)
 						double s = ranf_mt(tn);
 						int l = Cells[c].InvCDF[(int)floor(s * 1024)];
 						while (Cells[c].cum_trans[l] < s) l++;
-						cell* ct = CellLookup[l];
+						Cell* ct = CellLookup[l];
 						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
 						if (m < (ct->S + ct->L))
 						{
@@ -305,14 +305,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
-			cell* c = CellLookup[b];
+			Cell* c = CellLookup[b];
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
 			for (int j = 0; j < c->I; j++) //// Loop over all infectious people c->I in cell c. Loop 1a)
 			{
 				//// get person index ci
 				ci = c->infected[j];
 				//// get person si from Hosts (array of people), using pointer arithmetic.
-				person* si = Hosts + ci;
+				Person* si = Hosts + ci;
 
 				//calculate flag for digital contact tracing here at the beginning for each individual
 				int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
@@ -357,14 +357,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				{
 					if (!HOST_ABSENT(ci))
 					{
-						microcell* mi = Mcells + si->mcell;
+						Microcell* mi = Mcells + si->mcell;
 						for (int k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
 							int l = si->PlaceLinks[k];
 							if (l >= 0)  //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
 							{
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
-								microcell* mp = Mcells + Places[k][l].mcell;
+								Microcell* mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
 									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
@@ -430,8 +430,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
-											microcell* mt = Mcells + Hosts[i3].mcell;
-											cell* ct = Cells + Hosts[i3].pcell;
+											Microcell* mt = Mcells + Hosts[i3].mcell;
+											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
 
@@ -502,8 +502,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
-											microcell* mt = Mcells + Hosts[i3].mcell;
-											cell* ct = Cells + Hosts[i3].pcell;
+											Microcell* mt = Mcells + Hosts[i3].mcell;
+											Cell* ct = Cells + Hosts[i3].pcell;
 											//if doing digital contact tracing, scale down susceptibility here
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
@@ -604,7 +604,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					}
 					f = (StateT[tn].cell_inf[j] < 0); //// flag for whether infector j had their place(s) closed. <0 (true) = place closed / >=0 (false) = place not closed. Set in if (sbeta > 0) part of loop over infectious people.
 					ci = c->infected[j];
-					person* si = Hosts + ci;
+					Person* si = Hosts + ci;
 
 					//calculate flag for digital contact tracing here at the beginning for each individual infector
 					int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
@@ -618,7 +618,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s = ranf_mt(tn);
 						int l = c->InvCDF[(int)floor(s * 1024)];
 						while (c->cum_trans[l] < s) l++;
-						cell* ct = CellLookup[l];
+						Cell* ct = CellLookup[l];
 
 						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
 						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
@@ -634,8 +634,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
 							{
-								microcell* mi = Mcells + si->mcell;
-								microcell* mt = Mcells + Hosts[i3].mcell;
+								Microcell* mi = Mcells + si->mcell;
+								Microcell* mt = Mcells + Hosts[i3].mcell;
 								s = CalcSpatialSusc(i3, ts, ci, tn);
 
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
@@ -765,7 +765,7 @@ void IncubRecoverySweep(double t, int run)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
-			cell* c = CellLookup[b]; //// find (pointer-to) cell.
+			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
 				if (ts >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
 					DoIncub(c->latent[j], ts, tn, run); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
@@ -773,7 +773,7 @@ void IncubRecoverySweep(double t, int run)
 			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
 				int ci = c->infected[j];	//// person index
-				person* si = Hosts + ci;		//// person
+				Person* si = Hosts + ci;		//// person
 
 				unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
 				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/

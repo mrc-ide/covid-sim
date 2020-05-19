@@ -108,7 +108,7 @@ Optional Arguments:
 - `/s` - School information for a specific geography (currently only used for US).
   - Example: `/s:./data/populations/USschools.txt`
 - `/S` - For efficiency, we can run and, as a side-effect, generate a
-  [network file](./model-glossary.md#Network\ file) that assigns
+  [network file](./model-glossary.md#Network-file) that assigns
   [people](./model-glossary.md#People) to [places](./model-glossary.md#Places).
   It may then be re-used for subsequent runs with different input parameters for
   the same geography. ***Note***: this file is non-portable
@@ -278,7 +278,7 @@ Contains time-stamped (e.g., daily) statistics for the simulation over the whole
 
 ### `name.avNE.adunit.xls`
 
-Contains time-stamped statistics per [admin unit](./model-glossary.md#Admin\ unit)
+Contains time-stamped statistics per [admin unit](./model-glossary.md#Admin-unit)
 (hopefully with headers matching the codes in a population index file).
 
 | column | meaning |
