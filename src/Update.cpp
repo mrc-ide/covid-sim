@@ -1255,14 +1255,14 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 	}
 }
 
-int DoVacc(int ai, unsigned short int ts)
+void DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
 
 	if (State.cumV >= P.VaccMaxCourses)
-		return 2;
+		return;
 	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
-		return 1;
+		return;
 	else
 	{
 		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
@@ -1291,7 +1291,6 @@ int DoVacc(int ai, unsigned short int ts)
 			}
 		}
 	}
-	return 0;
 }
 
 void DoVaccNoDelay(int ai, unsigned short int ts)
