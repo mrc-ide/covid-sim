@@ -1,10 +1,10 @@
 #include "Model.h"
 #include <cstdlib>
 
-bool Person::isAlive() const {
-	return !this->isDead();
+bool Person::is_alive() const {
+	return !this->is_dead();
 }
 
-bool Person::isDead() const {
+bool Person::is_dead() const {
 	return std::abs(this->inf) == InfStat_Dead;
 }

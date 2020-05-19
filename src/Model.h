@@ -53,8 +53,8 @@ struct Person
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
-	bool isAlive() const;
-	bool isDead() const;
+	bool is_alive() const;
+	bool is_dead() const;
 };
 
 struct Household

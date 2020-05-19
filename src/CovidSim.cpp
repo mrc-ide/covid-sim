@@ -3076,7 +3076,7 @@ int RunModel(int run) //added run number as parameter
 								do
 								{
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
-								} while (Hosts[l].isDead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
+								} while (Hosts[l].is_dead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
 							}
 						}
@@ -5359,7 +5359,7 @@ void RecordInfTypes(void)
 			for (c = 0; c < Cells[b].n; c++)
 			{
 				i = Cells[b].members[c];
-				if ((abs(Hosts[i].inf) == InfStat_Recovered) || Hosts[i].isDead())
+				if ((abs(Hosts[i].inf) == InfStat_Recovered) || Hosts[i].is_dead())
 				{
 					l = Hosts[i].infect_type / INFECT_TYPE_MASK;
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;
