@@ -492,7 +492,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
-	GetInputParameter(ParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
+	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
 	if (P.NumRealisations == 0)
 		{
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of realisations", "%i", (void*)&(P.NumRealisations), 1, 1, 0);
@@ -4996,7 +4996,7 @@ void RecordSample(double t, int n)
 	}
 
 	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<=4)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration > 4)))))
+		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<4)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 4)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
@@ -5016,7 +5016,7 @@ void RecordSample(double t, int n)
 			}
 			if ((P.DoAlertTriggerAfterInterv) && (t == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
 			{
-				if ((trigAlert > 0)&&(P.ModelCalibIteration<15))
+				if ((trigAlert > 0)&&(P.ModelCalibIteration<20))
 				{
 					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
@@ -5027,22 +5027,24 @@ void RecordSample(double t, int n)
 					{
 						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
 						{
-//							P.ModelCalibIteration = 15;
-//							P.StopCalibration = 1;
+							P.ModelCalibIteration = 100;
+							P.StopCalibration = 1;
+							fprintf(stderr, "Calibration ended.\n");
 						}
 						else
 						{
-							s = pow(s, 0.9);
+							s = pow(s, 0.95);
 							k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
 							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 4) && ((P.ModelCalibIteration) % 2 == 0))
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1))
 					{
 						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
 						{
-							//P.ModelCalibIteration=15;
-							//P.StopCalibration = 1;
+							P.ModelCalibIteration=100;
+							P.StopCalibration = 1;
+							fprintf(stderr, "Calibration ended.\n");
 						}
 						else if (s > 1)
 						{
@@ -5055,16 +5057,16 @@ void RecordSample(double t, int n)
 							P.PreControlClusterIdHolOffset++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 4) && ((P.ModelCalibIteration) % 2 == 1))
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0))
 					{
 						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
 						{
-							P.ModelCalibIteration = 15;
+							P.ModelCalibIteration = 100;
 							P.StopCalibration = 1;
 							fprintf(stderr, "Calibration ended.\n");
 						}
 						else
-							P.SeedingScaling /=pow(s, 0.4);
+							P.SeedingScaling /=pow(s, 0.5);
 					}
 					P.ModelCalibIteration++;
 					if(P.ModelCalibIteration<16) InterruptRun = 1;
@@ -5304,7 +5306,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime);
+	k = (P.PreIntervIdCalTime>0)?((int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime)):0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
