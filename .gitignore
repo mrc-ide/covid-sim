@@ -16,6 +16,8 @@ cmake-build-debug/
 .project
 *.vcxproj.user
 tests/*-output/
+
+# CLion
 .idea/
 
 # VScode
