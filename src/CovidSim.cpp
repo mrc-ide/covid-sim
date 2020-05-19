@@ -24,6 +24,7 @@
 #include "Update.h"
 #include "Sweep.h"
 #include "Memory.h"
+#include "CLI.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -48,9 +49,7 @@ enum class ArgType {
 };
 
 void ParseArg(ArgType, char*, void*);
-void PrintHelpAndExit();
-void PrintDetailedHelpAndExit();
-void ReadParams(char*, char*);
+void ReadParams(std::string const&, std::string const&);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
 void ReadAirTravel(char*);
@@ -131,11 +130,12 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
+	std::string ParamFile, PreParamFile;
+	char DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	int i, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotP = GotO = GotL = GotS = GotAP = GotScF = GotPP = GotNR = 0;
+	GotO = GotL = GotS = GotAP = GotScF = GotNR = 0;
 
 	cl = clock();
 
@@ -155,23 +155,14 @@ int main(int argc, char* argv[])
 	 *   - output directory
 	 */
 
-	// Detect if the user wants to print out the full help output
-	if (argc >= 2 && strlen(argv[1]) == 2 && strcmp("/H", argv[1]) == 0) {
-		PrintDetailedHelpAndExit();
-	}
+	CmdLineArgs args;
+	args.add_option<std::string>("P", parse_read_file, ParamFile);
+	args.add_option<std::string>("PP", parse_read_file, PreParamFile);
+	args.parse(argc, argv, P);
 
-	if (argc < 7) {
-		std::cerr << "Minimum number of arguments not met. Expected 6 got "
-				  << (argc - 1) << "\n" << std::endl;
-		PrintHelpAndExit();
-	}
-
-	// Get seeds.
-	i = argc - 4;
-	sscanf(argv[i], "%i", &P.setupSeed1);
-	sscanf(argv[i + 1], "%i", &P.setupSeed2);
-	sscanf(argv[i + 2], "%i", &P.runSeed1);
-	sscanf(argv[i + 3], "%i", &P.runSeed2);
+	// DELETE_BEFORE_MERGE
+	std::cout << "Parsed ParamFile: " << ParamFile << std::endl;
+	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
 
 	// Set parameter defaults - read them in after
 	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
@@ -318,18 +309,6 @@ int main(int argc, char* argv[])
 				ParseArg(ArgType::DIR, &opt[2], OutFileBase);
 				GotO = 1;
 				break;
-			case 'P':
-				switch(opt[2]) {
-					case ':':
-						ParseArg(ArgType::RFILE, &opt[2], ParamFile);
-						GotP = 1;
-						break;
-					case 'P':
-						ParseArg(ArgType::RFILE, &opt[3], PreParamFile);
-						GotPP = 1;
-						break;
-				}
-				break;
 			case 'R':
 				ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
 				break;
@@ -369,14 +348,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (((GotS) && (GotL)) || (!GotP) || (!GotO))
+	if (((GotS) && (GotL)) || (!args.GotP) || (!GotO))
 		PrintHelpAndExit();
 
 	///// END Read in command line arguments
 
 	sprintf(OutFile, "%s", OutFileBase);
 
-	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
+	std::cerr << "Param=" << ParamFile << "\nOut=" << OutFile << "\nDens=" << DensityFile << std::endl;
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 
@@ -403,9 +382,9 @@ int main(int argc, char* argv[])
 #else
 	P.NumThreads = 1;
 #endif
-	if (!GotPP)
+	if (!args.GotPP)
 	{
-		sprintf(PreParamFile, ".." DIRECTORY_SEPARATOR "Pre_%s", ParamFile);
+		PreParamFile = std::string(".." DIRECTORY_SEPARATOR "Pre_") + ParamFile;
 	}
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -585,7 +564,7 @@ void ParseArg(ArgType type, char* input, void* output)
 	}
 }
 
-void ReadParams(char* ParamFile, char* PreParamFile)
+void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
@@ -596,8 +575,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
 	char* AdunitListNames[MAX_ADUNITS];
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
-	if (!(ParamFile_dat = fopen(ParamFile, "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
-	PreParamFile_dat = fopen(PreParamFile, "rb");
+	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
+	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
 	if (!(AdminFile_dat = fopen(AdunitFile, "rb"))) AdminFile_dat = ParamFile_dat;
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
 		P.LongitudeCutLine = -360.0;
