@@ -53,19 +53,38 @@ The JSON configuration takes a set of config options which control what gets
 invoked:
 
 {
+    # The following options may all be overriden in the geographies map.
+    # All optional unless otherwise specified.
+    "pre_param_file": <string> # Pre-param file for the geography
+    "pop_density_file": <string> # Population density file
     "threads" : <NUM> # Number of threads to specify for CovidSim to use
-    "network_seed1" : <NUM> # Network seed 1
-    "network_seed2" : <NUM> # Network seed 2
+    "network_seeds" : [<NUM>, <NUM>] # Network generation seeds
+    "r0" : [<r0>] # R0 values to test. Must be specified
+    "param_files" : [<Param file>] # Parameter files to test.  Must be
+                                   # specified
+    "num_runs" : <NUM> # Number of runs with different run seeds
+    "run_seeds" : [<NUM>, ...] # 2 * num_run number of seeds for the runs
+
     "geographies" : {
-        <geography1> : {
-            "r0" : [<r0>] # R0 values to test
-            "param_files" : [<Param file>] # Parameter files to test
+        <geography> : {
+            # The following option defaults to a "sensible" values based
+            # on the geography if not specified
+            "admin_file": <string> # Admin file for the geography
+
+            # The followng two options default to the value specified at the
+            # top level if not specified here, and if not specified at the top
+            # level will use a geography dependent default.
+            "pre_param_file": <string> # Pre-param file for the geography
+            "pop_density_file": <string> # Population density file
+
+            # All the following options override those given at a global
+            # level.
+            "threads" : <NUM> # Number threads to specify for CovidSim to use
+            "network_seeds" : [<NUM>, <NUM>] # Network generation seeds
+            "r0" : [<r0>] # R0 values to test.
+            "param_files" : [<Param file>] # Parameter files to test.
             "num_runs" : <NUM> # Number of runs with different run seeds
-        }
-        <geography2> : {
-            "r0" : [<r0>] # R0 values to test for
-            "param_files" : [<Param file>] # Parameter files to test
-            "num_runs" : <NUM> # Number of runs with different run seeds
+            "run_seeds" : [<NUM>, ...] # 2 * num_run seeds for the runs
         }
         ...
     }
@@ -154,19 +173,156 @@ usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US",
 nigeria = ["Nigeria"]
 
 
-def admin_base(geography):
-    """Get the admin file basename for a particular geography."""
-    return "{0}_admin.txt".format(geography)
+def default_admin_file(data_dir, geography):
+    """Get the default admin file for a geography."""
+    return os.path.join(data_dir, "admin_units",
+                        "{0}_admin.txt".format(geography))
 
 
-def pp_base(geography):
-    """Get the basename of the pre-param file for a particular geography."""
+def default_pp_file(data_dir, geography):
+    """Get the default pre-param file for a geography."""
     if geography in united_states:
-        return "preUS_R0=2.0.txt"
+        pp_base = "preUS_R0=2.0.txt"
     elif geography in nigeria:
-        return "preNGA_R0=2.0.txt"
+        pp_base = "preNGA_R0=2.0.txt"
     else:
-        return "preUK_R0=2.0.txt"
+        pp_base = "preUK_R0=2.0.txt"
+
+    return os.path.join(data_dir, "param_files", pp_base)
+
+
+def pop_base(geography):
+    """Get the basename of the geography GZIP file."""
+    if geography in united_states + canada:
+        return "wpop_usacan.txt.gz"
+    elif geography in usa_territories:
+        return "wpop_us_terr.txt.gz"
+    elif geography in nigeria:
+        return "wpop_nga_adm1.txt.gz"
+    else:
+        return "wpop_eur.txt.gz"
+
+
+def default_pop_file(data_dir, geography):
+    """Get the default population density file for a geography."""
+    return os.path.join(data_dir, "populations", pop_base(geography))
+
+
+def generate_random_run_seeds(num_runs):
+    """Generate a list of 2 * num_runs random seeds.
+
+    We need two run seeds for each run.
+    """
+    random.seed()
+    return [random.randint(0, 0x7fffffff) for i in range(num_runs * 2)]
+
+
+def validate_run_seeds(config, geography=None):
+    """Validate num_runs & run_seeds for a particular geography.
+
+    If geography is None then assume this is the global defaults.
+    """
+    if "num_runs" not in config and "run_seeds" not in config:
+        # Do one run if no values are specified
+        config["num_runs"] = 1
+
+    if "run_seeds" not in config:
+        config["run_seeds"] = generate_random_run_seeds(config["num_runs"])
+
+    if len(config["run_seeds"]) % 2 != 0:
+        print("ERROR: Must specify a multiple of two run seeds in config:")
+        print("Specified: {0}".format(config["run_seeds"]))
+        if geography is not None:
+            print("Geography: {0}".format(geography))
+        exit(1)
+
+    if "num_runs" not in config:
+        config["num_runs"] = len(config["run_seeds"]) // 2
+
+    if config["num_runs"] * 2 != len(config["run_seeds"]):
+        print("WARNING: Number of runs does not match length of run_seeds")
+        if geography is not None:
+            print("Geography: {0}".format(geography))
+        print("{0} * 2 != {1}".format(config["num_runs"],
+                                      len(config["run_seeds"])))
+        print("Will use length of run_seeds")
+        config["num_runs"] = len(config["run_seeds"]) // 2
+
+
+def read_config(args):
+    """Read, validate, and canonicalise the configuration file."""
+    if not os.path.exists(args.config):
+        print("ERROR: Unable to find config file: {0}".format(args.config))
+        exit(1)
+
+    with open(args.config, 'r') as cf:
+        config = json.load(cf)
+
+    # If we have no threads variable set use 1:
+    if "threads" not in config:
+        config["threads"] = 1
+
+    # Need exactly two network seeds
+    if "network_seeds" not in config:
+        config["network_seeds"] = generate_random_run_seeds(1)
+
+    if len(config["network_seeds"]) != 2:
+        print("ERROR: Must specify exactly two network seeds in config:")
+        print("Speficied: {0}".format(config["network_seeds"]))
+        print("Config file: {0}".format(args.config))
+        exit(1)
+
+    validate_run_seeds(config)
+
+    # Ensure we have some geographies
+    if "geographies" not in config:
+        print("ERROR: No geographies speicified")
+        exit(1)
+
+    # Validate individual geographies
+    for geography, geography_config in config["geographies"].items():
+        if "admin_file" not in geography_config:
+            geography_config["admin_file"] = \
+                    default_admin_file(args.data, geography)
+
+        if "pre_param_file" not in geography_config:
+            if "pre_param_file" not in config:
+                geography_config["pre_param_file"] = default_pp_file(args.data,
+                                                                     geography)
+            else:
+                geography_config["pre_param_file"] = config["pre_param_file"]
+
+        if "pop_density_file" not in geography_config:
+            if "pop_density_file" not in config:
+                geography_config["pop_density_file"] = \
+                        default_pop_file(args.data, geography)
+            else:
+                geography_config["pop_density_file"] = \
+                        config["pop_density_file"]
+
+        for i in ["threads", "network_seeds", "r0", "param_files"]:
+            if i not in geography_config:
+                if i not in config:
+                    print("ERROR: Unable to find value for {0}".format(i))
+                    print("Geography being considered: {0}".format(geography))
+                    exit(1)
+                else:
+                    geography_config[i] = config[i]
+
+        if "num_runs" not in geography_config and \
+           "run_seeds" not in geography_config:
+            geography_config["run_seeds"] = config["run_seeds"]
+            geography_config["num_runs"] = config["num_runs"]
+
+        validate_run_seeds(geography_config, geography)
+
+    return config
+
+
+def write_config(fname, config):
+    """Write the JSON config to fname."""
+    with open(fname, 'w') as cf:
+        json.dump(config, cf, indent=2)
 
 
 # Determine whether we need to build the tool or use a user supplied one:
@@ -197,46 +353,73 @@ else:
 os.makedirs(args.output, exist_ok=True)
 
 # Read the config file
-if not os.path.exists(args.config):
-    print("Unable to find config file: {0}".format(args.config))
-    exit(1)
-with open(args.config, 'r') as cf:
-    config = json.load(cf)
+config = read_config(args)
 
-# If we have no threads variable set use 1:
-if config["threads"] is None:
-    config["threads"] = 1
+# Write it out to enable repeatable builds
+write_config(os.path.join(args.output, "config.json"), config)
 
-if config["network_seed1"] is None:
-    config["network_seed1"] = random.randint(0, 0x7fffffff)
-    exit(1)
-
-if config["network_seed2"] is None:
-    config["network_seed2"] = random.randint(0, 0x7fffffff)
-    exit(1)
-
-# Run Seed reference gives the list of run seeds to use for each set of runs.
-# We need 2 seeds for each run - so it will be config["num_runs"] * 2 elements
-# long.
-def generate_random_run_seeds(num_runs):
-    if num_runs is None:
-        num_runs = 1
-    random.seed()
-    return [random.randint(0, 0x7fffffff) for i in range(num_runs * 2)]
-
-# Generate the input data directories.  We have the following layout:
-#  - input-setup/
-#  - input/<geography>/
+# Generate the input data directories.  We have the following layout of the
+# output directory:
+#  - <args.output>/
+#    - input-setup/ - Input files for setup runs
+#    - input/<geography>/ - Input files for "true" geography runs"
+#    - output/<geography>/ - Output from each geography run
+#      - setup/ - Output from setup run
+#      - <r0>/<param>/<run> - Output from a particular run.
 #
-# input-setup contains the data needed to run the initial network generation
-# run for all geographies.  input-<geography> contains the files needed for
-# the runs in a particular geography (including the binary pop data and
-# network file).
+# We use one input directory for all setup runs because the population density
+# files are likely shared, and are large.
+#
+# We keep a dict of all files we've copied so that we know if we duplicate any
+# copying.
 input_setup = os.path.join(args.output, "input-setup")
 os.makedirs(input_setup, exist_ok=True)
 
+copied_files = {}  # Dest -> source of files we've copied
+
+
+def do_copy(src, dst):
+    """Return True if we should copy src to dst.
+
+    Exits if we have a hard error
+    """
+    if os.path.exists(dst):
+        if dst in copied_files:
+            if copied_files[dst] != src:
+                print("ERROR: Copying different files to {0}".format(dst))
+                print("Previous source: {0}".format(copied_files[dst]))
+                print("New source: {0}".format(src))
+                exit(1)
+            else:
+                return False
+        else:
+            print("WARNING: Overwriting existing file: {0}".format(dst))
+
+    copied_files[dst] = src
+    return True
+
+
+def copy_file(src, dst):
+    """Copy src to dst, with additional safety checks.
+
+    If dst exists and we haven't copied it before we overwrite dst, otherwise
+    if dst exists and we didn't copy it from src before we error out.
+    """
+    if do_copy(src, dst):
+        print("Copying {0} to {1}".format(src, dst))
+        shutil.copy2(src, dst)
+
+
+def gunzip_file(src, dst):
+    """Unzip src into dst, with additional safety checks."""
+    if do_copy(src, dst):
+        with gzip.open(src, 'rb') as fi, open(dst, 'wb') as fo:
+            print("Unzipping {0} to {1}".format(src, dst))
+            shutil.copyfileobj(fi, fo)
+
+
 # Copy the executable - use copy2 to preserve exe bit
-shutil.copy2(exe, os.path.join(input_setup, "CovidSim.exe"))
+copy_file(exe, os.path.join(input_setup, "CovidSim.exe"))
 
 # Dictionaries of jobs:
 setup_jobs = {}  # Geography -> Setup run, emptied as jobs finish
@@ -250,70 +433,48 @@ for geography, geography_config in config["geographies"].items():
     os.makedirs(output_geography, exist_ok=True)
 
     # Copy the executable
-    shutil.copy2(exe, os.path.join(input_geography, "CovidSim.exe"))
+    copy_file(exe, os.path.join(input_geography, "CovidSim.exe"))
 
     # The admin file to use
-    admin_file = os.path.join(args.data, "admin_units", admin_base(geography))
+    admin_file = geography_config["admin_file"]
+    admin_base = os.path.basename(admin_file)
 
     if not os.path.exists(admin_file):
         print("Unable to find admin file for geography: {0}".format(geography))
-        print("Data directory: {0}".format(args.data))
         print("Looked for: {0}".format(admin_file))
         exit(1)
 
-    shutil.copyfile(admin_file,
-                    os.path.join(input_setup, admin_base(geography)))
-    shutil.copyfile(admin_file,
-                    os.path.join(input_geography, admin_base(geography)))
+    copy_file(admin_file, os.path.join(input_setup, admin_base))
+    copy_file(admin_file, os.path.join(input_geography, "admin.txt"))
 
     # Population density file in gziped form, text file, and binary file as
     # processed by CovidSim
-    if geography in united_states + canada:
-        wpop_file_root = "usacan"
-    elif geography in usa_territories:
-        wpop_file_root = "us_terr"
-    elif geography in nigeria:
-        wpop_file_root = "nga_adm1"
+    wpop_file_gz = geography_config["pop_density_file"]
+    if not os.path.exists(wpop_file_gz):
+        print("Unable to find population file for geography: {0}".
+              format(geography))
+        print("Looked for: {0}".format(wpop_file_gz))
+        exit(1)
+
+    wpop_file_base, ext = os.path.splitext(os.path.basename(wpop_file_gz))
+    wpop_file = os.path.join(input_setup, wpop_file_base)
+    if ext == '.gz':
+        gunzip_file(wpop_file_gz, wpop_file)
     else:
-        wpop_file_root = "eur"
-
-    wpop_file_gz = os.path.join(
-            args.data,
-            "populations",
-            "wpop_{0}.txt.gz".format(wpop_file_root))
-    wpop_file = os.path.join(
-            input_setup,
-            "wpop_{0}.txt".format(wpop_file_root))
-
-    if not os.path.exists(wpop_file):
-        if not os.path.exists(wpop_file_gz):
-            print("Unable to find population file for geography: {0}".
-                  format(geography))
-            print("Data directory: {0}".format(args.data))
-            print("Looked for: {0}".format(wpop_file_gz))
-            exit(1)
-
-        # Uncompress
-        with gzip.open(wpop_file_gz, 'rb') as fi, open(wpop_file, 'wb') as fo:
-            shutil.copyfileobj(fi, fo)
-
-    # We need to run CovidSim to generate the binary - and we don't have that
-    # yet.
+        copy_file(wpop_file_gz, wpop_file)
 
     # Configure pre-parameter file.  This file doesn't change between runs:
 
-    pp_file = os.path.join(args.data, "param_files", pp_base(geography))
-    if not os.path.exists(os.path.join(input_setup, pp_base(geography))):
-        if not os.path.exists(pp_file):
-            print("Unable to find pre-parameter file")
-            print("Data directory: {0}".format(args.data))
-            print("Looked for: {0}".format(pp_file))
-            exit(1)
+    pp_file = geography_config["pre_param_file"]
+    pp_base = os.path.basename(pp_file)
+    if not os.path.exists(pp_file):
+        print("Unable to find pre-parameter file for geography "
+              "{0}".format(geography))
+        print("Looked for: {0}".format(pp_file))
+        exit(1)
 
-        shutil.copyfile(pp_file, os.path.join(input_setup, pp_base(geography)))
-
-    # Copy pre-parameter file into Geography
-    shutil.copyfile(pp_file, os.path.join(input_geography, pp_base(geography)))
+    copy_file(pp_file, os.path.join(input_setup, pp_base))
+    copy_file(pp_file, os.path.join(input_geography, "preparam.txt"))
 
     # Copy the parameter files
     # We copy all of them into each Geo input directory, but only the first
@@ -324,11 +485,7 @@ for geography, geography_config in config["geographies"].items():
             exit(1)
 
         param_base = os.path.basename(param_file)
-        if os.path.exists(os.path.join(input_geography, param_base)):
-            print("Parameter files with the same basename: {0}".
-                  format(param_base))
-            exit(1)
-        shutil.copyfile(param_file, os.path.join(input_geography, param_base))
+        copy_file(param_file, os.path.join(input_geography, param_base))
 
     param_base = os.path.basename(geography_config["param_files"][0])
     shutil.copyfile(geography_config["param_files"][0],
@@ -336,20 +493,19 @@ for geography, geography_config in config["geographies"].items():
 
     covidsim_cmd = [
         os.path.join(os.path.curdir, "CovidSim.exe"),
-        "/c:{0}".format(config["threads"]),
-        "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
-        "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
+        "/c:{0}".format(geography_config["threads"]),
+        "/A:" + os.path.join(os.path.curdir, admin_base),
+        "/PP:" + os.path.join(os.path.curdir, pp_base),
         "/P:" + os.path.join(os.path.curdir, param_base),
         "/O:" + os.path.join(os.path.curdir, "output", "setup"),
-        "/D:" + os.path.join(os.path.curdir,
-                             "wpop_{0}.txt".format(wpop_file_root)),
+        "/D:" + os.path.join(os.path.curdir, wpop_file_base),
         "/M:" + os.path.join(os.path.curdir, "output", "pop.bin"),
         "/S:" + os.path.join(os.path.curdir, "output", "network.bin"),
         "/R:{0}".format(geography_config["r0"][0] / 2),
-        "{0}".format(config["network_seed1"]),
-        "{0}".format(config["network_seed2"]),
-        "17389101",  # Run seed doesn't matter as we're going to drop this
-        "4797132"    # run
+        "{0}".format(geography_config["network_seeds"][0]),
+        "{0}".format(geography_config["network_seeds"][1]),
+        "{0}".format(geography_config["run_seeds"][0]),
+        "{0}".format(geography_config["run_seeds"][1])
         ]
 
     runner_cmd = args.runner + [
@@ -379,21 +535,22 @@ def copy_bin_files(geography):
                             os.path.join(input_geography, f))
 
 
-def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
+def call_runner(geography, threads, r0, param_file, network_seed1,
+                network_seed2, run_seed1, run_seed2, output):
     """Call the runner for a particular set of values."""
     covidsim_cmd = [
         os.path.join(os.path.curdir, "CovidSim.exe"),
-        "/c:{0}".format(config["threads"]),
-        "/A:" + os.path.join(os.path.curdir, admin_base(geography)),
-        "/PP:" + os.path.join(os.path.curdir, pp_base(geography)),
+        "/c:{0}".format(threads),
+        "/A:" + os.path.join(os.path.curdir, "admin.txt"),
+        "/PP:" + os.path.join(os.path.curdir, "preparam.txt"),
         "/P:" + os.path.join(os.path.curdir, os.path.basename(param_file)),
         "/O:" + os.path.join(os.path.curdir, "output",
                              os.path.basename(output)),
         "/D:" + os.path.join(os.path.curdir, "pop.bin"),
         "/L:" + os.path.join(os.path.curdir, "network.bin"),
         "/R:{0}".format(r0 / 2),
-        "{0}".format(config["network_seed1"]),
-        "{0}".format(config["network_seed2"]),
+        "{0}".format(network_seed1),
+        "{0}".format(network_seed2),
         "{0}".format(run_seed1),
         "{0}".format(run_seed2)
         ]
@@ -415,11 +572,11 @@ def start_many_runs(geography, geography_config):
     for r0 in geography_config["r0"]:
         for param_file in geography_config["param_files"]:
             pf = os.path.basename(param_file)
-            run_seeds = generate_random_run_seeds(geography_config["num_runs"])
+            run_seeds = geography_config["run_seeds"].copy()
             run_id = 0
-            while run_seeds:
-                run_seed1 = run_seeds.pop()
-                run_seed2 = run_seeds.pop()
+            # Hack to iterate over run_seeds two at a time
+            for run_seed1, run_seed2 in \
+                    zip(*[iter(geography_config["run_seeds"])]*2):
                 output = os.path.join(args.output, "output", geography,
                                       str(r0), pf,
                                       "{0}_{1}_{2}_{3}".format(geography, r0,
@@ -427,8 +584,16 @@ def start_many_runs(geography, geography_config):
                 print("Starting run job for geography {0}, r0={1}, "
                       "param_file={2}, run={3}".format(geography, r0,
                                                        param_file, run_id))
-                all_jobs[output] = call_runner(geography, r0, param_file,
-                                               run_seed1, run_seed2, output)
+                all_jobs[output] = call_runner(
+                        geography,
+                        geography_config["threads"],
+                        r0,
+                        param_file,
+                        geography_config["network_seeds"][0],
+                        geography_config["network_seeds"][1],
+                        run_seed1,
+                        run_seed2,
+                        output)
                 run_id += 1
 
 

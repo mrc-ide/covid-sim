@@ -1,8 +1,7 @@
 {
   "threads": 4,
-  "network_seed1": 98798150,
-  "network_seed2": 729101,
-  "geographies": 
+  "network_seeds": [ 98798150, 729101 ],
+  "geographies":
   {
     "Austria":
     {
@@ -12,9 +11,9 @@
     },
     "Guam":
     {
-      "r0": [ 2.4],
+      "r0": [ 2.4 ],
       "param_files": [ "param_files/p_PC7_CI_HQ_SD.txt" ],
       "num_runs": 2
-    } 
+    }
   }
 }
