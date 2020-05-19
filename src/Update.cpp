@@ -738,72 +738,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 				fprintf(stderr, "Error!\n");
 			}
 		}
-		//currently commenting this out as household members will likely be picked up by household quarantine.
-		//can add back in if needed, but would need to re-add a couple more local variables.
-
-		//if(P.IncludeHouseholdDigitalContactTracing)
-		//{
-		//	//Then we want to find all their household and place group contacts to add to the contact tracing queue
-		//	//Start with household contacts
-		//	j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-		//	for (j = j1; j < j2; j++)
-		//	{
-		//		//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//		if ((abs(Hosts[j].infectionState) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
-		//		{
-		//			//add contact and detected infectious host to lists
-		//			ad = Mcells[Hosts[j].mcell].adunit;
-		//			if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
-		//			{
-		//				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = j;
-		//				StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai;
-		//			}
-		//			else
-		//			{
-		//				fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-		//			}
-		//		}
-		//	}
-		//}
-		//if(P.IncludePlaceGroupDigitalContactTracing)
-		//{
-		//	//then loop over place group contacts as well
-		//	for (int i = 0; i < P.PlaceTypeNum; i++)
-		//	{
-		//		k = Hosts[ai].PlaceLinks[i];
-		//		if (k >= 0)
-		//		{
-		//			//Find place group link
-		//			m = Hosts[ai].PlaceGroupLinks[i];
-		//			j1 = Places[i][k].group_start[m]; j2 = j1 + Places[i][k].group_size[m];
-		//			for (j = j1; j < j2; j++)
-		//			{
-		//				h = Places[i][k].members[j];
-		//				ad = Mcells[Hosts[h].mcell].adunit;
-		//				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//				if ((abs(Hosts[h].infectionState) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
-		//				{
-		//					ad = Mcells[Hosts[h].mcell].adunit;
-		//					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
-		//					{
-		//						//PLEASE CHECK ALL THIS LOGIC CAREFULLY!
-		//
-		//						StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = h;
-		//						StateT[tn].contacts[ad][StateT[tn].ncontacts[ad]++] = ai; //keep a record of who the detected case was
-		//					}
-		//					else
-		//					{
-		//						fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-		//					}
-		//
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-
 	}
-
 }
 
 void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
@@ -957,8 +892,6 @@ void DoRecover(int ai, int tn, int run)
 			}
 		}
 	}
-	//else
-	//fprintf(stderr, "\n ### %i %i  \n", ai, a->infectionState);
 }
 
 void DoDeath(int ai, int tn, int run)

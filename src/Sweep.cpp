@@ -817,12 +817,11 @@ void IncubRecoverySweep(double t, int run)
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
 				if (ts >= si->recovery_or_death_time)
 				{
-					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
+					if (!si->to_die) // if person recovers and this timestep is after they've recovered
 					{
 						DoRecover(ci, tn, run);
-						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of infectionState queue. Don't get why 0 here.
 					}
-					else /// if they die and this timestep is after they've died.
+					else // if they die and this timestep is after they've died.
 					{
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
 							DoRecover(ci, tn, run);
