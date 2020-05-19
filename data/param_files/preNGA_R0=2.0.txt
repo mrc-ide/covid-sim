@@ -1,5 +1,5 @@
 
-												
+
 [Update timestep]
 0.25
 
@@ -12,17 +12,17 @@
 [Sampling time]
 730
 
-[Grid size]	
+[Grid size]
 0.075
 
-[Spatial domain for simulation]	
+[Spatial domain for simulation]
 73	6.3
 136	54
 
 [Number of micro-cells per spatial cell width]
-9	
+9
 
-[Initial immunity profile by age]	
+[Initial immunity profile by age]
 0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 
 [Initial immunity applied to all household members]
@@ -45,10 +45,10 @@
 
 [Relative transmission rates for place types]
 0.14	0.14	0.1	0.07
-(School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. 
+(School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3.
 Also comparable with 1957 pandemic attack rates from Chin.)
 
-[Proportion of between group place links]	
+[Proportion of between group place links]
 0.25	0.25	0.25	0.25
 (25% of within-group contacts)
 
@@ -116,7 +116,7 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 [Include latent period]
 1
 
-[Latent period]	
+[Latent period]
 4.59
 
 (From Marc's estimates) - minus half a day to account for infectiousness pre symptom onset
@@ -147,7 +147,7 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 [Infectious period]
 14
 
-[Infectious period inverse CDF]	
+[Infectious period inverse CDF]
 0	0.171566836	0.424943468	0.464725594	0.50866631	0.55773764	0.613298069	0.67732916	0.752886568	0.843151261	0.895791527	0.955973422	1.026225109	1.110607115	1.216272375	1.336349102	1.487791911	1.701882384	1.865779085	2.126940581	2.524164972
 
 (Cauchemez)
@@ -274,34 +274,34 @@ Also comparable with 1957 pandemic attack rates from Chin.)
 
 ===================================
 
-[Do Severity Analysis]	
+[Do Severity Analysis]
 1
 
-[Mean_MildToRecovery]	
-7	
-	
-[Mean_ILIToRecovery]	
+[Mean_MildToRecovery]
 7
 
-[Mean_ILIToSARI]	
+[Mean_ILIToRecovery]
+7
+
+[Mean_ILIToSARI]
 5
 
 [Mean_SARIToRecovery]
 1
-	
+
 [Mean_SARIToDeath]
-1	
-
-[Mean_SARIToCritical]	
-1
-	
-[Mean_CriticalToCritRecov]	
 1
 
-[Mean_CriticalToDeath]	
+[Mean_SARIToCritical]
 1
-	
-[Mean_CritRecovToRecov]	
+
+[Mean_CriticalToCritRecov]
+1
+
+[Mean_CriticalToDeath]
+1
+
+[Mean_CritRecovToRecov]
 1
 
 [MeanTimeToTest]

@@ -74,10 +74,10 @@ East_Wales	West_Wales_and_The_Valleys
 1	0.995949972	0	0.41
 
 [Minimum age for age group 1 in place types]
-3	15	18	15	
+3	15	18	15
 
 [Maximum age for age group 1 in place types]
-4	16	65	24	
+4	16	65	24
 
 
 [Proportion of age group 2 in place types]
@@ -97,7 +97,7 @@ East_Wales	West_Wales_and_The_Valleys
 21	21	21	55
 
 [Maximum age for age group 3 in place types]
-65	65	65	64	
+65	65	65	64
 
 
 [Kernel shape params for place types]

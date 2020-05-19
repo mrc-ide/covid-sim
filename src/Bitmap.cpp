@@ -10,8 +10,8 @@
 #include "Param.h"
 #include "Model.h"
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-//// **** BITMAP stuff. 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+//// **** BITMAP stuff.
 
 #ifdef _WIN32
 //HAVI avi;
@@ -31,7 +31,7 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int i, x, y, f, mi;
+	int x, y, f, mi;
 	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
@@ -42,8 +42,8 @@ void CaptureBitmap()
 	{
 		fst = 0;
 		int32_t maxPop = 0;
-		for (i = 0; i < mi; i++) bmPopulation[i] = 0;
-		for (i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
+		for (int i = 0; i < P.PopSize; i++)
 		{
 			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
@@ -58,7 +58,7 @@ void CaptureBitmap()
 			}
 		}
 		logMaxPop = log(1.001 * (double)maxPop);
-		for (i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NMC; i++)
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
@@ -79,7 +79,7 @@ void CaptureBitmap()
 					}
 				}
 			}
-		for (i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.bwidth / 2; i++)
 		{
 			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
 			f = ((int)prev);
@@ -89,8 +89,9 @@ void CaptureBitmap()
 			}
 		}
 	}
-#pragma omp parallel for private(i) schedule(static,5000)
-	for (i = 0; i < mi; i++)
+#pragma omp parallel for schedule(static,5000) default(none) \
+		shared(mi, bmPixels, bmPopulation, bmInfected, bmTreated, bmRecovered, logMaxPop)
+	for (int i = 0; i < mi; i++)
 	{
 		if (bmPopulation[i] == -1)
 			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
@@ -165,7 +166,7 @@ void OutputBitmap(int tp)
 	  ColorRGB white(1.0, 1.0, 1.0);
 	  bmap.transparent(white);
 	  bmap.write(buf);
-#elif defined(_WIN32)	
+#elif defined(_WIN32)
 	  //Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library
 	  using namespace Gdiplus;
 
@@ -187,7 +188,7 @@ void OutputBitmap(int tp)
 		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
-		  palette->Entries[0] = 0x00ffffff; // Transparent white 
+		  palette->Entries[0] = 0x00ffffff; // Transparent white
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png

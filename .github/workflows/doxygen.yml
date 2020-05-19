@@ -1,5 +1,5 @@
 name: Doxygen Action
-on: 
+on:
   push:
     branches:
       - master
@@ -16,7 +16,7 @@ jobs:
 
     - name: Doxygen Build
       uses: mattnotmitt/doxygen-action@v1
-    
+
     - name: Doxygen Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
