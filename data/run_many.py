@@ -11,7 +11,7 @@ It should be invoked as follows:
                         [--srcdir <srcdir>] config.json
 
 For example:
-    python3 run_many.py --runner runner/local.py run_us.json
+    python3 run_many.py --runner runners/run_local.py run_us.json
 
 Options:
     --covidsim Path to CovidSim binary to use, if not specified will build
@@ -43,7 +43,7 @@ Its execution is the following steps:
 
     2. Change to that (remote) location.
 
-    3. Execute <comamnd...>
+    3. Execute <command...>
 
     4. Copy/move the (remote) contents of ./output/ to <output-dir>.
 
@@ -54,16 +54,25 @@ invoked:
 
 {
     "threads" : <NUM> # Number of threads to specify for CovidSim to use
-    "num_runs" : <NUM> # Number of runs with different run seeds
-    "network_seed0" : <NUM> # Network seed 0
     "network_seed1" : <NUM> # Network seed 1
-    "r0" : [<r0>] # R0 values to test
-    "geographies" : [<geography>] # Geographies to test
-    "param_files" : [<Param file>] # Parameter files to test
+    "network_seed2" : <NUM> # Network seed 2
+    "geographies" : {
+        <geography1> : {
+            "r0" : [<r0>] # R0 values to test
+            "param_files" : [<Param file>] # Parameter files to test
+            "num_runs" : <NUM> # Number of runs with different run seeds
+        }
+        <geography2> : {
+            "r0" : [<r0>] # R0 values to test for
+            "param_files" : [<Param file>] # Parameter files to test
+            "num_runs" : <NUM> # Number of runs with different run seeds
+        }
+        ...
+    }
 }
 
-There will be num_runs runs run for each combination of r0, geography, and
-param-file.
+There will be num_runs runs for each combination of r0, param-files and
+geography.
 """
 
 import argparse
@@ -206,16 +215,14 @@ if config["network_seed2"] is None:
     config["network_seed2"] = random.randint(0, 0x7fffffff)
     exit(1)
 
-if config["num_runs"] is None:
-    config["num_runs"] = 1
-
 # Run Seed reference gives the list of run seeds to use for each set of runs.
 # We need 2 seeds for each run - so it will be config["num_runs"] * 2 elements
 # long.
-run_seed_reference = []
-random.seed()
-for i in range(config["num_runs"] * 2):
-    run_seed_reference.append(random.randint(0, 0x7fffffff))
+def generate_random_run_seeds(num_runs):
+    if num_runs is None:
+        num_runs = 1
+    random.seed()
+    return [random.randint(0, 0x7fffffff) for i in range(num_runs * 2)]
 
 # Generate the input data directories.  We have the following layout:
 #  - input-setup/
@@ -225,10 +232,8 @@ for i in range(config["num_runs"] * 2):
 # run for all geographies.  input-<geography> contains the files needed for
 # the runs in a particular geography (including the binary pop data and
 # network file).
-
 input_setup = os.path.join(args.output, "input-setup")
 os.makedirs(input_setup, exist_ok=True)
-os.makedirs(os.path.join(input_setup, "output"), exist_ok=True)
 
 # Copy the executable - use copy2 to preserve exe bit
 shutil.copy2(exe, os.path.join(input_setup, "CovidSim.exe"))
@@ -238,12 +243,11 @@ setup_jobs = {}  # Geography -> Setup run, emptied as jobs finish
 all_jobs = {}  # ID -> Intervention run
 
 # Run through the setup runs:
-for geography in config["geographies"]:
+for geography, geography_config in config["geographies"].items():
     input_geography = os.path.join(args.output, "input", geography)
     output_geography = os.path.join(args.output, "output", geography, "setup")
     os.makedirs(input_geography, exist_ok=True)
     os.makedirs(output_geography, exist_ok=True)
-    os.makedirs(os.path.join(input_geography, "output"), exist_ok=True)
 
     # Copy the executable
     shutil.copy2(exe, os.path.join(input_geography, "CovidSim.exe"))
@@ -314,7 +318,7 @@ for geography in config["geographies"]:
     # Copy the parameter files
     # We copy all of them into each Geo input directory, but only the first
     # into the input-setup directory.
-    for param_file in config["param_files"]:
+    for param_file in geography_config["param_files"]:
         if not os.path.exists(param_file):
             print("Unable to find parameter file: {0}".format(param_file))
             exit(1)
@@ -326,9 +330,9 @@ for geography in config["geographies"]:
             exit(1)
         shutil.copyfile(param_file, os.path.join(input_geography, param_base))
 
-    param_base = os.path.basename(config["param_files"][0])
-    shutil.copyfile(config["param_files"][0], os.path.join(input_setup,
-                    param_base))
+    param_base = os.path.basename(geography_config["param_files"][0])
+    shutil.copyfile(geography_config["param_files"][0],
+                    os.path.join(input_setup, param_base))
 
     covidsim_cmd = [
         os.path.join(os.path.curdir, "CovidSim.exe"),
@@ -341,7 +345,7 @@ for geography in config["geographies"]:
                              "wpop_{0}.txt".format(wpop_file_root)),
         "/M:" + os.path.join(os.path.curdir, "output", "pop.bin"),
         "/S:" + os.path.join(os.path.curdir, "output", "network.bin"),
-        "/R:{0}".format(config["r0"][0] / 2),
+        "/R:{0}".format(geography_config["r0"][0] / 2),
         "{0}".format(config["network_seed1"]),
         "{0}".format(config["network_seed2"]),
         "17389101",  # Run seed doesn't matter as we're going to drop this
@@ -405,13 +409,13 @@ def call_runner(geography, r0, param_file, run_seed1, run_seed2, output):
     return subprocess.Popen(runner_cmd)
 
 
-def start_many_runs(geography):
+def start_many_runs(geography, geography_config):
     """Given a geography do all the runs for it once setup is complete."""
     copy_bin_files(geography)
-    for r0 in config["r0"]:
-        for param_file in config["param_files"]:
+    for r0 in geography_config["r0"]:
+        for param_file in geography_config["param_files"]:
             pf = os.path.basename(param_file)
-            run_seeds = run_seed_reference.copy()
+            run_seeds = generate_random_run_seeds(geography_config["num_runs"])
             run_id = 0
             while run_seeds:
                 run_seed1 = run_seeds.pop()
@@ -455,7 +459,7 @@ while total_pending:
                       format(geography))
             else:
                 print("\nCompleted setup for geography {0}".format(geography))
-                start_many_runs(geography)
+                start_many_runs(geography, config["geographies"][geography])
 
             del setup_jobs[geography]
 

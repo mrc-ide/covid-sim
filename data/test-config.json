@@ -1,9 +1,20 @@
 {
   "threads": 4,
-  "num_runs": 10,
   "network_seed1": 98798150,
   "network_seed2": 729101,
-  "geographies": [ "Austria", "Guam" ],
-  "r0": [ 2.8, 3.0, 3.2 ],
-  "param_files": [ "param_files/p_PC7_CI_HQ_SD.txt" ]
+  "geographies": 
+  {
+    "Austria":
+    {
+      "r0": [ 2.8, 3.2 ],
+      "param_files": [ "param_files/p_PC7_CI_HQ_SD.txt" ],
+      "num_runs": 1
+    },
+    "Guam":
+    {
+      "r0": [ 2.4],
+      "param_files": [ "param_files/p_PC7_CI_HQ_SD.txt" ],
+      "num_runs": 2
+    } 
+  }
 }
