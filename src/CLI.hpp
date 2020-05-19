@@ -45,7 +45,7 @@ void parse_long(std::string const& input, long& output);
 class CmdLineArgs {
 public:
     // Function prototype for a generic parser function
-	using ParserFn = std::function<void(std::string const&)>;
+    using ParserFn = std::function<void(std::string const&)>;
 
     /**
      * Use this function when adding a new option to the CLI.
@@ -54,17 +54,17 @@ public:
      * then gets inserted into a map of other options. This provides a strong
      * cohesion between an option name (i.e. 'P') with a C++ variable (i.e. 'ParamFile')
      */
-	template<class T>
-	void add_option(std::string const&& option, std::function<void(std::string const&, T&)> func, T& output);
+    template<class T>
+    void add_option(std::string const&& option, std::function<void(std::string const&, T&)> func, T& output);
 
     /**
      * Call this function once all add_option() calls have been made to process
      * the arguments passed in from the command-line.
      */
-	int parse(int argc, char* argv[], Param& P);
+    int parse(int argc, char* argv[], Param& P);
 
 private:
-	std::map<std::string, ParserFn> m_option_map;
+    std::map<std::string, ParserFn> m_option_map;
 };
 
 void PrintHelpAndExit();

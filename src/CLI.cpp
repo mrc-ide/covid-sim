@@ -4,8 +4,8 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "CLI.hpp"
 #include "Param.h"
@@ -20,41 +20,41 @@ void parse_read_file(std::string const& input, std::string& output) {
 }
 
 void parse_integer(std::string const& input, int& output) {
-	std::istringstream iss(input);
-	iss >> output;
+    std::istringstream iss(input);
+    iss >> output;
     if (iss.fail()) {
-		if (output == std::numeric_limits<int>::max()) {
-			std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<int>::max()
-					  << " when parsing an int: " << iss.str() << std::endl;
-		}
+        if (output == std::numeric_limits<int>::max()) {
+            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<int>::max()
+                      << " when parsing an int: " << iss.str() << std::endl;
+        }
         else if (output == std::numeric_limits<int>::min()) {
             std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<int>::min()
                       << " when parsing an int: " << iss.str() << std::endl;
         }
-		else {
-			std::cerr << "ERROR: Expected int, got " << iss.str() << std::endl;
-		}
-		PrintHelpAndExit();
-	}
+        else {
+            std::cerr << "ERROR: Expected int, got " << iss.str() << std::endl;
+        }
+        PrintHelpAndExit();
+    }
 }
 
 void parse_long(std::string const& input, long& output) {
-	std::istringstream iss(input);
-	iss >> output;
-	if (iss.fail()) {
-		if (output == std::numeric_limits<long>::max()) {
-			std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<long>::max()
-					  << " when parsing a long: " << iss.str() << std::endl;
-		}
+    std::istringstream iss(input);
+    iss >> output;
+    if (iss.fail()) {
+        if (output == std::numeric_limits<long>::max()) {
+            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<long>::max()
+                      << " when parsing a long: " << iss.str() << std::endl;
+        }
         else if (output == std::numeric_limits<long>::min()) {
             std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<long>::min()
                       << " when parsing a long: " << iss.str() << std::endl;
         }
-		else {
-			std::cerr << "ERROR: Expected long, got " << iss.str() << std::endl;
-		}
-		PrintHelpAndExit();
-	}
+        else {
+            std::cerr << "ERROR: Expected long, got " << iss.str() << std::endl;
+        }
+        PrintHelpAndExit();
+    }
 }
 
 template<class T>
@@ -95,13 +95,13 @@ int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
     parse_integer(argv[i+2], P.runSeed1);
     parse_integer(argv[i+3], P.runSeed2);
 
-	for (i = 1; i < argc - 4; i++)
-	{
+    for (i = 1; i < argc - 4; i++)
+    {
         std::string argument(argv[i]);
-		if (argument[0] != '/') {
-			std::cerr << "Argument \"" << argument << "\" does not start with '/'" << std::endl;
-			PrintHelpAndExit();
-		}
+        if (argument[0] != '/') {
+            std::cerr << "Argument \"" << argument << "\" does not start with '/'" << std::endl;
+            PrintHelpAndExit();
+        }
         auto pos = argument.find_first_of(":");
         if (pos == std::string::npos) {
             std::cerr << "Argument \"" << argument << "\" did not have a ':' character" << std::endl;
@@ -165,20 +165,20 @@ Optional arguments:
     /R      DOUBLE  R0 scaling
     /s      FILE    School file
     /S      FILE    Network file to save
-    /SS     DOUBLE,FILE	Interval and file to save snapshots
+    /SS     DOUBLE,FILE    Interval and file to save snapshots
     /T      FILE    Sets the P.PreControlClusterIdCaseThreshold
 )";
 
 void PrintHelpAndExit()
 {
-	std::cerr << USAGE << std::endl;
-	std::cerr << "Use the '/H' argument to get a detailed listing of "
-				 "required and optional arguments." << std::endl;
-	std::exit(1);
+    std::cerr << USAGE << std::endl;
+    std::cerr << "Use the '/H' argument to get a detailed listing of "
+                 "required and optional arguments." << std::endl;
+    std::exit(1);
 }
 
 void PrintDetailedHelpAndExit()
 {
-	std::cerr << USAGE << "\n" << DETAILED_USAGE << std::endl;
-	std::exit(1);
+    std::cerr << USAGE << "\n" << DETAILED_USAGE << std::endl;
+    std::exit(1);
 }
