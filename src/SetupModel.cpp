@@ -486,19 +486,23 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t2 = s = 0;
 	s3 = 1.0;
 
-#pragma omp parallel for private(i,s2,j,k,q,l,d,y,m,tn) schedule(static,1) reduction(+:s,t2) //schedule(static,1000)
-	for (tn = 0; tn < P.NumThreads; tn++) //changed this looping to allow for multi-threaded random numbers
+#pragma omp parallel for private(i,s2,j,k,q,l,d,y,m,tn) schedule(static,1) reduction(+:s,t2) 
+	for (tn = 0; tn < P.NumThreads; tn++) 
 	{
 		for (i = tn; i < P.PopSize; i += P.NumThreads)
 		{
+			if (P.SusceptibilitySD == 0)
+				Hosts[i].susc = (float)((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(k)]) : 1.0);
+			else
+				Hosts[i].susc = (float) (((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(k)]) : 1.0) * gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn));
 			if (P.InfectiousnessSD == 0)
 				Hosts[i].infectiousness = (float)P.AgeInfectiousness[HOST_AGE_GROUP(i)];
 			else
-				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(P.InfectiousnessGamA, P.InfectiousnessGamR, tn)); //made this multi-threaded: 28/11/14
+				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn));
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
-			if (ranf_mt(tn) < q) //made this multi-threaded: 28/11/14
+			if (ranf_mt(tn) < q) 
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
-			j = (int)floor((q = ranf_mt(tn) * CDF_RES)); //made this multi-threaded: 28/11/14
+			j = (int)floor((q = ranf_mt(tn) * CDF_RES)); 
 			q -= ((double)j);
 			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
 

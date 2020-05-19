@@ -437,9 +437,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 	a = Hosts + ai;
 	if (a->inf == InfStat_Latent)
 	{
-		if (P.InfectiousnessSD == 0)	a->infectiousness = (float)P.AgeInfectiousness[age];
-		else							a->infectiousness = (float)(P.AgeInfectiousness[age] * gen_gamma_mt(P.InfectiousnessGamA, P.InfectiousnessGamR, tn));
-
+		a->infectiousness = (float)P.AgeInfectiousness[age];
+		if (P.InfectiousnessSD > 0) a->infectiousness *= (float) gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn);
 		q = P.ProportionSymptomatic[age]
 			* (HOST_TREATED(ai) ? (1 - P.TreatSympDrop) : 1)
 			* (HOST_VACCED(ai) ? (1 - P.VaccSympDrop) : 1);
@@ -447,7 +446,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if (ranf_mt(tn) < q)
 		{
 			a->inf = InfStat_InfectiousAlmostSymptomatic;
-			a->infectiousness = (float)(-P.SymptInfectiousness * a->infectiousness);
+			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
 			a->inf = InfStat_InfectiousAsymptomaticNotCase;
@@ -549,10 +548,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 	if (!P.AbsenteeismPlaceClosure) 
 	{
-		if (P.PlaceCloseRoundHousehold)
-		{
-			if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
-		}
+		if ((P.PlaceCloseRoundHousehold)&& (Mcells[a->mcell].place_trig < USHRT_MAX - 1)) Mcells[a->mcell].place_trig++;
 		if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
