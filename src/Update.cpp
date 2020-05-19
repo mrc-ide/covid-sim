@@ -814,7 +814,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 	age = HOST_AGE_GROUP(ai);
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 	Person* a = Hosts + ai;
-	if (a->is_positive() && a->is_not_case())
+	if (a->is_positive() && a->is_exposed())
 	{
 		a->make_case();
 		if (HOST_ABSENT(ai))
@@ -1023,7 +1023,10 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			Hosts[ai].treat_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
 			Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatCaseCourseLength)));
 			StateT[tn].cumT++;
-			if ((abs(Hosts[ai].inf) > InfStat_Susceptible) && (Hosts[ai].inf != InfStat_Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
+
+			if (!Hosts[ai].is_susceptible() && !(Hosts[ai].is_dead() && Hosts[ai].is_asymptomatic()))
+				Cells[Hosts[ai].pcell].cumTC++;
+
 			StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 			if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 			Cells[Hosts[ai].pcell].tot_treat++;
@@ -1293,7 +1296,7 @@ void DoVacc(int ai, unsigned short int ts)
 	int x, y;
 	bool cumV_OK = false;
 
-	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+	if (HOST_TO_BE_VACCED(ai) || (Hosts[ai].is_symptomatic() && !Hosts[ai].is_exposed()) || (Hosts[ai].is_dead() && Hosts[ai].is_asymptomatic()))
 		return;
 #pragma omp critical (state_cumV)
 	if (State.cumV < P.VaccMaxCourses)

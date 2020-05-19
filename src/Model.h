@@ -68,7 +68,7 @@ struct Person
 	bool is_symptomatic() const;
 	bool is_asymptomatic() const;
 	bool is_case() const;
-	bool is_not_case() const;
+	bool is_exposed() const;
 	bool is_infectious() const;
 	bool is_infected() const;
 	bool has_recovered() const;

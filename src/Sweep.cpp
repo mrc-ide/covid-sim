@@ -103,7 +103,7 @@ void TravelDepartSweep(double t)
 						l = Airports[i].DestMcells[l].id;
 						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
-						if (Hosts[i2].is_not_case())
+						if (Hosts[i2].is_exposed() || Hosts[i2].is_susceptible())
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))

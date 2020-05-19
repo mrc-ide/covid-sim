@@ -61,8 +61,8 @@ bool Person::is_case() const {
 	return this->inf == InfStat_Case;
 }
 
-bool Person::is_not_case() const {
-	return std::abs(this->inf) < InfStat_InfectiousAsymptomaticNotCase;
+bool Person::is_exposed() const {
+	return std::abs(this->inf) == InfStat_Latent;
 }
 
 bool Person::is_infectious() const {
