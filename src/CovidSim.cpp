@@ -2641,7 +2641,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
 			Hosts[k].detected_time = 0;
 			Hosts[k].digitalContactTraced = 0;
-			Hosts[k].inf = InfStat_Susceptible;
+			Hosts[k].make_susceptible();
 			Hosts[k].num_treats = 0;
 			Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 			Hosts[k].infector = -1;
@@ -2658,7 +2658,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
 				Hosts[k].Severity_Current = Severity_Asymptomatic;
 				Hosts[k].Severity_Final = Severity_Asymptomatic;
-				Hosts[k].inf = InfStat_Susceptible;
+				Hosts[k].make_susceptible();
 			}
 		}
 
@@ -2875,7 +2875,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 			{
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
-				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
+				if (Hosts[l].is_susceptible())
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
 					{
@@ -2911,7 +2911,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 				{
 					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-					if (Hosts[l].inf == InfStat_Susceptible)
+					if (Hosts[l].is_susceptible())
 					{
 						if (CalcPersonSusc(l, 0, 0, 0) > 0)
 						{
@@ -2947,7 +2947,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-				if (Hosts[l].inf == InfStat_Susceptible)
+				if (Hosts[l].is_susceptible())
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
 					{
@@ -2999,7 +2999,7 @@ int RunModel(int run) //added run number as parameter
 			}
 			else
 			{
-				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].is_susceptible())) i2++;
 				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
 			}
 			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
@@ -3146,7 +3146,7 @@ int RunModel(int run) //added run number as parameter
 				}
 				else
 				{
-					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
+					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].is_susceptible())) i2++;
 					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
 				}
 				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
@@ -5311,16 +5311,16 @@ void RecordInfTypes(void)
 		{
 			//				i=Cells[b].members[c];
 			if (j == 0) j = k = Households[Hosts[i].hh].nh;
-			if ((Hosts[i].inf != InfStat_Susceptible) && (Hosts[i].inf != InfStat_ImmuneAtStart))
+			if (Hosts[i].is_infected())
 			{
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
 				infcountry[Mcells[Hosts[i].mcell].country]++;
-				if (abs(Hosts[i].inf) < InfStat_Recovered)
+				if (Hosts[i].has_not_recovered())
 					l = -1;
 				else if (l >= 0)
 					l++;
-				if ((l >= 0) && ((Hosts[i].inf == InfStat_RecoveredFromSymp) || (Hosts[i].inf == InfStat_Dead_WasSymp)))
+				if (l >= 0 && ((Hosts[i].has_recovered() || Hosts[i].is_dead()) && Hosts[i].is_symptomatic()))
 				{
 					lc2++;
 					if (Hosts[i].latent_time * P.TimeStep <= t) // This convoluted logic is to pick up households where the index is symptomatic
@@ -5359,7 +5359,7 @@ void RecordInfTypes(void)
 			for (c = 0; c < Cells[b].n; c++)
 			{
 				i = Cells[b].members[c];
-				if ((abs(Hosts[i].inf) == InfStat_Recovered) || Hosts[i].is_dead())
+				if (Hosts[i].has_recovered() || Hosts[i].is_dead())
 				{
 					l = Hosts[i].infect_type / INFECT_TYPE_MASK;
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;

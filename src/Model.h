@@ -38,8 +38,6 @@ struct Person
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 	short int infect_type;		// INFECT_TYPE_MASK
 
-	InfStat inf;
-
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
 	unsigned short int quar_start_time, isolation_start_time;
@@ -55,6 +53,25 @@ struct Person
 
 	bool is_alive() const;
 	bool is_dead() const;
+
+	void make_susceptible();
+	void make_immune();
+	void make_infected();
+
+	bool is_latent() const;
+	bool is_susceptible() const;
+	bool is_symptomatic() const;
+	bool is_asymptomatic() const;
+	bool is_case() const;
+	bool is_not_case() const;
+	bool is_infectious() const;
+	bool is_infected() const;
+	bool has_recovered() const;
+	bool has_not_recovered() const;
+	bool is_positive() const;
+
+private:
+	InfStat inf;
 };
 
 struct Household

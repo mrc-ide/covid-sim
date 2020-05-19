@@ -103,7 +103,7 @@ void TravelDepartSweep(double t)
 						l = Airports[i].DestMcells[l].id;
 						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
-						if ((abs(Hosts[i2].inf) < InfStat_InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat_Case))
+						if (Hosts[i2].is_not_case())
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))
@@ -335,7 +335,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
-							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
+							if (Hosts[i3].is_susceptible() && !Hosts[i3].Travelling) //// if people in household uninfected/susceptible and not travelling
 							{
 								s = s3 * CalcHouseSusc(i3, ts, ci, tn);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
 								if (ranf_mt(tn) < s) //// if household member i3 will be infected...
@@ -439,7 +439,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
+										if (Hosts[i3].is_susceptible() && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//downscale s if it has been scaled up do to digital contact tracing
@@ -510,7 +510,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
+										if (Hosts[i3].is_susceptible() && !HOST_ABSENT(i3))
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//if doing digital contact tracing, scale down susceptibility here
@@ -701,7 +701,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
+										if (Hosts[i3].is_susceptible() && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
 										{
 											if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
 												StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = { -1, i3, -1 };
@@ -1099,8 +1099,7 @@ void DigitalContactTracingSweep(double t)
 					{
 						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
 						{
-							//if host is positive
-							if ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
+							if (Hosts[contact].is_positive())
 							{
 								//if the test is a false negative
 								if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
@@ -1114,9 +1113,10 @@ void DigitalContactTracingSweep(double t)
 									Hosts[contact].index_case_dct = 1;
 									//set trigger time to pick up their contacts in the next time step
 									Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
-									//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-									if (Hosts[contact].inf == 2)
+
+									if (Hosts[contact].is_infectious() && Hosts[contact].is_asymptomatic())
 									{
+										//call DoDetectedCase in order to trigger HQ and PC too.
 										DoDetectedCase(contact, t, ts, tn);
 										Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
 									}
@@ -1137,16 +1137,16 @@ void DigitalContactTracingSweep(double t)
 					else if (P.FindContactsOfDCTContacts)
 					{
 						//check every day to see if contacts become index cases - but they have to be infectious. Otherwise we could set the trigger time and cause their contacts to be traced when they are not being traced themselves.
-						if ((Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
-							//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+						if (Hosts[contact].index_case_dct == 0 && Hosts[contact].is_positive())
 						{
 							//set them to be an index case
 							Hosts[contact].index_case_dct = 1;
 							//set trigger time to pick up their contacts in the next time step
 							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
-							//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-							if (Hosts[contact].inf == 2)
+
+							if (Hosts[contact].is_asymptomatic())
 							{
+								//call DoDetectedCase in order to trigger HQ and PC too.
 								DoDetectedCase(contact, t, ts, tn);
 								Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
 							}

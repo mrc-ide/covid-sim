@@ -19,15 +19,14 @@ Severity ChooseFinalDiseaseSeverity(int, int);
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
-	Person* a;
 	int c;
 	int x, y;
 
-	a = Hosts + ai;
-	if (a->inf == InfStat_Susceptible)
+	Person* a = Hosts + ai;
+	if (a->is_susceptible())
 	{
 		c = a->pcell;
-		a->inf = InfStat_ImmuneAtStart;
+		a->make_immune();
 		Cells[c].S--;
 		if (a->listpos < Cells[c].S)
 		{
@@ -74,14 +73,13 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	int i;
 	unsigned short int ts; //// time step
 	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
-	Person* a;
 
-	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
+	Person* a = Hosts + ai;
 
-	if (a->inf == InfStat_Susceptible) //// Only change anything if person a/ai uninfected at start of this function.
+	if (a->is_susceptible())
 	{
 		ts = (unsigned short int) (P.TimeStepsPerDay * t);
-		a->inf = InfStat_Latent; //// set person a to be infected
+		a->make_infected();
 		a->infection_time = (unsigned short int) ts; //// record their infection time
 		///// Change threaded state variables to reflect new infection status of person a.
 		StateT[tn].cumI++;
@@ -395,11 +393,10 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// DoRecover_FromSeverity assigns people to state Recovered (and bookkeeps accordingly).
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 
-	//// moved this from DoRecover
 	Person* a = Hosts + ai;
 
 	if (P.DoSeverity)
-		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
+		if (a->is_infectious()) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
 		{
 			if (a->Severity_Current == Severity_Mild)
 			{
@@ -446,7 +443,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
 	a = Hosts + ai;
-	if (a->inf == InfStat_Latent)
+	if (a->is_latent())
 	{
 		a->infectiousness = (float)P.AgeInfectiousness[age];
 		if (P.InfectiousnessSD > 0) a->infectiousness *= (float) gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn);
@@ -925,7 +922,7 @@ void DoRecover(int ai, int tn, int run)
 	Person* a;
 
 	a = Hosts + ai;
-	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
+	if (a->is_infectious())
 	{
 		i = a->listpos;
 		Cells[a->pcell].I--; //// one less infectious person
@@ -971,7 +968,7 @@ void DoDeath(int ai, int tn, int run)
 	int i, x, y;
 	Person* a = Hosts + ai;
 
-	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
+	if (a->is_infectious())
 	{
 		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
 		Cells[a->pcell].D++;
