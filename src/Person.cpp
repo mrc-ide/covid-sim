@@ -84,6 +84,6 @@ bool Person::has_not_recovered() const {
 }
 
 bool Person::is_positive() const {
-	return std::abs(this->infectionState) == InfStat_Case
+	return this->is_infectious()
 		|| this->infectionState == InfStat_InfectiousAlmostSymptomatic;
 }
