@@ -63,10 +63,6 @@ public:
      */
 	int parse(int argc, char* argv[], Param& P);
 
-    // Flags that are checked at the end of parse() to determine if required
-    // arguments were specified and parsed.
-    bool GotP, GotPP;
-
 private:
 	std::map<std::string, ParserFn> m_option_map;
 };

@@ -348,7 +348,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (((GotS) && (GotL)) || (!args.GotP) || (!GotO))
+	if (((GotS) && (GotL)) || (ParamFile.empty()) || (!GotO))
 		PrintHelpAndExit();
 
 	///// END Read in command line arguments
@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
 #else
 	P.NumThreads = 1;
 #endif
-	if (!args.GotPP)
+	if (PreParamFile.empty())
 	{
 		PreParamFile = std::string(".." DIRECTORY_SEPARATOR "Pre_") + ParamFile;
 	}
