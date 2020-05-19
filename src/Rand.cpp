@@ -1101,12 +1101,14 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 double gen_lognormal(double mu, double sigma)
 {
 	double randnorm, location, scale;
+	double s = 1 + ((sigma * sigma) / (mu * mu));
 
 	randnorm = snorm();
-	location = log(mu / sqrt(1 + ((sigma * sigma) / (mu * mu))));
-	scale = sqrt(log(1 + ((sigma * sigma) / (mu * mu))));
+	location = log(mu / sqrt(s));
+	scale = sqrt(log(s));
 	return exp(location + scale * randnorm);
 }
+
 void SampleWithoutReplacement(int tn, int k, int n)
 {
 	/* Based on algorithm SG of http://portal.acm.org/citation.cfm?id=214402
