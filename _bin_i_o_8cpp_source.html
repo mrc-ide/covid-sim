@@ -71,52 +71,48 @@ $(function() {
 <div class="contents">
 <a href="_bin_i_o_8cpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_bin_i_o_8h.html">BinIO.h</a>&quot;</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_param_8h.html">Param.h</a>&quot;</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment">/*#include &quot;..\miniz_v111b\miniz.c&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">*/</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
-<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a881e8183b6e0e8468528614c63b68bab">    7</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;{</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;    <span class="keywordtype">size_t</span> ret=0;</div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;    <span class="keywordtype">char</span> *buf2;</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    st=mx/((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long) size);</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;    n=count/st;</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    <span class="keywordflow">for</span>(j=0;j&lt;n;j++)</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;        {</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        buf2=((<span class="keywordtype">char</span> *)buffer)+j*st*size;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;        ret+=(fwrite(buf2,size,(<span class="keywordtype">size_t</span>) st,stream));</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        }</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    buf2=((<span class="keywordtype">char</span> *)buffer)+n*st*size;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    ret+=(fwrite(buf2,size,(<span class="keywordtype">size_t</span>) (count-n*st),stream));</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    <span class="keywordflow">return</span> ret;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;}</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd">   26</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;{</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keywordtype">size_t</span> ret=0;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordtype">char</span> *buf2;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    st=mx/((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long) size);</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    n=count/st;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    <span class="keywordflow">for</span>(j=0;j&lt;n;j++)</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        {</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        buf2=((<span class="keywordtype">char</span> *)buffer)+j*st*size;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;        ret+=(fread(buf2,size,(<span class="keywordtype">size_t</span>) st,stream));</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        }</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    buf2=((<span class="keywordtype">char</span> *)buffer)+n*st*size;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    ret+=(fread(buf2,size,(<span class="keywordtype">size_t</span>) (count-n*st),stream));</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordflow">return</span> ret;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;}</div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
+<div class="line"><a name="l00004"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a881e8183b6e0e8468528614c63b68bab">    4</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;{</div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;    <span class="keywordtype">size_t</span> ret=0;</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    <span class="keywordtype">char</span> *buf2;</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;    st=mx/((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long) size);</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;    n=count/st;</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;    <span class="keywordflow">for</span>(j=0;j&lt;n;j++)</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;        {</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        buf2=((<span class="keywordtype">char</span> *)buffer)+j*st*size;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        ret+=(fwrite(buf2,size,(<span class="keywordtype">size_t</span>) st,stream));</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;        }</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    buf2=((<span class="keywordtype">char</span> *)buffer)+n*st*size;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    ret+=(fwrite(buf2,size,(<span class="keywordtype">size_t</span>) (count-n*st),stream));</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keywordflow">return</span> ret;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;}</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="_bin_i_o_8h.html#a82ab0fc55645e5ad7771303f3f8b97bd">   23</a></span>&#160;<span class="keywordtype">size_t</span> <a class="code" href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a>(<span class="keywordtype">void</span> *buffer,<span class="keywordtype">size_t</span> size,<span class="keywordtype">size_t</span> count, FILE *stream)</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;{</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mx=0x80000000;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> j,n,st;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keywordtype">size_t</span> ret=0;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordtype">char</span> *buf2;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    st=mx/((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long) size);</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    n=count/st;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordflow">for</span>(j=0;j&lt;n;j++)</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        {</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        buf2=((<span class="keywordtype">char</span> *)buffer)+j*st*size;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        ret+=(fread(buf2,size,(<span class="keywordtype">size_t</span>) st,stream));</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        }</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    buf2=((<span class="keywordtype">char</span> *)buffer)+n*st*size;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    ret+=(fread(buf2,size,(<span class="keywordtype">size_t</span>) (count-n*st),stream));</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keywordflow">return</span> ret;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="a_bin_i_o_8cpp_html_a1bc8d1ad11acf37bf8af06899bb5eef5"><div class="ttname"><a href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a></div><div class="ttdeci">size_t fread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00026">BinIO.cpp:26</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_a1bc8d1ad11acf37bf8af06899bb5eef5"><div class="ttname"><a href="_bin_i_o_8cpp.html#a1bc8d1ad11acf37bf8af06899bb5eef5">fread_big</a></div><div class="ttdeci">size_t fread_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00023">BinIO.cpp:23</a></div></div>
 <div class="ttc" id="a_bin_i_o_8h_html"><div class="ttname"><a href="_bin_i_o_8h.html">BinIO.h</a></div></div>
-<div class="ttc" id="a_bin_i_o_8cpp_html_a9dfa82809bd434bd7d6e2a8dc9d2f18a"><div class="ttname"><a href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a></div><div class="ttdeci">size_t fwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00007">BinIO.cpp:7</a></div></div>
-<div class="ttc" id="a_param_8h_html"><div class="ttname"><a href="_param_8h.html">Param.h</a></div></div>
+<div class="ttc" id="a_bin_i_o_8cpp_html_a9dfa82809bd434bd7d6e2a8dc9d2f18a"><div class="ttname"><a href="_bin_i_o_8cpp.html#a9dfa82809bd434bd7d6e2a8dc9d2f18a">fwrite_big</a></div><div class="ttdeci">size_t fwrite_big(void *buffer, size_t size, size_t count, FILE *stream)</div><div class="ttdef"><b>Definition:</b> <a href="_bin_i_o_8cpp_source.html#l00004">BinIO.cpp:4</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
