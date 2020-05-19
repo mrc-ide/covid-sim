@@ -453,13 +453,13 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (ranf_mt(tn) < q)
 		{
-			a->inf = InfStat_InfectiousAlmostSymptomatic;
+			a->make_infectious_almost_symptomatic();
 			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
-			a->inf = InfStat_InfectiousAsymptomaticNotCase;
+			a->make_infectious_asymptomatic();
 
-		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
+		if (!P.DoSeverity || a->is_asymptomatic()) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
 			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
@@ -509,11 +509,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			}
 		}
 
-		if ((a->inf== InfStat_InfectiousAlmostSymptomatic) && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
+		if (a->is_symptomatic() && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
 		{
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
-
 
 			if ((P.DoDigitalContactTracing) && (Hosts[ai].detected_time >= (unsigned short int)(AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart * P.TimeStepsPerDay)) && (Hosts[ai].detected_time < (unsigned short int)((AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration)*P.TimeStepsPerDay)) && (Hosts[ai].digitalContactTracingUser))
 			{
@@ -810,15 +809,14 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
 {
 	int j, k, f, j1, j2;
-	Person* a;
 	int age;
 
 	age = HOST_AGE_GROUP(ai);
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
-	a = Hosts + ai;
-	if (a->inf == InfStat_InfectiousAlmostSymptomatic) //// if person latent/asymptomatically infected, but infectious
+	Person* a = Hosts + ai;
+	if (a->is_positive() && a->is_not_case())
 	{
-		a->inf = InfStat_Case; //// make person symptomatic and infectious (i.e. a case)
+		a->make_case();
 		if (HOST_ABSENT(ai))
 		{
 			if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
@@ -935,7 +933,7 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
+		a->make_recovered();
 		if (P.DoAdUnits && P.OutputAdUnitAge)
 			StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 
@@ -970,7 +968,7 @@ void DoDeath(int ai, int tn, int run)
 
 	if (a->is_infectious())
 	{
-		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
+		a->make_dead();
 		Cells[a->pcell].D++;
 		Cells[a->pcell].I--;
 		i = a->listpos;

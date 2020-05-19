@@ -21,6 +21,26 @@ void Person::make_infected() {
 	this->inf = InfStat_Latent;
 }
 
+void Person::make_infectious_almost_symptomatic() {
+	this->inf = InfStat_InfectiousAlmostSymptomatic;
+}
+
+void Person::make_infectious_asymptomatic() {
+	this->inf = InfStat_InfectiousAsymptomaticNotCase;
+}
+
+void Person::make_case() {
+	this->inf = InfStat_Case;
+}
+
+void Person::make_dead() {
+	this->inf = (InfStat)(InfStat_Dead * this->inf / abs(this->inf));
+}
+
+void Person::make_recovered() {
+	this->inf = (InfStat)(InfStat_Recovered * this->inf / std::abs(this->inf));
+}
+
 bool Person::is_susceptible() const {
 	return this->inf == InfStat_Susceptible;
 }
