@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['journeydurationdistrib_616',['JourneyDurationDistrib',['../struct_p_a_r_a_m.html#a39d27a1cb645bb7bb636b7f3644e883c',1,'PARAM']]]
+  ['journeydurationdistrib_611',['JourneyDurationDistrib',['../struct_param.html#a75628e2c7bac3ee3acbfb4eb5bc69a59',1,'Param']]]
 ];

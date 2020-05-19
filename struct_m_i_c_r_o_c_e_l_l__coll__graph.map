@@ -1,4 +1,0 @@
-<map id="MICROCELL" name="MICROCELL">
-<area shape="rect" id="node1" title="The basic unit of the simulation and is associated to a geographical location." alt="" coords="5,95,104,121"/>
-<area shape="rect" id="node2" href="$struct_i_n_d_e_x_l_i_s_t.html" title="Used for computing spatial interactions more efficiently." alt="" coords="9,5,100,32"/>
-</map>

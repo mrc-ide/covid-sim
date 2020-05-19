@@ -68,7 +68,6 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
@@ -102,7 +101,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_b_i_t_m_a_p___h_e_a_d_e_r.html">BITMAP_HEADER</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_bitmap_header.html">BitmapHeader</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
@@ -111,11 +110,6 @@ Macros</h2></td></tr>
 <tr class="separator:af1e88bb4b1ff9546e6803eec85e0684c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a7c30a576d5706b6c0821834d01cbbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a8a7c30a576d5706b6c0821834d01cbbc">STRICT</a></td></tr>
 <tr class="separator:a8a7c30a576d5706b6c0821834d01cbbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a01214edbb82f32ed7464622f17821059"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct_b_i_t_m_a_p___h_e_a_d_e_r.html">BITMAP_HEADER</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a01214edbb82f32ed7464622f17821059">bitmap_header</a></td></tr>
-<tr class="separator:a01214edbb82f32ed7464622f17821059"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -140,8 +134,8 @@ Variables</h2></td></tr>
 <tr class="separator:a0ac9f151e73877cdea1fcaeb7f91052f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b9def4362a8b45fd7a2b7c2a645224f"><td class="memItemLeft" align="right" valign="top">int32_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a7b9def4362a8b45fd7a2b7c2a645224f">bmTreated</a></td></tr>
 <tr class="separator:a7b9def4362a8b45fd7a2b7c2a645224f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a490645de2e27bbe4b5c32b6b57482365"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_bitmap_8h.html#a01214edbb82f32ed7464622f17821059">bitmap_header</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a490645de2e27bbe4b5c32b6b57482365">bmh</a></td></tr>
-<tr class="separator:a490645de2e27bbe4b5c32b6b57482365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43ff3ccf07ef7992f5493fd2607901ab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_bitmap_header.html">BitmapHeader</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_bitmap_8h.html#a43ff3ccf07ef7992f5493fd2607901ab">bmh</a></td></tr>
+<tr class="separator:a43ff3ccf07ef7992f5493fd2607901ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="af1e88bb4b1ff9546e6803eec85e0684c"></a>
@@ -173,21 +167,6 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00013">13</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a01214edbb82f32ed7464622f17821059"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01214edbb82f32ed7464622f17821059">&#9670;&nbsp;</a></span>bitmap_header</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="struct_b_i_t_m_a_p___h_e_a_d_e_r.html">BITMAP_HEADER</a> <a class="el" href="_bitmap_8h.html#a01214edbb82f32ed7464622f17821059">bitmap_header</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -270,14 +249,14 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="a490645de2e27bbe4b5c32b6b57482365"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a490645de2e27bbe4b5c32b6b57482365">&#9670;&nbsp;</a></span>bmh</h2>
+<a id="a43ff3ccf07ef7992f5493fd2607901ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43ff3ccf07ef7992f5493fd2607901ab">&#9670;&nbsp;</a></span>bmh</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_bitmap_8h.html#a01214edbb82f32ed7464622f17821059">bitmap_header</a>* bmh</td>
+          <td class="memname"><a class="el" href="struct_bitmap_header.html">BitmapHeader</a>* bmh</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -298,7 +277,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00040">40</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00041">41</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -330,7 +309,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00040">40</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00041">41</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>
@@ -346,7 +325,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00040">40</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_bitmap_8h_source.html#l00041">41</a> of file <a class="el" href="_bitmap_8h_source.html">Bitmap.h</a>.</p>
 
 </div>
 </div>

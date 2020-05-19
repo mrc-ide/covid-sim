@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['updatespersample_2442',['UpdatesPerSample',['../struct_p_a_r_a_m.html#ac64d62005446c8c59c9804504ba1ecca',1,'PARAM']]],
-  ['uscaseabsenteeismdelay_2443',['usCaseAbsenteeismDelay',['../struct_p_a_r_a_m.html#a88349c7bb8856e3e72d8275cff397dcf',1,'PARAM']]],
-  ['uscaseabsenteeismduration_2444',['usCaseAbsenteeismDuration',['../struct_p_a_r_a_m.html#a08683632527cf238db9ff7c63f3b8bce',1,'PARAM']]],
-  ['uscaseisolationdelay_2445',['usCaseIsolationDelay',['../struct_p_a_r_a_m.html#a352eada0fff956df8f4e0127400d55bc',1,'PARAM']]],
-  ['uscaseisolationduration_2446',['usCaseIsolationDuration',['../struct_p_a_r_a_m.html#ae3b0b9f448b73762acec019c0e260efc',1,'PARAM']]],
-  ['ushquarantinehouseduration_2447',['usHQuarantineHouseDuration',['../struct_p_a_r_a_m.html#a5fa3b22b55e613f5d9ad014e8254a053',1,'PARAM']]],
-  ['usvacctimeefficacyswitch_2448',['usVaccTimeEfficacySwitch',['../struct_p_a_r_a_m.html#a6d72a95fb821a22146ace8dc02617340',1,'PARAM']]],
-  ['usvacctimetoefficacy_2449',['usVaccTimeToEfficacy',['../struct_p_a_r_a_m.html#ac5f51bd6f10ccc5d1963b2a2b5f68588',1,'PARAM']]]
+  ['updatespersample_2432',['UpdatesPerSample',['../struct_param.html#a1fef0a22c49300946d108a2e39c151f4',1,'Param']]],
+  ['uscaseabsenteeismdelay_2433',['usCaseAbsenteeismDelay',['../struct_param.html#ae040e71d7e87901175fcc3d09e21241e',1,'Param']]],
+  ['uscaseabsenteeismduration_2434',['usCaseAbsenteeismDuration',['../struct_param.html#a6b0a1faadc0ac88ba3d104868ebcad1c',1,'Param']]],
+  ['uscaseisolationdelay_2435',['usCaseIsolationDelay',['../struct_param.html#aa59b9f57cd22d7f7267471c42e79b07a',1,'Param']]],
+  ['uscaseisolationduration_2436',['usCaseIsolationDuration',['../struct_param.html#ae70c88c5e5a50977550dfc3f773d65ff',1,'Param']]],
+  ['ushquarantinehouseduration_2437',['usHQuarantineHouseDuration',['../struct_param.html#a691cdd17611864aa2651ad621da5f306',1,'Param']]],
+  ['usvacctimeefficacyswitch_2438',['usVaccTimeEfficacySwitch',['../struct_param.html#a5189720c25c5826fec56bccec518469a',1,'Param']]],
+  ['usvacctimetoefficacy_2439',['usVaccTimeToEfficacy',['../struct_param.html#a360121ec6b823adff4d95f60728b7753',1,'Param']]]
 ];

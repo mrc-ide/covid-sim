@@ -1,0 +1,4 @@
+<map id="AdminUnit" name="AdminUnit">
+<area shape="rect" id="node1" title="A political entity that administers a geographical area." alt="" coords="9,95,92,121"/>
+<area shape="rect" id="node2" href="$struct_intervention.html" title="Deprecated intervention mechanism." alt="" coords="5,5,96,32"/>
+</map>

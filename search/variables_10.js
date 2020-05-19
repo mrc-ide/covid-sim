@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['quar_5fcomply_2278',['quar_comply',['../struct_p_e_r_s_o_n.html#a5b7f4de81394db5c55671fe14bc86ac7',1,'PERSON']]],
-  ['quar_5fstart_5ftime_2279',['quar_start_time',['../struct_p_e_r_s_o_n.html#a7eb38d22782a9f2f59275c232ddd69dc',1,'PERSON']]]
+  ['quar_5fcomply_2268',['quar_comply',['../struct_person.html#aa2cebf119bb4c08d9dd2f52a5909b2b2',1,'Person']]],
+  ['quar_5fstart_5ftime_2269',['quar_start_time',['../struct_person.html#a64d699dab7cc0b146caf7796cbc91eaf',1,'Person']]]
 ];

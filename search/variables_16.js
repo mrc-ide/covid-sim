@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['waifw_5fmatrix_2487',['WAIFW_Matrix',['../struct_p_a_r_a_m.html#a860e96fe102d785201efea7e889b2ded',1,'PARAM']]],
-  ['width_2488',['width',['../struct_b_i_t_m_a_p___h_e_a_d_e_r.html#afb89186027dd782bde50fc2965639f23',1,'BITMAP_HEADER::width()'],['../struct_p_a_r_a_m.html#ae2ecafd86b6a736026ab6d1adc4d0d38',1,'PARAM::width()']]]
+  ['waifw_5fmatrix_2477',['WAIFW_Matrix',['../struct_param.html#a51f5fb32743a4811087fe37d290d5c26',1,'Param']]],
+  ['width_2478',['width',['../struct_bitmap_header.html#a9842585b703867c52b2fae8be4867a3b',1,'BitmapHeader::width()'],['../struct_param.html#aa8ad8c5484f5451f2a0c74d16ce6c6b1',1,'Param::width()']]]
 ];
