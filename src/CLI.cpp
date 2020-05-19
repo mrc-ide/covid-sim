@@ -76,10 +76,12 @@ template void CmdLineArgs::add_option<std::string>(std::string const&&, std::fun
 
 int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
     // Detect if the user wants to print out the full help output
-    if (argc >= 2 && strlen(argv[1]) == 2 && strcmp("/H", argv[1]) == 0) {
-        PrintDetailedHelpAndExit();
+    if (argc >= 2) {
+        std::string first(argv[1]);
+        if (first.length() == 2 && first.compare("/H") == 0) {
+            PrintDetailedHelpAndExit();
+        }
     }
-
     if (argc < 7) {
         std::cerr << "Minimum number of arguments not met. Expected 6 got "
                 << (argc - 1) << "\n" << std::endl;
