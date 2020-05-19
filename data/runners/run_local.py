@@ -68,6 +68,10 @@ def parse_args():
             help="Lock directory root",
             default=os.path.join(script_path, "local_lock"))
     parser.add_argument(
+            "--keep",
+            help="Keep temp directory",
+            action="store_true")
+    parser.add_argument(
             "cmd",
             help="Command line to run",
             nargs="+")
@@ -102,7 +106,10 @@ run_dir = tempfile.mkdtemp()
 
 # Copy input into run directory
 copy_dir(args.input, run_dir)
-atexit.register(shutil.rmtree, path=run_dir, ignore_errors=True)
+if not args.keep:
+    atexit.register(shutil.rmtree, path=run_dir, ignore_errors=True)
+else:
+    print("Data files at: {0} for ".format(run_dir) + " ".join(args.cmd))
 os.makedirs(os.path.join(run_dir, "output"), exist_ok=True)
 
 # Change to directory and run command
