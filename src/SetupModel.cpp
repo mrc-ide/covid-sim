@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <cmath>
 #include "BinIO.h"
 #include "Error.h"
 #include "Rand.h"
@@ -504,7 +504,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 			if (P.DoHouseholds)
 			{
-				s2 = P.TimeStep * P.HouseholdTrans * fabs(Hosts[i].infectiousness) * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
+				s2 = P.TimeStep * P.HouseholdTrans * std::fabs(Hosts[i].infectiousness) * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
 				for (int k = 0; k < l; k++) {
 					double y = 1.0 - s2 * P.infectiousness[k];
@@ -515,7 +515,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
-			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
+			s2 = std::fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
 			l = (int)(q / P.TimeStep);
 
 			int k;
@@ -541,7 +541,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 					if (k >= 0)
 					{
 						q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
-						s2 = fabs(Hosts[i].infectiousness) * P.TimeStep * P.PlaceTypeTrans[j];
+						s2 = std::fabs(Hosts[i].infectiousness) * P.TimeStep * P.PlaceTypeTrans[j];
 						double x = s2 / P.PlaceTypeGroupSizeParam1[j];
 						d = 1.0; l = (int)(q / P.TimeStep);
 						for (m = 0; m < l; m++) {
@@ -1196,7 +1196,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				else
 				{
 					t = AgeDistCorrF[i][j] = 0;
-					AgeDistCorrB[i][j + 1] = fabs(s); // people to pull down from next age group
+					AgeDistCorrB[i][j + 1] = std::fabs(s); // people to pull down from next age group
 				}
 				AgeDistCorrF[i][j] /= AgeDistAd[i][j]; // convert from proportion of people in the adunit to proportion of people in the adunit and age group
 				AgeDistCorrB[i][j] /= AgeDistAd[i][j];

@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 
 #include "CalcInfSusc.h"
 #include "Constants.h"
@@ -37,7 +37,7 @@ double CalcPersonInf(int j, unsigned short int ts)
 {
 	return	(HOST_TREATED(j) ? P.TreatInfDrop : 1.0)
 		*	(HOST_VACCED(j) ? P.VaccInfDrop : 1.0)
-		*	fabs(Hosts[j].infectiousness)
+		*	std::fabs(Hosts[j].infectiousness)
 		*	P.infectiousness[ts - Hosts[j].latent_time - 1];
 }
 

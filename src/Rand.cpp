@@ -586,7 +586,7 @@ S60:
 	/*
 		 STEP H. HAT ACCEPTANCE (E IS REPEATED ON REJECTION)
 	*/
-	if (c * fabs(u) > py * exp(px + e) - fy * exp(fx + e)) goto S50;
+	if (c * std::fabs(u) > py * exp(px + e) - fy * exp(fx + e)) goto S50;
 	return ignpoi;
 S70:
 	/*
@@ -606,7 +606,7 @@ S80:
 	del = 8.333333E-2 / fk;
 	del -= (4.8 * del * del * del);
 	v = difmuk / fk;
-	if (fabs(v) <= 0.25) goto S90;
+	if (std::fabs(v) <= 0.25) goto S90;
 	px = fk * log(1.0 + v) - difmuk - del;
 	goto S100;
 S90:
@@ -820,7 +820,7 @@ S60:
 	/*
 	STEP H. HAT ACCEPTANCE (E IS REPEATED ON REJECTION)
 	*/
-	if (c * fabs(u) > py * exp(px + e) - fy * exp(fx + e)) goto S50;
+	if (c * std::fabs(u) > py * exp(px + e) - fy * exp(fx + e)) goto S50;
 	return ignpoi_mt;
 S70:
 	/*
@@ -840,7 +840,7 @@ S80:
 	del = 8.333333E-2 / fk;
 	del -= (4.8 * del * del * del);
 	v = difmuk / fk;
-	if (fabs(v) <= 0.25) goto S90;
+	if (std::fabs(v) <= 0.25) goto S90;
 	px = fk * log(1.0 + v) - difmuk - del;
 	goto S100;
 S90:

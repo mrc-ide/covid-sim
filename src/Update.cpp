@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -682,13 +682,13 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (j = j1; (j < j2) && (!f); j++)
-							f = ((abs(Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
+							f = ((std::abs((int)Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
 
 						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
 							for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
-								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
+								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (std::abs((int)Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
 							if (f) //// so finally, if at least one member of household is alive and does not need supervision by an adult, amend absent start and stop times
 							{
 								Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -732,7 +732,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//	for (j = j1; j < j2; j++)
 		//	{
 		//		//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//		if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//		if ((std::abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
 		//		{
 		//			//add contact and detected infectious host to lists
 		//			ad = Mcells[Hosts[j].mcell].adunit;
@@ -764,7 +764,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//				h = Places[i][k].members[j];
 		//				ad = Mcells[Hosts[h].mcell].adunit;
 		//				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//				if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//				if ((std::abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
 		//				{
 		//					ad = Mcells[Hosts[h].mcell].adunit;
 		//					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
@@ -830,11 +830,11 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 								f = 0;
 								for (int j = j1; (j < j2) && (!f); j++)
-									f = ((abs(Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)|| (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
+									f = ((std::abs((int)Hosts[j].inf) != InfStat_Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)|| (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
 								if (!f)
 								{
 									for (int j = j1; (j < j2) && (!f); j++)
-										if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
+										if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (std::abs((int)Hosts[j].inf) != InfStat_Dead)) { k = j; f = 1; }
 									if (f)
 									{
 										if (!HOST_ABSENT(k)) Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -907,7 +907,7 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
+		a->inf = (InfStat)(InfStat_Recovered * a->inf / std::abs((int)a->inf));
 
 		if (P.OutputBitmap)
 		{
@@ -940,7 +940,7 @@ void DoDeath(int ai, int tn, int run)
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
-		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
+		a->inf = (InfStat)(InfStat_Dead * a->inf / std::abs((int)a->inf));
 		Cells[a->pcell].D++;
 		Cells[a->pcell].I--;
 		i = a->listpos;
@@ -990,7 +990,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			Hosts[ai].treat_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
 			Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatCaseCourseLength)));
 			StateT[tn].cumT++;
-			if ((abs(Hosts[ai].inf) > InfStat_Susceptible) && (Hosts[ai].inf != InfStat_Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
+			if ((std::abs((int)Hosts[ai].inf) > InfStat_Susceptible) && (Hosts[ai].inf != InfStat_Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
 			StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 			if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 			Cells[Hosts[ai].pcell].tot_treat++;
@@ -1191,11 +1191,11 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = ((std::abs((int)Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
 							{
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (std::abs((int)Hosts[l].inf) != InfStat_Dead))
 									{
 										if (Hosts[l].absent_start_time > t_start) Hosts[l].absent_start_time = t_start;
 										if (Hosts[l].absent_stop_time < t_stop) Hosts[l].absent_stop_time = t_stop;
@@ -1238,11 +1238,11 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 							f = 0;
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = ((std::abs((int)Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f)
 							{
 								for (l = j1; (l < j2) && (!f); l++)
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead) && (HOST_ABSENT(l)))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (std::abs((int)Hosts[l].inf) != InfStat_Dead) && (HOST_ABSENT(l)))
 									{
 										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = ts;
 									}

@@ -1,5 +1,5 @@
 #include <limits.h>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -103,7 +103,7 @@ void TravelDepartSweep(double t)
 						l = Airports[i].DestMcells[l].id;
 						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
-						if ((abs(Hosts[i2].inf) < InfStat_InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat_Case))
+						if ((std::abs((int)Hosts[i2].inf) < InfStat_InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat_Case))
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))
@@ -589,12 +589,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						do
 						{
 							if (m > 1) m /= 2; //// amount m to change j by reduced by half. Looks like a binary search. Basically saying, keep amending potential infector j until either j less than zero or more than number of infected people until you find j s.t. spatial infectiousness "matches" s.
-							if ((j > 0) && (fabs(StateT[tn].cell_inf[j - 1]) >= s))
+							if ((j > 0) && (std::fabs(StateT[tn].cell_inf[j - 1]) >= s))
 							{
 								j -= m;
 								if (j == 0)			f = 0;
 							}
-							else if ((j < i2 - 1) && (fabs(StateT[tn].cell_inf[j]) < s))
+							else if ((j < i2 - 1) && (std::fabs(StateT[tn].cell_inf[j]) < s))
 							{
 								j += m;
 								if (j == i2 - 1)	f = 0;
@@ -626,7 +626,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
 						f2 = 0;
-						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
+						if ((ranf_mt(tn) >= s) || (std::abs((int)Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
 							f2 = 1;
 						}
@@ -1081,7 +1081,7 @@ void DigitalContactTracingSweep(double t)
 						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
 						{
 							//if host is positive
-							if ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
+							if ((std::abs((int)Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
 							{
 								//if the test is a false negative
 								if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
@@ -1118,8 +1118,8 @@ void DigitalContactTracingSweep(double t)
 					else if (P.FindContactsOfDCTContacts)
 					{
 						//check every day to see if contacts become index cases - but they have to be infectious. Otherwise we could set the trigger time and cause their contacts to be traced when they are not being traced themselves.
-						if ((Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
-							//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+						if ((Hosts[contact].index_case_dct == 0) && ((std::abs((int)Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+							//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((std::abs((int)Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
 						{
 							//set them to be an index case
 							Hosts[contact].index_case_dct = 1;

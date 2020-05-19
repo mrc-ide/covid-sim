@@ -566,7 +566,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if ((na > 0) && (nc>0))
 		{
 			P.DoAdunitBoundaries = (nc > 0);
-			nc = abs(nc);
+			nc = std::abs(nc);
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of names of countries to include", "%s", (nc > 1) ? ((void*)CountryNames) : ((void*)CountryNames[0]), nc, 1, 0);
 			P.NumAdunits = 0;
 			for (i = 0; i < na; i++)
@@ -2223,7 +2223,7 @@ void ReadInterventions(char* IntFile)
 						} while ((f) && (au < P.NumAdunits));
 						if (!f)
 						{
-							r = fabs(CurInterv.Level) + (2.0 * ranf() - 1) * CurInterv.LevelAUVar;
+							r = std::fabs(CurInterv.Level) + (2.0 * ranf() - 1) * CurInterv.LevelAUVar;
 							if ((CurInterv.Level < 1) && (r > 1))
 								r = 1;
 							else if (r < 0)
@@ -2977,7 +2977,7 @@ int RunModel(int run) //added run number as parameter
 			else
 			{
 				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (std::abs((int)Hosts[i].inf) == InfStat_Recovered)) i2++;
 			}
 			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 			{
@@ -3054,7 +3054,7 @@ int RunModel(int run) //added run number as parameter
 								do
 								{
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
-								} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
+								} while ((std::abs((int)Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
 							}
 						}
@@ -3126,7 +3126,7 @@ int RunModel(int run) //added run number as parameter
 				else
 				{
 					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (std::abs((int)Hosts[i].inf) == InfStat_Recovered)) i2++;
 				}
 				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 				{
@@ -5195,7 +5195,7 @@ void RecordInfTypes(void)
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
 				infcountry[Mcells[Hosts[i].mcell].country]++;
-				if (abs(Hosts[i].inf) < InfStat_Recovered)
+				if (std::abs((int)Hosts[i].inf) < InfStat_Recovered)
 					l = -1;
 				else if (l >= 0)
 					l++;
@@ -5238,7 +5238,7 @@ void RecordInfTypes(void)
 			for (c = 0; c < Cells[b].n; c++)
 			{
 				i = Cells[b].members[c];
-				if ((abs(Hosts[i].inf) == InfStat_Recovered) || (abs(Hosts[i].inf) == InfStat_Dead))
+				if ((std::abs((int)Hosts[i].inf) == InfStat_Recovered) || (std::abs((int)Hosts[i].inf) == InfStat_Dead))
 				{
 					l = Hosts[i].infect_type / INFECT_TYPE_MASK;
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;
