@@ -64,23 +64,23 @@ int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 
-param P;
-person* Hosts;
-household* Households;
-popvar State, StateT[MAX_NUM_THREADS];
-cell* Cells; // Cells[i] is the i'th cell
-cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
-microcell* Mcells, ** McellLookup;
-place** Places;
-adminunit AdUnits[MAX_ADUNITS];
+Param P;
+Person* Hosts;
+Household* Households;
+PopVar State, StateT[MAX_NUM_THREADS];
+Cell* Cells; // Cells[i] is the i'th cell
+Cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
+Microcell* Mcells, ** McellLookup;
+Place** Places;
+AdminUnit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
-airport* Airports;
-bitmap_header* bmh;
+Results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+Airport* Airports;
+BitmapHeader* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
-events* InfEventLog;
+Events* InfEventLog;
 int* nEvents;
 
 double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
@@ -2096,7 +2096,7 @@ void ReadInterventions(char* IntFile)
 	double r, s, startt, stopt;
 	int j, k, au, ni, f, nsr;
 	char buf[65536], txt[65536];
-	intervention CurInterv;
+	Intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
 	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
@@ -2351,7 +2351,7 @@ void ReadAirTravel(char* AirTravelFile)
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
 	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(Airports = (airport*)calloc(P.Nairports, sizeof(airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
@@ -4223,13 +4223,13 @@ void LoadSnapshot(void)
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	fread_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
@@ -4297,14 +4297,14 @@ void SaveSnapshot(void)
 	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	fwrite_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
@@ -4524,7 +4524,7 @@ void RecordSample(double t, int n)
 		shared(P, CellLookup)
 	for (int i = 0; i < P.NCP; i++)
 	{
-		cell* ct = CellLookup[i];
+		Cell* ct = CellLookup[i];
 		S += (int)ct->S;
 		L += (int)ct->L;
 		I += (int)ct->I;
@@ -5274,7 +5274,7 @@ void RecordInfTypes(void)
 			s += (TimeSeries[n].Rtype[i] /= TimeSeries[n].Rdenom);
 		TimeSeries[n].Rdenom = s;
 	}
-	nf = sizeof(results) / sizeof(double);
+	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
 	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
 	if (TimeSeries[P.NumSamples - 1].extinct)
