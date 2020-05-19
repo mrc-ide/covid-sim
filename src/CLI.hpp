@@ -20,14 +20,14 @@ void parse_read_file(std::string const& input, std::string& output);
 /**
  * Parses and checks if the input string is a 32-bit integer.
  *
- * Will error if N > (2^31 - 1) || N < -(2^32 - 1)
+ * Will error if N > (2^31 - 1) || N < -(2^31 - 1)
  */
 void parse_integer(std::string const& input, int& output);
 
 /**
  * Parses and checks if the input string is a 32-bit long.
  *
- * Will error if N > (2^31 - 1) || N < -(2^32 - 1)
+ * Will error if N > (2^31 - 1) || N < -(2^31 - 1)
  *
  * @note: Windows uses the LLP64 data model with MinGW and Visual C++, meaning
  * that int and long have 32-bits even on 64-bit. So this function has the same
