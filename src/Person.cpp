@@ -1,5 +1,5 @@
 #include "Model.h"
-#include <cmath>
+#include <cstdlib>
 
 bool Person::isAlive() const {
 	return !this->isDead();
