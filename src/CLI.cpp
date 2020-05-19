@@ -46,6 +46,10 @@ void parse_long(std::string const& input, long& output) {
 			std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<long>::max()
 					  << " when parsing a long: " << iss.str() << std::endl;
 		}
+        else if (output == std::numeric_limits<long>::min()) {
+            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<long>::min()
+                      << " when parsing a long: " << iss.str() << std::endl;
+        }
 		else {
 			std::cerr << "ERROR: Expected long, got " << iss.str() << std::endl;
 		}
