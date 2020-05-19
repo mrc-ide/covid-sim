@@ -34,7 +34,7 @@ def copy_dir(src_dir, dest_dir):
         import distutils.dir_util
         distutils.dir_util.copy_tree(src_dir, dest_dir)
     else:
-        shutil.copytree(args.input, run_dir, dirs_exist_ok=True)
+        shutil.copytree(src_dir, dest_dir, dirs_exist_ok=True)
 
 def parse_args():
     """Parse the arguments.
