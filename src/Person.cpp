@@ -6,84 +6,84 @@ bool Person::is_alive() const {
 }
 
 bool Person::is_dead() const {
-	return std::abs(this->inf) == InfStat_Dead;
+	return std::abs(this->infectionState) == InfStat_Dead;
 }
 
 void Person::make_susceptible() {
-	this->inf = InfStat_Susceptible;
+	this->infectionState = InfStat_Susceptible;
 }
 
 void Person::make_immune() {
-	this->inf = InfStat_ImmuneAtStart;
+	this->infectionState = InfStat_ImmuneAtStart;
 }
 
 void Person::make_infected() {
-	this->inf = InfStat_Latent;
+	this->infectionState = InfStat_Latent;
 }
 
 void Person::make_infectious_almost_symptomatic() {
-	this->inf = InfStat_InfectiousAlmostSymptomatic;
+	this->infectionState = InfStat_InfectiousAlmostSymptomatic;
 }
 
 void Person::make_infectious_asymptomatic() {
-	this->inf = InfStat_InfectiousAsymptomaticNotCase;
+	this->infectionState = InfStat_InfectiousAsymptomaticNotCase;
 }
 
 void Person::make_case() {
-	this->inf = InfStat_Case;
+	this->infectionState = InfStat_Case;
 }
 
 void Person::make_dead() {
-	this->inf = (InfStat)(InfStat_Dead * this->inf / abs(this->inf));
+	this->infectionState = (InfStat)(InfStat_Dead * this->infectionState / abs(this->infectionState));
 }
 
 void Person::make_recovered() {
-	this->inf = (InfStat)(InfStat_Recovered * this->inf / std::abs(this->inf));
+	this->infectionState = (InfStat)(InfStat_Recovered * this->infectionState / std::abs(this->infectionState));
 }
 
 bool Person::is_susceptible() const {
-	return this->inf == InfStat_Susceptible;
+	return this->infectionState == InfStat_Susceptible;
 }
 
 bool Person::is_latent() const {
-	return this->inf == InfStat_Latent;
+	return this->infectionState == InfStat_Latent;
 }
 
 bool Person::is_symptomatic() const {
-	return this->inf < InfStat_Susceptible;
+	return this->infectionState < InfStat_Susceptible;
 }
 
 bool Person::is_asymptomatic() const {
-	return this->inf >= InfStat_Susceptible;
+	return this->infectionState >= InfStat_Susceptible;
 }
 
 bool Person::is_case() const {
-	return this->inf == InfStat_Case;
+	return this->infectionState == InfStat_Case;
 }
 
 bool Person::is_exposed() const {
-	return std::abs(this->inf) == InfStat_Latent;
+	return std::abs(this->infectionState) == InfStat_Latent;
 }
 
 bool Person::is_infectious() const {
-	return this->inf == InfStat_InfectiousAsymptomaticNotCase
-		|| this->inf == InfStat_Case;
+	return this->infectionState == InfStat_InfectiousAsymptomaticNotCase
+		|| this->infectionState == InfStat_Case;
 }
 
 bool Person::is_infected() const {
-	return this->inf != InfStat_Susceptible
-		&& this->inf != InfStat_ImmuneAtStart;
+	return this->infectionState != InfStat_Susceptible
+		&& this->infectionState != InfStat_ImmuneAtStart;
 }
 
 bool Person::has_recovered() const {
-	return std::abs(this->inf) == InfStat_Recovered;
+	return std::abs(this->infectionState) == InfStat_Recovered;
 }
 
 bool Person::has_not_recovered() const {
-	return std::abs(this->inf) < InfStat_Recovered;
+	return std::abs(this->infectionState) < InfStat_Recovered;
 }
 
 bool Person::is_positive() const {
-	return std::abs(this->inf) == InfStat_Case
-		|| this->inf == InfStat_InfectiousAlmostSymptomatic;
+	return std::abs(this->infectionState) == InfStat_Case
+		|| this->infectionState == InfStat_InfectiousAlmostSymptomatic;
 }

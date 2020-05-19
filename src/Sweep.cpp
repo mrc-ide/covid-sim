@@ -820,7 +820,7 @@ void IncubRecoverySweep(double t, int run)
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
 						DoRecover(ci, tn, run);
-						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
+						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of infectionState queue. Don't get why 0 here.
 					}
 					else /// if they die and this timestep is after they've died.
 					{

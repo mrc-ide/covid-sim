@@ -76,7 +76,7 @@ struct Person
 	bool is_positive() const;
 
 private:
-	InfStat inf;
+	InfStat infectionState;
 };
 
 struct Household

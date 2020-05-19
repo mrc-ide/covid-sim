@@ -2987,7 +2987,7 @@ int RunModel(int run) //added run number as parameter
 	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
 	{
 		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-		if (Hosts[i].inf == 0) j++;
+		if (Hosts[i].infectionState == 0) j++;
 		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 		{
 			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
@@ -3000,7 +3000,7 @@ int RunModel(int run) //added run number as parameter
 			else
 			{
 				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].is_susceptible())) i2++;
-				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].infectionState) == InfStat_Recovered)) i2++;
 			}
 			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 			{
@@ -3134,7 +3134,7 @@ int RunModel(int run) //added run number as parameter
 		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
 		{
 			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-			if (Hosts[i].inf == 0) j++;
+			if (Hosts[i].infectionState == 0) j++;
 			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 			{
 				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
@@ -3147,7 +3147,7 @@ int RunModel(int run) //added run number as parameter
 				else
 				{
 					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].is_susceptible())) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
+					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].infectionState) == InfStat_Recovered)) i2++;
 				}
 				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
 				{

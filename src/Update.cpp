@@ -749,7 +749,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//	for (j = j1; j < j2; j++)
 		//	{
 		//		//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//		if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//		if ((abs(Hosts[j].infectionState) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
 		//		{
 		//			//add contact and detected infectious host to lists
 		//			ad = Mcells[Hosts[j].mcell].adunit;
@@ -781,7 +781,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//				h = Places[i][k].members[j];
 		//				ad = Mcells[Hosts[h].mcell].adunit;
 		//				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//				if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//				if ((abs(Hosts[h].infectionState) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
 		//				{
 		//					ad = Mcells[Hosts[h].mcell].adunit;
 		//					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
@@ -958,7 +958,7 @@ void DoRecover(int ai, int tn, int run)
 		}
 	}
 	//else
-	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
+	//fprintf(stderr, "\n ### %i %i  \n", ai, a->infectionState);
 }
 
 void DoDeath(int ai, int tn, int run)
