@@ -5,6 +5,9 @@
 #include <errno.h>
 #include <stddef.h>
 
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
+
 #include "CovidSim.h"
 #include "BinIO.h"
 #include "Rand.h"

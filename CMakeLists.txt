@@ -1,7 +1,7 @@
 # CMakeLists.txt
 
 # CMake setup
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 # Project initialisation
 project("CovidSim")
@@ -47,6 +47,7 @@ endif()
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 
+add_subdirectory(third_party)
 add_subdirectory(src)
 
 if(WIN32 AND USE_WIN32_BMP)

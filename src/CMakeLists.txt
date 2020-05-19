@@ -1,4 +1,5 @@
 # CMakeLists.txt for src directory
+include_directories("${filesystem_SOURCE_DIR}/include")
 
 # Set up the IDE
 set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp)
