@@ -15,10 +15,14 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Doxygen Build
-      uses: mattnotmitt/doxygen-action@v1
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make doxygen
+        cd ..
 
     - name: Doxygen Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/html
+        publish_dir: ./build/docs/html
