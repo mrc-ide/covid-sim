@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 #include "CLI.hpp"
 #include "Param.h"
@@ -19,39 +20,23 @@ void parse_read_file(std::string const& input, std::string& output) {
     output = input;
 }
 
-void parse_integer(std::string const& input, int& output) {
-    std::istringstream iss(input);
-    iss >> output;
-    if (iss.fail()) {
-        if (output == std::numeric_limits<int>::max()) {
-            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<int>::max()
-                      << " when parsing an int: " << iss.str() << std::endl;
-        }
-        else if (output == std::numeric_limits<int>::min()) {
-            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<int>::min()
-                      << " when parsing an int: " << iss.str() << std::endl;
-        }
-        else {
-            std::cerr << "ERROR: Expected int, got " << iss.str() << std::endl;
-        }
-        PrintHelpAndExit();
-    }
-}
+template<class T>
+void parse_integral(std::string const& input, T& output) {
+    static_assert(std::is_integral<T>::value, "Integral required.");
 
-void parse_long(std::string const& input, long& output) {
     std::istringstream iss(input);
     iss >> output;
     if (iss.fail()) {
-        if (output == std::numeric_limits<long>::max()) {
-            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<long>::max()
-                      << " when parsing a long: " << iss.str() << std::endl;
+        if (output == std::numeric_limits<T>::max()) {
+            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
+                      << " when parsing " << iss.str() << std::endl;
         }
-        else if (output == std::numeric_limits<long>::min()) {
-            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<long>::min()
-                      << " when parsing a long: " << iss.str() << std::endl;
+        else if (output == std::numeric_limits<T>::min()) {
+            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
+                      << " when parsing " << iss.str() << std::endl;
         }
         else {
-            std::cerr << "ERROR: Expected long, got " << iss.str() << std::endl;
+            std::cerr << "ERROR: Expected integral type, got " << iss.str() << std::endl;
         }
         PrintHelpAndExit();
     }
@@ -90,10 +75,10 @@ int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
 
     // Get seeds.
     int i = argc - 4;
-    parse_integer(argv[i], P.setupSeed1);
-    parse_integer(argv[i+1], P.setupSeed2);
-    parse_integer(argv[i+2], P.runSeed1);
-    parse_integer(argv[i+3], P.runSeed2);
+    parse_integral(argv[i], P.setupSeed1);
+    parse_integral(argv[i+1], P.setupSeed2);
+    parse_integral(argv[i+2], P.runSeed1);
+    parse_integral(argv[i+3], P.runSeed2);
 
     for (i = 1; i < argc - 4; i++)
     {

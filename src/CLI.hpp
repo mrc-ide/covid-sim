@@ -18,16 +18,9 @@ struct Param;
 void parse_read_file(std::string const& input, std::string& output);
 
 /**
- * Parses and checks if the input string is a 32-bit integer.
+ * Parses and checks if the input string is an integral type.
  *
- * Will error if N > (2^31 - 1) || N < -(2^31 - 1)
- */
-void parse_integer(std::string const& input, int& output);
-
-/**
- * Parses and checks if the input string is a 32-bit long.
- *
- * Will error if N > (2^31 - 1) || N < -(2^31 - 1)
+ * Will error if the number is outside the bounds of the specifying data type
  *
  * @note: Windows uses the LLP64 data model with MinGW and Visual C++, meaning
  * that int and long have 32-bits even on 64-bit. So this function has the same
@@ -39,8 +32,8 @@ void parse_integer(std::string const& input, int& output);
  *
  * @see: https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models
  */
-void parse_long(std::string const& input, long& output);
-
+template<class T>
+void parse_integral(std::string const& input, T& output);
 
 class CmdLineArgs {
 public:
