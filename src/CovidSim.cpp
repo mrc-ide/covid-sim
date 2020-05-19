@@ -156,13 +156,15 @@ int main(int argc, char* argv[])
 	 */
 
 	CmdLineArgs args;
-	args.add_option<std::string>("P", parse_read_file, ParamFile);
-	args.add_option<std::string>("PP", parse_read_file, PreParamFile);
+	args.add_string_option("P", parse_read_file, ParamFile);
+	args.add_string_option("PP", parse_read_file, PreParamFile);
+	args.add_integral_option("c", P.MaxNumThreads);
 	args.parse(argc, argv, P);
 
 	// DELETE_BEFORE_MERGE
 	std::cout << "Parsed ParamFile: " << ParamFile << std::endl;
 	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
+	std::cout << "Parsed MaxNumThreads: " << P.MaxNumThreads << std::endl;
 
 	// Set parameter defaults - read them in after
 	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;

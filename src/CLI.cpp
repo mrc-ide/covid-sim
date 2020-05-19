@@ -20,7 +20,7 @@ void parse_read_file(std::string const& input, std::string& output) {
     output = input;
 }
 
-template<class T>
+template<typename T>
 void parse_integral(std::string const& input, T& output) {
     static_assert(std::is_integral<T>::value, "Integral required.");
 
@@ -42,8 +42,23 @@ void parse_integral(std::string const& input, T& output) {
     }
 }
 
-template<class T>
-void CmdLineArgs::add_option(std::string const&& option, std::function<void(std::string const&, T&)> func, T& output) {
+template<typename T>
+void CmdLineArgs::add_integral_option(std::string const&& option, T& output) {
+    if (m_option_map.find(option) != m_option_map.cend()) {
+        std::cerr << "Duplicate option specified " << option << ", ignoring..." << std::endl;
+        return;
+    }
+
+    ParserFn parser_func = std::bind(parse_integral<T>, std::placeholders::_1, std::ref(output));
+    m_option_map.emplace(option, parser_func);
+}
+
+// Explicit template instantiations for the linker
+// https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
+template void CmdLineArgs::add_integral_option<int>(std::string const&&, int&);
+template void CmdLineArgs::add_integral_option<long>(std::string const&&, long&);
+
+void CmdLineArgs::add_string_option(std::string const&& option, StringParserFn func, std::string& output) {
     if (m_option_map.find(option) != m_option_map.cend()) {
         std::cerr << "Duplicate option specified " << option << ", ignoring..." << std::endl;
         return;
@@ -52,12 +67,6 @@ void CmdLineArgs::add_option(std::string const&& option, std::function<void(std:
     ParserFn parser_func = std::bind(func, std::placeholders::_1, std::ref(output));
     m_option_map.emplace(option, parser_func);
 }
-
-// Explicit template instantiations for the linker
-// https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
-template void CmdLineArgs::add_option<int>(std::string const&&, std::function<void(std::string const&, int&)>, int&);
-template void CmdLineArgs::add_option<long>(std::string const&&, std::function<void(std::string const&, long&)>, long&);
-template void CmdLineArgs::add_option<std::string>(std::string const&&, std::function<void(std::string const&, std::string&)>, std::string&);
 
 int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
     // Detect if the user wants to print out the full help output

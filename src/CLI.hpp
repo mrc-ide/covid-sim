@@ -20,7 +20,7 @@ void parse_read_file(std::string const& input, std::string& output);
 /**
  * Parses and checks if the input string is an integral type.
  *
- * Will error if the number is outside the bounds of the specifying data type
+ * Will error if the number is outside the bounds of the specified data type.
  *
  * @note: Windows uses the LLP64 data model with MinGW and Visual C++, meaning
  * that int and long have 32-bits even on 64-bit. So this function has the same
@@ -32,23 +32,37 @@ void parse_read_file(std::string const& input, std::string& output);
  *
  * @see: https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models
  */
-template<class T>
+template<typename T>
 void parse_integral(std::string const& input, T& output);
 
 class CmdLineArgs {
 public:
     // Function prototype for a generic parser function
     using ParserFn = std::function<void(std::string const&)>;
+    // Function prototype for a string parser function
+    using StringParserFn = std::function<void(std::string const&, std::string&)>;
+    // Function prototype for an integral parser function
+    template<typename T>
+    using IntegralParserFn = std::function<void(std::string const&, T&)>;
 
     /**
-     * Use this function when adding a new option to the CLI.
+     * Use this function when adding a new string option to the CLI.
      *
      * This will bind the output variable specified to a parser function which
      * then gets inserted into a map of other options. This provides a strong
      * cohesion between an option name (i.e. 'P') with a C++ variable (i.e. 'ParamFile')
      */
-    template<class T>
-    void add_option(std::string const&& option, std::function<void(std::string const&, T&)> func, T& output);
+    void add_string_option(std::string const&& option, StringParserFn func, std::string& output);
+
+    /**
+     * Use this function when adding a new integral option to the CLI.
+     *
+     * This will bind the output variable to the parse_integral() function and
+     * gets inserted into a map of other options. This provides a strong cohesion
+     * between an option name (i.e. 'c') with its variable (i.e. 'P.MaxNumThreads')
+     */
+    template<typename T>
+    void add_integral_option(std::string const&& option, T& output);
 
     /**
      * Call this function once all add_option() calls have been made to process
