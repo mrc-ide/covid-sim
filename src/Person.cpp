@@ -34,7 +34,7 @@ void Person::make_case() {
 }
 
 void Person::make_dead() {
-	this->infectionState = (InfStat)(InfStat_Dead * this->infectionState / abs(this->infectionState));
+	this->infectionState = (InfStat)(InfStat_Dead * this->infectionState / std::abs(this->infectionState));
 }
 
 void Person::make_recovered() {
