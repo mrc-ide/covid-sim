@@ -5,7 +5,7 @@
 
 #include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
