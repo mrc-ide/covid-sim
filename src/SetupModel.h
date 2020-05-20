@@ -3,14 +3,14 @@
 
 #include <string>
 
-void SetupModel(std::string const&, char*, char*, std::string const&);
+void SetupModel(std::string const&, std::string const&, std::string const&, char*, std::string const&);
 void SetupPopulation(std::string const&, char*, std::string const&);
 void SetupAirports(void);
 void AssignHouseholdAges(int, int, int, std::string const&);
 void AssignPeopleToPlaces(void);
 void StratifyPlaces(void);
-void LoadPeopleToPlaces(char*);
-void SavePeopleToPlaces(char*);
+void LoadPeopleToPlaces(std::string const&);
+void SavePeopleToPlaces(std::string const&);
 void SaveAgeDistrib(void);
 void UpdateProbs(int);
 

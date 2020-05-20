@@ -24,7 +24,7 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(std::string const& DensityFile, char* NetworkFile, char* SchoolFile, std::string const& RegDemogFile)
+void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFile, std::string const& SaveNetworkFile, char* SchoolFile, std::string const& RegDemogFile)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -299,14 +299,14 @@ void SetupModel(std::string const& DensityFile, char* NetworkFile, char* SchoolF
 	fprintf(stderr, "Initialising places...\n");
 	if (P.DoPlaces)
 	{
-		if (P.LoadSaveNetwork == 1)
-			LoadPeopleToPlaces(NetworkFile);
+		if (!LoadNetworkFile.empty())
+			LoadPeopleToPlaces(LoadNetworkFile);
 		else
 			AssignPeopleToPlaces();
 	}
 
-	if ((P.DoPlaces) && (P.LoadSaveNetwork == 2))
-		SavePeopleToPlaces(NetworkFile);
+	if (P.DoPlaces && !SaveNetworkFile.empty())
+		SavePeopleToPlaces(SaveNetworkFile);
 	//SaveDistribs();
 
 	// From here on, we want the same random numbers regardless of whether we used the RNG to make the network,
@@ -2462,14 +2462,14 @@ void StratifyPlaces(void)
 	}
 }
 
-void LoadPeopleToPlaces(char* NetworkFile)
+void LoadPeopleToPlaces(std::string const& LoadNetworkFile)
 {
 	int i, j, k, l, m, n, npt, i2;
 	int32_t s1, s2;
 	FILE* dat;
 	int fileversion;
 
-	if (!(dat = fopen(NetworkFile, "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
+	if (!(dat = fopen(LoadNetworkFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
 	fread_big(&fileversion, sizeof(fileversion), 1, dat);
 	if (fileversion != NETWORK_FILE_VERSION)
 	{
@@ -2520,14 +2520,14 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	*/	fprintf(stderr, "\n");
 	fclose(dat);
 }
-void SavePeopleToPlaces(char* NetworkFile)
+void SavePeopleToPlaces(std::string const& SaveNetworkFile)
 {
 	int i, j, npt;
 	FILE* dat;
 	int fileversion = NETWORK_FILE_VERSION;
 
 	npt = P.PlaceTypeNoAirNum;
-	if (!(dat = fopen(NetworkFile, "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
+	if (!(dat = fopen(SaveNetworkFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
 	if (P.PlaceTypeNum > 0)

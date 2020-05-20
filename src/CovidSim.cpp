@@ -132,12 +132,12 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string AirTravelFile, DensityFile, ParamFile, PreParamFile, RegDemogFile;
-	char NetworkFile[1024]{}, SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
-	int i, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
+	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile;
+	char SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	int i, GotO, GotAP, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotO = GotL = GotS = GotAP = GotScF = GotNR = 0;
+	GotO = GotAP = GotScF = GotNR = 0;
 
 	cl = clock();
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoSchoolFile = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.PlaceCloseIndepThresh = P.DoSchoolFile = P.MaxNumThreads = P.DoInterventionFile = 0;
 	P.CaseOrDeathThresholdBeforeAlert = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
@@ -185,11 +185,13 @@ int main(int argc, char* argv[])
 	// quickly: ggilani - 15/10/14
 	args.add_number_option("KO", P.KernelOffsetScale);
 	args.add_number_option("KP", P.KernelPowerScale);
+	args.add_string_option("L", parse_read_file, LoadNetworkFile);
 	args.add_string_option("M", parse_write_dir, OutDensFile);
 	args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
 	args.add_number_option("R", P.R0scale);
+	args.add_string_option("S", parse_write_dir, SaveNetworkFile);
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
 	args.parse(argc, argv, P);
 
@@ -237,11 +239,6 @@ int main(int argc, char* argv[])
 				break;
 			case 'L':
 				switch(opt[2]) {
-					case ':':
-						ParseArg(ArgType::RFILE, &opt[2], NetworkFile);
-						GotL = 1;
-						P.LoadSaveNetwork = 1;
-						break;
 					case 'S':
 						ParseArg(ArgType::RFILE, &opt[3], SnapshotLoadFile);
 						P.DoLoadSnapshot = 1;
@@ -261,11 +258,6 @@ int main(int argc, char* argv[])
 				break;
 			case 'S':
 				switch(opt[2]) {
-					case ':':
-						ParseArg(ArgType::WFILE, &opt[2], NetworkFile);
-						P.LoadSaveNetwork = 2;
-						GotS = 1;
-						break;
 					case 'S':
 						ParseArg(ArgType::STRING, &opt[3], buf);
 						sep = strchr(buf, ',');
@@ -288,7 +280,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if ((GotS && GotL) || ParamFile.empty() || OutFileBase.empty())
+	// Check if S and L options were both specified (can only be one)
+	// or if P or O were not specified
+	if ((!SaveNetworkFile.empty() && !LoadNetworkFile.empty()) || ParamFile.empty() || OutFileBase.empty())
 		PrintHelpAndExit();
 
 	///// END Read in command line arguments
@@ -349,7 +343,7 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 	///// initialize model (for all realisations).
-	SetupModel(DensityFile, NetworkFile, SchoolFile, RegDemogFile);
+	SetupModel(DensityFile, LoadNetworkFile, SaveNetworkFile, SchoolFile, RegDemogFile);
 
 	for (i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	if (P.DoInterventionFile > 0)
