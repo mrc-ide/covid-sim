@@ -114,8 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile;
-char OutFile[1024], OutFileBase[1024], OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024];
+std::string AdunitFile, OutFile, OutFileBase;
+char OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024];
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 	args.add_number_option("CLP6", P.clP6);
 	//args.add_string_option("d", parse_read_file, RegDemogFile);
 	//args.add_string_option("D", parse_read_file, DensityFile);
-	//args.add_string_option("O", parse_write_dir, OutFileBase);
+	args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
 	args.add_number_option("R", P.R0scale);
@@ -276,10 +276,6 @@ int main(int argc, char* argv[])
 						break;
 				}
 				break;
-			case 'O':
-				ParseArg(ArgType::DIR, &opt[2], OutFileBase);
-				GotO = 1;
-				break;
 			case 's':
 				ParseArg(ArgType::RFILE, &opt[2], SchoolFile);
 				GotScF = 1;
@@ -313,12 +309,12 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (((GotS) && (GotL)) || (ParamFile.empty()) || (!GotO))
+	if ((GotS && GotL) || ParamFile.empty() || OutFileBase.empty())
 		PrintHelpAndExit();
 
 	///// END Read in command line arguments
 
-	sprintf(OutFile, "%s", OutFileBase);
+	OutFile = OutFileBase;
 
 	std::cerr << "Param=" << ParamFile << "\nOut=" << OutFile << "\nDens=" << DensityFile << std::endl;
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
@@ -395,8 +391,8 @@ int main(int argc, char* argv[])
 	{
 		if (P.NumRealisations > 1)
 		{
-			sprintf(OutFile, "%s.%i", OutFileBase, i);
-			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations,((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+			OutFile = OutFileBase + "." + std::to_string(i);
+			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
@@ -456,7 +452,7 @@ int main(int argc, char* argv[])
 			SaveEvents();
 		}
 	}
-	sprintf(OutFile, "%s", OutFileBase);
+	OutFile = OutFileBase;
 
 	//Calculate origin destination matrix if needed
 	if ((P.DoAdUnits) && (P.DoOriginDestinationMatrix))
@@ -471,11 +467,11 @@ int main(int argc, char* argv[])
 	{
 		SaveEvents();
 	}
-	sprintf(OutFile, "%s.avNE", OutFileBase);
+	OutFile = OutFileBase + ".avNE";
 	SaveSummaryResults();
 	P.NRactual = P.NRactE;
 	TSMean = TSMeanE; TSVar = TSVarE;
-	sprintf(OutFile, "%s.avE", OutFileBase);
+	OutFile = OutFileBase + ".avE";
 	//SaveSummaryResults();
 
 	Bitmap_Finalise();
@@ -2328,7 +2324,7 @@ void ReadAirTravel(std::string const& AirTravelFile)
 	float sc, t, t2;
 	float* buf;
 	double traf;
-	char outname[1024];
+	std::string outname;
 	FILE* dat;
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
@@ -2461,8 +2457,8 @@ void ReadAirTravel(std::string const& AirTravelFile)
 					AirTravelDist[l] += Airports[i].total_traffic * Airports[i].prop_traffic[j];
 			}
 		}
-	sprintf(outname, "%s.airdist.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open air travel output file\n");
+	outname = OutFile + ".airdist.xls";
+	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open air travel output file\n");
 	fprintf(dat, "dist\tfreq\n");
 	for (i = 0; i < MAX_DIST; i++)
 		fprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
@@ -3152,7 +3148,7 @@ void SaveDistribs(void)
 {
 	int i, j, k;
 	FILE* dat;
-	char outname[1024];
+	std::string outname;
 	double s;
 
 	if (P.DoPlaces)
@@ -3196,8 +3192,8 @@ void SaveDistribs(void)
 				for (i = 0; i < P.Nplace[j]; i++)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
 						PlaceSizeDistrib[j][Places[j][i].n]++;
-		sprintf(outname, "%s.placedist.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".placedist.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "dist");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3212,8 +3208,8 @@ void SaveDistribs(void)
 			fprintf(dat, "\n");
 		}
 		fclose(dat);
-		sprintf(outname, "%s.placesize.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".placesize.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "size");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3242,10 +3238,9 @@ void SaveOriginDestMatrix(void)
 	 */
 	int i, j;
 	FILE* dat;
-	char outname[1024];
 
-	sprintf(outname, "%s.origdestmat.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	std::string outname = OutFile + ".origdestmat.xls";
+	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	fprintf(dat, "0,");
 	for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 	fprintf(dat, "\n");
@@ -3265,12 +3260,12 @@ void SaveResults(void)
 {
 	int i, j;
 	FILE* dat;
-	char outname[1024];
+	std::string outname;
 
 	if (P.OutputNonSeverity)
 	{
-		sprintf(outname, "%s.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for(i = 0; i < P.NumSamples; i++)
 		{
@@ -3285,8 +3280,8 @@ void SaveResults(void)
 
 	if ((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
-		sprintf(outname, "%s.adunit.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".adunit.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3309,8 +3304,8 @@ void SaveResults(void)
 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
-		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile); //modifying to csv file
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".digitalcontacttracing.xls"; //modifying to csv file
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
     		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3341,8 +3336,8 @@ void SaveResults(void)
 
 	if ((P.DoDigitalContactTracing) && (P.OutputDigitalContactDist))
 	{
-		sprintf(outname, "%s.digitalcontactdist.xls", OutFile); //modifying to csv file
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".digitalcontactdist.xls"; //modifying to csv file
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		//print headers
 		fprintf(dat, "nContacts\tFrequency\n");
 		for (i = 0; i < (MAX_CONTACTS + 1); i++)
@@ -3353,9 +3348,9 @@ void SaveResults(void)
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
-		{
-		sprintf(outname, "%s.keyworker.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	{
+		outname = OutFile + ".keyworker.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3376,9 +3371,9 @@ void SaveResults(void)
 		}
 
 	if(P.DoInfectionTree)
-		{
-		sprintf(outname, "%s.tree.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	{
+		outname = OutFile + "%s.tree.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
@@ -3391,20 +3386,20 @@ void SaveResults(void)
 	//if(P.OutputBitmap == 1) CloseAvi(avi);
 	//if((TimeSeries[P.NumSamples - 1].extinct) && (P.OutputOnlyNonExtinct))
 	//	{
-	//	sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
+	//	outname = OutFile + ".ge" DIRECTORY_SEPARATOR + OutFile + ".avi";
 	//	DeleteFile(outname);
 	//	}
 #endif
 	if(P.OutputBitmap >= 1 && P.BitmapFormat == BitmapFormats::PNG)
 		{
 		// Generate Google Earth .kml file
-		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);
-		if(!(dat = fopen(outname, "wb")))
+		outname = OutFile + ".ge" DIRECTORY_SEPARATOR + OutFile + ".ge.kml"; // outname = OutFileBase + ".ge" DIRECTORY_SEPARATOR + OutFile ".kml";
+		if(!(dat = fopen(outname.c_str(), "wb")))
 			{
 			ERR_CRITICAL("Unable to open output kml file\n");
 			}
 		fprintf(dat, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.2\">\n<Document>\n");
-		fprintf(dat, "<name>%s</name>\n", OutFile);
+		fprintf(dat, "<name>%s</name>\n", OutFile.c_str());
 		y = 2009;
 		m = 1;
 		d = 1;
@@ -3431,8 +3426,8 @@ void SaveResults(void)
 					}
 				} while(!f);
 				fprintf(dat, "<end>%i-%02i-%02iT00:00:00Z</end>\n</TimeSpan>\n", y, m, d);
-				sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.%i.png", OutFile, OutFile, i + 1);
-				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname);
+				outname = OutFile + ".ge" DIRECTORY_SEPARATOR + OutFile + "." + std::to_string(i + 1) + ".png";
+				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname.c_str());
 				fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
 					P.SpatialBoundingBox[3], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[0]);
 				fprintf(dat, "</GroundOverlay>\n");
@@ -3445,8 +3440,8 @@ void SaveResults(void)
 
 	if(P.DoSeverity)
 	{
-		sprintf(outname, "%s.severity.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		outname = OutFile + ".severity.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for (i = 0; i < P.NumSamples; i++)
 		{
@@ -3463,8 +3458,8 @@ void SaveResults(void)
 		if((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
 			//// output severity results by admin unit
-			sprintf(outname, "%s.severity.adunit.xls", OutFile);
-			if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			outname = OutFile + ".severity.adunit.xls";
+			if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -3544,8 +3539,8 @@ void SaveResults(void)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
 		//// output infections by age and admin unit
-		sprintf(outname, "%s.age.adunit.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".age.adunit.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 
 		// colnames
@@ -3583,14 +3578,14 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	int i, j;
 	double c, t;
 	FILE* dat;
-	char outname[1024];
+	std::string outname;
 
 	c = 1 / ((double)(P.NRactE + P.NRactNE));
 
 	if (P.OutputNonSeverity)
 	{
-		sprintf(outname, "%s.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
 			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
@@ -3622,8 +3617,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputControls)
 	{
-		sprintf(outname, "%s.controls.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".controls.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t\tS\tincC\tincTC\tincFC\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
 		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tprClosed_%i", j);
 		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
@@ -3655,8 +3650,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputAge)
 	{
-		sprintf(outname, "%s.age.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".age.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
 			fprintf(dat, "\tI%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
@@ -3685,8 +3680,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
-		sprintf(outname, "%s.adunit.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".adunit.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3712,8 +3707,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 		if (P.OutputAdUnitVar)
 		{
-			sprintf(outname, "%s.adunitVar.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			outname = OutFile + ".adunitVar.xls";
+			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3739,8 +3734,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
-		sprintf(outname, "%s.digitalcontacttracing.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".digitalcontacttracing.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3772,8 +3767,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
 	{
-		sprintf(outname, "%s.keyworker.xls", OutFile);
-		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".keyworker.xls";
+		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3804,8 +3799,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputInfType)
 	{
-		sprintf(outname, "%s.inftype.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".inftype.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t\tR\tTG\tSI");
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tRtype_%i", j);
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
@@ -3824,8 +3819,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputR0)
 	{
-		sprintf(outname, "%s.R0.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".R0.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		for (i = 0; i < MAX_SEC_REC; i++)
 		{
 			fprintf(dat, "%i", i);
@@ -3838,7 +3833,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputHousehold)
 	{
-		sprintf(outname, "%s.household.xls", OutFile);
+		outname = OutFile + ".household.xls";
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
 		{
 			t = 0;
@@ -3853,7 +3848,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				t += case_household_av[i][j];
 			case_household_av[i][0] = denom_household[i] / c - t;
 		}
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
 			fprintf(dat, "\t%i", i);
 		fprintf(dat, "\n");
@@ -3880,8 +3875,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 	if (P.OutputCountry)
 	{
-		sprintf(outname, "%s.country.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".country.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		for (i = 0; i < MAX_COUNTRIES; i++)
 			fprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
 		fclose(dat);
@@ -3890,9 +3885,9 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.DoSeverity)
 	{
 		//// output separate severity file (can integrate with main if need be)
-		sprintf(outname, "%s.severity.xls", OutFile);
+		outname = OutFile + ".severity.xls";
 
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tPropSocDist\tRt\tTG\tSI\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tprevQuarNotInfected\tprevQuarNotSymptomatic\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\t");
 		fprintf(dat, "PropSocDist_v\tRt_v\tTG_v\tSI_v\tS_v\tI_v\tR_v\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
@@ -3978,8 +3973,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			sc4a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by age group
-			sprintf(outname, "%s.severity.age.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			outname = OutFile + ".severity.age.xls";
+			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -4100,8 +4095,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			sc4a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
-			sprintf(outname, "%s.severity.adunit.xls", OutFile);
-			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			outname = OutFile + ".severity.adunit.xls";
+			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -4212,8 +4207,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
 		//// output infections by age and admin unit
-		sprintf(outname, "%s.age.adunit.xls", OutFile);
-		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		outname = OutFile + ".age.adunit.xls";
+		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
 
 		// colnames
@@ -4258,10 +4253,9 @@ void SaveRandomSeeds(void)
 	 * Author: ggilani, 09/03/17
 	 */
 	FILE* dat;
-	char outname[1024];
 
-	sprintf(outname, "%s.seeds.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	std::string outname = OutFile + ".seeds.xls";
+	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	fprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
 	fclose(dat);
 }
@@ -4278,10 +4272,9 @@ void SaveEvents(void)
 	 */
 	int i;
 	FILE* dat;
-	char outname[1024];
 
-	sprintf(outname, "%s.infevents.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	std::string outname = OutFile + ".infevents.xls";
+	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	fprintf(dat, "type,t,thread,ind_infectee,cell_infectee,listpos_infectee,adunit_infectee,x_infectee,y_infectee,t_infector,ind_infector,cell_infector\n");
 	for (i = 0; i < nEvents; i++)
 	{

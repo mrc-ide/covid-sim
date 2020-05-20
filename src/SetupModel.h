@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
+#include <string>
+
 void SetupModel(char*, char*, char*, char*);
 void SetupPopulation(char*, char*);
 void SetupAirports(void);
@@ -22,6 +24,7 @@ struct BinFile
 	int cnt, ad;
 };
 
-extern char OutFile[1024],OutDensFile[1024];
+extern std::string OutFile;
+extern char OutDensFile[1024];
 
 #endif // COVIDSIM_SETUPMODEL_H_INCLUDED_

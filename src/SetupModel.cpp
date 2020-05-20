@@ -2559,10 +2559,10 @@ void SaveAgeDistrib(void)
 {
 	int i;
 	FILE* dat;
-	char outname[1024];
+	std::string outname;
 
-	sprintf(outname, "%s.agedist.xls", OutFile);
-	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	outname = OutFile + ".agedist.xls";
+	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	if (P.DoDeath)
 	{
 		fprintf(dat, "age\tfreq\tlifeexpect\n");
