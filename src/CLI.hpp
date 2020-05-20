@@ -18,6 +18,11 @@ struct Param;
 void parse_read_file(std::string const& input, std::string& output);
 
 /**
+ *  Parses and checks if the input string is a writable directory.
+ */
+void parse_write_dir(std::string const& input, std::string& output);
+
+/**
  * Parses and checks if the input string is an integral type.
  *
  * Will error if the number is outside the bounds of the specified data type.
@@ -33,7 +38,7 @@ void parse_read_file(std::string const& input, std::string& output);
  * @see: https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models
  */
 template<typename T>
-void parse_integral(std::string const& input, T& output);
+void parse_number(std::string const& input, T& output);
 
 class CmdLineArgs {
 public:
@@ -41,9 +46,6 @@ public:
     using ParserFn = std::function<void(std::string const&)>;
     // Function prototype for a string parser function
     using StringParserFn = std::function<void(std::string const&, std::string&)>;
-    // Function prototype for an integral parser function
-    template<typename T>
-    using IntegralParserFn = std::function<void(std::string const&, T&)>;
 
     /**
      * Use this function when adding a new string option to the CLI.
@@ -62,7 +64,7 @@ public:
      * between an option name (i.e. 'c') with its variable (i.e. 'P.MaxNumThreads')
      */
     template<typename T>
-    void add_integral_option(std::string const&& option, T& output);
+    void add_number_option(std::string const&& option, T& output);
 
     /**
      * Call this function once all add_option() calls have been made to process

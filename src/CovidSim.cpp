@@ -146,6 +146,15 @@ int main(int argc, char* argv[])
 	P.BitmapFormat = BitmapFormats::BMP;
 #endif
 
+	// Set parameter defaults - read them in after
+	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.CaseOrDeathThresholdBeforeAlert = 0;
+	P.R0scale = 1.0;
+	// added this so that kernel parameters are only changed if input from
+	// the command line: ggilani - 15/10/2014
+	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
+	P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
+
 	/**
 	 * Read in command line arguments:
 	 *   - random number seeds
@@ -158,22 +167,15 @@ int main(int argc, char* argv[])
 	CmdLineArgs args;
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
-	args.add_integral_option("c", P.MaxNumThreads);
+	args.add_number_option("c", P.MaxNumThreads);
+	args.add_number_option("R", P.R0scale);
+	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
 	args.parse(argc, argv, P);
 
 	// DELETE_BEFORE_MERGE
 	std::cout << "Parsed ParamFile: " << ParamFile << std::endl;
 	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
 	std::cout << "Parsed MaxNumThreads: " << P.MaxNumThreads << std::endl;
-
-	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
-	P.CaseOrDeathThresholdBeforeAlert = 0;
-	P.R0scale = 1.0;
-	// added this so that kernel parameters are only changed if input from
-	// the command line: ggilani - 15/10/2014
-	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
-	P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
 
 	// scroll through command line arguments, anticipating what they can be
 	// using various if statements.
@@ -340,9 +342,6 @@ int main(int argc, char* argv[])
 						sscanf(&opt[4], "%s", buf);
 						break;
 				}
-				break;
-			case 'T':
-				ParseArg(ArgType::INTEGER, &opt[2], &P.CaseOrDeathThresholdBeforeAlert);
 				break;
 			default:
 				fprintf(stderr, "Unsupported argument specified %s\n", opt);
