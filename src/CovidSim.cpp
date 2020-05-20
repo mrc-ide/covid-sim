@@ -59,6 +59,8 @@ int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, i
 int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
+void SetICDF(double* icdf, int startValue);
+
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
@@ -106,6 +108,9 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
+
+/* default start value for icdf arrays */
+const int ICDF_START = 100;
 
 int main(int argc, char* argv[])
 {
@@ -1003,9 +1008,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.infectious_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.infectious_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.infectious_icdf, ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
@@ -1019,9 +1022,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.latent_icdf[CDF_RES] = 1e10;
-			for (i = 0; i < CDF_RES; i++)
-				P.latent_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.latent_icdf, 1e10);
 		}
 		for (i = 0; i <= CDF_RES; i++)
 			P.latent_icdf[i] = exp(-P.latent_icdf[i]);
@@ -1142,81 +1143,61 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		//// Get ICDFs
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.MildToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.MildToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.MildToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.ILIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToRecovery_icdf[i] = exp(-P.ILIToRecovery_icdf[i]);
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", "%lf", (void*)P.ILIToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToDeath_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.ILIToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToDeath_icdf, ICDF_START);
 		}
 		for (i = 0; i <= CDF_RES; i++) P.ILIToDeath_icdf[i] = exp(-P.ILIToDeath_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.SARIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToRecovery_icdf[i] = exp(-P.SARIToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CriticalToCritRecov_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CriticalToCritRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CriticalToCritRecov_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToCritRecov_icdf[i] = exp(-P.CriticalToCritRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CritRecovToRecov_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CritRecovToRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CritRecovToRecov_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CritRecovToRecov_icdf[i] = exp(-P.CritRecovToRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToSARI_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.ILIToSARI_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToSARI_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToSARI_icdf[i] = exp(-P.ILIToSARI_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToCritical_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.SARIToCritical_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToCritical_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToCritical_icdf[i] = exp(-P.SARIToCritical_icdf[i]);
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf"		, "%lf", (void*)P.SARIToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToDeath_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.SARIToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToDeath_icdf, ICDF_START);
 		}
 		for (i = 0; i <= CDF_RES; i++) P.SARIToDeath_icdf[i] = exp(-P.SARIToDeath_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CriticalToDeath_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CriticalToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CriticalToDeath_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToDeath_icdf[i] = exp(-P.CriticalToDeath_icdf[i]);
 
@@ -5665,3 +5646,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
+
+/* helper function to set icdf arrays */
+void SetICDF(double* icdf, int startValue)
+{
+	icdf[CDF_RES] = startValue;
+	for (int i = 0; i < CDF_RES; i++)
+		icdf[i] = -log(1 - ((double)i) / CDF_RES);
+}
+
+
+
+
