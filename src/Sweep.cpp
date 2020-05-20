@@ -1366,7 +1366,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((min.x + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (min.y + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
+								k = P.get_micro_cell_index_from_position(min);
 							} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
 						}
 					}
@@ -1458,7 +1458,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((min.x + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (min.y + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
@@ -1589,7 +1589,7 @@ int TreatSweep(double t)
 							int ad2 = ad / P.MoveRestrAdminUnitDivisor;
 							do
 							{
-								if ((min.x >= 0) && (min.x < P.get_number_of_micro_cells_wide()) && (min.y >= 0) && (min.y < P.get_number_of_micro_cells_high()))
+								if (P.is_in_bounds(min))
 								{
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
@@ -1705,15 +1705,15 @@ int TreatSweep(double t)
 					}
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
-						int minx = (b / P.get_number_of_micro_cells_high());
-						int miny = (b % P.get_number_of_micro_cells_high());
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						do
 						{
-							if ((minx >= 0) && (minx < P.get_number_of_micro_cells_wide()) && (miny >= 0) && (miny < P.get_number_of_micro_cells_high()))
+							if (P.is_in_bounds(min))
 								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
@@ -1730,23 +1730,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-							if (j == 0)
-								minx = minx + 1;
-							else if (j == 1)
-								miny = miny - 1;
-							else if (j == 2)
-								minx = minx - 1;
-							else if (j == 3)
-								miny = miny + 1;
+							min += j;
 							m = (m + 1) % l;
 							if (m == 0)
 							{
-								j = (j + 1) % 4;
+								j = rotate_left(j);
 								i = (i + 1) % 2;
 								if (i == 0) l++;
-								if (j == 1) { f3 = f2; f2 = 0; }
+								if (j == Up)
+								{
+									f3 = f2;
+									f2 = 0;
+								}
 							}
-							k = ((minx + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (miny + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
+							k = P.get_micro_cell_index_from_position(min);
 						} while (f3);
 					}
 
