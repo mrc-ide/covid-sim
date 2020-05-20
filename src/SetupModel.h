@@ -24,7 +24,6 @@ struct BinFile
 	int cnt, ad;
 };
 
-extern std::string OutFile;
-extern char OutDensFile[1024];
+extern std::string OutDensFile, OutFile;
 
 #endif // COVIDSIM_SETUPMODEL_H_INCLUDED_

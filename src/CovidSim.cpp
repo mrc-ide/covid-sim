@@ -114,8 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile, OutFile, OutFileBase;
-char OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024];
+std::string AdunitFile, OutDensFile, OutFile, OutFileBase;
+char SnapshotLoadFile[1024], SnapshotSaveFile[1024];
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.MaxNumThreads = P.DoInterventionFile = 0;
 	P.CaseOrDeathThresholdBeforeAlert = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
@@ -180,6 +180,12 @@ int main(int argc, char* argv[])
 	args.add_number_option("CLP6", P.clP6);
 	//args.add_string_option("d", parse_read_file, RegDemogFile);
 	//args.add_string_option("D", parse_read_file, DensityFile);
+	// added Kernel Power and Offset scaling so that it can easily
+	// be altered from the command line in order to vary the kernel
+	// quickly: ggilani - 15/10/14
+	args.add_number_option("KO", P.KernelOffsetScale);
+	args.add_number_option("KP", P.KernelPowerScale);
+	args.add_string_option("M", parse_write_dir, OutDensFile);
 	args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
@@ -238,20 +244,6 @@ int main(int argc, char* argv[])
 				ParseArg(ArgType::RFILE, &opt[2], InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
 				break;
-			// added Kernel Power and Offset scaling so that it can easily
-			// be altered from the command line in order to vary the kernel
-			// quickly: ggilani - 15/10/14
-			case 'K': {
-				switch(opt[2]) {
-					case 'O':
-						ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelOffsetScale);
-						break;
-					case 'P':
-						ParseArg(ArgType::DOUBLE, &opt[3], &P.KernelPowerScale);
-						break;
-				}
-				break;
-			}
 			case 'L':
 				switch(opt[2]) {
 					case ':':
@@ -264,10 +256,6 @@ int main(int argc, char* argv[])
 						P.DoLoadSnapshot = 1;
 						break;
 				}
-				break;
-			case 'M':
-				ParseArg(ArgType::WFILE, &opt[2], OutDensFile);
-				P.OutputDensFile = 1;
 				break;
 			case 'N':
 				switch(opt[2]) {

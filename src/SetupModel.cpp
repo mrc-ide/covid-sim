@@ -800,7 +800,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 					}
 					else
 						mcell_adunits[l] = 0;
-					if ((P.OutputDensFile) && (P.DoBin) && (mcell_adunits[l] >= 0))
+					if (!OutDensFile.empty() && (P.DoBin) && (mcell_adunits[l] >= 0))
 					{
 						if (rn2 < rn) BF[rn2] = rec;
 						rn2++;
@@ -810,10 +810,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		}
 		//		fclose(dat2);
 		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
-		if ((P.OutputDensFile) && (P.DoBin)) P.BinFileLen = rn2;
+		if (!OutDensFile.empty() && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
-			if (P.OutputDensFile)
+			if (!OutDensFile.empty())
 			{
 				free(BinFileBuf);
 				P.DoBin = 1;
@@ -837,9 +837,9 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			}
 		}
 
-		if (P.OutputDensFile)
+		if (!OutDensFile.empty())
 		{
-			if (!(dat2 = fopen(OutDensFile, "wb"))) ERR_CRITICAL("Unable to open output density file\n");
+			if (!(dat2 = fopen(OutDensFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
