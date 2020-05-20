@@ -24,7 +24,7 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, std::string const& RegDemogFile)
+void SetupModel(std::string const& DensityFile, char* NetworkFile, char* SchoolFile, std::string const& RegDemogFile)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -39,10 +39,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, std::str
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
 	P.DoBin = -1;
-	if (P.DoHeteroDensity)
+	if (!DensityFile.empty())
 	{
 		fprintf(stderr, "Scanning population density file\n");
-		if (!(dat = fopen(DensityFile, "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		if (!(dat = fopen(DensityFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
 		unsigned int density_file_header;
 		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
@@ -215,7 +215,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, std::str
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
 	t2 = 0.0;
 
-	SetupPopulation(SchoolFile, RegDemogFile);
+	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
 
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
   TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
@@ -702,7 +702,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, std::str
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
-void SetupPopulation(char* SchoolFile, std::string const& RegDemogFile)
+void SetupPopulation(std::string const& DensityFile, char* SchoolFile, std::string const& RegDemogFile)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
@@ -731,7 +731,7 @@ void SetupPopulation(char* SchoolFile, std::string const& RegDemogFile)
 	if (P.DoAdUnits)
 		for (int i = 0; i < MAX_ADUNITS; i++)
 			P.PopByAdunit[i][0] = P.PopByAdunit[i][1] = 0;
-	if (P.DoHeteroDensity)
+	if (!DensityFile.empty())
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
