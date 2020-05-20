@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "CovidSim.h"
 #include "BinIO.h"
@@ -52,9 +53,10 @@ enum class ArgType {
 };
 
 void parse_bmp_option(std::string const&);
+void parse_intervention_file_option(std::string const&);
 void ParseArg(ArgType, char*, void*);
 void ReadParams(std::string const&, std::string const&);
-void ReadInterventions(char*);
+void ReadInterventions(std::string const&);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
 void ReadAirTravel(std::string const&);
 void InitModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
@@ -127,6 +129,7 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
+std::vector<std::string> InterventionFiles;
 
 // default start value for icdf double arrays (was hardcoded as 100)
 const double ICDF_START = 100.0;
@@ -137,7 +140,7 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 int main(int argc, char* argv[])
 {
 	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile, SchoolFile;
-	char InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	char buf[2048]{}, * sep;
 	int i, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
@@ -153,7 +156,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.PlaceCloseIndepThresh = P.MaxNumThreads = 0;
 	P.CaseOrDeathThresholdBeforeAlert = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
@@ -185,6 +188,7 @@ int main(int argc, char* argv[])
 	args.add_number_option("CLP6", P.clP6);
 	args.add_string_option("d", parse_read_file, RegDemogFile);
 	args.add_string_option("D", parse_read_file, DensityFile);
+	args.add_custom_option("I", parse_intervention_file_option);
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
 	// quickly: ggilani - 15/10/14
@@ -219,10 +223,6 @@ int main(int argc, char* argv[])
 
 		char* optval = &(argv[i][3]);
 		switch(opt[1]) {
-			case 'I':
-				ParseArg(ArgType::RFILE, &opt[2], InterventionFile[P.DoInterventionFile]);
-				P.DoInterventionFile++;
-				break;
 			case 'N':
 				switch(opt[2]) {
 					case 'R':
@@ -319,9 +319,8 @@ int main(int argc, char* argv[])
 	SetupModel(DensityFile, LoadNetworkFile, SaveNetworkFile, SchoolFile, RegDemogFile);
 
 	for (i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
-	if (P.DoInterventionFile > 0)
-		for (i = 0; i < P.DoInterventionFile; i++)
-			ReadInterventions(InterventionFile[i]);
+	for (auto const& int_file : InterventionFiles)
+		ReadInterventions(int_file);
 
 	fprintf(stderr, "Model setup in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 
@@ -447,6 +446,12 @@ void parse_bmp_option(std::string const& input) {
 		std::cerr << "Unrecognised bitmap format: " << input_copy << std::endl;
 		PrintHelpAndExit();
 	}
+}
+
+void parse_intervention_file_option(std::string const& input) {
+	std::string output;
+	parse_read_file(input, output);
+	InterventionFiles.emplace_back(output);
 }
 
 void ParseArg(ArgType type, char* input, void* output)
@@ -2043,7 +2048,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
 	}
 	fprintf(stderr, "Parameters read\n");
 }
-void ReadInterventions(char* IntFile)
+void ReadInterventions(std::string const& IntFile)
 {
 	FILE* dat;
 	double r, s, startt, stopt;
@@ -2052,7 +2057,7 @@ void ReadInterventions(char* IntFile)
 	Intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
-	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
+	if (!(dat = fopen(IntFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
 	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
         ERR_CRITICAL("fscanf failed in ReadInterventions\n");
     }
