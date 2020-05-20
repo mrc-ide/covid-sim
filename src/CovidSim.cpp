@@ -114,8 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile, OutDensFile, OutFile, OutFileBase;
-char SnapshotLoadFile[1024], SnapshotSaveFile[1024];
+std::string AdunitFile, OutDensFile, OutFile, OutFileBase, SnapshotLoadFile;
+char SnapshotSaveFile[1024];
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 	// added this so that kernel parameters are only changed if input from
 	// the command line: ggilani - 15/10/2014
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
-	P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
+	P.DoSaveSnapshot = 0;
 
 	/**
 	 * Read in command line arguments:
@@ -186,6 +186,7 @@ int main(int argc, char* argv[])
 	args.add_number_option("KO", P.KernelOffsetScale);
 	args.add_number_option("KP", P.KernelPowerScale);
 	args.add_string_option("L", parse_read_file, LoadNetworkFile);
+	args.add_string_option("LS", parse_read_file, SnapshotLoadFile);
 	args.add_string_option("M", parse_write_dir, OutDensFile);
 	args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
@@ -237,14 +238,6 @@ int main(int argc, char* argv[])
 			case 'I':
 				ParseArg(ArgType::RFILE, &opt[2], InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
-				break;
-			case 'L':
-				switch(opt[2]) {
-					case 'S':
-						ParseArg(ArgType::RFILE, &opt[3], SnapshotLoadFile);
-						P.DoLoadSnapshot = 1;
-						break;
-				}
 				break;
 			case 'N':
 				switch(opt[2]) {
@@ -386,7 +379,7 @@ int main(int argc, char* argv[])
 
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
-		if (P.DoLoadSnapshot) LoadSnapshot();
+		if (!SnapshotLoadFile.empty()) LoadSnapshot();
 		int ModelCalibLoop = 0;
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
@@ -2962,7 +2955,7 @@ int RunModel(int run) //added run number as parameter
 */
 	InterruptRun = 0;
 	lcI = 1;
-	if (P.DoLoadSnapshot)
+	if (!SnapshotLoadFile.empty())
 	{
 		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
 		t = ((double)P.ts_age) * P.TimeStep;
@@ -4263,7 +4256,7 @@ void LoadSnapshot(void)
 	int** Array_InvCDF;
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
-	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(SnapshotLoadFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
 	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
 	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
