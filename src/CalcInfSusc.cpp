@@ -7,8 +7,8 @@
 #include "ModelMacros.h"
 #include "Param.h"
 
-//// Infectiousness functions (House, Place, Spatial, Person). Idea is that in addition to a person's personal infectiousness, they have separate "infectiousnesses" for their house, place and on other cells (spatial). 
-//// These functions consider one person only. A person has an infectiousness that is independent of other people. Slightly different therefore than susceptibility functions. 
+//// Infectiousness functions (House, Place, Spatial, Person). Idea is that in addition to a person's personal infectiousness, they have separate "infectiousnesses" for their house, place and on other cells (spatial).
+//// These functions consider one person only. A person has an infectiousness that is independent of other people. Slightly different therefore than susceptibility functions.
 double CalcHouseInf(int j, unsigned short int ts)
 {
 	return	((HOST_ISOLATED(j) && (Hosts[j].digitalContactTraced != 1)) ? P.CaseIsolationHouseEffectiveness : 1.0)
@@ -42,7 +42,7 @@ double CalcPersonInf(int j, unsigned short int ts)
 }
 
 //// Susceptibility functions (House, Place, Spatial, Person). Similarly, idea is that in addition to a person's personal susceptibility, they have separate "susceptibilities" for their house, place and on other cells (spatial)
-//// These functions consider two people. A person has a susceptibility TO ANOTHER PERSON/infector. Slightly different therefore than infectiousness functions. 
+//// These functions consider two people. A person has a susceptibility TO ANOTHER PERSON/infector. Slightly different therefore than infectiousness functions.
 double CalcHouseSusc(int ai, unsigned short int ts, int infector, int tn)
 {
 	return CalcPersonSusc(ai, ts, infector, tn)

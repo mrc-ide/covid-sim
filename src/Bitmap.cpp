@@ -10,8 +10,8 @@
 #include "Param.h"
 #include "Model.h"
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-//// **** BITMAP stuff. 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+//// **** BITMAP stuff.
 
 #ifdef _WIN32
 //HAVI avi;
@@ -31,7 +31,7 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int i, x, y, f, mi;
+	int x, y, f, mi;
 	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
@@ -42,8 +42,8 @@ void CaptureBitmap()
 	{
 		fst = 0;
 		int32_t maxPop = 0;
-		for (i = 0; i < mi; i++) bmPopulation[i] = 0;
-		for (i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
+		for (int i = 0; i < P.PopSize; i++)
 		{
 			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
@@ -58,7 +58,7 @@ void CaptureBitmap()
 			}
 		}
 		logMaxPop = log(1.001 * (double)maxPop);
-		for (i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NMC; i++)
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
@@ -79,7 +79,7 @@ void CaptureBitmap()
 					}
 				}
 			}
-		for (i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.bwidth / 2; i++)
 		{
 			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
 			f = ((int)prev);
@@ -89,8 +89,9 @@ void CaptureBitmap()
 			}
 		}
 	}
-#pragma omp parallel for private(i) schedule(static,5000)
-	for (i = 0; i < mi; i++)
+#pragma omp parallel for schedule(static,5000) default(none) \
+		shared(mi, bmPixels, bmPopulation, bmInfected, bmTreated, bmRecovered, logMaxPop)
+	for (int i = 0; i < mi; i++)
 	{
 		if (bmPopulation[i] == -1)
 			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
@@ -165,7 +166,7 @@ void OutputBitmap(int tp)
 	  ColorRGB white(1.0, 1.0, 1.0);
 	  bmap.transparent(white);
 	  bmap.write(buf);
-#elif defined(_WIN32)	
+#elif defined(_WIN32)
 	  //Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library
 	  using namespace Gdiplus;
 
@@ -187,7 +188,7 @@ void OutputBitmap(int tp)
 		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
-		  palette->Entries[0] = 0x00ffffff; // Transparent white 
+		  palette->Entries[0] = 0x00ffffff; // Transparent white
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png
@@ -210,7 +211,7 @@ void OutputBitmap(int tp)
 	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
 	  }
 	  fprintf(dat, "BM");
-	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(bitmap_header) / sizeof(unsigned char) + bmh->imagesize, dat);
+	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
 	  fclose(dat);
 	}
 	else
@@ -224,15 +225,15 @@ void InitBMHead()
 
 	fprintf(stderr, "Initialising bitmap\n");
 	k = P.bwidth * P.bheight2;
-	k2 = sizeof(bitmap_header) / sizeof(unsigned char);
+	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
-	bmh = (bitmap_header*)bmf;
+	bmh = (BitmapHeader*)bmf;
 	bmh->spare = 0;
-	bmh->boffset = 2 + sizeof(bitmap_header);
+	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
 	bmh->width = P.bwidth;
 	bmh->height = P.bheight2;
@@ -241,7 +242,7 @@ void InitBMHead()
 	bmh->compr = 0; // No compression (BI_RGB)
 	bmh->imagesize = bmh->width * bmh->height;
 	bmh->filesize = 2 // "BM"
-	              + ((unsigned int) sizeof(bitmap_header)) // BITMAP_HEADER
+	              + ((unsigned int) sizeof(BitmapHeader)) // BITMAP_HEADER
 	              + bmh->imagesize; // Image data
 	bmh->hres = bmh->vres = (int)(bmh->width * 10); // Resolution, in pixels per metre
 	bmh->colours = BWCOLS * 4; // Number of colours in the palette

@@ -92,12 +92,12 @@
 ^^ needs to be 0 for global triggers or if abs incidence threshold used
 
 [Trigger incidence per cell for place closure over time]
-0 0 0 0 
+0 0 0 0
 *** ^^^ change these for global too ***
 
 //// Note: closure durations longer than interval between change times will be truncated
 [Duration of place closure over time]
-50 50 50 50  
+50 50 50 50
 
 
 ==================================	HOUSEHOLD QUARANTINE PARAMETERS

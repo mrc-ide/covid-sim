@@ -109,10 +109,10 @@ Abia	Adamawa	Akwa_Ibom	Anambra	Bauchi	Bayelsa	Benue	Borno	Cross_River	Delta	Ebon
 0.645	0.453	0	0.85
 
 [Minimum age for age group 1 in place types]
-5	11	18	16	
+5	11	18	16
 
 [Maximum age for age group 1 in place types]
-11	16	65	18	
+11	16	65	18
 
 [Proportion of age group 2 in place types]
 0	0.4	0.15	0.6
@@ -130,7 +130,7 @@ Abia	Adamawa	Akwa_Ibom	Anambra	Bauchi	Bayelsa	Benue	Borno	Cross_River	Delta	Ebon
 21	21	21	21
 
 [Maximum age for age group 3 in place types]
-65	65	65	65	
+65	65	65	65
 
 [Kernel shape params for place types]
 3 3 3 3
@@ -179,11 +179,11 @@ Abia	Adamawa	Akwa_Ibom	Anambra	Bauchi	Bayelsa	Benue	Borno	Cross_River	Delta	Ebon
 22
 
 [Holiday start times]
-94	152	199	297	347	407	456	514	561	659	709	458	516	563	661	711	771	820	878	925	1023	1073	
+94	152	199	297	347	407	456	514	561	659	709	458	516	563	661	711	771	820	878	925	1023	1073
 
 
 [Holiday durations]
-16	7	51	9	20	9	16	7	51	9	19	16	7	51	9	20	9	16	7	51	9	19	
+16	7	51	9	20	9	16	7	51	9	19	16	7	51	9	20	9	16	7	51	9	19
 
 ===================================
 
