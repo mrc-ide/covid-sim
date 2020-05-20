@@ -4,7 +4,7 @@
 #include "MachineDefines.h"
 
 #include <limits.h>
-#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>

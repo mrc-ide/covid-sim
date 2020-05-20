@@ -1,6 +1,6 @@
 #include <limits.h>
 #include <math.h>
-#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 
 #include "CalcInfSusc.h"
