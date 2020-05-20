@@ -119,7 +119,7 @@ int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
             std::cerr << "Argument \"" << argument << "\" does not start with '/'" << std::endl;
             PrintHelpAndExit();
         }
-        auto pos = argument.find_first_of(":");
+        auto pos = argument.find_first_of(':');
         if (pos == std::string::npos) {
             std::cerr << "Argument \"" << argument << "\" did not have a ':' character" << std::endl;
             PrintHelpAndExit();

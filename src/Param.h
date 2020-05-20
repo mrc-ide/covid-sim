@@ -38,7 +38,7 @@ struct Param
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot;
+	int DoBin;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
 	int NC; // Number of cells
 	int NMC; // Number of microcells

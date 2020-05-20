@@ -43,18 +43,9 @@
 #include <strings.h>
 #endif
 
-enum class ArgType {
-	DOUBLE,
-	INTEGER,
-	STRING,
-	RFILE, // file to be read
-	WFILE, // file to be written
-	DIR
-};
-
 void parse_bmp_option(std::string const&);
 void parse_intervention_file_option(std::string const&);
-void ParseArg(ArgType, char*, void*);
+void parse_save_snapshot_option(std::string const&);
 void ReadParams(std::string const&, std::string const&);
 void ReadInterventions(std::string const&);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
@@ -119,8 +110,7 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile, OutDensFile, OutFile, OutFileBase, SnapshotLoadFile;
-char SnapshotSaveFile[1024];
+std::string AdunitFile, OutDensFile, OutFile, OutFileBase, SnapshotLoadFile, SnapshotSaveFile;
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -140,13 +130,9 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 int main(int argc, char* argv[])
 {
 	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile, SchoolFile;
-	char buf[2048]{}, * sep;
-	int i, GotNR, cl;
+	int GotNR = 0;
 
-	///// Flags to ensure various parameters have been read; set to false as default.
-	GotNR = 0;
-
-	cl = clock();
+	int cl = clock();
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
@@ -162,7 +148,6 @@ int main(int argc, char* argv[])
 	// added this so that kernel parameters are only changed if input from
 	// the command line: ggilani - 15/10/2014
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
-	P.DoSaveSnapshot = 0;
 
 	/**
 	 * Read in command line arguments:
@@ -197,12 +182,14 @@ int main(int argc, char* argv[])
 	args.add_string_option("L", parse_read_file, LoadNetworkFile);
 	args.add_string_option("LS", parse_read_file, SnapshotLoadFile);
 	args.add_string_option("M", parse_write_dir, OutDensFile);
+	args.add_number_option("NR", GotNR);
 	args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
 	args.add_number_option("R", P.R0scale);
 	args.add_string_option("s", parse_read_file, SchoolFile);
 	args.add_string_option("S", parse_write_dir, SaveNetworkFile);
+	args.add_custom_option("SS", parse_save_snapshot_option);
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
 	args.parse(argc, argv, P);
 
@@ -210,49 +197,6 @@ int main(int argc, char* argv[])
 	std::cout << "Parsed ParamFile: " << ParamFile << std::endl;
 	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
 	std::cout << "Parsed MaxNumThreads: " << P.MaxNumThreads << std::endl;
-
-	// scroll through command line arguments, anticipating what they can be
-	// using various if statements.
-	for (i = 1; i < argc - 4; i++)
-	{
-		char* opt = argv[i];
-		if (opt[0] != '/') {
-			std::cerr << "Argument \"" << opt << "\" does not start with '/'" << std::endl;
-			break;
-		}
-
-		char* optval = &(argv[i][3]);
-		switch(opt[1]) {
-			case 'N':
-				switch(opt[2]) {
-					case 'R':
-						ParseArg(ArgType::INTEGER, &opt[3], &GotNR);
-						break;
-				}
-				break;
-			case 'S':
-				switch(opt[2]) {
-					case 'S':
-						ParseArg(ArgType::STRING, &opt[3], buf);
-						sep = strchr(buf, ',');
-						if (!sep) {
-							fprintf(stderr, "Argument value didn't use a ',': %s\n", buf);
-							PrintHelpAndExit();
-						}
-						else {
-							P.DoSaveSnapshot = 1;
-							*sep = ' ';
-							sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
-						}
-						sscanf(&opt[4], "%s", buf);
-						break;
-				}
-				break;
-			default:
-				fprintf(stderr, "Unsupported argument specified %s\n", opt);
-				break;
-		}
-	}
 
 	// Check if S and L options were both specified (can only be one)
 	// or if P or O were not specified
@@ -318,7 +262,7 @@ int main(int argc, char* argv[])
 	///// initialize model (for all realisations).
 	SetupModel(DensityFile, LoadNetworkFile, SaveNetworkFile, SchoolFile, RegDemogFile);
 
-	for (i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
+	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
@@ -332,7 +276,7 @@ int main(int argc, char* argv[])
 
 
 	P.NRactE = P.NRactNE = 0;
-	for (i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations) ; i++)
+	for (int i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
 	{
 		if (P.NumRealisations > 1)
 		{
@@ -454,48 +398,14 @@ void parse_intervention_file_option(std::string const& input) {
 	InterventionFiles.emplace_back(output);
 }
 
-void ParseArg(ArgType type, char* input, void* output)
-{
-	if (input[0] != ':') {
-		std::cerr << "Improperly formatted argument: " << input << std::endl;
+void parse_save_snapshot_option(std::string const& input) {
+	auto sep = input.find_first_of(',');
+	if (sep == std::string::npos) {
+		std::cerr << "Argument value didn't use a ',': " << input << std::endl;
 		PrintHelpAndExit();
 	}
-
-	switch(type) {
-		case ArgType::DOUBLE:
-			sscanf(&input[1], "%lf", (double*) output);
-			break;
-		case ArgType::INTEGER:
-			sscanf(&input[1], "%i", (int*) output);
-			break;
-		case ArgType::STRING:
-			sscanf(&input[1], "%s", (char*) output);
-			break;
-		case ArgType::RFILE: {
-			char* str_out = (char*) output;
-			sscanf(&input[1], "%s", str_out);
-			// check to see if the file exists and error out if it doesn't
-			if (static_cast<bool>(std::ifstream(str_out)) == false) {
-				std::cerr << str_out << " is not a file" << std::endl;
-				std::exit(1);
-			}
-			break;
-		}
-		case ArgType::WFILE:
-		case ArgType::DIR: {
-			char* str_out = (char*) output;
-			sscanf(&input[1], "%s", str_out);
-			// check to see if this prefix already exists as a file and error out
-			if (static_cast<bool>(std::ifstream(str_out)) == true) {
-				std::cerr << "Cannot use this prefix, this path already exists"
-							 " as a file: " << str_out << std::endl;
-				std::exit(1);
-			}
-			// TODO: add a platform-independent check to see if the prefix could
-			// be added as a directory or file
-			break;
-		}
-	}
+	parse_number(input.substr(0, sep), P.SnapshotSaveTime);
+	parse_read_file(input.substr(sep + 1), SnapshotSaveFile);
 }
 
 void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
@@ -3051,7 +2961,7 @@ int RunModel(int run) //added run number as parameter
 				}
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
-				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
+				if (!SnapshotSaveFile.empty() && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
 				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
 				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
 				cI = ((double)(State.S)) / ((double)P.PopSize);
@@ -4347,7 +4257,7 @@ void SaveSnapshot(void)
 	FILE* dat;
 	int i = 1;
 
-	if (!(dat = fopen(SnapshotSaveFile, "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(SnapshotSaveFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
