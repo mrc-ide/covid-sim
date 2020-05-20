@@ -1218,7 +1218,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 
 		// make age adjustments to population
 #pragma omp parallel for private(j,k,m,s) schedule(static,1) default(none) \
-			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells)
+			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells, RegDemogFile)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.PopSize; i += P.NumThreads)
 			{
