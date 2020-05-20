@@ -2828,7 +2828,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		{
 			k = (int)(P.LocationInitialInfection[i][0] / P.mcwidth);
 			l = (int)(P.LocationInitialInfection[i][1] / P.mcheight);
-			j = k * P.nmch + l;
+			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
 			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
 			{
@@ -5316,7 +5316,7 @@ void CalcOriginDestMatrix_adunit()
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
-			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
 			for (int k = 0; k < P.NMCL; k++)
@@ -5324,7 +5324,7 @@ void CalcOriginDestMatrix_adunit()
 				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.nmch;
+					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.get_number_of_micro_cells_high();
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5340,7 +5340,7 @@ void CalcOriginDestMatrix_adunit()
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
-				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				double total_flow;
@@ -5359,7 +5359,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.nmch;
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.get_number_of_micro_cells_high();
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
@@ -5381,51 +5381,6 @@ void CalcOriginDestMatrix_adunit()
 					}
 				}
 			}
-
-			////loop over microcells within cell to find the proportion of the cell population in each admin unit
-			//k=(cl_from/P.nch)*P.NMCL*P.nmch+(cl_from%P.nch)*P.NMCL;
-			//for(l=0;l<P.NMCL;l++)
-			//{
-			//	for(m=0;m<P.NMCL;m++)
-			//	{
-			//		mcl_from=k+m+l*P.nmch;
-			//		pop_cell_from[Mcells[mcl_from].adunit]+=Mcells[mcl_from].n;
-			//	}
-			//}
-			////loop over cells
-			//for(p=(i+1);p<P.NCP;p++)
-			//{
-			//	//reset population array
-			//	for(j=0;j<P.NumAdunits;j++)
-			//	{
-			//		pop_cell_to[j]=0.0;
-			//	}
-			//	cl_to=CellLookup[p]-Cells;
-			//	//loop over microcells within cell to find the proportion of the cell population in each admin unit
-			//	q=(cl_to/P.nch)*P.NMCL*P.nmch+(cl_to%P.nch)*P.NMCL;
-			//	for(l=0;l<P.NMCL;l++)
-			//	{
-			//		for(m=0;m<P.NMCL;m++)
-			//		{
-			//			mcl_to=q+m+l*P.nmch;
-			//			pop_cell_to[Mcells[mcl_to].adunit]+=Mcells[mcl_to].n;
-			//		}
-			//	}
-
-			//	//find distance and kernel function between cells
-			//	dist=dist2_cc_min(Cells+cl_from,Cells+cl_to);
-			//	dist_kernel=numKernel(dist);
-
-			//	//add flow between adunits based on how population is distributed
-			//	for(l=0;l<P.NumAdunits;l++)
-			//	{
-			//		for(m=(l+1);m<P.NumAdunits;m++)
-			//		{
-			//			AdUnits[l].origin_dest[m]+=pop_cell_from[l]*pop_cell_to[m]*dist_kernel;
-			//			AdUnits[m].origin_dest[l]+=pop_cell_from[l]*pop_cell_to[m]*dist_kernel;
-			//		}
-			//	}
-
 		}
 	}
 

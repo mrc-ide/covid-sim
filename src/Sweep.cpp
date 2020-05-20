@@ -1322,8 +1322,8 @@ int TreatSweep(double t)
 					}
 					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						int minx = (b / P.get_number_of_micro_cells_high());
+						int miny = (b % P.get_number_of_micro_cells_high());
 						int k = b;
 						int maxx = 0;
 						int i, j, m, l;
@@ -1334,7 +1334,7 @@ int TreatSweep(double t)
 							int ad2 = ad / P.TreatAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if ((minx >= 0) && (minx < P.get_number_of_micro_cells_wide()) && (miny >= 0) && (miny < P.get_number_of_micro_cells_high()))
 								{
 									if (P.TreatByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
@@ -1367,7 +1367,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = ((minx + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (miny + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
 							} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
 						}
 					}
@@ -1412,8 +1412,8 @@ int TreatSweep(double t)
 					}
 					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						int minx = (b / P.get_number_of_micro_cells_high());
+						int miny = (b % P.get_number_of_micro_cells_high());
 						int k = b;
 						int i, j, l, m;
 						i = j = m = f2 = 0;
@@ -1423,7 +1423,7 @@ int TreatSweep(double t)
 							int ad2 = ad / P.VaccAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if ((minx >= 0) && (minx < P.get_number_of_micro_cells_wide()) && (miny >= 0) && (miny < P.get_number_of_micro_cells_high()))
 								{
 									if (P.VaccByAdminUnit)
 									{
@@ -1460,7 +1460,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = ((minx + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (miny + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
 							} while (f3);
 						}
 					}
@@ -1580,8 +1580,8 @@ int TreatSweep(double t)
 
 					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						int minx = (b / P.get_number_of_micro_cells_high());
+						int miny = (b % P.get_number_of_micro_cells_high());
 						int k = b;
 						int i, j, l, m;
 						i = j = m = f2 = 0;
@@ -1591,7 +1591,7 @@ int TreatSweep(double t)
 							int ad2 = ad / P.MoveRestrAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if ((minx >= 0) && (minx < P.get_number_of_micro_cells_wide()) && (miny >= 0) && (miny < P.get_number_of_micro_cells_high()))
 								{
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
@@ -1623,7 +1623,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = ((minx + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (miny + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
 							} while (f3);
 						}
 					}
@@ -1714,15 +1714,15 @@ int TreatSweep(double t)
 					}
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						int minx = (b / P.get_number_of_micro_cells_high());
+						int miny = (b % P.get_number_of_micro_cells_high());
 						int k = b;
 						int i, j, l, m;
 						i = j = m = f2 = 0;
 						l = f3 = 1;
 						do
 						{
-							if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+							if ((minx >= 0) && (minx < P.get_number_of_micro_cells_wide()) && (miny >= 0) && (miny < P.get_number_of_micro_cells_high()))
 								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
@@ -1755,7 +1755,7 @@ int TreatSweep(double t)
 								if (i == 0) l++;
 								if (j == 1) { f3 = f2; f2 = 0; }
 							}
-							k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+							k = ((minx + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (miny + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
 						} while (f3);
 					}
 

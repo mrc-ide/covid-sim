@@ -62,16 +62,16 @@ void CaptureBitmap()
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
-				if ((i < P.NMC - 1) && (i / P.nmch == (i + 1) / P.nmch) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
+				if ((i < P.NMC - 1) && (i / P.get_number_of_micro_cells_high() == (i + 1) / P.get_number_of_micro_cells_high()) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
 					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + 1].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i > 0) && (i / P.nmch == (i - 1) / P.nmch) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
-				if ((i < P.NMC - P.nmch) && (Mcells[i + P.nmch].n > 0) && ((Mcells[i].country != Mcells[i + P.nmch].country)
-					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.nmch].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i >= P.nmch) && (Mcells[i - P.nmch].n > 0) && (Mcells[i].country != Mcells[i - P.nmch].country)) f = 1;
+				if ((i > 0) && (i / P.get_number_of_micro_cells_high() == (i - 1) / P.get_number_of_micro_cells_high()) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
+				if ((i < P.NMC - P.get_number_of_micro_cells_high()) && (Mcells[i + P.get_number_of_micro_cells_high()].n > 0) && ((Mcells[i].country != Mcells[i + P.get_number_of_micro_cells_high()].country)
+					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.get_number_of_micro_cells_high()].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
+				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.mcwidth * (((double)(i / P.nmch)) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.mcheight * (((double)(i % P.nmch)) + 0.5) * P.scaley) - P.bminy;
+					x = (int)(P.mcwidth * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
+					y = (int)(P.mcheight * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
 					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 					{
 						j = y * bmh->width + x;

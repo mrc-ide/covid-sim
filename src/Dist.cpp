@@ -156,12 +156,12 @@ double dist2_mm(Microcell* a, Microcell* b)
 	l = (int)(a - Mcells);
 	m = (int)(b - Mcells);
 	if (P.DoUTM_coords)
-		return dist2UTM(P.mcwidth * fabs((double)(l / P.nmch)), P.mcheight * fabs((double)(l % P.nmch)),
-			P.mcwidth * fabs((double)(m / P.nmch)), P.mcheight * fabs((double)(m % P.nmch)));
+		return dist2UTM(P.mcwidth * fabs((double)(l / P.get_number_of_micro_cells_high())), P.mcheight * fabs((double)(l % P.get_number_of_micro_cells_high())),
+			P.mcwidth * fabs((double)(m / P.get_number_of_micro_cells_high())), P.mcheight * fabs((double)(m % P.get_number_of_micro_cells_high())));
 	else
 	{
-		x = P.mcwidth * fabs((double)(l / P.nmch - m / P.nmch));
-		y = P.mcheight * fabs((double)(l % P.nmch - m % P.nmch));
+		x = P.mcwidth * fabs((double)(l / P.get_number_of_micro_cells_high() - m / P.get_number_of_micro_cells_high()));
+		y = P.mcheight * fabs((double)(l % P.get_number_of_micro_cells_high() - m % P.get_number_of_micro_cells_high()));
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.width * 0.5) x = P.width - x;
