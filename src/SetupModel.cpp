@@ -694,7 +694,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 {
-	int j, l, m, i2, j2, last_i, mr, ad, *mcl, country;
+	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
 	double t, s, x, y, xh, yh, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
 	char buf[4096], *col;
