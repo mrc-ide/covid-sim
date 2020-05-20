@@ -797,14 +797,20 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 	if (a->inf == InfStat_InfectiousAlmostSymptomatic) //// if person latent/asymptomatically infected, but infectious
 	{
 		a->inf = InfStat_Case; //// make person symptomatic and infectious (i.e. a case)
-		if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
+		if (HOST_ABSENT(ai))
 		{
+			if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
+				a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
+		}
+		else if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
+		{
+			a->absent_start_time = USHRT_MAX - 1;
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 				{
 					if ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j]))
 					{
-						if (!HOST_ABSENT(ai)) a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
+						a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
 						a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
 						if (P.AbsenteeismPlaceClosure)
 						{
@@ -813,7 +819,6 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 									if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 											DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
 						}
-
 						if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
 							StateT[tn].cumAC++;
 						/* This calculates adult absenteeism from work due to care of sick children. Note, children not at school not counted (really this should
