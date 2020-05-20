@@ -1016,21 +1016,20 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	t = 0.0;
 
 	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	State.CellMemberArray = mcl;
+	if (!(State.CellMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	P.NCP = 0;
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
 		Cells[i].n = 0;
 		int k = (i / P.nch) * P.NMCL * P.nmch + (i % P.nch) * P.NMCL;
-		Cells[i].members = mcl + j2;
+		Cells[i].members = State.CellMemberArray + j2;
 		for (l = 0; l < P.NMCL; l++)
 			for (m = 0; m < P.NMCL; m++)
 			{
 				j = k + m + l * P.nmch;
 				if (Mcells[j].n > 0)
 				{
-					Mcells[j].members = mcl + j2;
+					Mcells[j].members = State.CellMemberArray + j2;
 					//if(!(Mcells[j].members=(int *) calloc(Mcells[j].n,sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n"); //replaced line above with this to ensure members don't get mixed across microcells
 					McellLookup[i2++] = Mcells + j;
 					Cells[i].n += Mcells[j].n;
