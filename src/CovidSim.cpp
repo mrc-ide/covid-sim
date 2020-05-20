@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include "CovidSim.h"
 #include "BinIO.h"
@@ -52,7 +53,7 @@ void ParseArg(ArgType, char*, void*);
 void ReadParams(std::string const&, std::string const&);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
-void ReadAirTravel(char*);
+void ReadAirTravel(std::string const&);
 void InitModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 int RunModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
@@ -113,7 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-char OutFile[1024], OutFileBase[1024], OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024], AdunitFile[1024];
+std::string AdunitFile;
+char OutFile[1024], OutFileBase[1024], OutDensFile[1024], SnapshotLoadFile[1024], SnapshotSaveFile[1024];
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -130,8 +132,8 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string ParamFile, PreParamFile;
-	char DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	std::string AirTravelFile, ParamFile, PreParamFile;
+	char DensityFile[1024]{}, NetworkFile[1024]{}, RegDemogFile[1024]{}, SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
 	int i, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
@@ -165,9 +167,22 @@ int main(int argc, char* argv[])
 	 */
 
 	CmdLineArgs args;
+	args.add_string_option("A", parse_read_file, AdunitFile);
+	args.add_string_option("AP", parse_read_file, AirTravelFile);
+	args.add_number_option("c", P.MaxNumThreads);
+	args.add_number_option("C", P.PlaceCloseIndepThresh);
+	// generic command line specified params mapped to #<X> in param file
+	args.add_number_option("CLP1", P.clP1);
+	args.add_number_option("CLP2", P.clP2);
+	args.add_number_option("CLP3", P.clP3);
+	args.add_number_option("CLP4", P.clP4);
+	args.add_number_option("CLP5", P.clP5);
+	args.add_number_option("CLP6", P.clP6);
+	//args.add_string_option("d", parse_read_file, RegDemogFile);
+	//args.add_string_option("D", parse_read_file, DensityFile);
+	//args.add_string_option("O", parse_write_dir, OutFileBase);
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
-	args.add_number_option("c", P.MaxNumThreads);
 	args.add_number_option("R", P.R0scale);
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
 	args.parse(argc, argv, P);
@@ -189,17 +204,6 @@ int main(int argc, char* argv[])
 
 		char* optval = &(argv[i][3]);
 		switch(opt[1]) {
-			case 'A':
-				switch(opt[2]) {
-					case ':':
-						ParseArg(ArgType::RFILE, &opt[2], AdunitFile);
-						break;
-					case 'P':
-						ParseArg(ArgType::RFILE, &opt[3], AirTravelFile);
-						GotAP = 1;
-						break;
-				}
-				break;
 			case 'B': {
 				if (opt[2] == 'M') {
 					ParseArg(ArgType::STRING, &opt[3], buf);
@@ -217,43 +221,6 @@ int main(int argc, char* argv[])
 					else {
 						std::cerr << "Unrecognised bitmap format: " << buf << std::endl;
 						PrintHelpAndExit();
-					}
-				}
-				break;
-			}
-			case 'c':
-				ParseArg(ArgType::INTEGER, &opt[2], &P.MaxNumThreads);
-				break;
-			// generic command line specified params mapped to #<X> in param file
-			case 'C': {
-				switch(opt[2]) {
-					case ':':
-						ParseArg(ArgType::INTEGER, &opt[2], &P.PlaceCloseIndepThresh);
-						break;
-					case 'L': {
-						if (opt[3] == 'P') {
-							switch(opt[4]) {
-								case '1':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP1);
-									break;
-								case '2':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP2);
-									break;
-								case '3':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP3);
-									break;
-								case '4':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP4);
-									break;
-								case '5':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP5);
-									break;
-								case '6':
-									ParseArg(ArgType::DOUBLE, &opt[5], &P.clP6);
-									break;
-							}
-						}
-						break;
 					}
 				}
 				break;
@@ -312,9 +279,6 @@ int main(int argc, char* argv[])
 			case 'O':
 				ParseArg(ArgType::DIR, &opt[2], OutFileBase);
 				GotO = 1;
-				break;
-			case 'R':
-				ParseArg(ArgType::DOUBLE, &opt[2], &P.R0scale);
 				break;
 			case 's':
 				ParseArg(ArgType::RFILE, &opt[2], SchoolFile);
@@ -578,7 +542,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
 	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
 	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
-	if (!(AdminFile_dat = fopen(AdunitFile, "rb"))) AdminFile_dat = ParamFile_dat;
+	if (!(AdminFile_dat = fopen(AdunitFile.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
 		P.LongitudeCutLine = -360.0;
 	}
@@ -2358,7 +2322,7 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	if (ResetFilePos) fseek(dat, CurPos, 0);
 	return ret;
 }
-void ReadAirTravel(char* AirTravelFile)
+void ReadAirTravel(std::string const& AirTravelFile)
 {
 	int i, j, k, l;
 	float sc, t, t2;
@@ -2368,7 +2332,7 @@ void ReadAirTravel(char* AirTravelFile)
 	FILE* dat;
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
-	if (!(dat = fopen(AirTravelFile, "rb"))) ERR_CRITICAL("Unable to open airport file\n");
+	if (!(dat = fopen(AirTravelFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open airport file\n");
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
         ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
     }
