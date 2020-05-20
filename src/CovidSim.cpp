@@ -132,8 +132,8 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string AirTravelFile, ParamFile, PreParamFile;
-	char DensityFile[1024]{}, NetworkFile[1024]{}, RegDemogFile[1024]{}, SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	std::string AirTravelFile, ParamFile, PreParamFile, RegDemogFile;
+	char DensityFile[1024]{}, NetworkFile[1024]{}, SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
 	int i, GotO, GotL, GotS, GotAP, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.MaxNumThreads = P.DoInterventionFile = 0;
 	P.CaseOrDeathThresholdBeforeAlert = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 	args.add_number_option("CLP4", P.clP4);
 	args.add_number_option("CLP5", P.clP5);
 	args.add_number_option("CLP6", P.clP6);
-	//args.add_string_option("d", parse_read_file, RegDemogFile);
+	args.add_string_option("d", parse_read_file, RegDemogFile);
 	//args.add_string_option("D", parse_read_file, DensityFile);
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
@@ -231,10 +231,6 @@ int main(int argc, char* argv[])
 				}
 				break;
 			}
-			case 'd':
-				ParseArg(ArgType::RFILE, &opt[2], RegDemogFile);
-				P.DoAdunitDemog = 1;
-				break;
 			case 'D':
 				ParseArg(ArgType::RFILE, &opt[2], DensityFile);
 				P.DoHeteroDensity = 1;

@@ -3,10 +3,10 @@
 
 #include <string>
 
-void SetupModel(char*, char*, char*, char*);
-void SetupPopulation(char*, char*);
+void SetupModel(char*, char*, char*, std::string const&);
+void SetupPopulation(char*, std::string const&);
 void SetupAirports(void);
-void AssignHouseholdAges(int, int, int);
+void AssignHouseholdAges(int, int, int, std::string const&);
 void AssignPeopleToPlaces(void);
 void StratifyPlaces(void);
 void LoadPeopleToPlaces(char*);

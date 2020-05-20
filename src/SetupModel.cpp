@@ -24,7 +24,7 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* RegDemogFile)
+void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, std::string const& RegDemogFile)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -702,7 +702,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
-void SetupPopulation(char* SchoolFile, char* RegDemogFile)
+void SetupPopulation(char* SchoolFile, std::string const& RegDemogFile)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
@@ -876,12 +876,12 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		maxd = ((double)P.NMC);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
-	if ((P.DoAdUnits) && (P.DoAdunitDemog))
+	if ((P.DoAdUnits) && !RegDemogFile.empty())
 	{
 		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
 			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
-		if (!(dat = fopen(RegDemogFile, "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		if (!(dat = fopen(RegDemogFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
@@ -978,7 +978,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	}
 	if (P.DoAdUnits)
 		for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].n = 0;
-	if ((P.DoAdUnits) && (P.DoAdunitDemog) && (P.DoCorrectAdunitPop))
+	if ((P.DoAdUnits) && !RegDemogFile.empty() && (P.DoCorrectAdunitPop))
 	{
 		for (int i = 0; i < P.NumAdunits; i++)
 			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
@@ -1092,7 +1092,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
 		l = ((j / P.get_number_of_micro_cells_high()) / P.NMCL) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.NMCL);
-		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
+		ad = (!RegDemogFile.empty() && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
 			m = 1;
@@ -1139,7 +1139,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				m = Hosts[i].listpos;
 				xh = P.in_microcells_.width * (ranf_mt(tn) + x);
 				yh = P.in_microcells_.height * (ranf_mt(tn) + y);
-				AssignHouseholdAges(m, i, tn);
+				AssignHouseholdAges(m, i, tn, RegDemogFile);
 				for (i2 = 0; i2 < m; i2++) Hosts[i + i2].listpos = 0;
 				if (P.DoHouseholds)
 				{
@@ -1175,11 +1175,11 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				AgeDistAd[i][j] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			int k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
+			int k = !RegDemogFile.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
 		}
 		// normalize AgeDistAd[i][j], so it's the proportion of people in adunit i that are in age group j
-		int k = (P.DoAdunitDemog) ? P.NumAdunits : 1;
+		int k = !RegDemogFile.empty() ? P.NumAdunits : 1;
 		for (int i = 0; i < k; i++)
 		{
 			s = 0.0;
@@ -1222,7 +1222,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.PopSize; i += P.NumThreads)
 			{
-				m = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
+				m = !RegDemogFile.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
 				j = HOST_AGE_GROUP(i);
 				s = ranf_mt(tn);
 				// probabilistic age adjustment by one age category (5 years)
@@ -1688,7 +1688,7 @@ void SetupAirports(void)
 const double PROP_OTHER_PARENT_AWAY = 0.0;
 
 
-void AssignHouseholdAges(int n, int pers, int tn)
+void AssignHouseholdAges(int n, int pers, int tn, std::string const& RegDemogFile)
 {
 	/* Complex household age distribution model
 		- picks number of children (nc)
@@ -1700,7 +1700,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	int i, j, k, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
 
-	ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
+	ad = (!RegDemogFile.empty() && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
 	if (!P.DoHouseholds)
 	{
 		for (i = 0; i < n; i++)
