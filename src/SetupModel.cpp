@@ -1847,9 +1847,9 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	for (i = 0; i < n; i++) Hosts[pers + i].age = (unsigned char) a[i];
 }
 
-void AssignPeopleToPlaces(void)
+void AssignPeopleToPlaces()
 {
-	int i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
+	int i2, j, j2, k, k2, l, m, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
@@ -2110,18 +2110,19 @@ void AssignPeopleToPlaces(void)
 					{
 						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
-						l = 1; k = m = m2 = f2 = 0;
+						l = 1; k = m = f2 = 0;
 						int i = PeopleArray[j];
 						ic = Hosts[i].mcell;
 
 						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
+						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
 							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
 								if (P.is_in_bounds(mc_position))
 								{
-									ic = mc_position.x * P.get_number_of_micro_cells_high() + mc_position.y;
+									ic = P.get_micro_cell_index_from_position(mc_position);
 									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
@@ -2143,7 +2144,9 @@ void AssignPeopleToPlaces(void)
 												else if (t > 0)
 													s *= t;
 											}
-											k2 = 0; j2 = 0; t = 1e10;
+											k2 = 0;
+											j2 = 0;
+											t = 1e10;
 											if (s > 0)
 											{
 												if (k < nn)
@@ -2171,18 +2174,11 @@ void AssignPeopleToPlaces(void)
 										}
 									}
 								}
-								if (m2 == 0)
-									mc_position.x += 1;
-								else if (m2 == 1)
-									mc_position.y -= 1;
-								else if (m2 == 2)
-									mc_position.x -= 1;
-								else if (m2 == 3)
-									mc_position.y += 1;
+								mc_position += m2;
 								f2 = (f2 + 1) % l;
 								if (f2 == 0)
 								{
-									m2 = (m2 + 1) % 4;
+									m2 = rotate_left(m2);
 									m = (m + 1) % 2;
 									if (m == 0) l++;
 								}
@@ -2216,13 +2212,12 @@ void AssignPeopleToPlaces(void)
 								}
 							}
 						}
-
 					}
 				}
 				else
 				{
 					k2 = cnt - ca;
-					m2 = cnt;
+					int m2 = cnt;
 					a = k2 / 1000;
 					f = k2;
 					for (ic = 0; ic <= 30; ic++)
@@ -2237,7 +2232,8 @@ void AssignPeopleToPlaces(void)
 							f = (27 - ic) * a;
 						else
 						{
-							m2 = k2 - 1; f = 0;
+							m2 = k2 - 1;
+							f = 0;
 						}
 
 						for (i2 = m2; i2 >= f; i2--)
