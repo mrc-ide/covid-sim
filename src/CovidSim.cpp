@@ -2,6 +2,8 @@
 (c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
 */
 
+#include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <cerrno>
 #include <cstddef>
@@ -49,6 +51,7 @@ enum class ArgType {
 	DIR
 };
 
+void parse_bmp_option(std::string const&);
 void ParseArg(ArgType, char*, void*);
 void ReadParams(std::string const&, std::string const&);
 void ReadInterventions(char*);
@@ -121,6 +124,7 @@ int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 
+
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
 
@@ -169,6 +173,7 @@ int main(int argc, char* argv[])
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, AdunitFile);
 	args.add_string_option("AP", parse_read_file, AirTravelFile);
+	args.add_custom_option("BM", parse_bmp_option);
 	args.add_number_option("c", P.MaxNumThreads);
 	args.add_number_option("C", P.PlaceCloseIndepThresh);
 	// generic command line specified params mapped to #<X> in param file
@@ -214,27 +219,6 @@ int main(int argc, char* argv[])
 
 		char* optval = &(argv[i][3]);
 		switch(opt[1]) {
-			case 'B': {
-				if (opt[2] == 'M') {
-					ParseArg(ArgType::STRING, &opt[3], buf);
-					if (strcasecmp(buf, "png") == 0) {
-				#if defined(IMAGE_MAGICK) || defined(_WIN32)
-						P.BitmapFormat = BitmapFormats::PNG;
-				#else
-						std::cerr << "PNG Bitmaps not supported - please build with Image Magic or WIN32 support" << std::endl;
-						PrintHelpAndExit();
-				#endif
-					}
-					else if (strcasecmp(buf, "bmp") == 0) {
-						P.BitmapFormat = BitmapFormats::BMP;
-					}
-					else {
-						std::cerr << "Unrecognised bitmap format: " << buf << std::endl;
-						PrintHelpAndExit();
-					}
-				}
-				break;
-			}
 			case 'I':
 				ParseArg(ArgType::RFILE, &opt[2], InterventionFile[P.DoInterventionFile]);
 				P.DoInterventionFile++;
@@ -441,6 +425,28 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 	fprintf(stderr, "Model finished\n");
+}
+
+void parse_bmp_option(std::string const& input) {
+	// make copy and convert input to lowercase
+	std::string input_copy = input;
+	std::transform(input_copy.begin(), input_copy.end(), input_copy.begin(), [](unsigned char c){ return std::tolower(c); });
+
+	if (input_copy.compare("png") == 0) {
+#if defined(IMAGE_MAGICK) || defined(_WIN32)
+		P.BitmapFormat = BitmapFormats::PNG;
+#else
+		std::cerr << "PNG Bitmaps not supported - please build with Image Magic or WIN32 support" << std::endl;
+		PrintHelpAndExit();
+#endif
+	}
+	else if (input_copy.compare("bmp") == 0) {
+		P.BitmapFormat = BitmapFormats::BMP;
+	}
+	else {
+		std::cerr << "Unrecognised bitmap format: " << input_copy << std::endl;
+		PrintHelpAndExit();
+	}
 }
 
 void ParseArg(ArgType type, char* input, void* output)
