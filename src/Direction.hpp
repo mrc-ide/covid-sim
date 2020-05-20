@@ -6,3 +6,5 @@ enum Direction {
 	Left  = 2,
 	Down    = 3
 };
+
+Direction rotate_left(Direction direction);

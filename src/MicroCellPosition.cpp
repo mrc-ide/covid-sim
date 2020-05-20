@@ -15,3 +15,7 @@ MicroCellPosition MicroCellPosition::operator+(Direction direction) const {
 	}
 	throw std::out_of_range("direction");
 }
+
+MicroCellPosition &MicroCellPosition::operator+=(Direction direction) {
+	return *this = *this + direction;
+}

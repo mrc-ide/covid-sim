@@ -1579,9 +1579,10 @@ int TreatSweep(double t)
 					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Direction::Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.MoveRestrByAdminUnit) || (ad > 0))
 						{
@@ -1604,18 +1605,11 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									min.x += 1;
-								else if (j == 1)
-									min.y -= 1;
-								else if (j == 2)
-									min.x -= 1;
-								else if (j == 3)
-									min.y += 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
