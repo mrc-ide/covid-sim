@@ -705,11 +705,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	int *mcell_adunits, *mcell_num, *mcell_country;
 
 	if (!(Cells = (Cell*)calloc(P.NC, sizeof(Cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcell_num = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcell_dens = (double*)malloc(P.NMC * sizeof(double)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_num = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_dens = (double*)malloc(P.NMC * sizeof(double)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 
 	for (j = 0; j < P.NMC; j++)
 	{
@@ -785,7 +785,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					if (P.DoAdUnits)
 					{
 						mcell_adunits[l] = P.AdunitLevel1Lookup[m];
-						if (mcell_adunits[l] < 0) fprintf(stderr, "Cell %i has adunits<0\n", l);
+						if (mcell_adunits[l] < 0) fprintf(stderr, "Microcell %i has adunits<0\n", l);
 						P.PopByAdunit[P.AdunitLevel1Lookup[m]][0] += t;
 					}
 					else
@@ -799,7 +799,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 		}
 		//		fclose(dat2);
-		fprintf(stderr, "%i valid mcells read from density file.\n", mr);
+		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
 		if ((P.OutputDensFile) && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
@@ -812,7 +812,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
 				if (!(BinFileBuf = (void*)malloc(P.BinFileLen * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
 				BF = (BinFile*)BinFileBuf;
-				fprintf(stderr, "Binary density file should contain %i cells.\n", (int)P.BinFileLen);
+				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
 				rn = 0;
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
@@ -1015,7 +1015,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	free(mcell_adunits);
 	t = 0.0;
 
-	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 	if (!(State.CellMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	P.NCP = 0;
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
