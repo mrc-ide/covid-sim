@@ -21,9 +21,10 @@
 #include "Magick++.h"
 #endif
 
-#define BWCOLS 58
+const int BWCOLS = 58;
 
-typedef struct BITMAP_HEADER {
+struct BitmapHeader
+{
 	unsigned int filesize;
 	unsigned int spare;
 	unsigned int boffset;
@@ -35,10 +36,10 @@ typedef struct BITMAP_HEADER {
 	unsigned int hres, vres;
 	unsigned int colours, impcol;
 	unsigned char palette[BWCOLS * 4][4];
-} bitmap_header;
+};
 
 extern int32_t *bmPopulation, *bmInfected, *bmRecovered, *bmTreated;
-extern bitmap_header* bmh;
+extern BitmapHeader* bmh;
 
 void CaptureBitmap();
 void OutputBitmap(int);

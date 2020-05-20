@@ -14,12 +14,12 @@
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
 unsigned short int ChooseFromICDF(double *, double, int);
-int ChooseFinalDiseaseSeverity(int, int);
+Severity ChooseFinalDiseaseSeverity(int, int);
 
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
-	person* a;
+	Person* a;
 	int c;
 	int x, y;
 
@@ -74,7 +74,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	int i;
 	unsigned short int ts; //// time step
 	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
-	person* a;
+	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
 
@@ -221,7 +221,7 @@ void DoMild(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_Mild;
@@ -241,7 +241,7 @@ void DoILI(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_ILI;
@@ -261,7 +261,7 @@ void DoSARI(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_ILI)
 		{
 			a->Severity_Current = Severity_SARI;
@@ -284,7 +284,7 @@ void DoCritical(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_SARI)
 		{
 			a->Severity_Current = Severity_Critical;
@@ -310,7 +310,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
 			a->Severity_Current = Severity_RecoveringFromCritical;
@@ -331,7 +331,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 }
 void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 {
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
 		if (a->Severity_Current == Severity_Critical)
@@ -385,7 +385,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 
 	//// moved this from DoRecover
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
@@ -427,7 +427,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 
 void DoIncub(int ai, unsigned short int ts, int tn, int run)
 {
-	person* a;
+	Person* a;
 	double q;
 	int age;
 
@@ -538,7 +538,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//// and therefore changes lots of quantities (e.g. quar_comply and isolation_start_time) associated with model macros e.g. HOST_ABSENT / HOST_ISOLATED
 
 	int j, k, f, j1, j2, ad; // m, h, ad;
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	//// Increment triggers (Based on numbers of detected cases) for interventions. Used in TreatSweep function when not doing Global or Admin triggers. And not when doing ICU triggers.
 	if (Mcells[a->mcell].treat_trig				< USHRT_MAX - 1) Mcells[a->mcell].treat_trig++;
@@ -547,7 +547,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (Mcells[a->mcell].socdist_trig			< USHRT_MAX - 1) Mcells[a->mcell].socdist_trig++;
 	if (Mcells[a->mcell].keyworkerproph_trig	< USHRT_MAX - 1) Mcells[a->mcell].keyworkerproph_trig++;
 
-	if (!P.AbsenteeismPlaceClosure) 
+	if (!P.AbsenteeismPlaceClosure)
 	{
 		if (P.PlaceCloseRoundHousehold)
 		{
@@ -792,7 +792,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
 {
 	int j, k, f, j1, j2;
-	person* a;
+	Person* a;
 	int age;
 
 	age = HOST_AGE_GROUP(ai);
@@ -891,7 +891,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 void DoRecover(int ai, int tn, int run)
 {
 	int i, j, x, y;
-	person* a;
+	Person* a;
 
 	a = Hosts + ai;
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
@@ -907,7 +907,7 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = InfStat_Recovered * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
 
 		if (P.OutputBitmap)
 		{
@@ -936,11 +936,11 @@ void DoRecover(int ai, int tn, int run)
 void DoDeath(int ai, int tn, int run)
 {
 	int i, x, y;
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
-		a->inf = InfStat_Dead * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
 		Cells[a->pcell].D++;
 		Cells[a->pcell].I--;
 		i = a->listpos;
@@ -1328,9 +1328,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 }
 
 ///// Change person status functions (e.g. change person from susceptible to latently infected).
-int ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
+Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 {
-	int DiseaseSeverity;
+	Severity DiseaseSeverity;
 	double x;
 
 	// assume normalised props

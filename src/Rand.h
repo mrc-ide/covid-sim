@@ -2,12 +2,12 @@
 #define COVIDSIM_RAND_H_INCLUDED_
 
 /* ranf defines */
-#define Xm1 2147483563
-#define Xm2 2147483399
-#define Xa1 40014
-#define Xa2 40692
-#define Xa1vw 2082007225
-#define Xa2vw 784306273
+const long Xm1 = 2147483563;
+const long Xm2 = 2147483399;
+const long Xa1 = 40014;
+const long Xa2 = 40692;
+const long Xa1vw = 2082007225;
+const long Xa2vw = 784306273;
 
 /* RANDLIB global variables */
 extern int **SamplingQueue;

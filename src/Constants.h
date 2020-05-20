@@ -66,37 +66,35 @@ constexpr double EARTHRADIUS = EARTH_DIAMETER / 2;
 const int MAX_NUM_THREADS = 96;
 const int CACHE_LINE_SIZE = 64;
 
-#define OUTPUT_DIST_SCALE 1000
-#define MAX_PLACE_SIZE 20000
-#define MAX_NUM_SEED_LOCATIONS 10000
+const int OUTPUT_DIST_SCALE = 1000;
+const int MAX_PLACE_SIZE = 20000;
+const int MAX_NUM_SEED_LOCATIONS = 10000;
 
-#define CDF_RES 20
-#define INFPROF_RES 56
-/* Max household size of 16 */
+const int CDF_RES = 20;
+const int INFPROF_RES = 56;
 
-#define NUM_AGE_GROUPS 17
-#define AGE_GROUP_WIDTH 5
-#define DAYS_PER_YEAR 364
-#define INFECT_TYPE_MASK 16
-#define MAX_GEN_REC 20
-#define MAX_SEC_REC 500
-#define INF_QUEUE_SCALE 5
-#define MAX_TRAVEL_TIME 14
+const int NUM_AGE_GROUPS = 17;
+const int AGE_GROUP_WIDTH = 5;
+const int DAYS_PER_YEAR = 364;
+const int INFECT_TYPE_MASK = 16;
+const int MAX_GEN_REC = 20;
+const int MAX_SEC_REC = 500;
+const int INF_QUEUE_SCALE = 5;
+const int MAX_TRAVEL_TIME = 14;
 
-//#define MAX_INFECTIOUS_STEPS 255 //// orig
-#define MAX_INFECTIOUS_STEPS 2550
+const int MAX_INFECTIOUS_STEPS = 2550;
 
 // define maximum number of contacts
-#define MAX_CONTACTS 500
+const int MAX_CONTACTS = 500;
 
-#define MAX_DUR_IMPORT_PROFILE 10245
+const int MAX_DUR_IMPORT_PROFILE = 10245;
 
-#define MAX_AIRPORTS 5000
-#define NNA 10
-#define MAX_DIST_AIRPORT_TO_HOTEL 200000.0
-#define MIN_HOTELS_PER_AIRPORT 20
-#define HOTELS_PER_1000PASSENGER 10
+const int MAX_AIRPORTS = 5000;
+const int NNA = 10;
+const double MAX_DIST_AIRPORT_TO_HOTEL = 200000.0;
+const int MIN_HOTELS_PER_AIRPORT = 20;
+const int HOTELS_PER_1000PASSENGER = 10;
 
-#define MAX_NUM_INTERVENTION_CHANGE_TIMES	100	//// may want to make this intervention-specifc, but keep simple for now.
+const int MAX_NUM_INTERVENTION_CHANGE_TIMES = 100; // may want to make this intervention-specifc, but keep simple for now.
 
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_

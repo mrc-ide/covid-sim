@@ -15,9 +15,8 @@ enum BitmapFormats
  * @brief Stores the parameters for the simulation.
  *
  */
-typedef struct PARAM {
-
-
+struct Param
+{
 	int PopSize; /**< Population size */
 	int NH; // Number of households
 	int NumRealisations; /**< Number of Realisations */
@@ -252,7 +251,7 @@ typedef struct PARAM {
 	double PropPopUsingDigitalContactTracing, ScalingFactorSpatialDigitalContacts, ScalingFactorPlaceDigitalContacts, DigitalContactTracingDelay, LengthDigitalContactIsolation, ProportionDigitalContactsIsolate, ProportionSmartphoneUsersByAge[NUM_AGE_GROUPS];
 	double DelayFromIndexCaseDetectionToDCTIsolation, DelayToTestIndexCase, DelayToTestDCTContacts, SpecificityDCT, SensitivityDCT;
 	double DigitalContactTracingPolicyDuration, DCTCaseIsolationHouseEffectiveness, DCTCaseIsolationEffectiveness;
-	int OutputDigitalContactTracing, OutputDigitalContactDist, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase, MaxDigitalContactsToTrace;
+	int OutputDigitalContactTracing, OutputDigitalContactDist, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase, MaxDigitalContactsToTrace;
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	int DoInterventionDelaysByAdUnit;
@@ -284,8 +283,8 @@ typedef struct PARAM {
 	int OldPersAge;
 	double ThreeChildFivePersProb;
 	int OlderGenGap;
-} param;
+};
 
-extern param P;
+extern Param P;
 
 #endif // COVIDSIM_PARAM_H_INCLUDED_

@@ -44,7 +44,7 @@ else()
   find_package(Python3 REQUIRED)
 endif()
 
-# specify the C++ standard
+# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 
 add_subdirectory(src)
@@ -56,3 +56,39 @@ else()
 enable_testing()
 add_subdirectory(tests)
 endif()
+
+# First we can indicate the documentation build as an option and set it to OFF by default
+option(BUILD_DOC "Build documentation" OFF)
+
+# Check if Doxygen is installed
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  # Set input and output files
+  set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+  set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+  # Set whether or not to make diagrams
+  set(HaveDot NO)
+  set(DotPath)
+  if(DOXYGEN_DOT_FOUND)
+    set(HaveDot YES)
+    get_filename_component(DotPath ${DOXYGEN_DOT_EXECUTABLE} DIRECTORY)
+    file(TO_NATIVE_PATH ${DotPath} DotPath)
+  endif(DOXYGEN_DOT_FOUND)
+
+  # Request to configure the file
+  configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+  message("Doxygen build started")
+
+  # Don't build by default
+  add_custom_target(doxygen
+    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating documentation with Doxygen"
+    VERBATIM)
+  if(BUILD_DOC)
+    add_custom_target(docs ALL DEPENDS doxygen)
+  endif(BUILD_DOC)
+elseif(DOXYGEN_FOUND)
+  message("Doxygen needs to be installed to generate the doxygen documentation")
+endif(DOXYGEN_FOUND)
