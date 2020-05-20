@@ -3,68 +3,70 @@
 #include "Kernels.h"
 #include "Error.h"
 #include "Dist.h"
-#include "Param.h"
 
-#include "Model.h"
+using namespace CovidSim::TBD1;
 
-// To speed up calculation of kernel values we provide a couple of lookup
-// tables.
-//
-// nKernel is a P.NKR+1 element table of lookups nKernel[0] is the kernel
-// value at a distance of 0, and nKernel[P.NKR] is the kernel value at the
-// largest possible distance (diagonal across the bounding box).
-//
-// nKernelHR is a higher-resolution table of lookups, also of P.NKR+1
-// elements.  nKernelHR[n * P.NK_HR] corresponds to nKernel[n] for
-// n in [0, P.NKR/P.NK_HR]
-//
-// Graphically:
-//
-// Distance 0            ...                              Bound Box diagonal
-//          nKernel[0]   ... nKernel[P.NKR / P.NK_HR] ... nKernel[P.NKR]
-//          nKernelHR[0] ... nKernelHR[P.NKR]
-double *nKernel, *nKernelHR;
-
-void InitKernel(double norm)
+bool KernelLookup::setup(double longest_distance)
 {
-	double(*Kernel)(double);
-
-	if (P.KernelType == 1)
-		Kernel = ExpKernel;
-	else if (P.KernelType == 2)
-		Kernel = PowerKernel;
-	else if (P.KernelType == 3)
-		Kernel = GaussianKernel;
-	else if (P.KernelType == 4)
-		Kernel = StepKernel;
-	else if (P.KernelType == 5)
-		Kernel = PowerKernelB;
-	else if (P.KernelType == 6)
-		Kernel = PowerKernelUS;
-	else if (P.KernelType == 7)
-		Kernel = PowerExpKernel;
-	else
-		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
-
-#pragma omp parallel for schedule(static,500) default(none) \
-		shared(P, Kernel, nKernel, nKernelHR, norm)
-	for (int i = 0; i <= P.NKR; i++)
+	try
 	{
-		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
-		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
+		size_t size = (size_t)size_ + 1;
+		lookup_.resize(size);
+		hi_res_.resize(size);
+		delta_ = longest_distance / size_;
+	}
+	catch (...)
+	{
+		return false;
 	}
 
+	return true;
+}
+
+void KernelLookup::init(double norm, KernelStruct& kernel)
+{
+	double (KernelStruct::*fp)(double);
+
+	if (kernel.type_ == 1)
+		fp = &KernelStruct::exponential;
+	else if (kernel.type_ == 2)
+		fp = &KernelStruct::power;
+	else if (kernel.type_ == 3)
+		fp = &KernelStruct::gaussian;
+	else if (kernel.type_ == 4)
+		fp = &KernelStruct::step;
+	else if (kernel.type_ == 5)
+		fp = &KernelStruct::power_b;
+	else if (kernel.type_ == 6)
+		fp = &KernelStruct::power_us;
+	else if (kernel.type_ == 7)
+		fp = &KernelStruct::power_exp;
+	else
+		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", kernel.type_);
+
 #pragma omp parallel for schedule(static,500) default(none) \
-		shared(P, CellLookup)
-	for (int i = 0; i < P.NCP; i++)
+		shared(kernel, fp, norm)
+	for (int i = 0; i <= size_; i++)
 	{
-		Cell *l = CellLookup[i];
-		l->tot_prob = 0;
-		for (int j = 0; j < P.NCP; j++)
+		lookup_[i] = (kernel.*fp)(i * delta_) / norm;
+		hi_res_[i] = (kernel.*fp)(i * delta_ / expansion_factor_) / norm;
+	}
+}
+
+/// \todo Move this to somewhere more appropriate
+void KernelLookup::init(const KernelLookup& lookup, Cell **cell_lookup, int cell_lookup_size)
+{
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(lookup, cell_lookup, cell_lookup_size)
+	for (int i = 0; i < cell_lookup_size; i++)
+	{
+		Cell *l = cell_lookup[i];
+		l->tot_prob = 0.0f;
+		for (int j = 0; j < cell_lookup_size; j++)
 		{
-			Cell *m = CellLookup[j];
-			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));
-			l->tot_prob += l->max_trans[j] * (float)m->n;
+			Cell *m = cell_lookup[j];
+			l->max_trans[j] = (float)lookup.num(dist2_cc_min(l, m));
+			l->tot_prob += l->max_trans[j] * m->n;
 		}
 	}
 }
@@ -72,65 +74,65 @@ void InitKernel(double norm)
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** KERNEL DEFINITIONS
 
-double ExpKernel(double r2)
+double KernelStruct::exponential(double r2)
 {
-	return exp(-sqrt(r2) / P.KernelScale);
+	return exp(-sqrt(r2) / scale_);
 }
 
-double PowerKernel(double r2)
+double KernelStruct::power(double r2)
 {
-	double t = -P.KernelShape * log(sqrt(r2) / P.KernelScale + 1);
-	return (t < -690) ? 0.0 : exp(t);
+	double t = -shape_ * log(sqrt(r2) / scale_ + 1.0);
+	return (t < -690.0) ? 0.0 : exp(t);
 }
 
-double PowerKernelB(double r2)
+double KernelStruct::power_b(double r2)
 {
-	double t = 0.5 * P.KernelShape * log(r2 / (P.KernelScale * P.KernelScale));
-	return (t > 690) ? 0.0 : (1 / (exp(t) + 1));
+	double t = 0.5 * shape_ * log(r2 / (scale_ * scale_));
+	return (t > 690.0) ? 0.0 : (1.0 / (exp(t) + 1.0));
 }
 
-double PowerKernelUS(double r2)
+double KernelStruct::power_us(double r2)
 {
-	double t = log(sqrt(r2) / P.KernelScale + 1);
-	return (t < -690) ? 0.0 : (exp(-P.KernelShape * t) + P.KernelP3 * exp(-P.KernelP4 * t)) / (1 + P.KernelP3);
+	double t = log(sqrt(r2) / scale_ + 1.0);
+	return (t < -690.0) ? 0.0 : (exp(-shape_ * t) + p3_ * exp(-p4_ * t)) / (1.0 + p3_);
 }
 
-double GaussianKernel(double r2)
+double KernelStruct::gaussian(double r2)
 {
-	return exp(-r2 / (P.KernelScale * P.KernelScale));
+	return exp(-r2 / (scale_ * scale_));
 }
 
-double StepKernel(double r2)
+double KernelStruct::step(double r2)
 {
-	return (r2 > P.KernelScale * P.KernelScale) ? 0.0 : 1.0;
+	return (r2 > scale_ * scale_) ? 0.0 : 1.0;
 }
 
-double PowerExpKernel(double r2)
+double KernelStruct::power_exp(double r2)
 {
 	double d = sqrt(r2);
-	double t = -P.KernelShape * log(d / P.KernelScale + 1);
-	return (t < -690) ? 0.0 : exp(t - pow(d / P.KernelP3, P.KernelP4));
+	double t = -shape_ * log(d / scale_ + 1.0);
+	return (t < -690.0) ? 0.0 : exp(t - pow(d / p3_, p4_));
 }
 
-double numKernel(double r2)
+double KernelLookup::num(double r2) const
 {
-	double t = r2 / P.KernelDelta;
-	if (t > P.NKR)
+	double t = r2 / delta_;
+	if (t > size_)
 	{
-		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, P.KernelDelta, t);
+		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, delta_, t);
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
 
-	double s = t * P.NK_HR;
-	if (s < P.NKR)
+	double s = t * expansion_factor_;
+	if (s < size_)
 	{
 		t = s - floor(s);
-		t = (1 - t) * nKernelHR[(int)s] + t * nKernelHR[(int)(s + 1)];
+		t = (1.0 - t) * hi_res_[(int)s] + t * hi_res_[(int)(s + 1.0)];
 	}
 	else
 	{
 		s = t - floor(t);
-		t = (1 - s) * nKernel[(int)t] + s * nKernel[(int)(t + 1)];
+		t = (1.0 - s) * lookup_[(int)t] + s * lookup_[(int)(t + 1.0)];
 	}
 	return t;
 }

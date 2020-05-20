@@ -6,6 +6,7 @@
 #include "Country.h"
 #include "Constants.h"
 #include "InverseCdf.h"
+#include "Kernels.h"
 #include "MicroCellPosition.hpp"
 
 #include "Geometry/Size.h"
@@ -32,11 +33,10 @@ struct Param
 	int NRactNE;
 	int UpdatesPerSample; // Number of time steps between samples
 	int NumSamples; // Total number of samples that will be made
-	int KernelType;
-	int NKR; // Size of kernel lookup table
-	int NK_HR; // Factor to expand hi-res kernel lookup table by
-	int MoveKernelType;
-	int AirportKernelType;
+	CovidSim::TBD1::KernelLookup KernelLookup;
+	CovidSim::TBD1::KernelStruct Kernel;
+	CovidSim::TBD1::KernelStruct MoveKernel;
+	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
@@ -115,8 +115,7 @@ struct Param
 
 	/// Size of spatial domain in microcells
 	Geometry::Size<double> in_microcells_;
-	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
-	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
+	double AirportTrafficScale;
 	double R0, R0scale, LocalBeta;
 	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
