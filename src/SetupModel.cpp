@@ -2119,7 +2119,7 @@ void AssignPeopleToPlaces(void)
 						{
 							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
-								if ((mc_position.x >= 0) && (mc_position.y >= 0) && (mc_position.x < P.get_number_of_micro_cells_wide()) && (mc_position.y < P.get_number_of_micro_cells_high()))
+								if (P.is_in_bounds(mc_position))
 								{
 									ic = mc_position.x * P.get_number_of_micro_cells_high() + mc_position.y;
 									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
