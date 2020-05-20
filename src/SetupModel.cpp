@@ -1044,15 +1044,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
 	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(mcl = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	State.CellSuscMemberArray = mcl;
+	if (!(State.CellSuscMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	int susceptibleAccumulator = 0;
 	i2 = 0;
 	for (j = 0; j < P.NC; j++)
 		if (Cells[j].n > 0)
 		{
 			CellLookup[i2++] = Cells + j;
-			Cells[j].susceptible = mcl + susceptibleAccumulator;
+			Cells[j].susceptible = State.CellSuscMemberArray + susceptibleAccumulator;
 			susceptibleAccumulator += Cells[j].n;
 		}
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
