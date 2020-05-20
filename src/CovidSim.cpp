@@ -132,12 +132,12 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile;
-	char SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
-	int i, GotScF, GotNR, cl;
+	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile, SchoolFile;
+	char InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
+	int i, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotScF = GotNR = 0;
+	GotNR = 0;
 
 	cl = clock();
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Set parameter defaults - read them in after
-	P.PlaceCloseIndepThresh = P.DoSchoolFile = P.MaxNumThreads = P.DoInterventionFile = 0;
+	P.PlaceCloseIndepThresh = P.MaxNumThreads = P.DoInterventionFile = 0;
 	P.CaseOrDeathThresholdBeforeAlert = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
 	args.add_string_option("P", parse_read_file, ParamFile);
 	args.add_string_option("PP", parse_read_file, PreParamFile);
 	args.add_number_option("R", P.R0scale);
+	args.add_string_option("s", parse_read_file, SchoolFile);
 	args.add_string_option("S", parse_write_dir, SaveNetworkFile);
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
 	args.parse(argc, argv, P);
@@ -251,10 +252,6 @@ int main(int argc, char* argv[])
 						ParseArg(ArgType::INTEGER, &opt[3], &GotNR);
 						break;
 				}
-				break;
-			case 's':
-				ParseArg(ArgType::RFILE, &opt[2], SchoolFile);
-				GotScF = 1;
 				break;
 			case 'S':
 				switch(opt[2]) {
@@ -328,7 +325,6 @@ int main(int argc, char* argv[])
 
 	P.NumRealisations = GotNR;
 	ReadParams(ParamFile, PreParamFile);
-	if (GotScF) P.DoSchoolFile = 1;
 	if (P.DoAirports)
 	{
 		if (AirTravelFile.empty()) {

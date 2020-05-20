@@ -24,7 +24,7 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFile, std::string const& SaveNetworkFile, char* SchoolFile, std::string const& RegDemogFile)
+void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFile, std::string const& SaveNetworkFile, std::string const& SchoolFile, std::string const& RegDemogFile)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -702,7 +702,7 @@ void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFi
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
-void SetupPopulation(std::string const& DensityFile, char* SchoolFile, std::string const& RegDemogFile)
+void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFile, std::string const& RegDemogFile)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
@@ -1319,10 +1319,10 @@ void SetupPopulation(std::string const& DensityFile, char* SchoolFile, std::stri
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
-	if ((P.DoSchoolFile) && (P.DoPlaces))
+	if (!SchoolFile.empty() && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(SchoolFile, "rb"))) ERR_CRITICAL("Unable to open school file\n");
+		if (!(dat = fopen(SchoolFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
