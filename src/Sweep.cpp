@@ -1614,7 +1614,7 @@ int TreatSweep(double t)
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((min.x + P.get_number_of_micro_cells_wide()) % P.get_number_of_micro_cells_wide()) * P.get_number_of_micro_cells_high() + (min.y + P.get_number_of_micro_cells_high()) % P.get_number_of_micro_cells_high();
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
