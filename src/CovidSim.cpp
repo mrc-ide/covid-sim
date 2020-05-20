@@ -2,8 +2,8 @@
 (c) 2004-20 Neil Ferguson, Imperial College London (neil.ferguson@imperial.ac.uk)
 */
 
-#include <errno.h>
-#include <stddef.h>
+#include <cerrno>
+#include <cstddef>
 
 #include "CovidSim.h"
 #include "BinIO.h"
