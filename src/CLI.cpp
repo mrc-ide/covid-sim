@@ -55,6 +55,15 @@ void parse_number(std::string const& input, T& output) {
     }
 }
 
+void CmdLineArgs::add_custom_option(std::string const&& option, ParserFn func) {
+    if (m_option_map.find(option) != m_option_map.cend()) {
+        std::cerr << "Duplicate option specified " << option << ", ignoring..." << std::endl;
+        return;
+    }
+
+    m_option_map.emplace(option, func);
+}
+
 template<typename T>
 void CmdLineArgs::add_number_option(std::string const&& option, T& output) {
     if (m_option_map.find(option) != m_option_map.cend()) {
