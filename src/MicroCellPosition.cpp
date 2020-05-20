@@ -1,11 +1,6 @@
 #include "MicroCellPosition.hpp"
 #include <stdexcept>
 
-MicroCellPosition::MicroCellPosition(int x, int y)
-	:x(x),
-	y(y)
-{}
-
 MicroCellPosition MicroCellPosition::operator+(Direction direction) const {
 	switch (direction) {
 		case Right: return {this->x + 1, this->y};
