@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
 {
 	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile;
 	char SchoolFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, buf[2048]{}, * sep;
-	int i, GotO, GotAP, GotScF, GotNR, cl;
+	int i, GotScF, GotNR, cl;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotO = GotAP = GotScF = GotNR = 0;
+	GotScF = GotNR = 0;
 
 	cl = clock();
 
@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
 	if (GotScF) P.DoSchoolFile = 1;
 	if (P.DoAirports)
 	{
-		if (!GotAP) {
+		if (AirTravelFile.empty()) {
 			std::cerr << "Parameter file indicated airports should be used but '/AP' file was not given" << std::endl;
 			PrintHelpAndExit();
 		}
