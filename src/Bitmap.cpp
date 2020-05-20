@@ -4,18 +4,18 @@
 #include <string.h>
 #include <math.h>
 
-#include "binio.h"
+#include "BinIO.h"
 #include "Bitmap.h"
 #include "Error.h"
 #include "Param.h"
 #include "Model.h"
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
-//// **** BITMAP stuff. 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+//// **** BITMAP stuff.
 
-#ifdef WIN32_BM
+#ifdef _WIN32
 //HAVI avi;
-ULONG_PTR m_gdiplusToken;
+static ULONG_PTR m_gdiplusToken;
 static HBITMAP bmpdib;
 static CLSID  encoderClsid;
 #endif
@@ -31,7 +31,7 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int i, x, y, f, mi;
+	int x, y, f, mi;
 	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
@@ -42,8 +42,8 @@ void CaptureBitmap()
 	{
 		fst = 0;
 		int32_t maxPop = 0;
-		for (i = 0; i < mi; i++) bmPopulation[i] = 0;
-		for (i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
+		for (int i = 0; i < P.PopSize; i++)
 		{
 			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
@@ -58,7 +58,7 @@ void CaptureBitmap()
 			}
 		}
 		logMaxPop = log(1.001 * (double)maxPop);
-		for (i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NMC; i++)
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
@@ -79,7 +79,7 @@ void CaptureBitmap()
 					}
 				}
 			}
-		for (i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.bwidth / 2; i++)
 		{
 			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
 			f = ((int)prev);
@@ -89,8 +89,9 @@ void CaptureBitmap()
 			}
 		}
 	}
-#pragma omp parallel for private(i) schedule(static,5000)
-	for (i = 0; i < mi; i++)
+#pragma omp parallel for schedule(static,5000) default(none) \
+		shared(mi, bmPixels, bmPopulation, bmInfected, bmTreated, bmRecovered, logMaxPop)
+	for (int i = 0; i < mi; i++)
 	{
 		if (bmPopulation[i] == -1)
 			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
@@ -147,66 +148,76 @@ void OutputBitmap(int tp)
 		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
 	}
 
-#ifdef IMAGE_MAGICK
-	FILE* dat;
-	using namespace Magick;
-	fprintf(stderr, "\noutputing ImageMagick stuff");
-	sprintf(buf, "%s.bmp", OutF);
-	if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
-	fprintf(dat, "BM");
-	//fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
-	fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
-	for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
-	fclose(dat);
-	Image bmap(buf);
-	sprintf(buf, "%s.%d.png", OutF, j);
-	ColorRGB white(1.0, 1.0, 1.0);
-	bmap.transparent(white);
-	bmap.write(buf);
-#elif defined(WIN32_BM)	
-	//Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library
-	using namespace Gdiplus;
-
-	wchar_t wbuf[1024];
-	size_t a;
-
-	//Add new bitmap to AVI
-	//if ((P.OutputBitmap == 1) && (tp == 0)) AddAviFrame(avi, bmpdib, (unsigned char*)(&bmh->palette[0][0]));
-
-	//This transfers HBITMAP to GDI+ Bitmap object
-	Bitmap* gdip_bmp = Bitmap::FromHBITMAP(bmpdib, NULL);
-	//Now change White in palette (first entry) to be transparent
-	if ((cn1 == 1) && (tp == 0))
+	if (P.BitmapFormat == BF_PNG)
 	{
-		static UINT palsize;
-		static ColorPalette* palette;
-		palsize = gdip_bmp->GetPaletteSize();
-		palette = (ColorPalette*)malloc(palsize);
-		if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
-		(void)gdip_bmp->GetPalette(palette, palsize);
-		palette->Flags = PaletteFlagsHasAlpha;
-		palette->Entries[0] = 0x00ffffff; // Transparent white 
-		gdip_bmp->SetPalette(palette);
-	}
-	//Now save as png
-	sprintf(buf, "%s.%05i.png", OutF, j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase,OutF,j+1);
-	mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
-	gdip_bmp->Save(wbuf, &encoderClsid, NULL);
-	delete gdip_bmp;
+#ifdef IMAGE_MAGICK
+	  FILE* dat;
+	  using namespace Magick;
+	  fprintf(stderr, "\noutputing ImageMagick stuff");
+	  sprintf(buf, "%s.bmp", OutF);
+	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
+	  fprintf(dat, "BM");
+	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
+	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
+	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
+	  fclose(dat);
+	  Image bmap(buf);
+	  sprintf(buf, "%s.%d.png", OutF, j);
+	  ColorRGB white(1.0, 1.0, 1.0);
+	  bmap.transparent(white);
+	  bmap.write(buf);
+#elif defined(_WIN32)
+	  //Windows specific bitmap manipulation code - could be recoded using LIBGD or another unix graphics library
+	  using namespace Gdiplus;
+
+	  wchar_t wbuf[1024];
+	  size_t a;
+
+	  //Add new bitmap to AVI
+	  //if ((P.OutputBitmap == 1) && (tp == 0)) AddAviFrame(avi, bmpdib, (unsigned char*)(&bmh->palette[0][0]));
+
+	  //This transfers HBITMAP to GDI+ Bitmap object
+	  Bitmap* gdip_bmp = Bitmap::FromHBITMAP(bmpdib, NULL);
+	  //Now change White in palette (first entry) to be transparent
+	  if ((cn1 == 1) && (tp == 0))
+	  {
+		  static UINT palsize;
+		  static ColorPalette* palette;
+		  palsize = gdip_bmp->GetPaletteSize();
+		  palette = (ColorPalette*)malloc(palsize);
+		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
+		  (void)gdip_bmp->GetPalette(palette, palsize);
+		  palette->Flags = PaletteFlagsHasAlpha;
+		  palette->Entries[0] = 0x00ffffff; // Transparent white
+		  gdip_bmp->SetPalette(palette);
+	  }
+	  //Now save as png
+	  sprintf(buf, "%s.%05i.png", OutF, j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase,OutF,j+1);
+	  mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
+	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
+	  delete gdip_bmp;
 #else
-	sprintf(buf, "%s.%05i.bmp", OutF, j);
-	FILE* dat;
-	if (!(dat = fopen(buf, "wb"))) {
-		char *errMsg = strerror(errno);
-		if (errMsg == nullptr) {
-			ERR_CRITICAL("strerror failed.\n");
-		}
-		ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
-	}
-	fprintf(dat, "BM");
-	fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(bitmap_header) / sizeof(unsigned char) + bmh->imagesize, dat);
-	fclose(dat);
+	  fprintf(stderr, "Do not know how to output PNG\n");
 #endif
+	}
+	else if (P.BitmapFormat == BF_BMP) {
+	  sprintf(buf, "%s.%05i.bmp", OutF, j);
+	  FILE* dat;
+	  if (!(dat = fopen(buf, "wb"))) {
+	    char* errMsg = strerror(errno);
+	    if (errMsg == nullptr) {
+	      ERR_CRITICAL("strerror failed.\n");
+	    }
+	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
+	  }
+	  fprintf(dat, "BM");
+	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
+	  fclose(dat);
+	}
+	else
+	{
+	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
+	}
 }
 void InitBMHead()
 {
@@ -214,15 +225,15 @@ void InitBMHead()
 
 	fprintf(stderr, "Initialising bitmap\n");
 	k = P.bwidth * P.bheight2;
-	k2 = sizeof(bitmap_header) / sizeof(unsigned char);
+	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
-	bmh = (bitmap_header*)bmf;
+	bmh = (BitmapHeader*)bmf;
 	bmh->spare = 0;
-	bmh->boffset = 2 + sizeof(bitmap_header);
+	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
 	bmh->width = P.bwidth;
 	bmh->height = P.bheight2;
@@ -231,7 +242,7 @@ void InitBMHead()
 	bmh->compr = 0; // No compression (BI_RGB)
 	bmh->imagesize = bmh->width * bmh->height;
 	bmh->filesize = 2 // "BM"
-	              + ((unsigned int) sizeof(bitmap_header)) // BITMAP_HEADER
+	              + ((unsigned int) sizeof(BitmapHeader)) // BITMAP_HEADER
 	              + bmh->imagesize; // Image data
 	bmh->hres = bmh->vres = (int)(bmh->width * 10); // Resolution, in pixels per metre
 	bmh->colours = BWCOLS * 4; // Number of colours in the palette
@@ -265,33 +276,34 @@ void InitBMHead()
 	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
-#ifdef WIN32_BM
-	bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)& bmPixels, NULL, NULL);
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-
-	UINT  num = 0;          // number of image encoders
-	UINT  size = 0;         // size of the image encoder array in bytes
-
-	Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
-	Gdiplus::GetImageEncodersSize(&num, &size);
-	if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
-	for (UINT j = 0; j < num; ++j)
+	if (P.BitmapFormat == BF_PNG)
 	{
-// Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
-// warning C6385: Reading invalid data from 'pImageCodecInfo':  the readable size is 'size' bytes, but '208' bytes may be read.
+#ifdef _WIN32
+	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, NULL);
+	  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	  Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+	  UINT  num = 0;          // number of image encoders
+	  UINT  size = 0;         // size of the image encoder array in bytes
+
+	  Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
+	  Gdiplus::GetImageEncodersSize(&num, &size);
+	  if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
+	    ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
+	  for (UINT j = 0; j < num; ++j) {
+	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
+	    // warning C6385: Reading invalid data from 'pImageCodecInfo':  the readable size is 'size' bytes, but '208' bytes may be read.
 #pragma warning( suppress: 6385 )
-		const WCHAR* type = pImageCodecInfo[j].MimeType;
-		if (wcscmp(type, L"image/png") == 0)
-		{
-			encoderClsid = pImageCodecInfo[j].Clsid;
-			j = num;
-		}
-	}
-	free(pImageCodecInfo);
+	    const WCHAR* type = pImageCodecInfo[j].MimeType;
+	    if (wcscmp(type, L"image/png") == 0) {
+	      encoderClsid = pImageCodecInfo[j].Clsid;
+	      j = num;
+	    }
+	  }
+	  free(pImageCodecInfo);
 #endif
+	}
 
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);
@@ -302,3 +314,12 @@ void InitBMHead()
 #endif
 }
 
+void Bitmap_Finalise()
+{
+  if (P.BitmapFormat == BF_PNG)
+  {
+#ifdef _WIN32
+    Gdiplus::GdiplusShutdown(m_gdiplusToken);
+#endif
+  }
+}

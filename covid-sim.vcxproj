@@ -59,6 +59,7 @@
       <ConformanceMode>true</ConformanceMode>
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>/Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,6 +77,7 @@
       <ConformanceMode>true</ConformanceMode>
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>/Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -87,7 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\binio.cpp" />
+    <ClCompile Include="src\BinIO.cpp" />
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
     <ClCompile Include="src\Dist.cpp" />
@@ -100,8 +102,7 @@
     <ClCompile Include="src\Update.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\avi_utils.h" />
-    <ClInclude Include="src\binio.h" />
+    <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
     <ClInclude Include="src\Constants.h" />
@@ -116,7 +117,6 @@
     <ClInclude Include="src\Param.h" />
     <ClInclude Include="src\Rand.h" />
     <ClInclude Include="src\SetupModel.h" />
-    <ClInclude Include="src\SharedFuncs.h" />
     <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />

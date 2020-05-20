@@ -7,7 +7,7 @@ on:
   push:
 
 jobs:
-  windows:
+  windows-build-and-test:
     name: Windows build and test
     runs-on: windows-latest
     steps:
@@ -16,16 +16,9 @@ jobs:
         run: |
           md build
           cd build
-          cmake ..\src
+          cmake ..
           cmake --build .
-          cd ..
-      - name: regression test (UK based)
+      - name: regression tests
         run: |
-          cd tests
-          python.exe regressiontest_UK_100th.py
-          cd ..
-      - name: regression test (US based)
-        run: |
-          cd tests
-          python.exe regressiontest_US_based.py
-          cd ..
+          cd build
+          ctest -V -C Debug

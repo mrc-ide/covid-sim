@@ -14,12 +14,12 @@
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
 unsigned short int ChooseFromICDF(double *, double, int);
-int ChooseFinalDiseaseSeverity(int, int);
+Severity ChooseFinalDiseaseSeverity(int, int);
 
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
-	person* a;
+	Person* a;
 	int c;
 	int x, y;
 
@@ -74,7 +74,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	int i;
 	unsigned short int ts; //// time step
 	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
-	person* a;
+	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
 
@@ -221,12 +221,14 @@ void DoMild(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_Mild;
 			StateT[tn].Mild++;
 			StateT[tn].cumMild++;
+			StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
@@ -239,12 +241,14 @@ void DoILI(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_ILI;
 			StateT[tn].ILI++;
 			StateT[tn].cumILI++;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit	[Mcells[a->mcell].adunit]++;
@@ -257,14 +261,16 @@ void DoSARI(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_ILI)
 		{
 			a->Severity_Current = Severity_SARI;
 			StateT[tn].ILI--;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].SARI++;
 			StateT[tn].cumSARI++;
-
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumSARI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit		[Mcells[a->mcell].adunit]--;
@@ -278,14 +284,16 @@ void DoCritical(int ai, int tn)
 {
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_SARI)
 		{
 			a->Severity_Current = Severity_Critical;
 			StateT[tn].SARI--;
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].Critical++;
 			StateT[tn].cumCritical++;
-
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumCritical_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
@@ -302,14 +310,16 @@ void DoRecoveringFromCritical(int ai, int tn)
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 	if (P.DoSeverity) //// shouldn't need this but best be careful.
 	{
-		person* a = Hosts + ai;
+		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity_Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
 			a->Severity_Current = Severity_RecoveringFromCritical;
 			StateT[tn].Critical--;
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].CritRecov++;
 			StateT[tn].cumCritRecov++;
-
+			StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]++;
+			StateT[tn].cumCritRecov_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
@@ -321,13 +331,15 @@ void DoRecoveringFromCritical(int ai, int tn)
 }
 void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 {
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
 		if (a->Severity_Current == Severity_Critical)
 		{
 			StateT[tn].Critical--;
+			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_Critical++;
+			StateT[tn].cumDeath_Critical_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
@@ -339,7 +351,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		else if (a->Severity_Current == Severity_SARI)
 		{
 			StateT[tn].SARI--;
+			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_SARI++;
+			StateT[tn].cumDeath_SARI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
@@ -351,7 +365,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		else if (a->Severity_Current == Severity_ILI)
 		{
 			StateT[tn].ILI--;
+			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 			StateT[tn].cumDeath_ILI++;
+			StateT[tn].cumDeath_ILI_age[HOST_AGE_GROUP(ai)]++;
 			if (P.DoAdUnits)
 			{
 				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
@@ -369,7 +385,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
 
 	//// moved this from DoRecover
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
@@ -377,6 +393,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			if (a->Severity_Current == Severity_Mild)
 			{
 				StateT[tn].Mild--;
+				StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -384,6 +401,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_ILI)
 			{
 				StateT[tn].ILI--;
+				StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -391,6 +409,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_SARI)
 			{
 				StateT[tn].SARI--;
+				StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -398,6 +417,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
 				StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
+				StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
 				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
@@ -407,7 +427,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 
 void DoIncub(int ai, unsigned short int ts, int tn, int run)
 {
-	person* a;
+	Person* a;
 	double q;
 	int age;
 
@@ -452,33 +472,33 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery, tn);
+				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery[age], tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI		, tn);
-				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical	, tn);
+				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI[age], tn);
+				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical[age], tn);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath	, tn);
+					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath[age], tn);
 				else
 				{
-					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov, tn);
-					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov	, tn);
+					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov[age], tn);
+					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov[age], tn);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
-				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI, tn);
+				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
 				if (a->to_die)
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath	, tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath[age], tn);
 				else
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery	, tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery[age], tn);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath		, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath[age], tn);
 				else
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery	, tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery[age], tn);
 			}
 		}
 
@@ -518,7 +538,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	//// and therefore changes lots of quantities (e.g. quar_comply and isolation_start_time) associated with model macros e.g. HOST_ABSENT / HOST_ISOLATED
 
 	int j, k, f, j1, j2, ad; // m, h, ad;
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	//// Increment triggers (Based on numbers of detected cases) for interventions. Used in TreatSweep function when not doing Global or Admin triggers. And not when doing ICU triggers.
 	if (Mcells[a->mcell].treat_trig				< USHRT_MAX - 1) Mcells[a->mcell].treat_trig++;
@@ -527,7 +547,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (Mcells[a->mcell].socdist_trig			< USHRT_MAX - 1) Mcells[a->mcell].socdist_trig++;
 	if (Mcells[a->mcell].keyworkerproph_trig	< USHRT_MAX - 1) Mcells[a->mcell].keyworkerproph_trig++;
 
-	if (!P.AbsenteeismPlaceClosure) 
+	if (!P.AbsenteeismPlaceClosure)
 	{
 		if (P.PlaceCloseRoundHousehold)
 		{
@@ -772,7 +792,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
 {
 	int j, k, f, j1, j2;
-	person* a;
+	Person* a;
 	int age;
 
 	age = HOST_AGE_GROUP(ai);
@@ -871,7 +891,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 void DoRecover(int ai, int tn, int run)
 {
 	int i, j, x, y;
-	person* a;
+	Person* a;
 
 	a = Hosts + ai;
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
@@ -887,7 +907,7 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = InfStat_Recovered * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
 
 		if (P.OutputBitmap)
 		{
@@ -916,11 +936,11 @@ void DoRecover(int ai, int tn, int run)
 void DoDeath(int ai, int tn, int run)
 {
 	int i, x, y;
-	person* a = Hosts + ai;
+	Person* a = Hosts + ai;
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
-		a->inf = InfStat_Dead * a->inf / abs(a->inf);
+		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
 		Cells[a->pcell].D++;
 		Cells[a->pcell].I--;
 		i = a->listpos;
@@ -1072,7 +1092,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			fprintf(stderr,"** %i %i *\n",i,j);
 		else
 	*/
-	t_new = (unsigned short) (((double) ts) / P.TimeStepsPerDay);
+	t_new = (unsigned short)(((double)ts) / P.TimeStepsPerDay);
 	trig = 0;
 	t_start = ts + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
 	if (P.DoInterventionDelaysByAdUnit)
@@ -1158,9 +1178,9 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			for (k = 0; k < Places[i][j].n; k++) //// loop over all people in place.
 			{
 				ai = Places[i][j].members[k];
-				if ((!HOST_ABSENT(ai)) && ((P.PlaceClosePropAttending[i] == 0) || (Hosts[ai].ProbAbsent >= P.PlaceClosePropAttending[i])))
+				if (((P.PlaceClosePropAttending[i] == 0) || (Hosts[ai].ProbAbsent >= P.PlaceClosePropAttending[i])))
 				{
-					if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_QUARANTINED(ai))) //// if person is a child and neither absent nor quarantined
+					if ((!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai)) && (HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff)) //// if person is a child and neither absent nor quarantined
 					{
 						StateT[tn].cumAPCS++;
 						if (Hosts[ai].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
@@ -1168,40 +1188,41 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 							if ((j1 < 0) || (j2 > P.PopSize)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
 							f = 0;
-#pragma omp critical (closeplace2)
-							{
-								//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
-								for (l = j1; (l < j2) && (!f); l++)
-									f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)  || (HOST_QUARANTINED(l))));
-								if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
-								{
-									for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-										if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead)) { m = l; f = 1; }
-									if (f) //// ... if so then amend absent start and stop times.
-									{
 
-										if (Hosts[m].absent_start_time > Places[i][j].close_start_time) Hosts[m].absent_start_time = Places[i][j].close_start_time;
-										if (Hosts[m].absent_stop_time < Places[i][j].close_end_time) Hosts[m].absent_stop_time = Places[i][j].close_end_time;
+							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
+							for (l = j1; (l < j2) && (!f); l++)
+								f = ((abs(Hosts[l].inf) != InfStat_Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
+							{
+								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
+									{
+										if (Hosts[l].absent_start_time > t_start) Hosts[l].absent_start_time = t_start;
+										if (Hosts[l].absent_stop_time < t_stop) Hosts[l].absent_stop_time = t_stop;
 										StateT[tn].cumAPA++;
+										f = 1;
 									}
-								}
 							}
 						}
 					}
-					///// finally amend absent start and stop times if they contradict place start and stop times.
-					if (Hosts[ai].absent_start_time > Places[i][j].close_start_time) Hosts[ai].absent_start_time = Places[i][j].close_start_time;
-					if (Hosts[ai].absent_stop_time < Places[i][j].close_end_time) Hosts[ai].absent_stop_time = Places[i][j].close_end_time;
+					//#pragma omp critical (closeplace3)
+					{
+						///// finally amend absent start and stop times if they contradict place start and stop times.
+						if (Hosts[ai].absent_start_time > t_start) Hosts[ai].absent_start_time = t_start;
+						if (Hosts[ai].absent_stop_time < t_stop) Hosts[ai].absent_stop_time = t_stop;
+					}
 					if ((HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0)) StateT[tn].cumAPC++;
 				}
 			}
 	}
 }
 
+
 void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 {
-	int k, ai, j1, j2, l, f, m;
+	int k, ai, j1, j2, l, f;
 
-#pragma omp critical (closeplace)
+#pragma omp critical (openplace)
 	{
 		if (ts < Places[i][j].close_end_time)
 		{
@@ -1307,9 +1328,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 }
 
 ///// Change person status functions (e.g. change person from susceptible to latently infected).
-int ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
+Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 {
-	int DiseaseSeverity;
+	Severity DiseaseSeverity;
 	double x;
 
 	// assume normalised props

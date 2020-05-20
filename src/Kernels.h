@@ -1,11 +1,9 @@
-#pragma once
-
 #ifndef COVIDSIM_KERNELS_H_INCLUDED_
 #define COVIDSIM_KERNELS_H_INCLUDED_
 
 extern double *nKernel, *nKernelHR;
 
-void InitKernel(int, double);
+void InitKernel(double);
 double ExpKernel(double);
 double PowerKernel(double);
 double PowerKernelB(double);

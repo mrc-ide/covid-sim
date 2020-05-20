@@ -7,7 +7,7 @@ on:
   push:
 
 jobs:
-  test:
+  macos-build-and-test:
     runs-on: macos-latest
 
     strategy:
@@ -20,16 +20,10 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ../src
+        cmake ..
         make
-        cd ..
-    - name: regression test (UK based)
+    - name: regression tests
       run: |
-        cd tests
         pwd
         ls -l
-        ./regressiontest_UK_100th.py
-    - name: regression test (US based)
-      run: |
-        cd "${GITHUB_WORKSPACE}/tests"
-        ./regressiontest_US_based.py
+        make -Cbuild test ARGS="-V"

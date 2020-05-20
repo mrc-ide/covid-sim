@@ -1,18 +1,22 @@
-#pragma once
-
 #ifndef COVIDSIM_PARAM_H_INCLUDED_
 #define COVIDSIM_PARAM_H_INCLUDED_
 
 #include "Country.h"
 #include "Constants.h"
 
+/** @brief Enumeration of bitmap formats. */
+enum BitmapFormats
+{
+  BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
+  BF_BMP = 1   // BMP - fall-back
+};
+
 /**
  * @brief Stores the parameters for the simulation.
  *
  */
-typedef struct PARAM {
-
-
+struct Param
+{
 	int PopSize; /**< Population size */
 	int NH; // Number of households
 	int NumRealisations; /**< Number of Realisations */
@@ -43,6 +47,7 @@ typedef struct PARAM {
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
 	int bminx, bminy;
 	int OutputBitmap; // Whether to output a bitmap
+	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
@@ -57,6 +62,7 @@ typedef struct PARAM {
 	long nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
 	long nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
+	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
@@ -64,8 +70,9 @@ typedef struct PARAM {
 	double MildToRecovery_icdf[CDF_RES + 1], ILIToRecovery_icdf[CDF_RES + 1], SARIToRecovery_icdf[CDF_RES + 1], CriticalToCritRecov_icdf[CDF_RES + 1], CritRecovToRecov_icdf[CDF_RES + 1];
 	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], ILIToDeath_icdf[CDF_RES + 1], SARIToDeath_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
 	/// means for above icdf's.
-	double Mean_MildToRecovery, Mean_ILIToRecovery, Mean_SARIToRecovery, Mean_CriticalToCritRecov, Mean_CritRecovToRecov, Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
-	double Mean_ILIToSARI, Mean_SARIToCritical, Mean_CriticalToDeath, Mean_SARIToDeath, Mean_ILIToDeath;
+	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS];
+	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
+	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
 
@@ -244,13 +251,13 @@ typedef struct PARAM {
 	double PropPopUsingDigitalContactTracing, ScalingFactorSpatialDigitalContacts, ScalingFactorPlaceDigitalContacts, DigitalContactTracingDelay, LengthDigitalContactIsolation, ProportionDigitalContactsIsolate, ProportionSmartphoneUsersByAge[NUM_AGE_GROUPS];
 	double DelayFromIndexCaseDetectionToDCTIsolation, DelayToTestIndexCase, DelayToTestDCTContacts, SpecificityDCT, SensitivityDCT;
 	double DigitalContactTracingPolicyDuration, DCTCaseIsolationHouseEffectiveness, DCTCaseIsolationEffectiveness;
-	int OutputDigitalContactTracing, OutputDigitalContactDist, IncludeHouseholdDigitalContactTracing, IncludePlaceGroupDigitalContactTracing, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase, MaxDigitalContactsToTrace;
+	int OutputDigitalContactTracing, OutputDigitalContactDist, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase, MaxDigitalContactsToTrace;
 
 	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
 	int DoInterventionDelaysByAdUnit;
 
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputNonSummaryResults;
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults;
 
 	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
 	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult
@@ -276,8 +283,8 @@ typedef struct PARAM {
 	int OldPersAge;
 	double ThreeChildFivePersProb;
 	int OlderGenGap;
-} param;
+};
 
-extern param P;
+extern Param P;
 
 #endif // COVIDSIM_PARAM_H_INCLUDED_

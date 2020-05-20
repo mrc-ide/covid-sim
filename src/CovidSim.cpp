@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 #include "CovidSim.h"
-#include "binio.h"
+#include "BinIO.h"
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"
@@ -15,20 +15,23 @@
 #include "Model.h"
 #include "Param.h"
 #include "SetupModel.h"
-#include "SharedFuncs.h"
 #include "ModelMacros.h"
 #include "InfStat.h"
 #include "CalcInfSusc.h"
 #include "Update.h"
+#include "Sweep.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif // _OPENMP
 
-#ifndef max
-#define max(a,b) ((a) > (b) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
+// Use the POSIX name for case-insensitive string comparison: strcasecmp.
+#ifdef _WIN32
+// Windows calls it _stricmp so make strcasecmp an alias.
+#include <string.h>
+#define strcasecmp _stricmp
+#else
+#include <strings.h>
 #endif
 
 void ReadParams(char*, char*);
@@ -38,13 +41,7 @@ void ReadAirTravel(char*);
 void InitModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 int RunModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
-void TravelReturnSweep(double);
-void TravelDepartSweep(double);
-void InfectSweep(double, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
-void IncubRecoverySweep(double, int); //added int as argument to record run number: ggilani - 15/10/14
-int TreatSweep(double);
-//void HospitalSweep(double); //added hospital sweep function: ggilani - 10/11/14
-void DigitalContactTracingSweep(double); // added function to update contact tracing number
+
 void SaveDistribs(void);
 void SaveOriginDestMatrix(void); //added function to save origin destination matrix so it can be done separately to the main results: ggilani - 13/02/15
 void SaveResults(void);
@@ -62,28 +59,30 @@ int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, i
 int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
+void SetICDF(double* icdf, int startValue);
+
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 
-param P;
-person* Hosts;
-household* Households;
-popvar State, StateT[MAX_NUM_THREADS];
-cell* Cells; // Cells[i] is the i'th cell
-cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
-microcell* Mcells, ** McellLookup;
-place** Places;
-adminunit AdUnits[MAX_ADUNITS];
+Param P;
+Person* Hosts;
+Household* Households;
+PopVar State, StateT[MAX_NUM_THREADS];
+Cell* Cells; // Cells[i] is the i'th cell
+Cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
+Microcell* Mcells, ** McellLookup;
+Place** Places;
+AdminUnit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
-airport* Airports;
-bitmap_header* bmh;
+Results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+Airport* Airports;
+BitmapHeader* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
-events* InfEventLog;
+Events* InfEventLog;
 int* nEvents;
 
 double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
@@ -108,7 +107,10 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 
 
 /* int NumPC,NumPCD; */
-#define MAXINTFILE 10
+const int MAXINTFILE = 10;
+
+/* default start value for icdf arrays */
+const int ICDF_START = 100;
 
 int main(int argc, char* argv[])
 {
@@ -121,6 +123,13 @@ int main(int argc, char* argv[])
 	Perr = 0;
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 	cl = clock();
+
+	// Default bitmap format is platform dependent.
+#if defined(IMAGE_MAGICK) || defined(_WIN32)
+	P.BitmapFormat = BF_PNG;
+#else
+	P.BitmapFormat = BF_BMP;
+#endif
 
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
 
@@ -274,6 +283,28 @@ int main(int argc, char* argv[])
 					sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
 				}
 			}
+			else if (argv[i][1] == 'B' && argv[i][2] == 'M' && argv[i][3] == ':')
+			{
+				sscanf(&argv[i][4], "%s", buf);
+				if (strcasecmp(buf, "png") == 0)
+				{
+#if defined(IMAGE_MAGICK) || defined(_WIN32)
+				  P.BitmapFormat = BF_PNG;
+#else
+				  fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
+				  Perr = 1;
+#endif
+				}
+				else if (strcasecmp(buf, "bmp") == 0)
+				{
+				  P.BitmapFormat = BF_BMP;
+				}
+				else
+				{
+				  fprintf(stderr, "Unrecognised bitmap format: %s\n", buf);
+				  Perr = 1;
+				}
+			}
 		}
 		if (((GotS) && (GotL)) || (!GotP) || (!GotO)) Perr = 1;
 	}
@@ -283,6 +314,7 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s", OutFileBase);
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
+	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BF_PNG ? "png" : "bmp");
 	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -420,10 +452,8 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s.avE", OutFileBase);
 	//SaveSummaryResults();
 
+	Bitmap_Finalise();
 
-#ifdef WIN32_BM
-	Gdiplus::GdiplusShutdown(m_gdiplusToken);
-#endif
 	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 	fprintf(stderr, "Model finished\n");
@@ -444,6 +474,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!(ParamFile_dat = fopen(ParamFile, "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
 	PreParamFile_dat = fopen(PreParamFile, "rb");
 	if (!(AdminFile_dat = fopen(AdunitFile, "rb"))) AdminFile_dat = ParamFile_dat;
+	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*) & (P.LongitudeCutLine), 1, 1, 0)) {
+		P.LongitudeCutLine = -360.0;
+	}
 	AgeSuscScale = 1.0;
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*) & (P.TimeStep), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*) & (P.SampleStep), 1, 1, 0);
@@ -476,6 +509,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
@@ -974,9 +1008,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.infectious_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.infectious_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.infectious_icdf, ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
@@ -990,9 +1022,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.latent_icdf[CDF_RES] = 1e10;
-			for (i = 0; i < CDF_RES; i++)
-				P.latent_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.latent_icdf, 1e10);
 		}
 		for (i = 0; i <= CDF_RES; i++)
 			P.latent_icdf[i] = exp(-P.latent_icdf[i]);
@@ -1065,99 +1095,109 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if(P.DoSeverity == 1)
 	{
 		//// Means for icdf's.
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery"		, "%lf", (void*) & (P.Mean_MildToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery"			, "%lf", (void*) & (P.Mean_ILIToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery"		, "%lf", (void*) & (P.Mean_SARIToRecovery)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov"	, "%lf", (void*) & (P.Mean_CriticalToCritRecov)	, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov"		, "%lf", (void*) & (P.Mean_CritRecovToRecov)	, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI"				, "%lf", (void*) & (P.Mean_ILIToSARI)			, 1, 1, 0);
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath"			, "%lf", (void*) & (P.Mean_ILIToDeath)			, 1, 1, 0)) P.Mean_ILIToDeath=7.0;
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical"		, "%lf", (void*) & (P.Mean_SARIToCritical)		, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath"			, "%lf", (void*) & (P.Mean_SARIToDeath)			, 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath"		, "%lf", (void*) & (P.Mean_CriticalToDeath)		, 1, 1, 0);
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest=0.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCriticalOffset", "%lf", (void*)&(P.Mean_TimeToTestCriticalOffset), 1, 1, 0)) P.Mean_TimeToTestCriticalOffset = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCritRecovOffset", "%lf", (void*)&(P.Mean_TimeToTestCritRecovOffset), 1, 1, 0)) P.Mean_TimeToTestCritRecovOffset = 1.0;
-
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age dependent severity delays", "%i", (void*)&i, 1, 1, 0)) i = 0;
+		if (!i)
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)&(P.Mean_MildToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)&(P.Mean_ILIToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)&(P.Mean_SARIToRecovery[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)&(P.Mean_CriticalToCritRecov[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)&(P.Mean_CritRecovToRecov[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)&(P.Mean_ILIToSARI[0]), 1, 1, 0);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)&(P.Mean_ILIToDeath[0]), 1, 1, 0)) P.Mean_ILIToDeath[0] = 7.0;
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)&(P.Mean_SARIToCritical[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)&(P.Mean_SARIToDeath[0]), 1, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)&(P.Mean_CriticalToDeath[0]), 1, 1, 0);
+			for (j = 1; j < NUM_AGE_GROUPS; j++)
+			{
+				P.Mean_MildToRecovery[j] = P.Mean_MildToRecovery[0];
+				P.Mean_ILIToRecovery[j] = P.Mean_ILIToRecovery[0];
+				P.Mean_SARIToRecovery[j] = P.Mean_SARIToRecovery[0];
+				P.Mean_CriticalToCritRecov[j] = P.Mean_CriticalToCritRecov[0];
+				P.Mean_CritRecovToRecov[j] = P.Mean_CritRecovToRecov[0];
+				P.Mean_ILIToSARI[j] = P.Mean_ILIToSARI[0];
+				P.Mean_ILIToDeath[j] = P.Mean_ILIToDeath[0];
+				P.Mean_SARIToCritical[j] = P.Mean_SARIToCritical[0];
+				P.Mean_SARIToDeath[j] = P.Mean_SARIToDeath[0];
+				P.Mean_CriticalToDeath[j] = P.Mean_CriticalToDeath[0];
+			}
+		}
+		else
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)(P.Mean_MildToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)(P.Mean_ILIToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)(P.Mean_SARIToRecovery), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)(P.Mean_CriticalToCritRecov), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)(P.Mean_CritRecovToRecov), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)(P.Mean_ILIToSARI), NUM_AGE_GROUPS, 1, 0);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)(P.Mean_ILIToDeath), NUM_AGE_GROUPS, 1, 0))
+				for (j = 0; j < NUM_AGE_GROUPS; j++) P.Mean_ILIToDeath[j] = 7.0;
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)(P.Mean_SARIToCritical), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)(P.Mean_SARIToDeath), NUM_AGE_GROUPS, 1, 0);
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
+		}
 		//// Get ICDFs
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.MildToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.MildToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.MildToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.ILIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToRecovery_icdf[i] = exp(-P.ILIToRecovery_icdf[i]);
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", "%lf", (void*)P.ILIToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToDeath_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.ILIToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToDeath_icdf, ICDF_START);
 		}
 		for (i = 0; i <= CDF_RES; i++) P.ILIToDeath_icdf[i] = exp(-P.ILIToDeath_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToRecovery_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.SARIToRecovery_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToRecovery_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToRecovery_icdf[i] = exp(-P.SARIToRecovery_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CriticalToCritRecov_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CriticalToCritRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CriticalToCritRecov_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToCritRecov_icdf[i] = exp(-P.CriticalToCritRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CritRecovToRecov_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CritRecovToRecov_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CritRecovToRecov_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CritRecovToRecov_icdf[i] = exp(-P.CritRecovToRecov_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.ILIToSARI_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.ILIToSARI_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.ILIToSARI_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.ILIToSARI_icdf[i] = exp(-P.ILIToSARI_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToCritical_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.SARIToCritical_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToCritical_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.SARIToCritical_icdf[i] = exp(-P.SARIToCritical_icdf[i]);
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf"		, "%lf", (void*)P.SARIToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.SARIToDeath_icdf[CDF_RES] = 100;
-			for (i = 0; i < CDF_RES; i++)
-				P.SARIToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.SARIToDeath_icdf, ICDF_START);
 		}
 		for (i = 0; i <= CDF_RES; i++) P.SARIToDeath_icdf[i] = exp(-P.SARIToDeath_icdf[i]);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf, CDF_RES + 1, 1, 0))
 		{
-			P.CriticalToDeath_icdf[CDF_RES] = 100;
-			for(i = 0; i < CDF_RES; i++)
-				P.CriticalToDeath_icdf[i] = -log(1 - ((double)i) / CDF_RES);
+			SetICDF(P.CriticalToDeath_icdf, ICDF_START);
 		}
 		for(i = 0; i <= CDF_RES; i++) P.CriticalToDeath_icdf[i] = exp(-P.CriticalToDeath_icdf[i]);
 
@@ -2037,7 +2077,7 @@ void ReadInterventions(char* IntFile)
 	double r, s, startt, stopt;
 	int j, k, au, ni, f, nsr;
 	char buf[65536], txt[65536];
-	intervention CurInterv;
+	Intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
 	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
@@ -2292,15 +2332,15 @@ void ReadAirTravel(char* AirTravelFile)
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
 	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(Airports = (airport*)calloc(P.Nairports, sizeof(airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x > P.SpatialBoundingBox[2])
-			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y > P.SpatialBoundingBox[3]))
+		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
+			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y >= P.SpatialBoundingBox[3]))
 		{
 			Airports[i].loc_x = Airports[i].loc_y = -1;
 			Airports[i].total_traffic = 0;
@@ -2424,12 +2464,12 @@ void ReadAirTravel(char* AirTravelFile)
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int i, j, k, l, m, tn, nim;
+	int nim;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
 	{
-#ifdef WIN32_BM
+#ifdef _WIN32
 		//if (P.OutputBitmap == 1)
 		//{
 		//	char buf[200];
@@ -2466,16 +2506,24 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
 			State.cumD_adunit[AdminUnit] = 0;
 		}
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			State.Mild_age[AgeGroup] = State.ILI_age[AgeGroup] =
+				State.SARI_age[AgeGroup] = State.Critical_age[AgeGroup] = State.CritRecov_age[AgeGroup] =
+				State.cumMild_age[AgeGroup] = State.cumILI_age[AgeGroup] =
+				State.cumSARI_age[AgeGroup] = State.cumCritical_age[AgeGroup] = State.cumCritRecov_age[AgeGroup] =
+				State.cumDeath_ILI_age[AgeGroup] = State.cumDeath_SARI_age[AgeGroup] = State.cumDeath_Critical_age[AgeGroup] = 0;
+		}
 	}
 
-	for (i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
-	for (i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
-	for (i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
-	for (i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
+	for (int i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
+	for (int i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
+	for (int i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
+	for (int i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
 	//initialise cumulative case counts per country to zero: ggilani 12/11/14
-	for (i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
+	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
 	if (P.DoAdUnits)
-		for (i = 0; i <= P.NumAdunits; i++)
+		for (int i = 0; i <= P.NumAdunits; i++)
 		{
 			State.cumI_adunit[i] = State.cumC_adunit[i] = State.cumD_adunit[i] = State.cumT_adunit[i] = State.cumH_adunit[i] =
 				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
@@ -2485,23 +2533,23 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 
 	//update state variables for storing contact distribution
-	for (i = 0; i < MAX_CONTACTS+1; i++) State.contact_dist[i] = 0;
+	for (int i = 0; i < MAX_CONTACTS+1; i++) State.contact_dist[i] = 0;
 
-	for (j = 0; j < MAX_NUM_THREADS; j++)
+	for (int j = 0; j < MAX_NUM_THREADS; j++)
 	{
 		StateT[j].L = StateT[j].I = StateT[j].R = StateT[j].D = 0;
 		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumH = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC
 			= StateT[j].cumHQ = StateT[j].cumAC = StateT[j].cumACS
 			= StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
 		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
-		for (i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
-		for (i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
-		for (i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
-		for (i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
+		for (int i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
+		for (int i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
+		for (int i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
+		for (int i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
 		//initialise cumulative case counts per country per thread to zero: ggilani 12/11/14
-		for (i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
+		for (int i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
 		if (P.DoAdUnits)
-			for (i = 0; i <= P.NumAdunits; i++)
+			for (int i = 0; i <= P.NumAdunits; i++)
 				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumD_adunit[i] = StateT[j].cumT_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] =
 				StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].nct_queue[i] = StateT[j].cumDCT_adunit[i] = StateT[j].DCT_adunit[i] = StateT[j].ndct_queue[i] = 0; //added hospitalisation, detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 
@@ -2520,16 +2568,26 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumDeath_ILI_adunit[AdminUnit] = StateT[j].cumDeath_SARI_adunit[AdminUnit] = StateT[j].cumDeath_Critical_adunit[AdminUnit] =
 				StateT[j].cumD_adunit[AdminUnit] =  0;
 			}
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				StateT[j].Mild_age[AgeGroup] = StateT[j].ILI_age[AgeGroup] =
+					StateT[j].SARI_age[AgeGroup] = StateT[j].Critical_age[AgeGroup] = StateT[j].CritRecov_age[AgeGroup] =
+					StateT[j].cumMild_age[AgeGroup] = StateT[j].cumILI_age[AgeGroup] =
+					StateT[j].cumSARI_age[AgeGroup] = StateT[j].cumCritical_age[AgeGroup] = StateT[j].cumCritRecov_age[AgeGroup] =
+					StateT[j].cumDeath_ILI_age[AgeGroup] = StateT[j].cumDeath_SARI_age[AgeGroup] = StateT[j].cumDeath_Critical_age[AgeGroup] = 0;
+			}
+
 		}
 		//resetting thread specific parameters for storing contact distribution
-		for (i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
+		for (int i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
 
 	}
 	nim = 0;
 
-#pragma omp parallel for private(tn,k) schedule(static,1)
-	for (tn = 0; tn < P.NumThreads; tn++)
-		for (k = tn; k < P.PopSize; k+= P.NumThreads)
+#pragma omp parallel for schedule(static,1) default(none) \
+		shared(P, Hosts)
+	for (int tn = 0; tn < P.NumThreads; tn++)
+		for (int k = tn; k < P.PopSize; k+= P.NumThreads)
 		{
 			Hosts[k].absent_start_time = USHRT_MAX - 1;
 			Hosts[k].absent_stop_time = 0;
@@ -2562,16 +2620,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 
-#pragma omp parallel for private(i,j,k,l,m,tn) reduction(+:nim) schedule(static,1)
-	for (tn = 0; tn < P.NumThreads; tn++)
+#pragma omp parallel for reduction(+:nim) schedule(static,1) default(none) \
+		shared(P, Cells, Hosts, Households)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NC; i+=P.NumThreads)
+		for (int i = tn; i < P.NC; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
-				for (j = 0; j < Cells[i].n; j++)
+				for (int j = 0; j < Cells[i].n; j++)
 				{
-					k = Cells[i].members[j];
+					int k = Cells[i].members[j];
 					Cells[i].susceptible[j] = k; //added this in here instead
 					Hosts[k].listpos = j;
 				}
@@ -2579,13 +2638,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Cells[i].L = Cells[i].I = Cells[i].R = Cells[i].cumTC = Cells[i].D = 0;
 				Cells[i].infected = Cells[i].latent = Cells[i].susceptible + Cells[i].S;
 				Cells[i].tot_treat = Cells[i].tot_vacc = 0;
-				for (l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
+				for (int l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
 
 				// Next loop needs to count down for DoImmune host list reordering to work
 				if(!P.DoPartialImmunity)
-					for (j = Cells[i].n - 1; j >= 0; j--)
+					for (int j = Cells[i].n - 1; j >= 0; j--)
 					{
-						k = Cells[i].members[j];
+						int k = Cells[i].members[j];
 						if (P.DoWholeHouseholdImmunity)
 						{
 	// note that this breaks determinism of runs if executed due to reordering of Cell members list each realisation
@@ -2596,7 +2655,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 									if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
 									{
 										nim += Households[Hosts[k].hh].nh;
-										for (m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
+										for (int m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
 											DoImmune(k + m);
 									}
 								}
@@ -2604,7 +2663,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 						}
 						else
 						{
-							m = HOST_AGE_GROUP(k);
+							int m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
 							{
 								DoImmune(k); nim += 1;
@@ -2615,10 +2674,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-#pragma omp parallel for private(i,j,k,l) schedule(static,500)
-	for (l = 0; l < P.NMCP; l++)
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, Mcells, McellLookup)
+	for (int l = 0; l < P.NMCP; l++)
 	{
-		i = (int)(McellLookup[l] - Mcells);
+		int i = (int)(McellLookup[l] - Mcells);
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
 		Mcells[i].treat_trig = Mcells[i].vacc_trig = Mcells[i].vacc = Mcells[i].treat = 0;
@@ -2629,10 +2689,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
 	}
 	if (P.DoPlaces)
-#pragma omp parallel for private(m,l) schedule(static,1)
-		for (m = 0; m < P.PlaceTypeNum; m++)
+#pragma omp parallel for schedule(static,1) default(none) \
+			shared(P, Places)
+		for (int m = 0; m < P.PlaceTypeNum; m++)
 		{
-			for(l=0;l<P.Nplace[m];l++)
+			for(int l = 0; l < P.Nplace[m]; l++)
 			{
 				Places[m][l].close_start_time = USHRT_MAX - 1;
 				Places[m][l].treat = Places[m][l].control_trig = 0;
@@ -2700,10 +2761,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 
 
-	for (i = 0; i < MAX_NUM_THREADS; i++)
+	for (int i = 0; i < MAX_NUM_THREADS; i++)
 	{
-		for (j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
-		for (j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
+		for (int j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
+		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
 	}
 	if (DoInitUpdateProbs)
 	{
@@ -2714,7 +2775,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun))
 	{
 		*nEvents = 0;
-		for (i = 0; i < P.MaxInfEvents; i++)
+		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
 			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
@@ -2722,7 +2783,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
+	for (int i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
 	SeedInfection(0, nsi, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -3299,10 +3360,10 @@ void SaveResults(void)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
 		fclose(dat);
 		}
-#if defined(WIN32_BM) || defined(IMAGE_MAGICK)
+#if defined(_WIN32) || defined(IMAGE_MAGICK)
 	static int dm[13] ={0,31,28,31,30,31,30,31,31,30,31,30,31};
 	int d, m, y, dml, f;
-#ifdef WIN32_BM
+#ifdef _WIN32
 	//if(P.OutputBitmap == 1) CloseAvi(avi);
 	//if((TimeSeries[P.NumSamples - 1].extinct) && (P.OutputOnlyNonExtinct))
 	//	{
@@ -3310,7 +3371,7 @@ void SaveResults(void)
 	//	DeleteFile(outname);
 	//	}
 #endif
-	if(P.OutputBitmap >= 1)
+	if(P.OutputBitmap >= 1 && P.BitmapFormat == BF_PNG)
 		{
 		// Generate Google Earth .kml file
 		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);
@@ -3808,7 +3869,128 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				c * TSMean[i].cumDeath_ILI, c * TSMean[i].cumDeath_SARI, c * TSMean[i].cumDeath_Critical);
 		}
 		fclose(dat);
+		if (P.OutputSeverityAge)
+		{
+			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
+			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
+			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
+			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
+			sc4a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
+			//// output severity results by age group
+			sprintf(outname, "%s.severity.age.xls", OutFile);
+			if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			fprintf(dat, "t");
+
+			/////// ****** /////// ****** /////// ****** COLNAMES
+			//// prevalance
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARIP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCriticalP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecovP_%i", i);
+
+			//// incidence
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARIP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCriticalP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecovP_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_ILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_SARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath__Critical_%i", i);
+
+			//// cumulative incidence
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumMild_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumSARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritical_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritRecov_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_ILI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_SARI_%i", i);
+			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_Critical_%i", i);
+
+			fprintf(dat, "\n");
+
+			/////// ****** /////// ****** /////// ****** Populate table.
+			for (i = 0; i < P.NumSamples; i++)
+			{
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+				{
+					if (i > 0)
+					{
+						SARI_a[j] = (TSMean[i].SARI_age[j] - TSMean[i - 1].SARI_age[j]) * sc2a + SARI_a[j] * sc1a;
+						Critical_a[j] = (TSMean[i].Critical_age[j] - TSMean[i - 1].Critical_age[j]) * sc3a + Critical_a[j] * sc1a;
+						CritRecov_a[j] = (TSMean[i].CritRecov_age[j] - TSMean[i - 1].CritRecov_age[j]) * sc4a + CritRecov_a[j] * sc1a;
+						incSARI_a[j] = TSMean[i].incSARI_age[j] * (1.0 - sc2a) + incSARI_a[j] * sc1a;
+						incCritical_a[j] = TSMean[i].incCritical_age[j] * (1.0 - sc3a) + incCritical_a[j] * sc1a;
+						incCritRecov_a[j] = TSMean[i].incCritRecov_age[j] * (1.0 - sc4a) + incCritRecov_a[j] * sc1a;
+					}
+					else
+					{
+						SARI_a[j] = TSMean[i].SARI_age[j] * sc2a;
+						Critical_a[j] = TSMean[i].Critical_age[j] * sc3a;
+						CritRecov_a[j] = TSMean[i].CritRecov_age[j] * sc4a;
+					}
+				}
+				fprintf(dat, "%.10f", c * TSMean[i].t);
+				//// prevalance
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Mild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Critical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].SARI_age[j] - SARI_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].Critical_age[j] - Critical_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_age[j] - CritRecov_a[j]));
+
+				//// incidence
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incSARI_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritical_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_age[j]);
+
+				//// cumulative incidence
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].cumDeath_ILI_age[j] + TSMean[i].cumDeath_SARI_age[j] + TSMean[i].cumDeath_Critical_age[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_age[j]);
+				fprintf(dat, "\n");
+			}
+			fclose(dat);
+			free(SARI_a); free(Critical_a); free(CritRecov_a);
+			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
+		}
 		if ((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
@@ -3926,7 +4108,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_adunit[j]);
 
-				if (i != P.NumSamples - 1) fprintf(dat, "\n");
+				fprintf(dat, "\n");
 			}
 			fclose(dat);
 			free(SARI_a); free(Critical_a); free(CritRecov_a);
@@ -4022,17 +4204,17 @@ void LoadSnapshot(void)
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	zfread_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	zfread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	for (i = 0; i < P.NC; i++)
 	{
@@ -4096,19 +4278,19 @@ void SaveSnapshot(void)
 	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)Hosts, sizeof(person), (size_t)P.PopSize, dat);
+	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Households, sizeof(household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Cells, sizeof(cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)Mcells, sizeof(microcell), (size_t)P.NMC, dat);
+	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	zfwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
-	zfwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fclose(dat);
@@ -4116,12 +4298,11 @@ void SaveSnapshot(void)
 
 void UpdateProbs(int DoPlace)
 {
-	int j;
-
 	if (!DoPlace)
 	{
-#pragma omp parallel for private(j) schedule(static,500)
-		for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+			shared(P, CellLookup)
+		for (int j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->tot_prob = 0;
 			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
@@ -4134,15 +4315,17 @@ void UpdateProbs(int DoPlace)
 	}
 	else
 	{
-#pragma omp parallel for private(j) schedule(static,500)
-		for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+			shared(P, CellLookup)
+		for (int j = 0; j < P.NCP; j++)
 		{
 			CellLookup[j]->S0 = CellLookup[j]->S;
 			CellLookup[j]->tot_prob = 0;
 		}
 	}
-#pragma omp parallel for private(j) schedule(static,500)
-	for (j = 0; j < P.NCP; j++)
+#pragma omp parallel for schedule(static,500) default(none) \
+		shared(P, CellLookup)
+	for (int j = 0; j < P.NCP; j++)
 	{
 		int m, k;
 		float t;
@@ -4164,7 +4347,6 @@ void UpdateProbs(int DoPlace)
 		}
 	}
 }
-
 
 int ChooseTriggerVariableAndValue(int AdUnit)
 {
@@ -4280,7 +4462,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants.
 				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
-						P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime] - 1;
+					P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime]; // -1;
 				//fprintf(stderr, "\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
 			}
 	}
@@ -4298,14 +4480,13 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 void RecordSample(double t, int n)
 {
-	int i, j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC;
+	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC;
 	int cumH; //add number of hospitalised, cumulative hospitalisation: ggilani 28/10/14
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
 	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	cell* ct;
 	unsigned short int ts;
 	double s,thr;
 
@@ -4316,14 +4497,15 @@ void RecordSample(double t, int n)
 
 	//// initialize to zero
 	S = L = I = R = D = cumI = cumC = cumDC = cumTC = cumFC = cumHQ = cumAC = cumAA = cumAH = cumACS = cumAPC = cumAPA = cumAPCS = cumD = cumH = cumCT = cumCC = cumDCT = 0;
-	for (i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
+	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
 	if (P.DoSeverity)
 		Mild = ILI = SARI = Critical = CritRecov = cumMild = cumILI = cumSARI = cumCritical = cumCritRecov = cumDeath_ILI = cumDeath_SARI = cumDeath_Critical = 0;
 
-#pragma omp parallel for private(i,ct) schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) //added i to private
-	for (i = 0; i < P.NCP; i++)
+#pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
+		shared(P, CellLookup)
+	for (int i = 0; i < P.NCP; i++)
 	{
-		ct = CellLookup[i];
+		Cell* ct = CellLookup[i];
 		S += (int)ct->S;
 		L += (int)ct->L;
 		I += (int)ct->I;
@@ -4380,7 +4562,7 @@ void RecordSample(double t, int n)
 		}
 
 		//add up cumulative country counts: ggilani - 12/11/14
-		for (i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] += StateT[j].cumC_country[i];
+		for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] += StateT[j].cumC_country[i];
 		if (State.maxRad2 < StateT[j].maxRad2) State.maxRad2 = StateT[j].maxRad2;
 	}
 	for (j = 0; j < P.NumThreads; j++)
@@ -4418,7 +4600,7 @@ void RecordSample(double t, int n)
 	TimeSeries[n].cumDC = cumDC;
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
-	for (i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
 		trigDC = cumCritical;
@@ -4499,8 +4681,78 @@ void RecordSample(double t, int n)
 		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
 		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
 
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+		{
+			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
+			//// First subtract old total while unchanged.
+			TimeSeries[n].incMild_age[i] = (double)(-State.cumMild_age[i]);
+			TimeSeries[n].incILI_age[i] = (double)(-State.cumILI_age[i]);
+			TimeSeries[n].incSARI_age[i] = (double)(-State.cumSARI_age[i]);
+			TimeSeries[n].incCritical_age[i] = (double)(-State.cumCritical_age[i]);
+			TimeSeries[n].incCritRecov_age[i] = (double)(-State.cumCritRecov_age[i]);
+			TimeSeries[n].incDeath_ILI_age[i] = (double)(-State.cumDeath_ILI_age[i]);
+			TimeSeries[n].incDeath_SARI_age[i] = (double)(-State.cumDeath_SARI_age[i]);
+			TimeSeries[n].incDeath_Critical_age[i] = (double)(-State.cumDeath_Critical_age[i]);
+
+			State.Mild_age[i] = 0;
+			State.ILI_age[i] = 0;
+			State.SARI_age[i] = 0;
+			State.Critical_age[i] = 0;
+			State.CritRecov_age[i] = 0;
+			State.cumMild_age[i] = 0;
+			State.cumILI_age[i] = 0;
+			State.cumSARI_age[i] = 0;
+			State.cumCritical_age[i] = 0;
+			State.cumCritRecov_age[i] = 0;
+			State.cumDeath_ILI_age[i] = 0;
+			State.cumDeath_SARI_age[i] = 0;
+			State.cumDeath_Critical_age[i] = 0;
+
+			for (j = 0; j < P.NumThreads; j++)
+			{
+				//// collate from threads
+				State.Mild_age[i] += StateT[j].Mild_age[i];
+				State.ILI_age[i] += StateT[j].ILI_age[i];
+				State.SARI_age[i] += StateT[j].SARI_age[i];
+				State.Critical_age[i] += StateT[j].Critical_age[i];
+				State.CritRecov_age[i] += StateT[j].CritRecov_age[i];
+				State.cumMild_age[i] += StateT[j].cumMild_age[i];
+				State.cumILI_age[i] += StateT[j].cumILI_age[i];
+				State.cumSARI_age[i] += StateT[j].cumSARI_age[i];
+				State.cumCritical_age[i] += StateT[j].cumCritical_age[i];
+				State.cumCritRecov_age[i] += StateT[j].cumCritRecov_age[i];
+				State.cumDeath_ILI_age[i] += StateT[j].cumDeath_ILI_age[i];
+				State.cumDeath_SARI_age[i] += StateT[j].cumDeath_SARI_age[i];
+				State.cumDeath_Critical_age[i] += StateT[j].cumDeath_Critical_age[i];
+			}
+
+			//// Record incidence. Need new total minus old total. Add new total
+			TimeSeries[n].incMild_age[i] += (double)(State.cumMild_age[i]);
+			TimeSeries[n].incILI_age[i] += (double)(State.cumILI_age[i]);
+			TimeSeries[n].incSARI_age[i] += (double)(State.cumSARI_age[i]);
+			TimeSeries[n].incCritical_age[i] += (double)(State.cumCritical_age[i]);
+			TimeSeries[n].incCritRecov_age[i] += (double)(State.cumCritRecov_age[i]);
+			TimeSeries[n].incDeath_ILI_age[i] += (double)(State.cumDeath_ILI_age[i]);
+			TimeSeries[n].incDeath_SARI_age[i] += (double)(State.cumDeath_SARI_age[i]);
+			TimeSeries[n].incDeath_Critical_age[i] += (double)(State.cumDeath_Critical_age[i]);
+
+			//// Record new totals for time series. (Must be done with old State totals)
+			TimeSeries[n].Mild_age[i] = State.Mild_age[i];
+			TimeSeries[n].ILI_age[i] = State.ILI_age[i];
+			TimeSeries[n].SARI_age[i] = State.SARI_age[i];
+			TimeSeries[n].Critical_age[i] = State.Critical_age[i];
+			TimeSeries[n].CritRecov_age[i] = State.CritRecov_age[i];
+			TimeSeries[n].cumMild_age[i] = State.cumMild_age[i];
+			TimeSeries[n].cumILI_age[i] = State.cumILI_age[i];
+			TimeSeries[n].cumSARI_age[i] = State.cumSARI_age[i];
+			TimeSeries[n].cumCritical_age[i] = State.cumCritical_age[i];
+			TimeSeries[n].cumCritRecov_age[i] = State.cumCritRecov_age[i];
+			TimeSeries[n].cumDeath_ILI_age[i] = State.cumDeath_ILI_age[i];
+			TimeSeries[n].cumDeath_SARI_age[i] = State.cumDeath_SARI_age[i];
+			TimeSeries[n].cumDeath_Critical_age[i] = State.cumDeath_Critical_age[i];
+		}
 		if (P.DoAdUnits)
-			for (i = 0; i <= P.NumAdunits; i++)
+			for (int i = 0; i <= P.NumAdunits; i++)
 			{
 				//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 				//// First subtract old total while unchanged.
@@ -4579,13 +4831,13 @@ void RecordSample(double t, int n)
 	}
 
 	//update cumulative cases per country
-	for (i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = cumC_country[i];
+	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = cumC_country[i];
 	//update overall state variable for cumulative cases per adunit
 
 	TimeSeries[n].rmsRad = (State.cumI > 0) ? sqrt(State.sumRad2 / ((double)State.cumI)) : 0;
 	TimeSeries[n].maxRad = sqrt(State.maxRad2);
 	TimeSeries[n].extinct = ((((P.SmallEpidemicCases >= 0) && (State.R <= P.SmallEpidemicCases)) || (P.SmallEpidemicCases < 0)) && (State.I + State.L == 0)) ? 1 : 0;
-	for (i = 0; i < NUM_AGE_GROUPS; i++)
+	for (int i = 0; i < NUM_AGE_GROUPS; i++)
 	{
 		TimeSeries[n].incCa[i] = TimeSeries[n].incIa[i] = TimeSeries[n].incDa[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4596,7 +4848,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	for (i = 0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		TimeSeries[n].incC_keyworker[i] = TimeSeries[n].incI_keyworker[i] = TimeSeries[n].cumT_keyworker[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4608,7 +4860,7 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	for (i = 0; i < INFECT_TYPE_MASK; i++)
+	for (int i = 0; i < INFECT_TYPE_MASK; i++)
 	{
 		TimeSeries[n].incItype[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
@@ -4618,7 +4870,7 @@ void RecordSample(double t, int n)
 		}
 	}
 	if (P.DoAdUnits)
-		for (i = 0; i <= P.NumAdunits; i++)
+		for (int i = 0; i <= P.NumAdunits; i++)
 		{
 			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
@@ -4647,10 +4899,10 @@ void RecordSample(double t, int n)
 			}
 		}
 	if (P.DoDigitalContactTracing)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			TimeSeries[n].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
 	if (P.DoPlaces)
-		for (i = 0; i < NUM_PLACE_TYPES; i++)
+		for (int i = 0; i < NUM_PLACE_TYPES; i++)
 		{
 			numPC = 0;
 			for (j = 0; j < P.Nplace[i]; j++)
@@ -4658,11 +4910,11 @@ void RecordSample(double t, int n)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
+	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
 	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
 
 	//update contact number distribution in State
-	for (i = 0; i < (MAX_CONTACTS+1); i++)
+	for (int i = 0; i < (MAX_CONTACTS+1); i++)
 	{
 		for (j = 0; j < P.NumThreads; j++)
 		{
@@ -4772,7 +5024,7 @@ void RecordSample(double t, int n)
 			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
 
 		//// Set Case isolation start time (by admin unit)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
@@ -4782,7 +5034,7 @@ void RecordSample(double t, int n)
 			}
 
 		//// Set Household Quarantine start time (by admin unit)
-		for (i = 0; i < P.NumAdunits; i++)
+		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
@@ -4793,7 +5045,7 @@ void RecordSample(double t, int n)
 
 		//// Set DigitalContactTracingTimeStart
 		if (P.DoDigitalContactTracing)
-			for (i = 0; i < P.NumAdunits; i++)
+			for (int i = 0; i < P.NumAdunits; i++)
 				if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 				{
 					if (P.DoInterventionDelaysByAdUnit)
@@ -4813,14 +5065,14 @@ void RecordSample(double t, int n)
 				DoOrDontAmendStartTime(&P.SocDistTimeStart, t + P.SocDistTimeStartBase);
 				//added this for admin unit based intervention delays based on a global trigger: ggilani 17/03/20
 				if (P.DoInterventionDelaysByAdUnit)
-					for (i = 0; i < P.NumAdunits; i++)
+					for (int i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].SocialDistanceTimeStart, t + AdUnits[i].SocialDistanceDelay);
 			}
 			if (TriggerValue >= P.PlaceCloseCellIncThresh)
 			{
 				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
 				if (P.DoInterventionDelaysByAdUnit)
-					for (i = 0; i < P.NumAdunits; i++)
+					for (int i = 0; i < P.NumAdunits; i++)
 						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t + AdUnits[i].PlaceCloseDelay);
 			}
 			if (TriggerValue >= P.MoveRestrCellIncThresh)
@@ -4852,7 +5104,7 @@ void RecordSample(double t, int n)
 		P.SocDistSpatialEffectCurrent = P.SocDistSpatialEffect2;
 		P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
 		P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
-		for (i = 0; i < P.PlaceTypeNum; i++)
+		for (int i = 0; i < P.PlaceTypeNum; i++)
 		{
 			P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
 			P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];
@@ -4878,8 +5130,6 @@ void RecordSample(double t, int n)
 			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
 		}
 	}
-
-
 
 	if (P.OutputBitmap >= 1)
 	{
@@ -5005,7 +5255,7 @@ void RecordInfTypes(void)
 			s += (TimeSeries[n].Rtype[i] /= TimeSeries[n].Rdenom);
 		TimeSeries[n].Rdenom = s;
 	}
-	nf = sizeof(results) / sizeof(double);
+	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
 	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
 	if (TimeSeries[P.NumSamples - 1].extinct)
@@ -5054,29 +5304,27 @@ void CalcOriginDestMatrix_adunit()
 	 *
 	 * author: ggilani, date: 28/01/15
 	 */
-	int tn, i, j, k, l, m, p;
-	double total_flow, flow;
-	ptrdiff_t cl_from, cl_to, cl_from_mcl, cl_to_mcl, mcl_from, mcl_to;
 
-#pragma omp parallel for private(tn,i,j,k,l,m,p,total_flow,mcl_from,mcl_to,cl_from,cl_to,cl_from_mcl,cl_to_mcl,flow) schedule(static) //reduction(+:s,t2)
-	for (tn = 0; tn < P.NumThreads; tn++)
+#pragma omp parallel for schedule(static) default(none) \
+		shared(P, Cells, CellLookup, Mcells, StateT)
+	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (i = tn; i < P.NCP; i += P.NumThreads)
+		for (int i = tn; i < P.NCP; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
 			double pop_dens_from[MAX_ADUNITS] = {};
 
 			//find index of cell from which flow travels
-			cl_from = CellLookup[i] - Cells;
-			cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from = CellLookup[i] - Cells;
+			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.nmch + (cl_from % P.nch) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
-			for (k = 0; k < P.NMCL; k++)
+			for (int k = 0; k < P.NMCL; k++)
 			{
-				for (l = 0; l < P.NMCL; l++)
+				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					mcl_from = cl_from_mcl + l + k * P.nmch;
+					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.nmch;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5085,16 +5333,17 @@ void CalcOriginDestMatrix_adunit()
 				}
 			}
 
-			for (j = i; j < P.NCP; j++)
+			for (int j = i; j < P.NCP; j++)
 			{
 				//reset pop density matrix to zero
 				double pop_dens_to[MAX_ADUNITS] = {};
 
 				//find index of cell which flow travels to
-				cl_to = CellLookup[j] - Cells;
-				cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to = CellLookup[j] - Cells;
+				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.nmch + (cl_to % P.nch) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
+				double total_flow;
 				if (j == 0)
 				{
 					total_flow = Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
@@ -5105,12 +5354,12 @@ void CalcOriginDestMatrix_adunit()
 				}
 
 				//loop over microcells within destination cell
-				for (m = 0; m < P.NMCL; m++)
+				for (int m = 0; m < P.NMCL; m++)
 				{
-					for (p = 0; p < P.NMCL; p++)
+					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						mcl_to = cl_to_mcl + p + m * P.nmch;
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.nmch;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
@@ -5119,13 +5368,13 @@ void CalcOriginDestMatrix_adunit()
 					}
 				}
 
-				for (m = 0; m < P.NumAdunits; m++)
+				for (int m = 0; m < P.NumAdunits; m++)
 				{
-					for (p = 0; p < P.NumAdunits; p++)
+					for (int p = 0; p < P.NumAdunits; p++)
 					{
 						if (m != p)
 						{
-							flow = total_flow * pop_dens_from[m] * pop_dens_to[p]; //updated to remove reference to cross-border flows: ggilani 26/03/20
+							double flow = total_flow * pop_dens_from[m] * pop_dens_to[p]; //updated to remove reference to cross-border flows: ggilani 26/03/20
 							StateT[tn].origin_dest[m][p] += flow;
 							StateT[tn].origin_dest[p][m] += flow;
 						}
@@ -5181,17 +5430,16 @@ void CalcOriginDestMatrix_adunit()
 	}
 
 	//Sum up flow between adunits across threads
-	for (i = 0; i < P.NumAdunits; i++)
+	for (int i = 0; i < P.NumAdunits; i++)
 	{
-		for (j = 0; j < P.NumAdunits; j++)
+		for (int j = 0; j < P.NumAdunits; j++)
 		{
-			for (k = 0; k < P.NumThreads; k++)
+			for (int k = 0; k < P.NumThreads; k++)
 			{
 				AdUnits[i].origin_dest[j] += StateT[k].origin_dest[i][j];
 			}
 		}
 	}
-
 }
 
 //// Get parameters code (called by ReadParams function)
@@ -5398,5 +5646,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
+
+/* helper function to set icdf arrays */
+void SetICDF(double* icdf, int startValue)
+{
+	icdf[CDF_RES] = startValue;
+	for (int i = 0; i < CDF_RES; i++)
+		icdf[i] = -log(1 - ((double)i) / CDF_RES);
+}
+
+
 
 

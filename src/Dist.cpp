@@ -7,9 +7,9 @@
 
 double sinx[361], cosx[361], asin2sqx[1001];
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** DISTANCE FUNCTIONS (return distance-squared, which is input for every Kernel function)
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** 
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 double dist2UTM(double x1, double y1, double x2, double y2)
 {
@@ -22,9 +22,7 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	x -= xi;
 	y -= yi;
 	x = (1 - x) * sinx[(int)xi] + x * sinx[((int)xi) + 1];
-	x = x * x;
 	y = (1 - y) * sinx[(int)yi] + y * sinx[((int)yi) + 1];
-	y = y * y;
 	yt = fabs(y1 + P.SpatialBoundingBox[1]);
 	yi = floor(yt);
 	cy1 = yt - yi;
@@ -33,13 +31,13 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	yi = floor(yt);
 	cy2 = yt - yi;
 	cy2 = (1 - cy2) * cosx[((int)yi)] + cy2 * cosx[((int)yi) + 1];
-	x = fabs(1000 * (y + x * cy1 * cy2));
+	x = fabs(1000 * (y * y + x * x * cy1 * cy2));
 	xi = floor(x);
 	x -= xi;
 	y = (1 - x) * asin2sqx[((int)xi)] + x * asin2sqx[((int)xi) + 1];
 	return 4 * EARTHRADIUS * EARTHRADIUS * y;
 }
-double dist2(person* a, person* b)
+double dist2(Person* a, Person* b)
 {
 	double x, y;
 
@@ -57,7 +55,7 @@ double dist2(person* a, person* b)
 		return x * x + y * y;
 	}
 }
-double dist2_cc(cell* a, cell* b)
+double dist2_cc(Cell* a, Cell* b)
 {
 	double x, y;
 	int l, m;
@@ -79,7 +77,7 @@ double dist2_cc(cell* a, cell* b)
 		return x * x + y * y;
 	}
 }
-double dist2_cc_min(cell* a, cell* b)
+double dist2_cc_min(Cell* a, Cell* b)
 {
 	double x, y;
 	int l, m, i, j;
@@ -150,7 +148,7 @@ double dist2_cc_min(cell* a, cell* b)
 		return x * x + y * y;
 	}
 }
-double dist2_mm(microcell* a, microcell* b)
+double dist2_mm(Microcell* a, Microcell* b)
 {
 	double x, y;
 	int l, m;
