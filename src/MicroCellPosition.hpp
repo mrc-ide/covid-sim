@@ -2,8 +2,8 @@
 
 class MicroCellPosition {
 public:
-	const int x;
-	const int y;
+	int x;
+	int y;
 
 	MicroCellPosition(int x, int y);
 };

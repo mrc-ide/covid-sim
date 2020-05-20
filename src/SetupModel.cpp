@@ -1849,7 +1849,7 @@ void AssignHouseholdAges(int n, int pers, int tn)
 
 void AssignPeopleToPlaces(void)
 {
-	int i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, mx, my, a, cnt, ca, nt, nn;
+	int i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
@@ -2113,15 +2113,15 @@ void AssignPeopleToPlaces(void)
 						l = 1; k = m = m2 = f2 = 0;
 						int i = PeopleArray[j];
 						ic = Hosts[i].mcell;
-						mx = ic / P.get_number_of_micro_cells_high();
-						my = ic % P.get_number_of_micro_cells_high();
+
+						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
 							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
-								if ((mx >= 0) && (my >= 0) && (mx < P.get_number_of_micro_cells_wide()) && (my < P.get_number_of_micro_cells_high()))
+								if ((mc_position.x >= 0) && (mc_position.y >= 0) && (mc_position.x < P.get_number_of_micro_cells_wide()) && (mc_position.y < P.get_number_of_micro_cells_high()))
 								{
-									ic = mx * P.get_number_of_micro_cells_high() + my;
+									ic = mc_position.x * P.get_number_of_micro_cells_high() + mc_position.y;
 									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
@@ -2172,13 +2172,13 @@ void AssignPeopleToPlaces(void)
 									}
 								}
 								if (m2 == 0)
-									mx = mx + 1;
+									mc_position.x += 1;
 								else if (m2 == 1)
-									my = my - 1;
+									mc_position.y -= 1;
 								else if (m2 == 2)
-									mx = mx - 1;
+									mc_position.x -= 1;
 								else if (m2 == 3)
-									my = my + 1;
+									mc_position.y += 1;
 								f2 = (f2 + 1) % l;
 								if (f2 == 0)
 								{

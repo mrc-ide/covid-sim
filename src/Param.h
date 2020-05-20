@@ -3,6 +3,7 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "MicroCellPosition.hpp"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
@@ -42,6 +43,7 @@ struct Param
 
 	int get_number_of_micro_cells_wide() const;
 	int get_number_of_micro_cells_high() const;
+	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
