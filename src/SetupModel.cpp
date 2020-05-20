@@ -1124,7 +1124,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
-		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr_shared)
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, RegDemogFile, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
