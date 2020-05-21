@@ -42,7 +42,7 @@ double dist2(Person* a, Person* b)
 	double x, y;
 
 	if (P.DoUTM_coords)
-		return dist2UTM(Households[a->hh].loc_x, Households[a->hh].loc_y, Households[b->hh].loc_x, Households[b->hh].loc_y);
+		return Households[a->hh].loc.distance_squared_to(Households[b->hh].loc);
 	else
 	{
 		x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
