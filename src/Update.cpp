@@ -1260,11 +1260,10 @@ void DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
 
+	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+		return;
 	if (State.cumV >= P.VaccMaxCourses)
 		return;
-	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
-		return;
-	else
 	{
 		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
 
