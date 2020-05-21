@@ -700,7 +700,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
-	double t, s, x, y, xh, yh, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
+	double t, s, x, y, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
 	char buf[4096], *col;
 	const char delimiters[] = " \t,";
 	FILE* dat = NULL, *dat2;
@@ -1131,8 +1131,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			for (int k = 0; k < Mcells[j].n;)
 			{
 				m = Hosts[i].listpos;
-				xh = P.in_microcells_.width_ * (ranf_mt(tn) + x);
-				yh = P.in_microcells_.height_ * (ranf_mt(tn) + y);
+				double xh = P.in_microcells_.width_ * (ranf_mt(tn) + x);
+				double yh = P.in_microcells_.height_ * (ranf_mt(tn) + y);
 				AssignHouseholdAges(m, i, tn);
 				for (i2 = 0; i2 < m; i2++) Hosts[i + i2].listpos = 0;
 				if (P.DoHouseholds)
@@ -1144,8 +1144,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				Households[Hosts[i].hh].FirstPerson = i;
 				Households[Hosts[i].hh].nh = m;
 				Households[Hosts[i].hh].nhr = m;
-				Households[Hosts[i].hh].loc_x = (float)xh;
-				Households[Hosts[i].hh].loc_y = (float)yh;
+				Households[Hosts[i].hh].loc = Location(xh, yh);
 				i += m;
 				k += m;
 			}

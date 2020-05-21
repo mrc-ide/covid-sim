@@ -2343,7 +2343,7 @@ void ReadAirTravel(char* AirTravelFile)
 	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
-		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
+		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
