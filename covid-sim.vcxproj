@@ -102,10 +102,11 @@
     <ClCompile Include="src\Sweep.cpp" />
     <ClCompile Include="src\Update.cpp" />
     <ClCompile Include="src\Param.cpp" />
-    <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
-    <ClCompile Include="src\Coordinates\Location.cpp" />
     <ClCompile Include="src\Household.cpp" />
+    <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
+    <ClCompile Include="src\Coordinates\Location.cpp" />
+    <ClInclude Include="src\Coordinates\Vector2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -126,10 +127,11 @@
     <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />
-    <ClInclude Include="src\Coordinates\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
-    <ClInclude Include="src\Coordinates\Location.hpp" />
     <ClInclude Include="src\Household.hpp" />
+    <ClInclude Include="src\Coordinates\MicroCellPosition.hpp" />
+    <ClInclude Include="src\Coordinates\Location.hpp" />
+    <ClInclude Include="src\Coordinates\Vector2.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

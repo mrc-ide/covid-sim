@@ -43,8 +43,7 @@ double dist2(Person* a, Person* b)
 		return Households[a->hh].distance_squared_to(Households[b->hh]);
 	else
 	{
-		double x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
-		double y = fabs(Households[a->hh].loc_y - Households[b->hh].loc_y);
+		Vector2<float> delta = (Households[a->hh].loc - Households[b->hh].loc).abs();
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;

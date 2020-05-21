@@ -3,21 +3,6 @@
 #include "Location.hpp"
 #include "Dist.h"
 
-Location::Location() :
-	x(0),
-	y(0)
-{}
-
-Location::Location(float x, float y) :
-	x(x),
-	y(y)
-{}
-
-Location::Location(double x, double y) :
-	x((float)x),
-	y((float)y)
-{}
-
 float Location::distance_to(Location other) const {
 	return std::sqrt(this->distance_squared_to(other));
 }
