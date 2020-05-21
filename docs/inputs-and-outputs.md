@@ -35,6 +35,7 @@ A typical run specifies:
 CovidSim
     /O:OutputFilesPrefix
     /P:ParameterFile
+    [/NR:NumberOfRealisations]
     [/A:AdminParamFile]
     [/AP:AirTravelFile]
     [/c:NumThreads]
@@ -70,11 +71,13 @@ Required arguments:
 
 Optional Arguments:
 
+- `/NR` - specified the number of simulation realisations (independent runs with the same
+parameters) to run at once and average over in the output files.
 - `/A` - [Administrative division](./glossary.md#Administrative\ Division) parameter file
   - Example: `/A:./data/admin_units/United_Kingdom_admin.txt`
 - `/AP` Air travel data for a specific geography (unused currently)
-- `[/BM:format]`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when
- available) `PNG`.  Default is `PNG` if available, otherwise `BMP`.
+- `/BM:format`.  Specifies the output bitmap format.  Valid choices are `BMP`, or (when
+ available) `PNG` - Default is `PNG` if available, otherwise `BMP`.
 - `/c` - Number of parallel threads to use (only used if compiled with OpenMP)
   - Example: `/c:32`
 - `/C` - Sets the `P.PlaceCloseIndepThresh` parameter.
