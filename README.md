@@ -36,7 +36,7 @@ to:
 
 ## Building
 
-The model is written in C++ and runs on Windows and Linux-based systems.
+The model is written in C++ and runs on Windows, macOS and Linux-based systems.
 
 Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
