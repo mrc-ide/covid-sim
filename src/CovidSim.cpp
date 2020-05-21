@@ -1141,11 +1141,12 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
 		}
 		//// Get ICDFs
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf.GetCDFValues(), CDF_RES + 1, 1, 0))
 		{
-			SetICDF(P.MildToRecovery_icdf, ICDF_START);
+			P.MildToRecovery_icdf.SetDefaults(ICDF_START);
 		}
-		for(i = 0; i <= CDF_RES; i++) P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
+
+		P.MildToRecovery_icdf.ApplyExponent();
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0))
 		{
