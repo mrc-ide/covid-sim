@@ -14,7 +14,7 @@ endif()
 if(WIN32)
   target_link_libraries(CovidSim PUBLIC Gdiplus.lib Vfw32.lib)
   target_compile_definitions(CovidSim PUBLIC  "_CRT_SECURE_NO_WARNINGS")
-
+  add_compile_options("fp:strict")
   # Configure using BMP or PNG images.
   if(NOT USE_WIN32_BMP)
     add_compile_definitions("NO_WIN32_BM")

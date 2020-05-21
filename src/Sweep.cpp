@@ -326,9 +326,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						int l = Households[si->hh].FirstPerson;
 						int m = l + Households[si->hh].nh;
 						s3 = hbeta * CalcHouseInf(ci, ts);
+
 						f = 0;
 						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
-							f = HOST_ABSENT(i3);
+							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
+								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
+									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
+
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
@@ -548,7 +552,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
 						if (fct) s2 *= P.ScalingFactorSpatialDigitalContacts;
 					}
-					if (HOST_ABSENT(ci)) //// if place is closed then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness _
+					f = 0;
+					if (P.DoPlaces)
+						for (int i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
+							if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
+								f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
+
+					if((f) && (HOST_ABSENT(ci))) //// if place is closed and person is absent then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness
 					{
 						s2 *= P.PlaceCloseSpatialRelContact;
 						/* NumPCD++; */
@@ -673,8 +683,16 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
 										s *= P.MoveRestrEffect;
-									if (!f) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
-										if (HOST_ABSENT(i3)) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+									if ((!f)&& (HOST_ABSENT(i3))) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
+									{
+										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
+											if (Hosts[i3].PlaceLinks[m] >= 0)
+											{
+												f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
+											}
+										if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+										f2 = 0;
+									}
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
@@ -744,11 +762,9 @@ void IncubRecoverySweep(double t, int run)
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
 								int l = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][k].close_start_time > l)
-									Places[j][k].close_start_time = (unsigned short) l;
+								if (Places[j][k].close_start_time > l)  Places[j][k].close_start_time = (unsigned short) l;
 								int b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][k].close_end_time < b)
-									Places[j][k].close_end_time = (unsigned short) b;
+								if (Places[j][k].close_end_time < b)	  Places[j][k].close_end_time = (unsigned short) b;
 								for (int ci = 0; ci < Places[j][k].n; ci++)
 								{
 									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
