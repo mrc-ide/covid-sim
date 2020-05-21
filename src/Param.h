@@ -12,6 +12,16 @@ enum BitmapFormats
   BF_BMP = 1   // BMP - fall-back
 };
 
+/// Size of spatial domain in various units
+struct DomainSize
+{
+	/// The width
+	double width_;
+
+	/// The height
+	double height_;
+};
+
 /**
  * @brief Stores the parameters for the simulation.
  *
@@ -91,9 +101,9 @@ struct Param
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 	double scalex, scaley; // Number of pixels per degree in bitmap output
-	double width, height; // Size of spatial domain in degrees
-	double cwidth, cheight; // Size of spatial domain in cells
-	double mcwidth, mcheight; // Size of spatial domain in microcells
+	DomainSize in_degrees_; ///< Size of spatial domain in degrees
+	DomainSize in_cells_; ///< Size of spatial domain in cells
+	DomainSize in_microcells_; ///< Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;
