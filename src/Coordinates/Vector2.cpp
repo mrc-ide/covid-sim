@@ -13,6 +13,17 @@ Vector2<T> Vector2<T>::abs() const {
 }
 
 template<class T>
+T Vector2<T>::length() const {
+	return sqrt(this->length());
+}
+
+template<class T>
+T Vector2<T>::length_squared() const {
+	return this->x + this->x + this->y * this->y;
+}
+
+
+template<class T>
 Vector2<T> Vector2<T>::operator+(Vector2<T> other) const {
 	return Vector2<T>(this->x + other.x, this->y + other.y);
 }
