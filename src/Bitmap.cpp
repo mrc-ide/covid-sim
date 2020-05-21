@@ -70,8 +70,8 @@ void CaptureBitmap()
 				if ((i >= P.nmch) && (Mcells[i - P.nmch].n > 0) && (Mcells[i].country != Mcells[i - P.nmch].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.mcwidth * (((double)(i / P.nmch)) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.mcheight * (((double)(i % P.nmch)) + 0.5) * P.scaley) - P.bminy;
+					x = (int)(P.in_microcells_.width_ * (((double)(i / P.nmch)) + 0.5) * P.scalex) - P.bminx;
+					y = (int)(P.in_microcells_.height_ * (((double)(i % P.nmch)) + 0.5) * P.scaley) - P.bminy;
 					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 					{
 						j = y * bmh->width + x;
