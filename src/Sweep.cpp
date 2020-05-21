@@ -326,13 +326,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						int l = Households[si->hh].FirstPerson;
 						int m = l + Households[si->hh].nh;
 						s3 = hbeta * CalcHouseInf(ci, ts);
-            
+
 						f = 0;
 						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
 							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
 								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
 									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
-            
+
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
@@ -554,7 +554,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					}
 					f = 0;
 					if (P.DoPlaces)
-						for (i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
+						for (int i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
 							if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
 								f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
 
@@ -683,7 +683,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
 										s *= P.MoveRestrEffect;
-									if ((!f)&& (HOST_ABSENT(i3))) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility. 
+									if ((!f)&& (HOST_ABSENT(i3))) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
 									{
 										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
 											if (Hosts[i3].PlaceLinks[m] >= 0)
