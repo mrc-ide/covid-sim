@@ -2792,7 +2792,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (int i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
+	for (int i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i] * P.SeedingScaling + 0.5);
 	SeedInfection(0, nsi, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -4518,6 +4518,18 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		}
 }
 
+bool IsCalibGoodEnough(double RatioPredictedObserved, double DesiredAccuracy)
+{
+	return	(RatioPredictedObserved >= 1	&& ((RatioPredictedObserved - 1.0) <= DesiredAccuracy))		|| // if ratio >= 1, check whether difference less than threshold.
+			(RatioPredictedObserved < 1		&& (1.0 - RatioPredictedObserved) <= (DesiredAccuracy / 2)	); // if ratio < 1, is difference less than half of threshold.
+}
+void StopCalib()
+{
+	P.ModelCalibIteration	= 100;
+	P.StopCalibration		= 1;
+	fprintf(stderr, "Calibration ended.\n");
+}
+
 void RecordSample(double t_double, int t_int)
 {
 	//// function arguments both refer to simulation time: only difference one is an int, another a double. Both have same value.
@@ -4527,10 +4539,9 @@ void RecordSample(double t_double, int t_int)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t_double); // needed for PLACE_CLOSE macro.
-	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
@@ -4641,6 +4652,8 @@ void RecordSample(double t_double, int t_int)
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
 	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[t_int].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+
+	int trigDC; /// cases trigger (either cumulative Critical cases or cumulative detected cases)
 	if (P.DoICUTriggers)
 	{
 		trigDC = cumCritical;
@@ -4951,7 +4964,7 @@ void RecordSample(double t_double, int t_int)
 			TimeSeries[t_int].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
 	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
-	TimeSeries[t_int].PropSocDist=((double)k)/((double)P.NMC);
+	TimeSeries[t_int].PropSocDist = ((double)k)/((double)P.NMC);
 
 	//update contact number distribution in State
 	for (int i = 0; i < (MAX_CONTACTS+1); i++)
@@ -4963,8 +4976,9 @@ void RecordSample(double t_double, int t_int)
 		}
 	}
 
-	trigAlertC = State.cumDC;
-	if (t_int >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[t_int - P.PreControlClusterIdDuration].cumDC;
+	int trigAlert, trigAlert_Cases;
+	trigAlert_Cases = State.cumDC;
+	if (t_int >= P.PreControlClusterIdDuration) trigAlert_Cases -= (int)TimeSeries[t_int - P.PreControlClusterIdDuration].cumDC;
 
 	if (P.PreControlClusterIdUseDeaths) //// if using deaths as trigger (as opposed to detected cases)
 	{
@@ -4973,84 +4987,69 @@ void RecordSample(double t_double, int t_int)
 	}
 	else
 	{
-		trigAlert = trigAlertC;
+		trigAlert = trigAlert_Cases;
 	}
 
+	double RatioPredictedObserved, DesiredAccuracy;
+
 	if(	(!P.DoAlertTriggerAfterInterv && trigAlert >= P.PreControlClusterIdCaseThreshold)	||
-		( P.DoAlertTriggerAfterInterv && ((trigAlertC >= P.PreControlClusterIdCaseThreshold && P.ModelCalibIteration < 4) || (t_double >= P.PreIntervTime && P.ModelCalibIteration >= 4)	)	)	)
+		( P.DoAlertTriggerAfterInterv && ((trigAlert_Cases >= P.PreControlClusterIdCaseThreshold && P.ModelCalibIteration < 4) || (t_double >= P.PreIntervTime && P.ModelCalibIteration >= 4)	)	)	)
 	{
 		if(!P.StopCalibration && !InterruptRun)
 		{
 			if (P.PreControlClusterIdTime == 0)
 			{
-				P.PreIntervTime = P.PreControlClusterIdTime = t_double;
+				P.PreIntervTime = P.PreControlClusterIdTime = t_double; // initialize PreIntervTime & PreControlClusterIdTime to now.
 				if (P.PreControlClusterIdCalTime >= 0)
-				{
-					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
-//					fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
-				}
+					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime; /// initialize holiday offset to time difference between now and day of year interventions start.
 			}
 			if (P.PreControlClusterIdCalTime >= 0 && !P.DoAlertTriggerAfterInterv)
 			{
-				P.StopCalibration = 1;
-				InterruptRun = 1;
+				P.StopCalibration	= 1;
+				InterruptRun		= 1;
 			}
 			if (P.DoAlertTriggerAfterInterv && (t_double == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
 			{
-				if ((trigAlert > 0)&&(P.ModelCalibIteration<20))
+				if (trigAlert > 0 && P.ModelCalibIteration < 20)
 				{
-					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
-					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
-					if (thr < 0.05) thr = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t_double, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
-					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+					RatioPredictedObserved	= (double)trigAlert / (double)P.AlertTriggerAfterIntervThreshold;
+					DesiredAccuracy			= 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
+					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
+					fprintf(stderr, "\n** Calib iteration=%i t=%lf t=%lf | Hol_Offset=%lg / RatioPredictedObserved=%lg \t", P.ModelCalibIteration, t_double, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset, RatioPredictedObserved);
+					fprintf(stderr, "| trigAlert=%i trigAlert_Cases=%i %i %i -> ", trigAlert, trigAlert_Cases, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+
 					if (P.ModelCalibIteration == 1)
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration = 100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
+						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
 						else
 						{
-							s = pow(s, 0.95);
-							k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
+							// rescale threshold
+							k = (int) (double)P.PreControlClusterIdCaseThreshold / pow(RatioPredictedObserved, 0.95);
 							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1))
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1)) // on odd iterations ...
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration=100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
-						else if (s > 1)
+						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
+						else if (RatioPredictedObserved > 1) // if too many predicted cases/deaths, decrement... 
 						{
 							P.PreIntervTime--;
 							P.PreControlClusterIdHolOffset--;
 						}
-						else if (s < 1)
+						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths, increment
 						{
 							P.PreIntervTime++;
 							P.PreControlClusterIdHolOffset++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0))
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations ...
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration = 100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
+						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
 						else
-							P.SeedingScaling /= pow(s, 0.5);
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.5); // ... divide by sqrt of ratio
 					}
 					P.ModelCalibIteration++;
-					if(P.ModelCalibIteration<16) InterruptRun = 1;
+					if(P.ModelCalibIteration < 16) InterruptRun = 1;
 					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
 				}
 				else

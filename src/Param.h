@@ -247,7 +247,7 @@ struct Param
 	int PreControlClusterIdCaseThreshold2;	// needed for calibration to work for multiple realisations
 	int DoAlertTriggerAfterInterv;			// Alert trigger starts after interventions, i.e. were there interventions before date specified in PreControlClusterIdCalTime / "Day of year trigger is reached"?
 	int PreControlClusterIdDuration;		// Number of days to accummulate cases/deaths before alert
-	int AlertTriggerAfterIntervThreshold;	// initialized ot PreControlClusterIdCaseThreshold.
+	int AlertTriggerAfterIntervThreshold;	// initialized to PreControlClusterIdCaseThreshold (i.e. number cases or deaths accumulated before alert).
 	int StopCalibration, ModelCalibIteration;
 
 	//// Trigger parameters
