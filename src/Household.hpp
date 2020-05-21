@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Location.hpp"
+#include "Coordinates/Location.hpp"
 
 struct Household
 {

@@ -5,7 +5,7 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
-#include "Location.hpp"
+#include "Coordinates/Location.hpp"
 #include "Household.hpp"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
