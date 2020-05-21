@@ -39,14 +39,12 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 }
 double dist2(Person* a, Person* b)
 {
-	double x, y;
-
 	if (P.DoUTM_coords)
-		return Households[a->hh].loc.distance_squared_to(Households[b->hh].loc);
+		return Households[a->hh].distance_squared_to(Households[b->hh]);
 	else
 	{
-		x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
-		y = fabs(Households[a->hh].loc_y - Households[b->hh].loc_y);
+		double x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
+		double y = fabs(Households[a->hh].loc_y - Households[b->hh].loc_y);
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
