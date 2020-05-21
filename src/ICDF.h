@@ -1,6 +1,6 @@
 #pragma once
 
-#include <corecrt_math.h>
+
 #include "Constants.h"
 
 class ICDF
