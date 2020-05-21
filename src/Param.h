@@ -3,6 +3,7 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "MicroCellPosition.hpp"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
@@ -48,7 +49,14 @@ struct Param
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, nmcw, nmch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+
+	int get_number_of_micro_cells_wide() const;
+	int get_number_of_micro_cells_high() const;
+	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
+	int get_micro_cell_index_from_position(MicroCellPosition position) const;
+	bool is_in_bounds(MicroCellPosition position) const;
+
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
