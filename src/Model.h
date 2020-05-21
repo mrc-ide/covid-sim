@@ -368,7 +368,7 @@ extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSV
 
 extern Airport* Airports;
 extern Events* InfEventLog;
-extern int* nEvents;
+extern int nEvents;
 
 
 extern double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];
