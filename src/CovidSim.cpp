@@ -20,6 +20,7 @@
 #include "CalcInfSusc.h"
 #include "Update.h"
 #include "Sweep.h"
+#include "ICDF.h"
 
 #ifdef _OPENMP
 #include <omp.h>
