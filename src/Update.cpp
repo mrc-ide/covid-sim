@@ -142,10 +142,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		//added this to record event if flag is set to 1 : ggilani - 10/10/2014
 		if (P.DoRecordInfEvents)
 		{
-			if (nEvents < P.MaxInfEvents)
-			{
-				RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
-			}
+			RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
 		}
 		if ((t > 0) && (P.DoOneGen))
 		{
@@ -176,6 +173,7 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 
 	//Save information to event
 #pragma omp critical (inf_event)
+	if (nEvents < P.MaxInfEvents)
 	{
 		InfEventLog[nEvents].run = run;
 		InfEventLog[nEvents].type = type;
