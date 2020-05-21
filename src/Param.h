@@ -65,7 +65,7 @@ struct Param
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
 	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	int bminx, bminy;
+	Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
@@ -102,7 +102,10 @@ struct Param
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
-	double scalex, scaley; // Number of pixels per degree in bitmap output
+
+	/// Number of pixels per degree in bitmap output
+	Vector2<double> scale;
+
 	DomainSize in_degrees_; ///< Size of spatial domain in degrees
 	DomainSize in_cells_; ///< Size of spatial domain in cells
 	DomainSize in_microcells_; ///< Size of spatial domain in microcells
