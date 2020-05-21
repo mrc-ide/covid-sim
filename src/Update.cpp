@@ -482,7 +482,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery[age], tn);
+				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf.GetCDFValues(), P.Mean_MildToRecovery[age], tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
 				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI[age], tn);
