@@ -1,4 +1,6 @@
 #include "ICDF.h"
+#include <math.h>
+
 
 void ICDF::ApplyExponent()
 {
