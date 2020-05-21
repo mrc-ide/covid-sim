@@ -180,7 +180,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.NMC = P.NMCL * P.NMCL * P.NC;
 	P.nmcw = P.ncw * P.NMCL;
 	P.nmch = P.nch * P.NMCL;
-	fprintf(stderr, "Number of micro-cells = %i\n", P.NMC);
+	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
 	P.bwidth = (int)(P.width * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scalex);
