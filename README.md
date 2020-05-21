@@ -36,7 +36,11 @@ to:
 
 ## Building
 
-The model is written in C++ and runs on Windows, macOS and Linux-based systems.
+The model is written in C++.
+
+The primary platforms it has been developed and tested on are Windows and Ubuntu Linux.
+
+It should build and run on any other POSIX compliant Unix-like platform (for example macOS, other Linux distributions).  However, no active development occurs on them.
 
 Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
