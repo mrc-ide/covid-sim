@@ -4518,8 +4518,10 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		}
 }
 
-void RecordSample(double t, int n)
+void RecordSample(double t_double, int t_int)
 {
+	//// function arguments both refer to simulation time: only difference one is an int, another a double. Both have same value.
+
 	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC;
 	int cumH; //add number of hospitalised, cumulative hospitalisation: ggilani 28/10/14
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
@@ -4527,13 +4529,11 @@ void RecordSample(double t, int n)
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
 	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	unsigned short int ts;
+	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t_double); // needed for PLACE_CLOSE macro.
 	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
-
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// initialize to zero
 	S = L = I = R = D = cumI = cumC = cumDC = cumTC = cumFC = cumHQ = cumAC = cumAA = cumAH = cumACS = cumAPC = cumAPA = cumAPCS = cumD = cumH = cumCT = cumCC = cumDCT = 0;
@@ -4607,49 +4607,49 @@ void RecordSample(double t, int n)
 	}
 	for (j = 0; j < P.NumThreads; j++)
 		StateT[j].maxRad2 = State.maxRad2;
-	TimeSeries[n].t = t;
-	TimeSeries[n].S = (double)S;
-	TimeSeries[n].L = (double)L;
-	TimeSeries[n].I = (double)I;
-	TimeSeries[n].R = (double)R;
-	TimeSeries[n].D = (double)D;
-	TimeSeries[n].incI = (double)(cumI - State.cumI);
-	TimeSeries[n].incC = (double)(cumC - State.cumC);
-	TimeSeries[n].incFC = (double)(cumFC - State.cumFC);
-	TimeSeries[n].incH = (double)(cumH - State.cumH); //added incidence of hospitalisation
-	TimeSeries[n].incCT = (double)(cumCT - State.cumCT); // added contact tracing
-	TimeSeries[n].incCC = (double)(cumCC - State.cumCC); // added cases who are contacts
-	TimeSeries[n].incDCT = (double)(cumDCT - State.cumDCT); //added cases who are digitally contact traced
-	TimeSeries[n].incDC = (double)(cumDC - State.cumDC); //added incidence of detected cases
-	TimeSeries[n].incTC = (double)(cumTC - State.cumTC);
-	TimeSeries[n].incR = (double)(cumR - State.cumR);
-	TimeSeries[n].incD = (double)(cumD - State.cumD);
-	TimeSeries[n].incHQ = (double)(cumHQ - State.cumHQ);
-	TimeSeries[n].incAC = (double)(cumAC - State.cumAC);
-	TimeSeries[n].incAH = (double)(cumAH - State.cumAH);
-	TimeSeries[n].incAA = (double)(cumAA - State.cumAA);
-	TimeSeries[n].incACS = (double)(cumACS - State.cumACS);
-	TimeSeries[n].incAPC = (double)(cumAPC - State.cumAPC);
-	TimeSeries[n].incAPA = (double)(cumAPA - State.cumAPA);
-	TimeSeries[n].incAPCS = (double)(cumAPCS - State.cumAPCS);
-	TimeSeries[n].cumT = State.cumT;
-	TimeSeries[n].cumUT = State.cumUT;
-	TimeSeries[n].cumTP = State.cumTP;
-	TimeSeries[n].cumV = State.cumV;
-	TimeSeries[n].cumVG = State.cumVG; //added VG;
-	TimeSeries[n].cumDC = cumDC;
+	TimeSeries[t_int].t = t_double;
+	TimeSeries[t_int].S = (double)S;
+	TimeSeries[t_int].L = (double)L;
+	TimeSeries[t_int].I = (double)I;
+	TimeSeries[t_int].R = (double)R;
+	TimeSeries[t_int].D = (double)D;
+	TimeSeries[t_int].incI = (double)(cumI - State.cumI);
+	TimeSeries[t_int].incC = (double)(cumC - State.cumC);
+	TimeSeries[t_int].incFC = (double)(cumFC - State.cumFC);
+	TimeSeries[t_int].incH = (double)(cumH - State.cumH); //added incidence of hospitalisation
+	TimeSeries[t_int].incCT = (double)(cumCT - State.cumCT); // added contact tracing
+	TimeSeries[t_int].incCC = (double)(cumCC - State.cumCC); // added cases who are contacts
+	TimeSeries[t_int].incDCT = (double)(cumDCT - State.cumDCT); //added cases who are digitally contact traced
+	TimeSeries[t_int].incDC = (double)(cumDC - State.cumDC); //added incidence of detected cases
+	TimeSeries[t_int].incTC = (double)(cumTC - State.cumTC);
+	TimeSeries[t_int].incR = (double)(cumR - State.cumR);
+	TimeSeries[t_int].incD = (double)(cumD - State.cumD);
+	TimeSeries[t_int].incHQ = (double)(cumHQ - State.cumHQ);
+	TimeSeries[t_int].incAC = (double)(cumAC - State.cumAC);
+	TimeSeries[t_int].incAH = (double)(cumAH - State.cumAH);
+	TimeSeries[t_int].incAA = (double)(cumAA - State.cumAA);
+	TimeSeries[t_int].incACS = (double)(cumACS - State.cumACS);
+	TimeSeries[t_int].incAPC = (double)(cumAPC - State.cumAPC);
+	TimeSeries[t_int].incAPA = (double)(cumAPA - State.cumAPA);
+	TimeSeries[t_int].incAPCS = (double)(cumAPCS - State.cumAPCS);
+	TimeSeries[t_int].cumT = State.cumT;
+	TimeSeries[t_int].cumUT = State.cumUT;
+	TimeSeries[t_int].cumTP = State.cumTP;
+	TimeSeries[t_int].cumV = State.cumV;
+	TimeSeries[t_int].cumVG = State.cumVG; //added VG;
+	TimeSeries[t_int].cumDC = cumDC;
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
-	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[t_int].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
 		trigDC = cumCritical;
-		if (n >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumCritical;
+		if (t_int >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[t_int - P.TriggersSamplingInterval].cumCritical;
 	}
 	else
 	{
 		trigDC = cumDC;
-		if (n >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumDC;
+		if (t_int >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[t_int - P.TriggersSamplingInterval].cumDC;
 	}
 	State.trigDC = trigDC;
 
@@ -4682,14 +4682,14 @@ void RecordSample(double t, int n)
 	if (P.DoSeverity)
 	{
 		//// Record incidence. (Must be done with old State totals)
-		TimeSeries[n].incMild			= (double)(cumMild				- State.cumMild				);
-		TimeSeries[n].incILI			= (double)(cumILI				- State.cumILI				);
-		TimeSeries[n].incSARI			= (double)(cumSARI				- State.cumSARI				);
-		TimeSeries[n].incCritical		= (double)(cumCritical			- State.cumCritical			);
-		TimeSeries[n].incCritRecov		= (double)(cumCritRecov			- State.cumCritRecov		);
-		TimeSeries[n].incDeath_ILI		= (double)(cumDeath_ILI			- State.cumDeath_ILI		);
-		TimeSeries[n].incDeath_SARI		= (double)(cumDeath_SARI		- State.cumDeath_SARI		);
-		TimeSeries[n].incDeath_Critical	= (double)(cumDeath_Critical	- State.cumDeath_Critical	);
+		TimeSeries[t_int].incMild			= (double)(cumMild				- State.cumMild				);
+		TimeSeries[t_int].incILI			= (double)(cumILI				- State.cumILI				);
+		TimeSeries[t_int].incSARI			= (double)(cumSARI				- State.cumSARI				);
+		TimeSeries[t_int].incCritical		= (double)(cumCritical			- State.cumCritical			);
+		TimeSeries[t_int].incCritRecov		= (double)(cumCritRecov			- State.cumCritRecov		);
+		TimeSeries[t_int].incDeath_ILI		= (double)(cumDeath_ILI			- State.cumDeath_ILI		);
+		TimeSeries[t_int].incDeath_SARI		= (double)(cumDeath_SARI		- State.cumDeath_SARI		);
+		TimeSeries[t_int].incDeath_Critical	= (double)(cumDeath_Critical	- State.cumDeath_Critical	);
 
 		/////// update state with totals
 		State.Mild				= Mild				;
@@ -4707,32 +4707,32 @@ void RecordSample(double t, int n)
 		State.cumDeath_Critical	= cumDeath_Critical	;
 
 		//// Record new totals for time series. (Must be done with old State totals)
-		TimeSeries[n].Mild				= Mild				;
-		TimeSeries[n].ILI				= ILI				;
-		TimeSeries[n].SARI				= SARI				;
-		TimeSeries[n].Critical			= Critical			;
-		TimeSeries[n].CritRecov			= CritRecov			;
-		TimeSeries[n].cumMild			= cumMild			;
-		TimeSeries[n].cumILI			= cumILI			;
-		TimeSeries[n].cumSARI			= cumSARI			;
-		TimeSeries[n].cumCritical		= cumCritical		;
-		TimeSeries[n].cumCritRecov		= cumCritRecov		;
-		TimeSeries[n].cumDeath_ILI		= cumDeath_ILI		;
-		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
-		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
+		TimeSeries[t_int].Mild				= Mild				;
+		TimeSeries[t_int].ILI				= ILI				;
+		TimeSeries[t_int].SARI				= SARI				;
+		TimeSeries[t_int].Critical			= Critical			;
+		TimeSeries[t_int].CritRecov			= CritRecov			;
+		TimeSeries[t_int].cumMild			= cumMild			;
+		TimeSeries[t_int].cumILI			= cumILI			;
+		TimeSeries[t_int].cumSARI			= cumSARI			;
+		TimeSeries[t_int].cumCritical		= cumCritical		;
+		TimeSeries[t_int].cumCritRecov		= cumCritRecov		;
+		TimeSeries[t_int].cumDeath_ILI		= cumDeath_ILI		;
+		TimeSeries[t_int].cumDeath_SARI		= cumDeath_SARI		;
+		TimeSeries[t_int].cumDeath_Critical	= cumDeath_Critical	;
 
 		for (int i = 0; i < NUM_AGE_GROUPS; i++)
 		{
 			//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 			//// First subtract old total while unchanged.
-			TimeSeries[n].incMild_age[i] = (double)(-State.cumMild_age[i]);
-			TimeSeries[n].incILI_age[i] = (double)(-State.cumILI_age[i]);
-			TimeSeries[n].incSARI_age[i] = (double)(-State.cumSARI_age[i]);
-			TimeSeries[n].incCritical_age[i] = (double)(-State.cumCritical_age[i]);
-			TimeSeries[n].incCritRecov_age[i] = (double)(-State.cumCritRecov_age[i]);
-			TimeSeries[n].incDeath_ILI_age[i] = (double)(-State.cumDeath_ILI_age[i]);
-			TimeSeries[n].incDeath_SARI_age[i] = (double)(-State.cumDeath_SARI_age[i]);
-			TimeSeries[n].incDeath_Critical_age[i] = (double)(-State.cumDeath_Critical_age[i]);
+			TimeSeries[t_int].incMild_age[i] = (double)(-State.cumMild_age[i]);
+			TimeSeries[t_int].incILI_age[i] = (double)(-State.cumILI_age[i]);
+			TimeSeries[t_int].incSARI_age[i] = (double)(-State.cumSARI_age[i]);
+			TimeSeries[t_int].incCritical_age[i] = (double)(-State.cumCritical_age[i]);
+			TimeSeries[t_int].incCritRecov_age[i] = (double)(-State.cumCritRecov_age[i]);
+			TimeSeries[t_int].incDeath_ILI_age[i] = (double)(-State.cumDeath_ILI_age[i]);
+			TimeSeries[t_int].incDeath_SARI_age[i] = (double)(-State.cumDeath_SARI_age[i]);
+			TimeSeries[t_int].incDeath_Critical_age[i] = (double)(-State.cumDeath_Critical_age[i]);
 
 			State.Mild_age[i] = 0;
 			State.ILI_age[i] = 0;
@@ -4767,44 +4767,44 @@ void RecordSample(double t, int n)
 			}
 
 			//// Record incidence. Need new total minus old total. Add new total
-			TimeSeries[n].incMild_age[i] += (double)(State.cumMild_age[i]);
-			TimeSeries[n].incILI_age[i] += (double)(State.cumILI_age[i]);
-			TimeSeries[n].incSARI_age[i] += (double)(State.cumSARI_age[i]);
-			TimeSeries[n].incCritical_age[i] += (double)(State.cumCritical_age[i]);
-			TimeSeries[n].incCritRecov_age[i] += (double)(State.cumCritRecov_age[i]);
-			TimeSeries[n].incDeath_ILI_age[i] += (double)(State.cumDeath_ILI_age[i]);
-			TimeSeries[n].incDeath_SARI_age[i] += (double)(State.cumDeath_SARI_age[i]);
-			TimeSeries[n].incDeath_Critical_age[i] += (double)(State.cumDeath_Critical_age[i]);
+			TimeSeries[t_int].incMild_age[i] += (double)(State.cumMild_age[i]);
+			TimeSeries[t_int].incILI_age[i] += (double)(State.cumILI_age[i]);
+			TimeSeries[t_int].incSARI_age[i] += (double)(State.cumSARI_age[i]);
+			TimeSeries[t_int].incCritical_age[i] += (double)(State.cumCritical_age[i]);
+			TimeSeries[t_int].incCritRecov_age[i] += (double)(State.cumCritRecov_age[i]);
+			TimeSeries[t_int].incDeath_ILI_age[i] += (double)(State.cumDeath_ILI_age[i]);
+			TimeSeries[t_int].incDeath_SARI_age[i] += (double)(State.cumDeath_SARI_age[i]);
+			TimeSeries[t_int].incDeath_Critical_age[i] += (double)(State.cumDeath_Critical_age[i]);
 
 			//// Record new totals for time series. (Must be done with old State totals)
-			TimeSeries[n].Mild_age[i] = State.Mild_age[i];
-			TimeSeries[n].ILI_age[i] = State.ILI_age[i];
-			TimeSeries[n].SARI_age[i] = State.SARI_age[i];
-			TimeSeries[n].Critical_age[i] = State.Critical_age[i];
-			TimeSeries[n].CritRecov_age[i] = State.CritRecov_age[i];
-			TimeSeries[n].cumMild_age[i] = State.cumMild_age[i];
-			TimeSeries[n].cumILI_age[i] = State.cumILI_age[i];
-			TimeSeries[n].cumSARI_age[i] = State.cumSARI_age[i];
-			TimeSeries[n].cumCritical_age[i] = State.cumCritical_age[i];
-			TimeSeries[n].cumCritRecov_age[i] = State.cumCritRecov_age[i];
-			TimeSeries[n].cumDeath_ILI_age[i] = State.cumDeath_ILI_age[i];
-			TimeSeries[n].cumDeath_SARI_age[i] = State.cumDeath_SARI_age[i];
-			TimeSeries[n].cumDeath_Critical_age[i] = State.cumDeath_Critical_age[i];
+			TimeSeries[t_int].Mild_age[i] = State.Mild_age[i];
+			TimeSeries[t_int].ILI_age[i] = State.ILI_age[i];
+			TimeSeries[t_int].SARI_age[i] = State.SARI_age[i];
+			TimeSeries[t_int].Critical_age[i] = State.Critical_age[i];
+			TimeSeries[t_int].CritRecov_age[i] = State.CritRecov_age[i];
+			TimeSeries[t_int].cumMild_age[i] = State.cumMild_age[i];
+			TimeSeries[t_int].cumILI_age[i] = State.cumILI_age[i];
+			TimeSeries[t_int].cumSARI_age[i] = State.cumSARI_age[i];
+			TimeSeries[t_int].cumCritical_age[i] = State.cumCritical_age[i];
+			TimeSeries[t_int].cumCritRecov_age[i] = State.cumCritRecov_age[i];
+			TimeSeries[t_int].cumDeath_ILI_age[i] = State.cumDeath_ILI_age[i];
+			TimeSeries[t_int].cumDeath_SARI_age[i] = State.cumDeath_SARI_age[i];
+			TimeSeries[t_int].cumDeath_Critical_age[i] = State.cumDeath_Critical_age[i];
 		}
 		if (P.DoAdUnits)
 			for (int i = 0; i <= P.NumAdunits; i++)
 			{
 				//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 				//// First subtract old total while unchanged.
-				TimeSeries[n].incMild_adunit			[i] = (double)(-State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] = (double)(-State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] = (double)(-State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] = (double)(-State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] = (double)(-State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] = (double)(-State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] = (double)(-State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] = (double)(-State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] = (double)(-State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[t_int].incMild_adunit			[i] = (double)(-State.cumMild_adunit			[i]);
+				TimeSeries[t_int].incILI_adunit				[i] = (double)(-State.cumILI_adunit				[i]);
+				TimeSeries[t_int].incSARI_adunit			[i] = (double)(-State.cumSARI_adunit			[i]);
+				TimeSeries[t_int].incCritical_adunit		[i] = (double)(-State.cumCritical_adunit		[i]);
+				TimeSeries[t_int].incCritRecov_adunit		[i] = (double)(-State.cumCritRecov_adunit		[i]);
+				TimeSeries[t_int].incD_adunit				[i] = (double)(-State.cumD_adunit				[i]);
+				TimeSeries[t_int].incDeath_ILI_adunit		[i] = (double)(-State.cumDeath_ILI_adunit		[i]);
+				TimeSeries[t_int].incDeath_SARI_adunit		[i] = (double)(-State.cumDeath_SARI_adunit		[i]);
+				TimeSeries[t_int].incDeath_Critical_adunit	[i] = (double)(-State.cumDeath_Critical_adunit	[i]);
 
 				//// reset State (not StateT) to zero. Don't need to do this with non-admin unit as local variables Mild, cumSARI etc. initialized to zero at beginning of function. Check with Gemma
 				State.Mild_adunit				[i] = 0;
@@ -4842,31 +4842,31 @@ void RecordSample(double t, int n)
 				}
 
 				//// Record incidence. Need new total minus old total. Add new total
-				TimeSeries[n].incMild_adunit			[i] += (double)(State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] += (double)(State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] += (double)(State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] += (double)(State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] += (double)(State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] += (double)(State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] += (double)(State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] += (double)(State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] += (double)(State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[t_int].incMild_adunit			[i] += (double)(State.cumMild_adunit			[i]);
+				TimeSeries[t_int].incILI_adunit				[i] += (double)(State.cumILI_adunit				[i]);
+				TimeSeries[t_int].incSARI_adunit			[i] += (double)(State.cumSARI_adunit			[i]);
+				TimeSeries[t_int].incCritical_adunit		[i] += (double)(State.cumCritical_adunit		[i]);
+				TimeSeries[t_int].incCritRecov_adunit		[i] += (double)(State.cumCritRecov_adunit		[i]);
+				TimeSeries[t_int].incD_adunit				[i] += (double)(State.cumD_adunit				[i]);
+				TimeSeries[t_int].incDeath_ILI_adunit		[i] += (double)(State.cumDeath_ILI_adunit		[i]);
+				TimeSeries[t_int].incDeath_SARI_adunit		[i] += (double)(State.cumDeath_SARI_adunit		[i]);
+				TimeSeries[t_int].incDeath_Critical_adunit	[i] += (double)(State.cumDeath_Critical_adunit	[i]);
 
 				//// Record new totals for time series. (Must be done with old State totals)
-				TimeSeries[n].Mild_adunit				[i] = State.Mild_adunit					[i];
-				TimeSeries[n].ILI_adunit				[i] = State.ILI_adunit					[i];
-				TimeSeries[n].SARI_adunit				[i] = State.SARI_adunit					[i];
-				TimeSeries[n].Critical_adunit			[i] = State.Critical_adunit				[i];
-				TimeSeries[n].CritRecov_adunit			[i] = State.CritRecov_adunit			[i];
-				TimeSeries[n].cumMild_adunit			[i] = State.cumMild_adunit				[i];
-				TimeSeries[n].cumILI_adunit				[i] = State.cumILI_adunit				[i];
-				TimeSeries[n].cumSARI_adunit			[i] = State.cumSARI_adunit				[i];
-				TimeSeries[n].cumCritical_adunit		[i] = State.cumCritical_adunit			[i];
-				TimeSeries[n].cumCritRecov_adunit		[i] = State.cumCritRecov_adunit			[i];
-				TimeSeries[n].cumD_adunit				[i] = State.cumD_adunit					[i];
-				TimeSeries[n].cumDeath_ILI_adunit		[i] = State.cumDeath_ILI_adunit			[i];
-				TimeSeries[n].cumDeath_SARI_adunit		[i] = State.cumDeath_SARI_adunit		[i];
-				TimeSeries[n].cumDeath_Critical_adunit	[i] = State.cumDeath_Critical_adunit	[i];
+				TimeSeries[t_int].Mild_adunit				[i] = State.Mild_adunit					[i];
+				TimeSeries[t_int].ILI_adunit				[i] = State.ILI_adunit					[i];
+				TimeSeries[t_int].SARI_adunit				[i] = State.SARI_adunit					[i];
+				TimeSeries[t_int].Critical_adunit			[i] = State.Critical_adunit				[i];
+				TimeSeries[t_int].CritRecov_adunit			[i] = State.CritRecov_adunit			[i];
+				TimeSeries[t_int].cumMild_adunit			[i] = State.cumMild_adunit				[i];
+				TimeSeries[t_int].cumILI_adunit				[i] = State.cumILI_adunit				[i];
+				TimeSeries[t_int].cumSARI_adunit			[i] = State.cumSARI_adunit				[i];
+				TimeSeries[t_int].cumCritical_adunit		[i] = State.cumCritical_adunit			[i];
+				TimeSeries[t_int].cumCritRecov_adunit		[i] = State.cumCritRecov_adunit			[i];
+				TimeSeries[t_int].cumD_adunit				[i] = State.cumD_adunit					[i];
+				TimeSeries[t_int].cumDeath_ILI_adunit		[i] = State.cumDeath_ILI_adunit			[i];
+				TimeSeries[t_int].cumDeath_SARI_adunit		[i] = State.cumDeath_SARI_adunit		[i];
+				TimeSeries[t_int].cumDeath_Critical_adunit	[i] = State.cumDeath_Critical_adunit	[i];
 			}
 	}
 
@@ -4874,73 +4874,73 @@ void RecordSample(double t, int n)
 	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = cumC_country[i];
 	//update overall state variable for cumulative cases per adunit
 
-	TimeSeries[n].rmsRad = (State.cumI > 0) ? sqrt(State.sumRad2 / ((double)State.cumI)) : 0;
-	TimeSeries[n].maxRad = sqrt(State.maxRad2);
-	TimeSeries[n].extinct = ((((P.SmallEpidemicCases >= 0) && (State.R <= P.SmallEpidemicCases)) || (P.SmallEpidemicCases < 0)) && (State.I + State.L == 0)) ? 1 : 0;
+	TimeSeries[t_int].rmsRad = (State.cumI > 0) ? sqrt(State.sumRad2 / ((double)State.cumI)) : 0;
+	TimeSeries[t_int].maxRad = sqrt(State.maxRad2);
+	TimeSeries[t_int].extinct = ((((P.SmallEpidemicCases >= 0) && (State.R <= P.SmallEpidemicCases)) || (P.SmallEpidemicCases < 0)) && (State.I + State.L == 0)) ? 1 : 0;
 	for (int i = 0; i < NUM_AGE_GROUPS; i++)
 	{
-		TimeSeries[n].incCa[i] = TimeSeries[n].incIa[i] = TimeSeries[n].incDa[i] = 0;
+		TimeSeries[t_int].incCa[i] = TimeSeries[t_int].incIa[i] = TimeSeries[t_int].incDa[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
 		{
-			TimeSeries[n].incCa[i] += (double)StateT[j].cumCa[i];
-			TimeSeries[n].incIa[i] += (double)StateT[j].cumIa[i];
-			TimeSeries[n].incDa[i] += (double)StateT[j].cumDa[i];
+			TimeSeries[t_int].incCa[i] += (double)StateT[j].cumCa[i];
+			TimeSeries[t_int].incIa[i] += (double)StateT[j].cumIa[i];
+			TimeSeries[t_int].incDa[i] += (double)StateT[j].cumDa[i];
 		}
 	}
 
 	for (int i = 0; i < 2; i++)
 	{
-		TimeSeries[n].incC_keyworker[i] = TimeSeries[n].incI_keyworker[i] = TimeSeries[n].cumT_keyworker[i] = 0;
+		TimeSeries[t_int].incC_keyworker[i] = TimeSeries[t_int].incI_keyworker[i] = TimeSeries[t_int].cumT_keyworker[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
 		{
-			TimeSeries[n].incC_keyworker[i] += (double)StateT[j].cumC_keyworker[i];
-			TimeSeries[n].incI_keyworker[i] += (double)StateT[j].cumI_keyworker[i];
-			TimeSeries[n].cumT_keyworker[i] += (double)StateT[j].cumT_keyworker[i];
+			TimeSeries[t_int].incC_keyworker[i] += (double)StateT[j].cumC_keyworker[i];
+			TimeSeries[t_int].incI_keyworker[i] += (double)StateT[j].cumI_keyworker[i];
+			TimeSeries[t_int].cumT_keyworker[i] += (double)StateT[j].cumT_keyworker[i];
 			StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = 0;
 		}
 	}
 
 	for (int i = 0; i < INFECT_TYPE_MASK; i++)
 	{
-		TimeSeries[n].incItype[i] = 0;
+		TimeSeries[t_int].incItype[i] = 0;
 		for (j = 0; j < P.NumThreads; j++)
 		{
-			TimeSeries[n].incItype[i] += (double)StateT[j].cumItype[i];
+			TimeSeries[t_int].incItype[i] += (double)StateT[j].cumItype[i];
 			StateT[j].cumItype[i] = 0;
 		}
 	}
 	if (P.DoAdUnits)
 		for (int i = 0; i <= P.NumAdunits; i++)
 		{
-			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
+			TimeSeries[t_int].incI_adunit[i] = TimeSeries[t_int].incC_adunit[i] = TimeSeries[t_int].cumT_adunit[i] = TimeSeries[t_int].incH_adunit[i] = TimeSeries[t_int].incDC_adunit[i] = TimeSeries[t_int].incCT_adunit[i] = TimeSeries[t_int].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
 			{
-				TimeSeries[n].incI_adunit[i] += (double)StateT[j].cumI_adunit[i];
-				TimeSeries[n].incC_adunit[i] += (double)StateT[j].cumC_adunit[i];
-				TimeSeries[n].incDC_adunit[i] += (double)StateT[j].cumDC_adunit[i]; //added detected cases: ggilani 03/02/15
-				TimeSeries[n].incH_adunit[i] += (double)StateT[j].cumH_adunit[i]; //added hospitalisation
-				TimeSeries[n].incCT_adunit[i] += (double)StateT[j].cumCT_adunit[i]; //added contact tracing: ggilani 15/06/17
-				TimeSeries[n].incCC_adunit[i] += (double)StateT[j].cumCC_adunit[i]; //added cases who are contacts: ggilani 28/05/2019
-				TimeSeries[n].incDCT_adunit[i] += (double)StateT[j].cumDCT_adunit[i]; //added cases who are digitally contact traced: ggilani 11/03/20
-				TimeSeries[n].cumT_adunit[i] += (double)StateT[j].cumT_adunit[i];
+				TimeSeries[t_int].incI_adunit[i] += (double)StateT[j].cumI_adunit[i];
+				TimeSeries[t_int].incC_adunit[i] += (double)StateT[j].cumC_adunit[i];
+				TimeSeries[t_int].incDC_adunit[i] += (double)StateT[j].cumDC_adunit[i]; //added detected cases: ggilani 03/02/15
+				TimeSeries[t_int].incH_adunit[i] += (double)StateT[j].cumH_adunit[i]; //added hospitalisation
+				TimeSeries[t_int].incCT_adunit[i] += (double)StateT[j].cumCT_adunit[i]; //added contact tracing: ggilani 15/06/17
+				TimeSeries[t_int].incCC_adunit[i] += (double)StateT[j].cumCC_adunit[i]; //added cases who are contacts: ggilani 28/05/2019
+				TimeSeries[t_int].incDCT_adunit[i] += (double)StateT[j].cumDCT_adunit[i]; //added cases who are digitally contact traced: ggilani 11/03/20
+				TimeSeries[t_int].cumT_adunit[i] += (double)StateT[j].cumT_adunit[i];
 				State.cumC_adunit[i] += StateT[j].cumC_adunit[i];
 				State.cumDC_adunit[i] += StateT[j].cumDC_adunit[i];
 				StateT[j].cumI_adunit[i] = StateT[j].cumC_adunit[i] = StateT[j].cumH_adunit[i] = StateT[j].cumDC_adunit[i] = StateT[j].cumCT_adunit[i] = StateT[j].cumCC_adunit[i] = StateT[j].cumDCT_adunit[i] = 0; //added hospitalisation, detected cases, contact tracing: ggilani 03/02/15, 15/06/17
 			}
 			if (P.DoICUTriggers)
 			{
-				State.trigDC_adunit[i] += (int)TimeSeries[n].incCritical_adunit[i];
-				if (n >= P.TriggersSamplingInterval) State.trigDC_adunit[i] -= (int)TimeSeries[n - P.TriggersSamplingInterval].incCritical_adunit[i];
+				State.trigDC_adunit[i] += (int)TimeSeries[t_int].incCritical_adunit[i];
+				if (t_int >= P.TriggersSamplingInterval) State.trigDC_adunit[i] -= (int)TimeSeries[t_int - P.TriggersSamplingInterval].incCritical_adunit[i];
 			}
 			else
 			{
-				State.trigDC_adunit[i] += (int)TimeSeries[n].incDC_adunit[i];
-				if (n >= P.TriggersSamplingInterval) State.trigDC_adunit[i] -= (int)TimeSeries[n - P.TriggersSamplingInterval].incDC_adunit[i];
+				State.trigDC_adunit[i] += (int)TimeSeries[t_int].incDC_adunit[i];
+				if (t_int >= P.TriggersSamplingInterval) State.trigDC_adunit[i] -= (int)TimeSeries[t_int - P.TriggersSamplingInterval].incDC_adunit[i];
 			}
 		}
 	if (P.DoDigitalContactTracing)
 		for (int i = 0; i < P.NumAdunits; i++)
-			TimeSeries[n].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
+			TimeSeries[t_int].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
 	if (P.DoPlaces)
 		for (int i = 0; i < NUM_PLACE_TYPES; i++)
 		{
@@ -4948,10 +4948,10 @@ void RecordSample(double t, int n)
 			for (j = 0; j < P.Nplace[i]; j++)
 				if (PLACE_CLOSED(i, j)) numPC++;
 			State.NumPlacesClosed[i] = numPC;
-			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
+			TimeSeries[t_int].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
 	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
-	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
+	TimeSeries[t_int].PropSocDist=((double)k)/((double)P.NMC);
 
 	//update contact number distribution in State
 	for (int i = 0; i < (MAX_CONTACTS+1); i++)
@@ -4964,45 +4964,45 @@ void RecordSample(double t, int n)
 	}
 
 	trigAlertC = State.cumDC;
-	if (n >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
+	if (t_int >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[t_int - P.PreControlClusterIdDuration].cumDC;
 
-	if (P.PreControlClusterIdUseDeaths)
+	if (P.PreControlClusterIdUseDeaths) //// if using deaths as trigger (as opposed to detected cases)
 	{
-		trigAlert = (int)TimeSeries[n].D;
-		if (n >= P.PreControlClusterIdDuration) trigAlert -= (int) TimeSeries[n - P.PreControlClusterIdDuration].D;
+		trigAlert = (int)TimeSeries[t_int].D;
+		if (t_int >= P.PreControlClusterIdDuration) trigAlert -= (int) TimeSeries[t_int - P.PreControlClusterIdDuration].D;
 	}
 	else
 	{
 		trigAlert = trigAlertC;
 	}
 
-	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<4)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 4)))))
+	if(	(!P.DoAlertTriggerAfterInterv && trigAlert >= P.PreControlClusterIdCaseThreshold)	||
+		( P.DoAlertTriggerAfterInterv && ((trigAlertC >= P.PreControlClusterIdCaseThreshold && P.ModelCalibIteration < 4) || (t_double >= P.PreIntervTime && P.ModelCalibIteration >= 4)	)	)	)
 	{
-		if((!P.StopCalibration)&&(!InterruptRun))
+		if(!P.StopCalibration && !InterruptRun)
 		{
 			if (P.PreControlClusterIdTime == 0)
 			{
-				P.PreIntervTime = P.PreControlClusterIdTime = t;
+				P.PreIntervTime = P.PreControlClusterIdTime = t_double;
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
 					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
 //					fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
 				}
 			}
-			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
+			if (P.PreControlClusterIdCalTime >= 0 && !P.DoAlertTriggerAfterInterv)
 			{
 				P.StopCalibration = 1;
 				InterruptRun = 1;
 			}
-			if ((P.DoAlertTriggerAfterInterv) && (t == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
+			if (P.DoAlertTriggerAfterInterv && (t_double == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
 			{
 				if ((trigAlert > 0)&&(P.ModelCalibIteration<20))
 				{
 					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (thr < 0.05) thr = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t_double, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
 					if (P.ModelCalibIteration == 1)
 					{
@@ -5047,7 +5047,7 @@ void RecordSample(double t, int n)
 							fprintf(stderr, "Calibration ended.\n");
 						}
 						else
-							P.SeedingScaling /=pow(s, 0.5);
+							P.SeedingScaling /= pow(s, 0.5);
 					}
 					P.ModelCalibIteration++;
 					if(P.ModelCalibIteration<16) InterruptRun = 1;
@@ -5063,16 +5063,16 @@ void RecordSample(double t, int n)
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
 
 		if (P.VaryEfficaciesOverTime)
-			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
+			UpdateEfficaciesAndComplianceProportions(t_double - P.PreIntervTime);
 
 		//// Set Case isolation start time (by admin unit)
 		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
-					DoOrDontAmendStartTime(&AdUnits[i].CaseIsolationTimeStart, t + AdUnits[i].CaseIsolationDelay);
+					DoOrDontAmendStartTime(&AdUnits[i].CaseIsolationTimeStart, t_double + AdUnits[i].CaseIsolationDelay);
 				else
-					DoOrDontAmendStartTime(&AdUnits[i].CaseIsolationTimeStart, t + P.CaseIsolationTimeStartBase);
+					DoOrDontAmendStartTime(&AdUnits[i].CaseIsolationTimeStart, t_double + P.CaseIsolationTimeStartBase);
 			}
 
 		//// Set Household Quarantine start time (by admin unit)
@@ -5080,9 +5080,9 @@ void RecordSample(double t, int n)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 			{
 				if (P.DoInterventionDelaysByAdUnit)
-					DoOrDontAmendStartTime(&AdUnits[i].HQuarantineTimeStart, t + AdUnits[i].HQuarantineDelay);
+					DoOrDontAmendStartTime(&AdUnits[i].HQuarantineTimeStart, t_double + AdUnits[i].HQuarantineDelay);
 				else
-					DoOrDontAmendStartTime(&AdUnits[i].HQuarantineTimeStart, t + P.HQuarantineTimeStartBase);
+					DoOrDontAmendStartTime(&AdUnits[i].HQuarantineTimeStart, t_double + P.HQuarantineTimeStartBase);
 			}
 
 		//// Set DigitalContactTracingTimeStart
@@ -5091,55 +5091,55 @@ void RecordSample(double t, int n)
 				if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.DigitalContactTracing_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 				{
 					if (P.DoInterventionDelaysByAdUnit)
-						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t + AdUnits[i].DCTDelay);
+						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t_double + AdUnits[i].DCTDelay);
 					else
-						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t + P.DigitalContactTracingTimeStartBase);
+						DoOrDontAmendStartTime(&AdUnits[i].DigitalContactTracingTimeStart, t_double + P.DigitalContactTracingTimeStartBase);
 				}
 
 		if (P.DoGlobalTriggers)
 		{
 			int TriggerValue = ChooseTriggerVariableAndValue(0);
 			if (TriggerValue >= ChooseThreshold(0, P.TreatCellIncThresh))
-				DoOrDontAmendStartTime(&(P.TreatTimeStart), t + P.TreatTimeStartBase);
-			if (TriggerValue >= P.VaccCellIncThresh) DoOrDontAmendStartTime(&P.VaccTimeStart, t + P.VaccTimeStartBase);
+				DoOrDontAmendStartTime(&(P.TreatTimeStart), t_double + P.TreatTimeStartBase);
+			if (TriggerValue >= P.VaccCellIncThresh) DoOrDontAmendStartTime(&P.VaccTimeStart, t_double + P.VaccTimeStartBase);
 			if (TriggerValue >= P.SocDistCellIncThresh)
 			{
-				DoOrDontAmendStartTime(&P.SocDistTimeStart, t + P.SocDistTimeStartBase);
+				DoOrDontAmendStartTime(&P.SocDistTimeStart, t_double + P.SocDistTimeStartBase);
 				//added this for admin unit based intervention delays based on a global trigger: ggilani 17/03/20
 				if (P.DoInterventionDelaysByAdUnit)
 					for (int i = 0; i < P.NumAdunits; i++)
-						DoOrDontAmendStartTime(&AdUnits[i].SocialDistanceTimeStart, t + AdUnits[i].SocialDistanceDelay);
+						DoOrDontAmendStartTime(&AdUnits[i].SocialDistanceTimeStart, t_double + AdUnits[i].SocialDistanceDelay);
 			}
 			if (TriggerValue >= P.PlaceCloseCellIncThresh)
 			{
-				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
+				DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t_double + P.PlaceCloseTimeStartBase);
 				if (P.DoInterventionDelaysByAdUnit)
 					for (int i = 0; i < P.NumAdunits; i++)
-						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t + AdUnits[i].PlaceCloseDelay);
+						DoOrDontAmendStartTime(&AdUnits[i].PlaceCloseTimeStart, t_double + AdUnits[i].PlaceCloseDelay);
 			}
 			if (TriggerValue >= P.MoveRestrCellIncThresh)
-				DoOrDontAmendStartTime(&P.MoveRestrTimeStart, t + P.MoveRestrTimeStartBase);
+				DoOrDontAmendStartTime(&P.MoveRestrTimeStart, t_double + P.MoveRestrTimeStartBase);
 			if (TriggerValue >= P.KeyWorkerProphCellIncThresh)
-				DoOrDontAmendStartTime(&P.KeyWorkerProphTimeStart, t + P.KeyWorkerProphTimeStartBase);
+				DoOrDontAmendStartTime(&P.KeyWorkerProphTimeStart, t_double + P.KeyWorkerProphTimeStartBase);
 		}
 		else
 		{
-		    DoOrDontAmendStartTime(&P.TreatTimeStart			, t + P.TreatTimeStartBase			);
-			DoOrDontAmendStartTime(&P.VaccTimeStart				, t + P.VaccTimeStartBase			);
-			DoOrDontAmendStartTime(&P.SocDistTimeStart			, t + P.SocDistTimeStartBase		);
-			DoOrDontAmendStartTime(&P.PlaceCloseTimeStart		, t + P.PlaceCloseTimeStartBase		);
-			DoOrDontAmendStartTime(&P.MoveRestrTimeStart		, t + P.MoveRestrTimeStartBase		);
-			DoOrDontAmendStartTime(&P.KeyWorkerProphTimeStart	, t + P.KeyWorkerProphTimeStartBase	);
+		    DoOrDontAmendStartTime(&P.TreatTimeStart			, t_double + P.TreatTimeStartBase			);
+			DoOrDontAmendStartTime(&P.VaccTimeStart				, t_double + P.VaccTimeStartBase			);
+			DoOrDontAmendStartTime(&P.SocDistTimeStart			, t_double + P.SocDistTimeStartBase			);
+			DoOrDontAmendStartTime(&P.PlaceCloseTimeStart		, t_double + P.PlaceCloseTimeStartBase		);
+			DoOrDontAmendStartTime(&P.MoveRestrTimeStart		, t_double + P.MoveRestrTimeStartBase		);
+			DoOrDontAmendStartTime(&P.KeyWorkerProphTimeStart	, t_double + P.KeyWorkerProphTimeStartBase	);
 		}
-		DoOrDontAmendStartTime(&P.AirportCloseTimeStart, t + P.AirportCloseTimeStartBase);
+		DoOrDontAmendStartTime(&P.AirportCloseTimeStart, t_double + P.AirportCloseTimeStartBase);
 
 
 	}
 	if ((P.PlaceCloseIndepThresh > 0) && (((double)State.cumDC) >= P.PlaceCloseIndepThresh))
-		DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
+		DoOrDontAmendStartTime(&P.PlaceCloseTimeStart, t_double + P.PlaceCloseTimeStartBase);
 
 
-	if (t > P.SocDistTimeStart + P.SocDistChangeDelay)
+	if (t_double > P.SocDistTimeStart + P.SocDistChangeDelay)
 	{
 		P.SocDistDurationCurrent = P.SocDistDuration2;
 		P.SocDistHouseholdEffectCurrent = P.SocDistHouseholdEffect2;
@@ -5153,7 +5153,7 @@ void RecordSample(double t, int n)
 		}
 	}
 	//fix to switch off first place closure after P.PlaceCloseDuration has elapsed, if there are no school or cell-based triggers set
-	if (t == P.PlaceCloseTimeStart + P.PlaceCloseDuration)
+	if (t_double == P.PlaceCloseTimeStart + P.PlaceCloseDuration)
 	{
 		P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart;
 		if ((P.PlaceCloseIncTrig == 0) && (P.PlaceCloseFracIncTrig == 0) && (P.PlaceCloseCellIncThresh == 0)) P.PlaceCloseTimeStart = 9e9;
@@ -5162,11 +5162,11 @@ void RecordSample(double t, int n)
 	if (!P.VaryEfficaciesOverTime)
 	{
 		if ((P.PlaceCloseTimeStart2 > P.PlaceCloseTimeStartPrevious) && //// if second place closure start time after previous start time AND
-			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
-			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
+			(t_double >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
+			(t_double >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
 		{
-			fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t);
-			P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
+			fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t_double);
+			P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t_double;
 			P.PlaceCloseDuration = P.PlaceCloseDuration2;
 			P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
 			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;

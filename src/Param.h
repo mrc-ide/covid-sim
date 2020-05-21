@@ -223,7 +223,7 @@ struct Param
 
 	/**< DIGITAL CONTACT TRACING	*/
 	int Num_DCT_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	double DCT_ChangeTimes							[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of digital contact tracing */
+	double DCT_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of digital contact tracing */
 	double DCT_SpatialAndPlaceEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of DCTCaseIsolationEffectiveness
 	double DCT_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of DCTCaseIsolationHouseEffectiveness
 	double DCT_Prop_OverTime					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of ProportionDigitalContactsIsolate
@@ -235,11 +235,31 @@ struct Param
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
-	double PreControlClusterIdTime, PreControlClusterIdCalTime, PreControlClusterIdHolOffset, PreIntervIdCalTime,PreIntervTime,SeedingScaling;
-	int PreControlClusterIdCaseThreshold, PreControlClusterIdCaseThreshold2, PreControlClusterIdUseDeaths, PreControlClusterIdDuration, DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold,StopCalibration,ModelCalibIteration;
-	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
-	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, TriggersSamplingInterval, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
+	//// Calibration parameters
+	double PreControlClusterIdTime;
+	double PreControlClusterIdCalTime;		// Day of year trigger is reached
+	double PreControlClusterIdHolOffset;
+	double PreIntervIdCalTime;				// Day of year interventions start
+	double PreIntervTime, SeedingScaling;
+	int PreControlClusterIdUseDeaths;		// Trigger alert on deaths
+	int PreControlClusterIdCaseThreshold;	// Number of deaths accummulated before alert (if PreControlClusterIdUseDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if PreControlClusterIdUseDeaths == 0)
+	int PreControlClusterIdCaseThreshold2;	// needed for calibration to work for multiple realisations
+	int DoAlertTriggerAfterInterv;			// Alert trigger starts after interventions, i.e. were there interventions before date specified in PreControlClusterIdCalTime / "Day of year trigger is reached"?
+	int PreControlClusterIdDuration;		// Number of days to accummulate cases/deaths before alert
+	int AlertTriggerAfterIntervThreshold;	// initialized ot PreControlClusterIdCaseThreshold.
+	int StopCalibration, ModelCalibIteration;
+
+	//// Trigger parameters
+	int DoPerCapitaTriggers;				// Use cases per thousand threshold for area controls
+	int DoGlobalTriggers;					// Use global triggers for interventions
+	int DoAdminTriggers;					// Use admin unit triggers for interventions
+	int DoICUTriggers;						// Use ICU case triggers for interventions
+	int TriggersSamplingInterval;			// Number of sampling intervals over which cumulative incidence measured for global trigger
+
+	int MoveRestrCellIncThresh, DoHQretrigger;
+
+	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
 	int PlaceCloseCellIncStopThresh, SocDistCellIncStopThresh;
 	int PlaceCloseAdunitPlaceTypes[NUM_PLACE_TYPES];
 
@@ -248,7 +268,7 @@ struct Param
 	int VaccMaxRounds, VaccByAdminUnit, VaccAdminUnitDivisor, TreatByAdminUnit, TreatAdminUnitDivisor, MoveRestrByAdminUnit, MoveRestrAdminUnitDivisor, PlaceCloseByAdminUnit, PlaceCloseAdminUnitDivisor;
 	int KeyWorkerProphCellIncThresh, KeyWorkerPopNum, KeyWorkerPlaceNum[NUM_PLACE_TYPES], KeyWorkerNum, KeyWorkerIncHouseNum;
 	int DoBlanketMoveRestr, PlaceCloseIncTrig, PlaceCloseIncTrig1, PlaceCloseIncTrig2, TreatMaxCoursesPerCase, DoImportsViaAirports, DoMassVacc, DurImportTimeProfile;
-	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// us = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay
+	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// "us" = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay
 	unsigned short int usCaseIsolationDuration, usCaseIsolationDelay, usCaseAbsenteeismDuration, usCaseAbsenteeismDelay;
 
 	//Added DoRecordInfEvents and MaxInfEvents in order to give the user a choice as to whether to output infection events as a line list: ggilani - 10/10/14
