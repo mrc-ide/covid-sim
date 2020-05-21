@@ -1259,16 +1259,20 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 void DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
+	bool cumV_OK = false;
 
 	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-	if (State.cumV >= P.VaccMaxCourses)
-		return;
+#pragma omp critical (state_cumV)
+	if (State.cumV < P.VaccMaxCourses)
+	{
+		cumV_OK = true;
+		State.cumV++;
+	}
+	if (cumV_OK)
 	{
 		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
 
-#pragma omp critical (state_cumV)
-		State.cumV++;
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp critical (state_cumV_daily)
