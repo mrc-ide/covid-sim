@@ -105,6 +105,7 @@
     <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
     <ClCompile Include="src\Location.cpp" />
+    <ClCompile Include="src\Household.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -128,6 +129,7 @@
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
     <ClInclude Include="src\Location.hpp" />
+    <ClInclude Include="src\Household.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

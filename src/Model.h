@@ -6,7 +6,7 @@
 #include "Constants.h"
 #include "InfStat.h"
 #include "Location.hpp"
-
+#include "Household.hpp"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
@@ -52,14 +52,6 @@ struct Person
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
-};
-
-struct Household
-{
-	int FirstPerson;
-	unsigned short int nh; // number people in household
-	Location loc;
-	unsigned short int nhr;
 };
 
 /*
