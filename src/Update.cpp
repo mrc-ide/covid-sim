@@ -626,14 +626,14 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
 				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
-				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
+				k = (ranf_mt(tn) < P.current_household_quarantine_.household_prop_comply_) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
 				///// cycle through remaining household members and repeat the above steps
 				for (j = j1; j < j2; j++)
 				{
 					if(j>j1) Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
-					Hosts[j].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
+					Hosts[j].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.current_household_quarantine_.individual_prop_comply_) ? 1 : 0));
 					if ((Hosts[j].quar_comply) && (!HOST_ABSENT(j)))
 					{
 						if (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff)
@@ -651,7 +651,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if ((P.DoInterventionDelaysByAdUnit &&
 		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + AdUnits[Mcells[a->mcell].adunit].CaseIsolationPolicyDuration)))	||
 		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + P.CaseIsolationPolicyDuration))								)
-		if ((P.CaseIsolationProp == 1) || (ranf_mt(tn) < P.CaseIsolationProp))
+		if ((P.current_case_isolation_.prop_ == 1) || (ranf_mt(tn) < P.current_case_isolation_.prop_))
 		{
 			Hosts[ai].isolation_start_time = ts; //// set isolation start time.
 			if (HOST_ABSENT(ai))
@@ -728,7 +728,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//	for (j = j1; j < j2; j++)
 		//	{
 		//		//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//		if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//		if ((abs(Hosts[j].inf) != 5) && (j != ai) && (Hosts[j].digitalContactTracingUser) && (ranf_mt(tn)<P.current_digital_contact_tracing_.prop_))
 		//		{
 		//			//add contact and detected infectious host to lists
 		//			ad = Mcells[Hosts[j].mcell].adunit;
@@ -760,7 +760,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//				h = Places[i][k].members[j];
 		//				ad = Mcells[Hosts[h].mcell].adunit;
 		//				//if host is dead or the detected case, no need to add them to the list. They also need to be a user themselves
-		//				if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.ProportionDigitalContactsIsolate))
+		//				if ((abs(Hosts[h].inf) != 5) && (h != ai) && (Hosts[h].digitalContactTracingUser))// && (ranf_mt(tn)<P.current_digital_contact_tracing_.prop_))
 		//				{
 		//					ad = Mcells[Hosts[h].mcell].adunit;
 		//					if ((StateT[tn].ndct_queue[ad] < P.InfQueuePeakLength))
@@ -1147,8 +1147,8 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			}
 			if (Places[i][j].control_trig < USHRT_MAX - 1) //// control_trig initialized to zero so this check will pass at least once
 			{
-				if (P.PlaceCloseFracIncTrig > 0)
-					k = (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseFracIncTrig);
+				if (P.current_place_closure_.frac_inc_thresh_ > 0)
+					k = (((double)trig) / ((double)Places[i][j].n) > P.current_place_closure_.frac_inc_thresh_);
 				else
 					k = (((int)trig) >= P.PlaceCloseIncTrig);
 				if (((!P.PlaceCloseByAdminUnit) && (k)) || (DoAnyway))
@@ -1160,7 +1160,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 					//// set close_start_time and close_end_time
 
-					if (Places[i][j].ProbClose >= P.PlaceCloseEffect[i]) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - PlaceCloseEffect[i]...
+					if (Places[i][j].ProbClose >= P.current_place_closure_.place_effect_[i]) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - current_place_closure_.place_effect_[i]...
 					{
 						if (Places[i][j].close_start_time > t_start) Places[i][j].close_start_time = t_start;
 						Places[i][j].close_end_time = t_stop;
@@ -1179,7 +1179,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			for (k = 0; k < Places[i][j].n; k++) //// loop over all people in place.
 			{
 				ai = Places[i][j].members[k];
-				if (((P.PlaceClosePropAttending[i] == 0) || (Hosts[ai].ProbAbsent >= P.PlaceClosePropAttending[i])))
+				if (((P.current_place_closure_.prop_attending_[i] == 0) || (Hosts[ai].ProbAbsent >= P.current_place_closure_.prop_attending_[i])))
 				{
 					if ((!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai)) && (HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff)) //// if person is a child and neither absent nor quarantined
 					{

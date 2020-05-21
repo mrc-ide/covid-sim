@@ -333,7 +333,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
 									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
 
-						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
+						if (f) { s3 *= P.current_place_closure_.household_effect_; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
@@ -415,8 +415,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											s6 = P.ProportionDigitalContactsIsolate * s;
-											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
+											s6 = P.current_digital_contact_tracing_.prop_ * s;
+											if ((Hosts[ci].ncontacts < P.current_digital_contact_tracing_.max_to_trace_) && (ranf_mt(tn) <s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
 												int ad = Mcells[Hosts[i3].mcell].adunit;
@@ -487,8 +487,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											s6 = P.ProportionDigitalContactsIsolate * s;
-											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
+											s6 = P.current_digital_contact_tracing_.prop_ * s;
+											if ((Hosts[ci].ncontacts < P.current_digital_contact_tracing_.max_to_trace_) && (ranf_mt(tn) < s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
 												int ad = Mcells[Hosts[i3].mcell].adunit;
@@ -560,7 +560,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 					if((f) && (HOST_ABSENT(ci))) //// if place is closed and person is absent then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness
 					{
-						s2 *= P.PlaceCloseSpatialRelContact;
+						s2 *= P.current_place_closure_.spatial_effect_;
 						/* NumPCD++; */
 						s5 += s2;
 						StateT[tn].cell_inf[j] = (float)-s5;
@@ -654,7 +654,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//if infectee is also a user, add them as a contact
 									if (Hosts[i3].digitalContactTracingUser && (ci != i3))
 									{
-										if ((Hosts[ci].ncontacts<P.MaxDigitalContactsToTrace)&&(ranf_mt(tn) < s*P.ProportionDigitalContactsIsolate))
+										if ((Hosts[ci].ncontacts<P.current_digital_contact_tracing_.max_to_trace_)&&(ranf_mt(tn) < s*P.current_digital_contact_tracing_.prop_))
 										{
 											Hosts[ci].ncontacts++; //add to number of contacts made
 											int ad = Mcells[Hosts[i3].mcell].adunit;
@@ -690,7 +690,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											{
 												f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
 											}
-										if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+										if (f2) { s *= P.current_place_closure_.spatial_effect_; }/* NumPCD++;} */
 										f2 = 0;
 									}
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
@@ -1658,15 +1658,15 @@ int TreatSweep(double t)
 						Mcells[b].socdist_end_time = ts; //// record end time.
 					}
 					if (P.DoGlobalTriggers)
-						f2 = (global_trig >= P.SocDistCellIncThresh);
+						f2 = (global_trig >= P.current_social_distancing_.cell_inc_thresh_);
 					else if (P.DoAdminTriggers)
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.current_social_distancing_.cell_inc_thresh_)) / P.IncThreshPop)) : P.current_social_distancing_.cell_inc_thresh_;
 						f2 = (State.trigDC_adunit[adi] >= trig_thresh);
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.current_social_distancing_.cell_inc_thresh_)) / P.IncThreshPop)) : P.current_social_distancing_.cell_inc_thresh_;
 						f2 = (Mcells[b].treat_trig >= trig_thresh);
 					}
 					if ((t >= P.SocDistTimeStart) && (Mcells[b].socdist == 0) && (f2))
