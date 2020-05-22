@@ -112,7 +112,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			i = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)i);
-			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf[i + 1] + (1.0 - q) * P.latent_icdf[i])) * P.TimeStepsPerDay);
+			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf.get_value(i + 1) + (1.0 - q) * P.latent_icdf.get_value(i))) * P.TimeStepsPerDay);
 		}
 		else
 			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
@@ -454,7 +454,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
+			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf.get_values(), P.InfectiousPeriod, tn);
 		}
 		else
 		{
