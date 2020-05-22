@@ -13,30 +13,30 @@ double sinx[361], cosx[361], asin2sqx[1001];
 
 double dist2UTM(double x1, double y1, double x2, double y2)
 {
-	double x, y, cy1, cy2, yt, xi, yi;
+	Vector2<double> pos = Vector2<double>(x1 - x2, y1 - y2).abs() / 2;
+	Vector2<double> i = pos.floor();
+	pos -= i;
+	pos.x = (1 - pos.x) * sinx[(int)i.x] + pos.x * sinx[((int)i.x) + 1];
+	pos.y = (1 - pos.y) * sinx[(int)i.y] + pos.y * sinx[((int)i.y) + 1];
 
-	x = fabs(x1 - x2) / 2;
-	y = fabs(y1 - y2) / 2;
-	xi = floor(x);
-	yi = floor(y);
-	x -= xi;
-	y -= yi;
-	x = (1 - x) * sinx[(int)xi] + x * sinx[((int)xi) + 1];
-	y = (1 - y) * sinx[(int)yi] + y * sinx[((int)yi) + 1];
-	yt = fabs(y1 + P.SpatialBoundingBox[1]);
-	yi = floor(yt);
-	cy1 = yt - yi;
-	cy1 = (1 - cy1) * cosx[((int)yi)] + cy1 * cosx[((int)yi) + 1];
-	yt = fabs(y2 + P.SpatialBoundingBox[1]);
-	yi = floor(yt);
-	cy2 = yt - yi;
-	cy2 = (1 - cy2) * cosx[((int)yi)] + cy2 * cosx[((int)yi) + 1];
-	x = fabs(1000 * (y * y + x * x * cy1 * cy2));
-	xi = floor(x);
-	x -= xi;
-	y = (1 - x) * asin2sqx[((int)xi)] + x * asin2sqx[((int)xi) + 1];
-	return 4 * EARTHRADIUS * EARTHRADIUS * y;
+	double yt = fabs(y1 + P.SpatialBoundingBox.start.y);
+	i.y = floor(yt);
+
+	double cy1 = yt - i.y;
+	cy1 = (1 - cy1) * cosx[((int)i.y)] + cy1 * cosx[((int)i.y) + 1];
+	yt = fabs(y2 + P.SpatialBoundingBox.start.y);
+	i.y = floor(yt);
+
+	double cy2 = yt - i.y;
+	cy2 = (1 - cy2) * cosx[((int)i.y)] + cy2 * cosx[((int)i.y) + 1];
+
+	pos.x = fabs(1000 * (pos.length_squared() * cy1 * cy2));
+	i.x = floor(pos.x);
+	pos.x -= i.x;
+	pos.y = (1 - pos.x) * asin2sqx[((int)i.x)] + pos.x * asin2sqx[((int)i.x) + 1];
+	return 4 * EARTHRADIUS * EARTHRADIUS * pos.y;
 }
+
 double dist2(Person* a, Person* b)
 {
 	if (P.DoUTM_coords)

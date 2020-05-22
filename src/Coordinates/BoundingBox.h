@@ -1,6 +1,10 @@
 #pragma once
 
-struct BoundingBox {
+#include "Vector2.h"
 
+template<class T>
+struct BoundingBox {
+	Vector2<T> start;
+	Vector2<T> end;
 };
 

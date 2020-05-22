@@ -7,6 +7,7 @@
 #include "Constants.h"
 #include "Coordinates/MicroCellPosition.h"
 #include "Coordinates/Size.h"
+#include "Coordinates/BoundingBox.h"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
@@ -84,7 +85,10 @@ struct Param
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	int OutputBitmap; // Whether to output a bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
+
+	BoundingBox<double> SpatialBoundingBox;
+
+	double LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
@@ -151,7 +155,10 @@ struct Param
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
-	double ColourPeriod, BoundingBox[4], BitmapScale;
+
+	BoundingBox<double> bounding_box;
+
+	double ColourPeriod, BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;
