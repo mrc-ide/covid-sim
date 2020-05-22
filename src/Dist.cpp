@@ -62,8 +62,8 @@ double dist2_cc(Cell* a, Cell* b)
 			P.in_cells_.width_ * fabs((double)(bIndex / P.nch)), P.in_cells_.height_ * fabs((double)(bIndex % P.nch)));
 	else
 	{
-		int x = P.in_cells_.width_ * fabs((double)(aIndex / P.nch - bIndex / P.nch));
-		int y = P.in_cells_.height_ * fabs((double)(aIndex % P.nch - bIndex % P.nch));
+		double x = P.in_cells_.width_ * fabs((double)(aIndex / P.nch - bIndex / P.nch));
+		double y = P.in_cells_.height_ * fabs((double)(aIndex % P.nch - bIndex % P.nch));
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
