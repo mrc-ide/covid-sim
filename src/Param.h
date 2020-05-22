@@ -27,11 +27,11 @@ struct DomainSize
 struct InitialInfections
 {
   int number_[MAX_NUM_SEED_LOCATIONS];
-  int do_random_loc_;
-  int do_all_in_same_loc_;
-  int min_pop_dens_;
+  int do_random_location_;
+  int do_all_in_same_location_;
+  int min_population_density_;
   int num_seed_locations_;
-  int max_pop_dens_;
+  int max_population_density_;
   int admin_unit_id_[MAX_NUM_SEED_LOCATIONS];
   int admin_unit_[MAX_NUM_SEED_LOCATIONS];
   double location_[MAX_NUM_SEED_LOCATIONS][2];

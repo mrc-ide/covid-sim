@@ -1197,7 +1197,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	}
 	fprintf(stderr, "Ages/households assigned\n");
 
-	if (!P.initial_infections_.do_random_loc_)
+	if (!P.initial_infections_.do_random_location_)
 	{
 		int k = (int)(P.initial_infections_.location_[0][0] / P.in_microcells_.width_);
 		l = (int)(P.initial_infections_.location_[0][1] / P.in_microcells_.height_);

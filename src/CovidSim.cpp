@@ -952,10 +952,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.initial_infections_.number_, P.initial_infections_.num_seed_locations_, 1, 0);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.initial_infections_.location_[0][0]), P.initial_infections_.num_seed_locations_ * 2, 1, 0)) P.initial_infections_.location_[0][0] = P.initial_infections_.location_[0][1] = 0.0;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.initial_infections_.min_pop_dens_), 1, 1, 0)) P.initial_infections_.min_pop_dens_ = 0;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.initial_infections_.max_pop_dens_), 1, 1, 0)) P.initial_infections_.max_pop_dens_ = 10000000;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.initial_infections_.do_random_loc_), 1, 1, 0)) P.initial_infections_.do_random_loc_=1;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.initial_infections_.do_all_in_same_loc_), 1, 1, 0)) P.initial_infections_.do_all_in_same_loc_=0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.initial_infections_.min_population_density_), 1, 1, 0)) P.initial_infections_.min_population_density_ = 0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.initial_infections_.max_population_density_), 1, 1, 0)) P.initial_infections_.max_population_density_ = 10000000;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.initial_infections_.do_random_location_), 1, 1, 0)) P.initial_infections_.do_random_location_=1;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.initial_infections_.do_all_in_same_location_), 1, 1, 0)) P.initial_infections_.do_all_in_same_location_=0;
 	if (P.DoAdUnits)
 	{
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.initial_infections_.num_seed_locations_ > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.initial_infections_.num_seed_locations_, 1, 0))
@@ -2846,7 +2846,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	n = ((rf == 0) ? P.initial_infections_.num_seed_locations_ : 1);
 	for (i = 0; i < n; i++)
 	{
-		if ((!P.initial_infections_.do_random_loc_) || ((P.initial_infections_.do_all_in_same_loc_) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
+		if ((!P.initial_infections_.do_random_location_) || ((P.initial_infections_.do_all_in_same_location_) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
 			k = (int)(P.initial_infections_.location_[i][0] / P.in_microcells_.width_);
 			l = (int)(P.initial_infections_.location_[i][1] / P.in_microcells_.height_);
@@ -2874,7 +2874,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				else { k--; m++; } //// k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
 			}
 		}
-		else if (P.initial_infections_.do_all_in_same_loc_)
+		else if (P.initial_infections_.do_all_in_same_location_)
 		{
 			f = 0;
 			do
@@ -2885,8 +2885,8 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
 					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
-				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.initial_infections_.max_pop_dens_)
-					|| (Mcells[j].n < P.initial_infections_.min_pop_dens_)
+				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.initial_infections_.max_population_density_)
+					|| (Mcells[j].n < P.initial_infections_.min_population_density_)
 					|| ((P.initial_infections_.admin_unit_[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.initial_infections_.admin_unit_[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
 				for (k = 0; (k < nsi[i]) && (m < 10000); k++)
 				{
@@ -2923,8 +2923,8 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
 					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
-				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.initial_infections_.max_pop_dens_)
-					|| (Mcells[j].n < P.initial_infections_.min_pop_dens_)
+				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.initial_infections_.max_population_density_)
+					|| (Mcells[j].n < P.initial_infections_.min_population_density_)
 					|| ((P.initial_infections_.admin_unit_[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.initial_infections_.admin_unit_[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 				if (Hosts[l].inf == InfStat_Susceptible)
