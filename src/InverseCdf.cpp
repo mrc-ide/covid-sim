@@ -1,5 +1,5 @@
-#include <math.h>
 #include "InverseCdf.hpp"
+#include <math.h>
 
 void InverseCdf::apply_exponent()
 {
