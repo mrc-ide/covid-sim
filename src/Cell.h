@@ -19,6 +19,7 @@ struct Cell
 	short int CurInterv[MAX_INTERVENTION_TYPES];
 
 	double distance_squared_to(Cell* other) const;
+	double distance_squared_to_min(Cell* other) const;
 	int index() const;
 	Vector2<double> position() const;
 };
