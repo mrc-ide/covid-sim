@@ -52,24 +52,22 @@ double dist2(Person* a, Person* b)
 		return delta.length_squared();
 	}
 }
+
 double dist2_cc(Cell* a, Cell* b)
 {
-	double x, y;
-	int l, m;
-
-	l = (int)(a - Cells);
-	m = (int)(b - Cells);
+	int aIndex = (int)(a - Cells);
+	int bIndex = (int)(b - Cells);
 	if (P.DoUTM_coords)
-		return dist2UTM(P.in_cells_.width_ * fabs((double)(l / P.nch)), P.in_cells_.height_ * fabs((double)(l % P.nch)),
-			P.in_cells_.width_ * fabs((double)(m / P.nch)), P.in_cells_.height_ * fabs((double)(m % P.nch)));
+		return dist2UTM(P.in_cells_.width_ * fabs((double)(aIndex / P.nch)), P.in_cells_.height_ * fabs((double)(aIndex % P.nch)),
+			P.in_cells_.width_ * fabs((double)(bIndex / P.nch)), P.in_cells_.height_ * fabs((double)(bIndex % P.nch)));
 	else
 	{
-		x = P.in_cells_.width_ * fabs((double)(l / P.nch - m / P.nch));
-		y = P.in_cells_.height_ * fabs((double)(l % P.nch - m % P.nch));
+		int x = P.in_cells_.width_ * fabs((double)(aIndex / P.nch - bIndex / P.nch));
+		int y = P.in_cells_.height_ * fabs((double)(aIndex % P.nch - bIndex % P.nch));
 		if (P.DoPeriodicBoundaries)
 		{
-			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
-			if (y > P.in_degrees_.height_ * 0.5) y = P.in_degrees_.height_ - y;
+			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
+			if (y > P.in_degrees_.height * 0.5) y = P.in_degrees_.height - y;
 		}
 		return x * x + y * y;
 	}
