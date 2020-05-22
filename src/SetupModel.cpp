@@ -601,7 +601,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (P.DoSI)
 		P.LocalBeta = (P.R0 / t2 - s - t);
 	else
-		P.LocalBeta = (P.R0 - s - t) / t2;
+		P.LocalBeta = (P.R0 - s - t) / t2; // here, s = R0household; t = place beta?; t2 = household infectiousness.
 	if ((P.LocalBeta < 0) || (!P.DoSpatial))
 	{
 		P.LocalBeta = P.R0spatial = 0;

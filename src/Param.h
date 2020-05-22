@@ -236,25 +236,37 @@ struct Param
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
 
-	//// Calibration parameters
+	/**< CALIBRATION PARAMETERS
+
+	Params below govern how epidemic is calibrated.
+	Calibration relates simulation time to calendar time (i.e. which day of year corresponds to first day of epidemic / simulation?)
+	Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+
+	Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
+
+	Calibration parameters specified in pre-parameter file.
+	*/
+	
 	double PreControlClusterIdTime;
 	double PreControlClusterIdCalTime;		// Day of year trigger is reached
-	double PreControlClusterIdHolOffset;
+	double PreControlClusterIdHolOffset;	// Offset between 
 	double PreIntervIdCalTime;				// Day of year interventions start
-	double PreIntervTime, SeedingScaling;
-	int PreControlClusterIdUseDeaths;		// Trigger alert on deaths
+	double PreIntervTime;					// First day of epidemic	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double SeedingScaling;					// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	bool PreControlClusterIdUseDeaths;		// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration). 
 	int PreControlClusterIdCaseThreshold;	// Number of deaths accummulated before alert (if PreControlClusterIdUseDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if PreControlClusterIdUseDeaths == 0)
 	int PreControlClusterIdCaseThreshold2;	// needed for calibration to work for multiple realisations
-	int DoAlertTriggerAfterInterv;			// Alert trigger starts after interventions, i.e. were there interventions before date specified in PreControlClusterIdCalTime / "Day of year trigger is reached"?
+	bool DoAlertTriggerAfterInterv;			// Alert trigger starts after interventions, i.e. were there interventions before date specified in PreControlClusterIdCalTime / "Day of year trigger is reached"?
 	int PreControlClusterIdDuration;		// Number of days to accummulate cases/deaths before alert
 	int AlertTriggerAfterIntervThreshold;	// initialized to PreControlClusterIdCaseThreshold (i.e. number cases or deaths accumulated before alert).
-	int StopCalibration, ModelCalibIteration;
+	bool StopCalibration;
+	int ModelCalibIteration;
 
-	//// Trigger parameters
-	int DoPerCapitaTriggers;				// Use cases per thousand threshold for area controls
-	int DoGlobalTriggers;					// Use global triggers for interventions
-	int DoAdminTriggers;					// Use admin unit triggers for interventions
-	int DoICUTriggers;						// Use ICU case triggers for interventions
+	/**< Trigger parameters */
+	bool DoPerCapitaTriggers;				// Use cases per thousand threshold for area controls
+	bool DoGlobalTriggers;					// Use global triggers for interventions
+	bool DoAdminTriggers;					// Use admin unit triggers for interventions
+	bool DoICUTriggers;						// Use ICU case triggers for interventions
 	int TriggersSamplingInterval;			// Number of sampling intervals over which cumulative incidence measured for global trigger
 
 	int MoveRestrCellIncThresh, DoHQretrigger;
