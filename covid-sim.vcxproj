@@ -111,6 +111,7 @@
     <ClCompile Include="src\Coordinates\Location.cpp" />
     <ClInclude Include="src\Coordinates\Vector2.cpp" />
     <ClInclude Include="src\Coordinates\Size.cpp" />
+    <ClInclude Include="src\Coordinates\BoundingBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="src\Coordinates\Location.h" />
     <ClInclude Include="src\Coordinates\Vector2.h" />
     <ClInclude Include="src\Coordinates\Size.h" />
+    <ClInclude Include="src\Coordinates\BoundingBox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

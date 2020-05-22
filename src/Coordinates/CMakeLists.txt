@@ -8,4 +8,6 @@ target_sources(CovidSim
         Size.h
         Vector2.cpp
         Vector2.h
+        BoundingBox.cpp
+        BoundingBox.h
 )
