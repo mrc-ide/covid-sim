@@ -405,7 +405,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
 										n = Places[k][l].group_size[i2];
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
-										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].group_size[i2], s4_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									for (int m = 0; m < n; m++)
 									{
@@ -477,7 +477,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s3_scaled >= 1)
 										n = Places[k][l].n;
 									else
-										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].n, s3_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
 									for (int m = 0; m < n; m++)
 									{

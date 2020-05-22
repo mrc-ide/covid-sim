@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_PARAM_H_INCLUDED_
 #define COVIDSIM_PARAM_H_INCLUDED_
 
+#include <inttypes.h>
+
 #include "Country.h"
 #include "Constants.h"
 #include "MicroCellPosition.hpp"
@@ -75,10 +77,10 @@ struct Param
 	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis, DoInterventionFile;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
-	long setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
-	long runSeed1, runSeed2; // RNG seeds from the command line, used to initialise the RNG for running the model
-	long nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
-	long nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
+	int32_t setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
+	int32_t runSeed1, runSeed2; // RNG seeds from the command line, used to initialise the RNG for running the model
+	int32_t nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
+	int32_t nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
