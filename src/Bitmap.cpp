@@ -68,22 +68,27 @@ void CaptureBitmap()
 				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width_ * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.in_microcells_.height_ * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					Vector2<double> position = (Vector2<double>)P.get_micro_cell_position_from_cell_index(i);
+					Vector2<int> bitmap_position =
+							(Vector2<int>)(
+								(Vector2<double>)P.in_microcells_
+								* (position + Vector2<double>(0.5, 0.5))
+								* P.scale
+							) - P.bmin;
+					if (P.b.contains(bitmap_position))
 					{
-						j = y * bmh->width + x;
+						int j = bitmap_position.y * bmh->width + bitmap_position.x;
 						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.b.width / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.b.width) * 2);
 			f = ((int)prev);
-			for (j = 0; j < 10; j++)
+			for (int j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.bheight + 5) * bmh->width + P.bwidth / 4 + i] = f;
+				bmPixels[(j + P.b.height + 5) * bmh->width + P.b.width / 4 + i] = f;
 			}
 		}
 	}
