@@ -28,4 +28,6 @@ struct Microcell
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
 	IndexList* AirportList;
+
+	double distance_squared_to(Microcell* other) const;
 };
