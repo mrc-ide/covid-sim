@@ -3,18 +3,18 @@
 
 #include "Constants.h"
 
-class ICDF
+class InverseCdf
 {
 	double cdf_values_[CDF_RES + 1];
 
 public:
 
-	void SetDefaults(int startValue);
+	void set_defaults(int startValue);
 
-	void ApplyExponent();
+	void apply_exponent();
 
 	// Getter
-	double* GetCDFValues()
+	double* get_values()
 	{
 		return cdf_values_;
 	}

@@ -1,8 +1,7 @@
-#include "ICDF.h"
 #include <math.h>
+#include "InverseCdf.hpp"
 
-
-void ICDF::ApplyExponent()
+void InverseCdf::apply_exponent()
 {
 	for (int i = 0; i <= CDF_RES; i++)
 	{
@@ -11,7 +10,7 @@ void ICDF::ApplyExponent()
 }
 
 // set defaults if not present in parameter file
-void ICDF::SetDefaults(int startValue)
+void InverseCdf::set_defaults(int startValue)
 {
 	cdf_values_[CDF_RES] = startValue;
 	for (int i = 0; i < CDF_RES; i++)
