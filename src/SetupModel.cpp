@@ -178,8 +178,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
 	}
 	P.NMC = P.NMCL * P.NMCL * P.NC;
-	P.nmcw = P.ncw * P.NMCL;
-	P.nmch = P.nch * P.NMCL;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
@@ -494,14 +492,18 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		for (int i = tn; i < P.PopSize; i += P.NumThreads)
 		{
+			if (P.SusceptibilitySD == 0)
+				Hosts[i].susc = (float)((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(i)]) : 1.0);
+			else
+				Hosts[i].susc = (float) (((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(i)]) : 1.0) * gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn));
 			if (P.InfectiousnessSD == 0)
 				Hosts[i].infectiousness = (float)P.AgeInfectiousness[HOST_AGE_GROUP(i)];
 			else
-				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(P.InfectiousnessGamA, P.InfectiousnessGamR, tn)); //made this multi-threaded: 28/11/14
+				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn));
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
-			if (ranf_mt(tn) < q) //made this multi-threaded: 28/11/14
+			if (ranf_mt(tn) < q) 
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
-			int j = (int)floor((q = ranf_mt(tn) * CDF_RES)); //made this multi-threaded: 28/11/14
+			int j = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)j);
 			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
 
@@ -776,7 +778,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			{
 				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width_ + 0.1);
 				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height_ + 0.1);
-				l = j * P.nmch + k;
+				l = j * P.get_number_of_micro_cells_high() + k;
 				if (l < P.NMC)
 				{
 					mr++;
@@ -819,8 +821,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.nmch)) + 0.5)) + P.SpatialBoundingBox[0]; //x
-						BF[rn].y = (double)(P.in_microcells_.height_ * (((double)(l % P.nmch)) + 0.5)) + P.SpatialBoundingBox[1]; //y
+						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[0]; //x
+						BF[rn].y = (double)(P.in_microcells_.height_ * (((double)(l % P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[1]; //y
 						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
 						BF[rn].pop = mcell_dens[l];
 						BF[rn].cnt = mcell_country[l];
@@ -1023,12 +1025,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
 		Cells[i].n = 0;
-		int k = (i / P.nch) * P.NMCL * P.nmch + (i % P.nch) * P.NMCL;
+		int k = (i / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (i % P.nch) * P.NMCL;
 		Cells[i].members = State.CellMemberArray + j2;
 		for (l = 0; l < P.NMCL; l++)
 			for (m = 0; m < P.NMCL; m++)
 			{
-				j = k + m + l * P.nmch;
+				j = k + m + l * P.get_number_of_micro_cells_high();
 				if (Mcells[j].n > 0)
 				{
 					Mcells[j].members = State.CellMemberArray + j2;
@@ -1083,7 +1085,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (j2 = 0; j2 < P.NMCP; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
-		l = ((j / P.nmch) / P.NMCL) * P.nch + ((j % P.nmch) / P.NMCL);
+		l = ((j / P.get_number_of_micro_cells_high()) / P.NMCL) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.NMCL);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
@@ -1121,8 +1123,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
 			j = (int)(McellLookup[j2] - Mcells);
-			x = (double)(j / P.nmch);
-			y = (double)(j % P.nmch);
+			x = (double)(j / P.get_number_of_micro_cells_high());
+			y = (double)(j % P.get_number_of_micro_cells_high());
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
 				fprintf(stderr_shared, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
@@ -1247,7 +1249,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		int k = (int)(P.LocationInitialInfection[0][0] / P.in_microcells_.width_);
 		l = (int)(P.LocationInitialInfection[0][1] / P.in_microcells_.height_);
-		j = k * P.nmch + l;
+		j = k * P.get_number_of_micro_cells_high() + l;
 
 		double rand_r = 0.0; //added these variables so that if initial infection location is empty we can search the 10km neighbourhood to find a suitable cell
 		double rand_theta = 0.0;
@@ -1260,7 +1262,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				rand_r = 0.083 * sqrt(rand_r); rand_theta = 2 * PI * rand_theta; //rand_r is multiplied by 0.083 as this is roughly equal to 10km in decimal degrees
 				k = (int)((P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta)) / P.in_microcells_.width_);
 				l = (int)((P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta)) / P.in_microcells_.height_);
-				j = k * P.nmch + l;
+				j = k * P.get_number_of_micro_cells_high() + l;
 				counter++;
 			}
 			if (counter < 100)
@@ -1339,7 +1341,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				Places[j][P.Nplace[j]].n = m;
 				i = (int)(Places[j][P.Nplace[j]].loc_x / P.in_microcells_.width_);
 				int k = (int)(Places[j][P.Nplace[j]].loc_y / P.in_microcells_.height_);
-				j2 = i * P.nmch + k;
+				j2 = i * P.get_number_of_micro_cells_high() + k;
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
@@ -1403,8 +1405,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					if (Mcells[i].np[j2] > 0)
 					{
 						if (!(Mcells[i].places[j2] = (int*)malloc(Mcells[i].np[j2] * sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
-						x = (double)(i / P.nmch);
-						y = (double)(i % P.nmch);
+						x = (double)(i / P.get_number_of_micro_cells_high());
+						y = (double)(i % P.get_number_of_micro_cells_high());
 						for (j = 0; j < Mcells[i].np[j2]; j++)
 						{
 							xh = P.in_microcells_.width_ * (ranf_mt(tn) + x);
@@ -1529,8 +1531,8 @@ void SetupAirports(void)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
-			x = (((double)(i / P.nmch)) + 0.5) * P.in_microcells_.width_;
-			y = (((double)(i % P.nmch)) + 0.5) * P.in_microcells_.height_;
+			x = (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.width_;
+			y = (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.height_;
 			k = l = 0;
 			tmin = 1e20;
 			for (int j = 0; j < P.Nairports; j++)
@@ -1849,9 +1851,9 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	for (i = 0; i < n; i++) Hosts[pers + i].age = (unsigned char) a[i];
 }
 
-void AssignPeopleToPlaces(void)
+void AssignPeopleToPlaces()
 {
-	int i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, mx, my, a, cnt, ca, nt, nn;
+	int i2, j, j2, k, k2, l, m, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
@@ -2112,18 +2114,19 @@ void AssignPeopleToPlaces(void)
 					{
 						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
-						l = 1; k = m = m2 = f2 = 0;
+						l = 1; k = m = f2 = 0;
 						int i = PeopleArray[j];
 						ic = Hosts[i].mcell;
-						mx = ic / P.nmch;
-						my = ic % P.nmch;
+
+						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
+						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							while (((k < nn) || (l < 4)) && (l < P.nmcw))
+							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
-								if ((mx >= 0) && (my >= 0) && (mx < P.nmcw) && (my < P.nmch))
+								if (P.is_in_bounds(mc_position))
 								{
-									ic = mx * P.nmch + my;
+									ic = P.get_micro_cell_index_from_position(mc_position);
 									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
@@ -2145,7 +2148,9 @@ void AssignPeopleToPlaces(void)
 												else if (t > 0)
 													s *= t;
 											}
-											k2 = 0; j2 = 0; t = 1e10;
+											k2 = 0;
+											j2 = 0;
+											t = 1e10;
 											if (s > 0)
 											{
 												if (k < nn)
@@ -2173,18 +2178,11 @@ void AssignPeopleToPlaces(void)
 										}
 									}
 								}
-								if (m2 == 0)
-									mx = mx + 1;
-								else if (m2 == 1)
-									my = my - 1;
-								else if (m2 == 2)
-									mx = mx - 1;
-								else if (m2 == 3)
-									my = my + 1;
+								mc_position += m2;
 								f2 = (f2 + 1) % l;
 								if (f2 == 0)
 								{
-									m2 = (m2 + 1) % 4;
+									m2 = rotate_left(m2);
 									m = (m + 1) % 2;
 									if (m == 0) l++;
 								}
@@ -2218,13 +2216,12 @@ void AssignPeopleToPlaces(void)
 								}
 							}
 						}
-
 					}
 				}
 				else
 				{
 					k2 = cnt - ca;
-					m2 = cnt;
+					int m2 = cnt;
 					a = k2 / 1000;
 					f = k2;
 					for (ic = 0; ic <= 30; ic++)
@@ -2239,7 +2236,8 @@ void AssignPeopleToPlaces(void)
 							f = (27 - ic) * a;
 						else
 						{
-							m2 = k2 - 1; f = 0;
+							m2 = k2 - 1;
+							f = 0;
 						}
 
 						for (i2 = m2; i2 >= f; i2--)
