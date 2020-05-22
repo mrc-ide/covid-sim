@@ -2,10 +2,10 @@
 #include <cmath>
 
 template<class T>
-Vector2<T>::Vector2(T x, T y) :
-	x(x),
-	y(y)
-{}
+Vector2<T>::Vector2() : x(), y() {}
+
+template<class T>
+Vector2<T>::Vector2(T x, T y) : x(x), y(y) {}
 
 template<class T>
 Vector2<T> Vector2<T>::abs() const {

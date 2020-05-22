@@ -224,10 +224,10 @@ void OutputBitmap(int tp)
 }
 void InitBMHead()
 {
-	int i, j, k, k2, value;
+	int i, j, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.bwidth * P.bheight2;
+	int k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
@@ -238,7 +238,7 @@ void InitBMHead()
 	bmh->spare = 0;
 	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.bwidth;
+	bmh->width = P.b.width;
 	bmh->height = P.bheight2;
 	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel
