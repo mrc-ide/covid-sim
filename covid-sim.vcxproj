@@ -105,6 +105,7 @@
     <ClCompile Include="src\Direction.cpp" />
     <ClCompile Include="src\Household.cpp" />
     <ClCompile Include="src\Cell.cpp" />
+    <ClCompile Include="src\Microcell.cpp" />
     <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
     <ClCompile Include="src\Coordinates\Location.cpp" />
     <ClInclude Include="src\Coordinates\Vector2.cpp" />
@@ -132,6 +133,8 @@
     <ClInclude Include="src\Direction.h" />
     <ClInclude Include="src\Household.h" />
     <ClInclude Include="src\Cell.h" />
+    <ClInclude Include="src\Microcell.h" />
+    <ClInclude Include="src\IndexList.h" />
     <ClInclude Include="src\Coordinates\MicroCellPosition.h" />
     <ClInclude Include="src\Coordinates\Location.h" />
     <ClInclude Include="src\Coordinates\Vector2.h" />
