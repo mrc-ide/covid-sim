@@ -5,9 +5,9 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
-#include "Coordinates/Location.hpp"
-#include "Household.hpp"
-#include "Cell.hpp"
+#include "Coordinates/Location.h"
+#include "Household.h"
+#include "Cell.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit

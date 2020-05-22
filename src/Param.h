@@ -5,8 +5,8 @@
 
 #include "Country.h"
 #include "Constants.h"
-#include "Coordinates/MicroCellPosition.hpp"
-#include "Coordinates/Size.hpp"
+#include "Coordinates/MicroCellPosition.h"
+#include "Coordinates/Size.h"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats

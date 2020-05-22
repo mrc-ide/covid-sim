@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector2.hpp"
+#include "Vector2.h"
 
 template<class T>
 struct Size {

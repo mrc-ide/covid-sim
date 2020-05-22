@@ -1,5 +1,5 @@
 #include <cmath>
 
-#include "Location.hpp"
+#include "Location.h"
 #include "Dist.h"
 

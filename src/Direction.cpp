@@ -1,4 +1,4 @@
-#include "Direction.hpp"
+#include "Direction.h"
 #include <stdexcept>
 
 Direction rotate_left(Direction direction) {

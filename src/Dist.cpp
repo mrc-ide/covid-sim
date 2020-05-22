@@ -53,22 +53,6 @@ double dist2(Person* a, Person* b)
 	}
 }
 
-double dist2_cc(Cell* a, Cell* b)
-{
-	if (P.DoUTM_coords) {
-		return a->position().distance_squared_to(b->position());
-	}
-	else
-	{
-		Vector2<double> delta = a->position() - b->position();
-		if (P.DoPeriodicBoundaries)
-		{
-			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
-			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
-		}
-		return delta.length_squared();
-	}
-}
 double dist2_cc_min(Cell* a, Cell* b)
 {
 	double x, y;

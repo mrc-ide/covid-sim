@@ -1,4 +1,4 @@
-#include "Household.hpp"
+#include "Household.h"
 
 float Household::distance_to(Household other) {
 	return this->loc.distance_to(other.loc);

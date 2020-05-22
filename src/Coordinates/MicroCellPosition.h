@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Direction.hpp"
-#include "Vector2.hpp"
+#include "Direction.h"
+#include "Vector2.h"
 
 struct MicroCellPosition : Vector2<int> {
 	MicroCellPosition(int x, int y) : Vector2<int>(x, y){};

@@ -1,4 +1,4 @@
-#include "Size.hpp"
+#include "Size.h"
 
 template<class T>
 T Size<T>::area() const {

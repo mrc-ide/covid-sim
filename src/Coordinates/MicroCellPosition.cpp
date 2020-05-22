@@ -1,4 +1,4 @@
-#include "MicroCellPosition.hpp"
+#include "MicroCellPosition.h"
 #include <stdexcept>
 
 MicroCellPosition MicroCellPosition::operator+(Direction direction) const {
