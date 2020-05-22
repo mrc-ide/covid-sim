@@ -32,7 +32,6 @@ extern char OutFile[1024], OutFileBase[1024];
 void CaptureBitmap()
 {
 	int f;
-	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
@@ -46,9 +45,9 @@ void CaptureBitmap()
 		for (int i = 0; i < P.PopSize; i++)
 		{
 			Vector2<int> resolution = ((Vector2<int>)((Vector2<double>)Households[Hosts[i].hh].loc * P.scale)) - P.bmin;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if (P.b.contains(resolution))
 			{
-				j = y * bmh->width + x;
+				unsigned j = resolution.y * bmh->width + resolution.x;
 				if ((j < bmh->imagesize) && (j >= 0))
 				{
 					bmPopulation[j]++;
