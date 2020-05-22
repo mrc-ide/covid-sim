@@ -1,0 +1,11 @@
+target_sources(CovidSim
+    PRIVATE
+        Location.cpp
+        Location.hpp
+        MicroCellPosition.cpp
+        MicroCellPosition.hpp
+        Size.cpp
+        Size.hpp
+        Vector2.cpp
+        Vector2.hpp
+)

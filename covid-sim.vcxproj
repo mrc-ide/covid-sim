@@ -107,6 +107,7 @@
     <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
     <ClCompile Include="src\Coordinates\Location.cpp" />
     <ClInclude Include="src\Coordinates\Vector2.cpp" />
+    <ClInclude Include="src\Coordinates\Size.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -132,6 +133,7 @@
     <ClInclude Include="src\Coordinates\MicroCellPosition.hpp" />
     <ClInclude Include="src\Coordinates\Location.hpp" />
     <ClInclude Include="src\Coordinates\Vector2.hpp" />
+    <ClInclude Include="src\Coordinates\Size.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
