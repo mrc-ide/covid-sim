@@ -1,23 +1,30 @@
+#include <cmath>
 #include "Microcell.h"
+#include "Param.h"
+#include "Model.h"
+
+int Microcell::index() const {
+	return (int)(this - Mcells);
+}
+
+Vector2<double> Microcell::position() const {
+	int x = std::abs(this->index() / P.get_number_of_micro_cells_high());
+	int y = std::abs(this->index() % P.get_number_of_micro_cells_high());
+	return Vector2<double>(x, y) * (Vector2<double>)P.in_microcells_;
+}
 
 double Microcell::distance_squared_to(Microcell *other) const {
-	double x, y;
-	int l, m;
-
-	l = (int)(a - Mcells);
-	m = (int)(b - Mcells);
-	if (P.DoUTM_coords)
-		return dist2UTM(P.in_microcells_.width_ * fabs((double)(l / P.get_number_of_micro_cells_high())), P.in_microcells_.height_ * fabs((double)(l % P.get_number_of_micro_cells_high())),
-		                P.in_microcells_.width_ * fabs((double)(m / P.get_number_of_micro_cells_high())), P.in_microcells_.height_ * fabs((double)(m % P.get_number_of_micro_cells_high())));
+	if (P.DoUTM_coords){
+		return this->position().distance_squared_to(other->position());
+	}
 	else
 	{
-		x = P.in_microcells_.width_ * fabs((double)(l / P.get_number_of_micro_cells_high() - m / P.get_number_of_micro_cells_high()));
-		y = P.in_microcells_.height_ * fabs((double)(l % P.get_number_of_micro_cells_high() - m % P.get_number_of_micro_cells_high()));
+		Vector2<double> delta = (this->position() - other->position()).abs();
 		if (P.DoPeriodicBoundaries)
 		{
-			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
-			if (y > P.in_degrees_.height_ * 0.5) y = P.in_degrees_.height_ - y;
+			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
+			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
 		}
-		return x * x + y * y;
+		return delta.length_squared();
 	}
 }

@@ -2,6 +2,7 @@
 
 #include "IndexList.h"
 #include "Country.h"
+#include "Coordinates/Vector2.h"
 
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
@@ -29,5 +30,7 @@ struct Microcell
 	unsigned short int vacc_start_time;
 	IndexList* AirportList;
 
+	int index() const;
+	Vector2<double> position() const;
 	double distance_squared_to(Microcell* other) const;
 };
