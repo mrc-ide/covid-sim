@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 
 		///// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
-		P.PreControlClusterIdCaseThreshold = 0;
+		P.CaseOrDeathThresholdBeforeAlert = 0;
 		P.R0scale = 1.0;
 		P.KernelOffsetScale = P.KernelPowerScale = 1.0; //added this so that kernel parameters are only changed if input from the command line: ggilani - 15/10/2014
 		P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'T' && argv[i][2] == ':')
 			{
-				sscanf(&argv[i][3], "%i", &P.PreControlClusterIdCaseThreshold);
+				sscanf(&argv[i][3], "%i", &P.CaseOrDeathThresholdBeforeAlert);
 			}
 			else if (argv[i][1] == 'C' && argv[i][2] == ':')
 			{
@@ -393,8 +393,8 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations,((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
-		P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
-		P.PreControlClusterIdCaseThreshold = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
+		P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
 		P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 		///// Set and save seeds
 		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
@@ -1276,34 +1276,34 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of sampling intervals over which cumulative incidence measured for global trigger", "%i", (void*) & (P.TriggersSamplingInterval), 1, 1, 0)) P.TriggersSamplingInterval = 10000000;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected for treatment", "%lf", (void*) & (P.PostAlertControlPropCasesId), 1, 1, 0)) P.PostAlertControlPropCasesId = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected before outbreak alert", "%lf", (void*) & (P.PreAlertControlPropCasesId), 1, 1, 0)) P.PreAlertControlPropCasesId = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.PreControlClusterIdUseDeaths), 1, 1, 0)) P.PreControlClusterIdUseDeaths = 0;
-	if (P.PreControlClusterIdUseDeaths)
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.TriggerAlertOnDeaths), 1, 1, 0)) P.TriggerAlertOnDeaths = 0;
+	if (P.TriggerAlertOnDeaths)
 	{
-		if (P.PreControlClusterIdCaseThreshold == 0)
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
+		if (P.CaseOrDeathThresholdBeforeAlert == 0)
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
-	else if (P.PreControlClusterIdCaseThreshold == 0)
+	else if (P.CaseOrDeathThresholdBeforeAlert == 0)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Alert trigger starts after interventions", "%i", (void*)&(P.DoAlertTriggerAfterInterv), 1, 1, 0)) P.DoAlertTriggerAfterInterv = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.PreControlClusterIdCalTime), 1, 1, 0)) P.PreControlClusterIdCalTime = -1;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.DateTriggerReached_CalTime), 1, 1, 0)) P.DateTriggerReached_CalTime = -1;
 	if (P.DoAlertTriggerAfterInterv)
 	{
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year interventions start", "%lf", (void*)&(P.PreIntervIdCalTime), 1, 1, 0);
-		if (P.PreControlClusterIdCalTime <= P.PreIntervIdCalTime)
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year interventions start", "%lf", (void*)&(P.Interventions_StartDate_CalTime), 1, 1, 0);
+		if (P.DateTriggerReached_CalTime <= P.Interventions_StartDate_CalTime)
 			P.DoAlertTriggerAfterInterv = 0;
 		else
 		{
-			P.AlertTriggerAfterIntervThreshold = P.PreControlClusterIdCaseThreshold;
-			P.PreControlClusterIdCaseThreshold = 1000;
+			P.AlertTriggerAfterIntervThreshold = P.CaseOrDeathThresholdBeforeAlert;
+			P.CaseOrDeathThresholdBeforeAlert = 1000;
 		}
 	}
 	else
-		P.PreIntervIdCalTime = P.PreControlClusterIdCalTime;
-	P.PreControlClusterIdCaseThreshold2 = P.PreControlClusterIdCaseThreshold;
+		P.Interventions_StartDate_CalTime = P.DateTriggerReached_CalTime;
+	P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.WindowToEvaluateTriggerAlert), 1, 1, 0)) P.WindowToEvaluateTriggerAlert = 1000;
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only use confirmed cases to trigger alert", "%i", (void*) & (P.DoEarlyCaseDiagnosis), 1, 1, 0)) P.DoEarlyCaseDiagnosis = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
@@ -2813,7 +2813,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseTimeStartPrevious = 1e10;
 	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
-	if (!P.StopCalibration) P.PreControlClusterIdTime = 0;
+	if (!P.StopCalibration) P.DateTriggerReached_SimTime = 0;
 
 	fprintf(stderr, "Finished InitModel.\n");
 }
@@ -4977,12 +4977,12 @@ void RecordSample(double t_double, int t_int)
 
 	int trigAlert, trigAlert_Cases;
 	trigAlert_Cases = State.cumDC;
-	if (t_int >= P.PreControlClusterIdDuration) trigAlert_Cases -= (int)TimeSeries[t_int - P.PreControlClusterIdDuration].cumDC;
+	if (t_int >= P.WindowToEvaluateTriggerAlert) trigAlert_Cases -= (int)TimeSeries[t_int - P.WindowToEvaluateTriggerAlert].cumDC;
 
-	if (P.PreControlClusterIdUseDeaths) //// if using deaths as trigger (as opposed to detected cases)
+	if (P.TriggerAlertOnDeaths) //// if using deaths as trigger (as opposed to detected cases)
 	{
 		trigAlert = (int)TimeSeries[t_int].D;
-		if (t_int >= P.PreControlClusterIdDuration) trigAlert -= (int) TimeSeries[t_int - P.PreControlClusterIdDuration].D;
+		if (t_int >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[t_int - P.WindowToEvaluateTriggerAlert].D;
 	}
 	else
 	{
@@ -4991,31 +4991,31 @@ void RecordSample(double t_double, int t_int)
 
 	double RatioPredictedObserved, DesiredAccuracy;
 
-	if(	(!P.DoAlertTriggerAfterInterv && trigAlert >= P.PreControlClusterIdCaseThreshold)	||
-		( P.DoAlertTriggerAfterInterv && ((trigAlert_Cases >= P.PreControlClusterIdCaseThreshold && P.ModelCalibIteration < 4) || (t_double >= P.PreIntervTime && P.ModelCalibIteration >= 4)	)	)	)
+	if(	(!P.DoAlertTriggerAfterInterv && trigAlert >= P.CaseOrDeathThresholdBeforeAlert)	||
+		( P.DoAlertTriggerAfterInterv && ((trigAlert_Cases >= P.CaseOrDeathThresholdBeforeAlert && P.ModelCalibIteration < 4) || (t_double >= P.Epidemic_StartDate_CalTime && P.ModelCalibIteration >= 4)	)	)	)
 	{
 		if(!P.StopCalibration && !InterruptRun)
 		{
-			if (P.PreControlClusterIdTime == 0)
+			if (P.DateTriggerReached_SimTime == 0)
 			{
-				P.PreIntervTime = P.PreControlClusterIdTime = t_double; // initialize PreIntervTime & PreControlClusterIdTime to now.
-				if (P.PreControlClusterIdCalTime >= 0)
-					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime; /// initialize holiday offset to time difference between now and day of year interventions start.
+				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t_double; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now.
+				if (P.DateTriggerReached_CalTime >= 0)
+					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between now and day of year interventions start.
 			}
-			if (P.PreControlClusterIdCalTime >= 0 && !P.DoAlertTriggerAfterInterv)
+			if (P.DateTriggerReached_CalTime >= 0 && !P.DoAlertTriggerAfterInterv)
 			{
 				P.StopCalibration	= 1;
 				InterruptRun		= 1;
 			}
-			if (P.DoAlertTriggerAfterInterv && (t_double == P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime))
+			if (P.DoAlertTriggerAfterInterv && (t_double == P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime))
 			{
 				if (trigAlert > 0 && P.ModelCalibIteration < 20)
 				{
 					RatioPredictedObserved	= (double)trigAlert / (double)P.AlertTriggerAfterIntervThreshold;
 					DesiredAccuracy			= 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
-					fprintf(stderr, "\n** Calib iteration=%i t=%lf t=%lf | Hol_Offset=%lg / RatioPredictedObserved=%lg \t", P.ModelCalibIteration, t_double, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset, RatioPredictedObserved);
-					fprintf(stderr, "| trigAlert=%i trigAlert_Cases=%i %i %i -> ", trigAlert, trigAlert_Cases, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+					fprintf(stderr, "\n** Calib iteration=%i t=%lf t=%lf | Hol_Offset=%lg / RatioPredictedObserved=%lg \t", P.ModelCalibIteration, t_double, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime, RatioPredictedObserved);
+					fprintf(stderr, "| trigAlert=%i trigAlert_Cases=%i %i %i -> ", trigAlert, trigAlert_Cases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
 
 					if (P.ModelCalibIteration == 1)
 					{
@@ -5023,8 +5023,8 @@ void RecordSample(double t_double, int t_int)
 						else
 						{
 							// rescale threshold
-							k = (int) (double)P.PreControlClusterIdCaseThreshold / pow(RatioPredictedObserved, 0.95);
-							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
+							k = (int) (double)P.CaseOrDeathThresholdBeforeAlert / pow(RatioPredictedObserved, 0.95);
+							if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 						}
 					}
 					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1)) // on odd iterations ...
@@ -5032,13 +5032,13 @@ void RecordSample(double t_double, int t_int)
 						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
 						else if (RatioPredictedObserved > 1) // if too many predicted cases/deaths, decrement... 
 						{
-							P.PreIntervTime--;
-							P.PreControlClusterIdHolOffset--;
+							P.Epidemic_StartDate_CalTime--;
+							P.HolidaysStartDay_SimTime--;
 						}
 						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths, increment
 						{
-							P.PreIntervTime++;
-							P.PreControlClusterIdHolOffset++;
+							P.Epidemic_StartDate_CalTime++;
+							P.HolidaysStartDay_SimTime++;
 						}
 					}
 					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations ...
@@ -5049,7 +5049,7 @@ void RecordSample(double t_double, int t_int)
 					}
 					P.ModelCalibIteration++;
 					if(P.ModelCalibIteration < 16) InterruptRun = 1;
-					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
+					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 				}
 				else
 				{
@@ -5061,7 +5061,7 @@ void RecordSample(double t_double, int t_int)
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
 
 		if (P.VaryEfficaciesOverTime)
-			UpdateEfficaciesAndComplianceProportions(t_double - P.PreIntervTime);
+			UpdateEfficaciesAndComplianceProportions(t_double - P.Epidemic_StartDate_CalTime);
 
 		//// Set Case isolation start time (by admin unit)
 		for (int i = 0; i < P.NumAdunits; i++)
@@ -5283,7 +5283,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
+	k = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
