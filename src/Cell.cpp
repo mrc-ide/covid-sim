@@ -14,14 +14,14 @@ Vector2<double> Cell::position() const {
 }
 
 
-double dist2_cc(Cell* a, Cell* b)
+double Cell::distance_squared_to(Cell *other) const
 {
 	if (P.DoUTM_coords) {
-		return a->position().distance_squared_to(b->position());
+		return a->position().distance_squared_to(other->position());
 	}
 	else
 	{
-		Vector2<double> delta = a->position() - b->position();
+		Vector2<double> delta = this->position() - other->position();
 		if (P.DoPeriodicBoundaries)
 		{
 			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
