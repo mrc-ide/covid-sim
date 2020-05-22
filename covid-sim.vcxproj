@@ -129,13 +129,13 @@
     <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />
-    <ClInclude Include="src\Direction.hpp" />
-    <ClInclude Include="src\Household.hpp" />
-    <ClInclude Include="src\Cell.hpp" />
-    <ClInclude Include="src\Coordinates\MicroCellPosition.hpp" />
-    <ClInclude Include="src\Coordinates\Location.hpp" />
-    <ClInclude Include="src\Coordinates\Vector2.hpp" />
-    <ClInclude Include="src\Coordinates\Size.hpp" />
+    <ClInclude Include="src\Direction.h" />
+    <ClInclude Include="src\Household.h" />
+    <ClInclude Include="src\Cell.h" />
+    <ClInclude Include="src\Coordinates\MicroCellPosition.h" />
+    <ClInclude Include="src\Coordinates\Location.h" />
+    <ClInclude Include="src\Coordinates\Vector2.h" />
+    <ClInclude Include="src\Coordinates\Size.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

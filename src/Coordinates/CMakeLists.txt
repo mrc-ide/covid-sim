@@ -1,11 +1,11 @@
 target_sources(CovidSim
     PRIVATE
         Location.cpp
-        Location.hpp
+        Location.h
         MicroCellPosition.cpp
-        MicroCellPosition.hpp
+        MicroCellPosition.h
         Size.cpp
-        Size.hpp
+        Size.h
         Vector2.cpp
-        Vector2.hpp
+        Vector2.h
 )
