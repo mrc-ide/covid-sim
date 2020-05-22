@@ -1030,7 +1030,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf, CDF_RES + 1, 1, 0))
 		{
-			SetICDF(P.latent_icdf, 1e10);
+			SetICDF(P.latent_icdf, INT_MAX);
 		}
 		for (i = 0; i <= CDF_RES; i++)
 			P.latent_icdf[i] = exp(-P.latent_icdf[i]);
