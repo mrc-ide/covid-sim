@@ -55,18 +55,16 @@ double dist2(Person* a, Person* b)
 
 double dist2_raw(double ax, double ay, double bx, double by)
 {
-	double x, y;
-
 	if (P.DoUTM_coords)
 		return dist2UTM(ax, ay, bx, by);
 	else
 	{
-		x = fabs(ax - bx);
-		y = fabs(ay - by);
+		double x = fabs(ax - bx);
+		double y = fabs(ay - by);
 		if (P.DoPeriodicBoundaries)
 		{
-			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
-			if (y > P.in_degrees_.height_ * 0.5) y = P.in_degrees_.height_ - y;
+			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
+			if (y > P.in_degrees_.height * 0.5) y = P.in_degrees_.height - y;
 		}
 		return x * x + y * y;
 	}

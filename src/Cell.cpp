@@ -15,21 +15,8 @@ Vector2<double> Cell::position() const {
 
 double Cell::distance_squared_to(Cell *other) const
 {
-	if (P.DoUTM_coords) {
-		return a->position().distance_squared_to(other->position());
-	}
-	else
-	{
-		Vector2<double> delta = this->position() - other->position();
-		if (P.DoPeriodicBoundaries)
-		{
-			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
-			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
-		}
-		return delta.length_squared();
-	}
+	return this->position().distance_squared_to(other->position());
 }
-
 
 double Cell::distance_squared_to_min(Cell* other) const
 {
