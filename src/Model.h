@@ -9,6 +9,7 @@
 #include "Household.h"
 #include "Cell.h"
 #include "Microcell.h"
+#include "Airport.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
@@ -226,21 +227,6 @@ struct Events
   rc=ratio of school/workplace closure duration of absence due to illness
 */
 
-/**
- * @brief Airport state.
- *
- * Not used for COVID-19 right now. Might be more relevant for USA and
- * other countries that have lots of internal flights. Slows the simulation.
- */
-struct Airport
-{
-	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
-	unsigned short int num_connected, *conn_airports;
-	float total_traffic;
-	Location loc;
-	float* prop_traffic;
-	IndexList* DestMcells, *DestPlaces;
-};
 
 /**
  * @brief Represents an institution that people may belong to.

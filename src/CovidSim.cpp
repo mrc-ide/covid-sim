@@ -2455,7 +2455,7 @@ void ReadAirTravel(char* AirTravelFile)
 			for (j = 0; j < Airports[i].num_connected; j++)
 			{
 				k = (int)Airports[i].conn_airports[j];
-				traf = floor(sqrt(dist2_raw(Airports[i].loc_x, Airports[i].loc_y, Airports[k].loc_x, Airports[k].loc_y)) / OUTPUT_DIST_SCALE);
+				traf = floor(Airports[i].distance_to(&Airports[k]) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
