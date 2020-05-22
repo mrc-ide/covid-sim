@@ -239,9 +239,10 @@ struct Param
 	/**< CALIBRATION PARAMETERS
 
 	Params below govern how epidemic is calibrated.
-	Calibration relates simulation time to calendar time (i.e. which day of year corresponds to first day of epidemic / simulation?)
-	Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
-
+	Calibration relates simulation time to calendar time (i.e. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
+	Important distinction to be made between Day_0 in calendar time, and Day 0 or simulation time.
+	Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+	Simulation time day 0 (i.e. t = 0 in runtime) is recorded as PreIntervTime.
 	Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
 
 	Calibration parameters specified in pre-parameter file.
@@ -249,9 +250,9 @@ struct Param
 	
 	double PreControlClusterIdTime;
 	double PreControlClusterIdCalTime;		// Day of year trigger is reached
-	double PreControlClusterIdHolOffset;	// Offset between 
+	double PreControlClusterIdHolOffset;	// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
 	double PreIntervIdCalTime;				// Day of year interventions start
-	double PreIntervTime;					// First day of epidemic	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double PreIntervTime;					// First day of epidemic. relative to Calendar time Day 0.	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
 	double SeedingScaling;					// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
 	bool PreControlClusterIdUseDeaths;		// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration). 
 	int PreControlClusterIdCaseThreshold;	// Number of deaths accummulated before alert (if PreControlClusterIdUseDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if PreControlClusterIdUseDeaths == 0)

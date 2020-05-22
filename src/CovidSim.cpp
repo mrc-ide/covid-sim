@@ -5283,7 +5283,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (P.PreIntervIdCalTime>0)?((int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime)):0;
+	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
