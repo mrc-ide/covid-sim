@@ -46,8 +46,8 @@ double dist2(Person* a, Person* b)
 		Vector2<float> delta = (Households[a->hh].loc - Households[b->hh].loc).abs();
 		if (P.DoPeriodicBoundaries)
 		{
-			if (delta.x > P.in_degrees_.width_ * 0.5) delta.x = P.in_degrees_.width_ - delta.x;
-			if (delta.y > P.in_degrees_.height_ * 0.5) delta.y = P.in_degrees_.height_ - delta.y;
+			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
+			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
 		}
 		return delta.length_squared();
 	}

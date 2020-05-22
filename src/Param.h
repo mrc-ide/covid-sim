@@ -6,6 +6,7 @@
 #include "Country.h"
 #include "Constants.h"
 #include "Coordinates/MicroCellPosition.hpp"
+#include "Coordinates/Size.hpp"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
@@ -15,13 +16,8 @@ enum BitmapFormats
 };
 
 /// Size of spatial domain in various units
-struct DomainSize
+struct DomainSize : Size<double>
 {
-	/// The width
-	double width_;
-
-	/// The height
-	double height_;
 };
 
 /**
@@ -51,7 +47,9 @@ struct Param
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NMCP, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+
+	Size<int> number_of_cells;
 
 	int get_number_of_micro_cells_wide() const;
 	int get_number_of_micro_cells_high() const;
@@ -63,7 +61,10 @@ struct Param
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
+
+	/// Size in pixels of the map area in the bitmap output
+	Size<int> b;
+
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
 	Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).

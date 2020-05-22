@@ -31,13 +31,13 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int f, mi;
+	int f;
 	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.bwidth * P.bheight);
+	int mi = P.b.area();
 	if (fst)
 	{
 		fst = 0;
