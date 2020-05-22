@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Country.h"
+#include "Coordinates/Vector2.hpp"
+
 /**
  * @brief Holds microcells.
  *
@@ -14,4 +17,7 @@ struct Cell
 	int* InvCDF;
 	float tot_prob, *cum_trans, *max_trans;
 	short int CurInterv[MAX_INTERVENTION_TYPES];
+
+	int index() const;
+	Vector2<double> position() const;
 };

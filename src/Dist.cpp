@@ -55,24 +55,18 @@ double dist2(Person* a, Person* b)
 
 double dist2_cc(Cell* a, Cell* b)
 {
-	int aIndex = (int)(a - Cells);
-	int bIndex = (int)(b - Cells);
 	if (P.DoUTM_coords) {
-		return dist2UTM(P.in_cells_.width_ * fabs((double) (aIndex / P.nch)),
-		                P.in_cells_.height_ * fabs((double) (aIndex % P.nch)),
-		                P.in_cells_.width_ * fabs((double) (bIndex / P.nch)),
-		                P.in_cells_.height_ * fabs((double) (bIndex % P.nch)));
+		return a->position().distance_squared_to(b->position());
 	}
 	else
 	{
-		double x = P.in_cells_.width_ * fabs((double)(aIndex / P.nch - bIndex / P.nch));
-		double y = P.in_cells_.height_ * fabs((double)(aIndex % P.nch - bIndex % P.nch));
+		Vector2<double> delta = a->position() - b->position();
 		if (P.DoPeriodicBoundaries)
 		{
-			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
-			if (y > P.in_degrees_.height * 0.5) y = P.in_degrees_.height - y;
+			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
+			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
 		}
-		return x * x + y * y;
+		return delta.length_squared();
 	}
 }
 double dist2_cc_min(Cell* a, Cell* b)

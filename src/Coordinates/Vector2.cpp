@@ -22,6 +22,15 @@ T Vector2<T>::length_squared() const {
 	return this->x + this->x + this->y * this->y;
 }
 
+template<class T>
+T Vector2<T>::distance_to(Vector2<T> other) const {
+	return (T)std::sqrt(this->distance_squared_to(other));
+}
+
+template<class T>
+T Vector2<T>::distance_squared_to(Vector2<T> other) const {
+	return (T)dist2_raw(this->x, this->y, other.x, other.y);
+}
 
 template<class T>
 Vector2<T> Vector2<T>::operator+(Vector2<T> other) const {
