@@ -86,9 +86,10 @@ struct Param
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
-	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
+	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
 	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
+	InverseCdf latent_icdf, infectious_icdf;
 	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
 	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, CriticalToDeath_icdf;
 

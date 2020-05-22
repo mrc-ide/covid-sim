@@ -60,9 +60,6 @@ int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, 
 int GetInputParameter2all(FILE*, FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
-void SetICDF(double* icdf, double startValue);
-
-
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -1027,30 +1024,29 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 		s /= ((double)k);
 		for (i = 0; i <= k; i++) P.infectiousness[i] /= s;
-		for (i = 0; i <= CDF_RES; i++) P.infectious_icdf[i] = exp(-1.0);
+		P.infectious_icdf.apply_exponent(-1.0);
 	}
 	else
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf, CDF_RES + 1, 1, 0))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf.get_values(), CDF_RES + 1, 1, 0))
 		{
-			SetICDF(P.infectious_icdf, ICDF_START);
+			P.infectious_icdf.set_defaults(ICDF_START);
 		}
-		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
+		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf.get_value(CDF_RES) / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
-		for (i = 0; i <= CDF_RES; i++) P.infectious_icdf[i] = exp(-P.infectious_icdf[i]);
+		P.infectious_icdf.apply_exponent();
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include latent period", "%i", (void*) & (P.DoLatent), 1, 1, 0)) P.DoLatent = 0;
 	if (P.DoLatent)
 	{
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf, CDF_RES + 1, 1, 0))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf.get_values(), CDF_RES + 1, 1, 0))
 		{
-			SetICDF(P.latent_icdf, 1e10);
+			P.latent_icdf.set_defaults(1e10);
 		}
-		for (i = 0; i <= CDF_RES; i++)
-			P.latent_icdf[i] = exp(-P.latent_icdf[i]);
+		P.latent_icdf.apply_exponent(); 
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include symptoms", "%i", (void*) & (P.DoSymptoms), 1, 1, 0)) P.DoSymptoms = 0;
@@ -5785,15 +5781,3 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
-
-/* helper function to set icdf arrays */
-void SetICDF(double* icdf, double startValue)
-{
-	icdf[CDF_RES] = startValue;
-	for (int i = 0; i < CDF_RES; i++)
-		icdf[i] = -log(1 - ((double)i) / CDF_RES);
-}
-
-
-
-
