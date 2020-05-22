@@ -98,8 +98,7 @@ namespace CovidSim
 
       /// Resize the vectors and calculate delta_
       /// \param longest_distance The longest distance to lookup
-      /// \return false on caught exception
-      bool setup(double longest_distance);
+      void setup(double longest_distance);
 
       /// Set the values in the lookup table
       /// \param norm Value to divide the probability by

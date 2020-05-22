@@ -6,21 +6,12 @@
 
 using namespace CovidSim::TBD1;
 
-bool KernelLookup::setup(double longest_distance)
+void KernelLookup::setup(double longest_distance)
 {
-	try
-	{
-		size_t size = (size_t)size_ + 1;
-		lookup_.resize(size);
-		hi_res_.resize(size);
-		delta_ = longest_distance / size_;
-	}
-	catch (...)
-	{
-		return false;
-	}
-
-	return true;
+	size_t size = (size_t)size_ + 1;
+	lookup_.resize(size);
+	hi_res_.resize(size);
+	delta_ = longest_distance / size_;
 }
 
 void KernelLookup::init(double norm, KernelStruct& kernel)
