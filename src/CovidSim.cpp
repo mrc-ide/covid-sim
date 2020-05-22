@@ -4989,18 +4989,18 @@ void RecordSample(double t_double, int t_int)
 		trigAlert = trigAlert_Cases;
 	}
 
-	double RatioPredictedObserved, DesiredAccuracy;
+	double RatioPredictedObserved, DesiredAccuracy; // calibration variables.
 
 	if(	(!P.DoAlertTriggerAfterInterv && trigAlert >= P.CaseOrDeathThresholdBeforeAlert)	||
 		( P.DoAlertTriggerAfterInterv && ((trigAlert_Cases >= P.CaseOrDeathThresholdBeforeAlert && P.ModelCalibIteration < 4) || (t_double >= P.Epidemic_StartDate_CalTime && P.ModelCalibIteration >= 4)	)	)	)
 	{
 		if(!P.StopCalibration && !InterruptRun)
 		{
-			if (P.DateTriggerReached_SimTime == 0)
+			if (P.DateTriggerReached_SimTime == 0) // i.e. if this is first time that calibration has been called for this realisation.
 			{
-				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t_double; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now.
+				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t_double; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now (i.e. simulation time that trigger was reached)
 				if (P.DateTriggerReached_CalTime >= 0)
-					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between now and day of year interventions start.
+					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between DateTriggerReached_SimTime and day of year interventions start.
 			}
 			if (P.DateTriggerReached_CalTime >= 0 && !P.DoAlertTriggerAfterInterv)
 			{
@@ -5027,21 +5027,21 @@ void RecordSample(double t_double, int t_int)
 							if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1)) // on odd iterations ...
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1)) // on odd iterations, adjust timings
 					{
 						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
-						else if (RatioPredictedObserved > 1) // if too many predicted cases/deaths, decrement... 
+						else if (RatioPredictedObserved > 1) // if too many predicted cases/deaths, make timings earlier... 
 						{
 							P.Epidemic_StartDate_CalTime--;
 							P.HolidaysStartDay_SimTime--;
 						}
-						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths, increment
+						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
 						{
 							P.Epidemic_StartDate_CalTime++;
 							P.HolidaysStartDay_SimTime++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations ...
+					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations, adjust seeding.
 					{
 						if (IsCalibGoodEnough(RatioPredictedObserved, DesiredAccuracy))	StopCalib();
 						else
@@ -5053,8 +5053,8 @@ void RecordSample(double t_double, int t_int)
 				}
 				else
 				{
-					P.StopCalibration = 1;
-					InterruptRun = 1;
+					P.StopCalibration	= 1;
+					InterruptRun		= 1;
 				}
 			}
 		}
