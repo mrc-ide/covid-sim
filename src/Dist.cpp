@@ -57,9 +57,12 @@ double dist2_cc(Cell* a, Cell* b)
 {
 	int aIndex = (int)(a - Cells);
 	int bIndex = (int)(b - Cells);
-	if (P.DoUTM_coords)
-		return dist2UTM(P.in_cells_.width_ * fabs((double)(aIndex / P.nch)), P.in_cells_.height_ * fabs((double)(aIndex % P.nch)),
-			P.in_cells_.width_ * fabs((double)(bIndex / P.nch)), P.in_cells_.height_ * fabs((double)(bIndex % P.nch)));
+	if (P.DoUTM_coords) {
+		return dist2UTM(P.in_cells_.width_ * fabs((double) (aIndex / P.nch)),
+		                P.in_cells_.height_ * fabs((double) (aIndex % P.nch)),
+		                P.in_cells_.width_ * fabs((double) (bIndex / P.nch)),
+		                P.in_cells_.height_ * fabs((double) (bIndex % P.nch)));
+	}
 	else
 	{
 		double x = P.in_cells_.width_ * fabs((double)(aIndex / P.nch - bIndex / P.nch));
