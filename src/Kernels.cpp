@@ -16,7 +16,7 @@ void KernelLookup::setup(double longest_distance)
 
 void KernelLookup::init(double norm, KernelStruct& kernel)
 {
-	double (KernelStruct::*fp)(double);
+	double (KernelStruct::*fp)(double) const;
 
 	if (kernel.type_ == 1)
 		fp = &KernelStruct::exponential;
@@ -65,40 +65,40 @@ void KernelLookup::init(const KernelLookup& lookup, Cell **cell_lookup, int cell
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** KERNEL DEFINITIONS
 
-double KernelStruct::exponential(double r2)
+double KernelStruct::exponential(double r2) const
 {
 	return exp(-sqrt(r2) / scale_);
 }
 
-double KernelStruct::power(double r2)
+double KernelStruct::power(double r2) const
 {
 	double t = -shape_ * log(sqrt(r2) / scale_ + 1.0);
 	return (t < -690.0) ? 0.0 : exp(t);
 }
 
-double KernelStruct::power_b(double r2)
+double KernelStruct::power_b(double r2) const
 {
 	double t = 0.5 * shape_ * log(r2 / (scale_ * scale_));
 	return (t > 690.0) ? 0.0 : (1.0 / (exp(t) + 1.0));
 }
 
-double KernelStruct::power_us(double r2)
+double KernelStruct::power_us(double r2) const
 {
 	double t = log(sqrt(r2) / scale_ + 1.0);
 	return (t < -690.0) ? 0.0 : (exp(-shape_ * t) + p3_ * exp(-p4_ * t)) / (1.0 + p3_);
 }
 
-double KernelStruct::gaussian(double r2)
+double KernelStruct::gaussian(double r2) const
 {
 	return exp(-r2 / (scale_ * scale_));
 }
 
-double KernelStruct::step(double r2)
+double KernelStruct::step(double r2) const
 {
 	return (r2 > scale_ * scale_) ? 0.0 : 1.0;
 }
 
-double KernelStruct::power_exp(double r2)
+double KernelStruct::power_exp(double r2) const
 {
 	double d = sqrt(r2);
 	double t = -shape_ * log(d / scale_ + 1.0);

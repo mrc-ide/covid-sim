@@ -30,33 +30,33 @@ namespace CovidSim
 
       /// \param r2 The distance squared
       /// \return Probability
-      double exponential(double r2);
+      double exponential(double r2) const;
 
       /// \param r2 The distance squared
       /// \return Probability
-      double power(double r2);
+      double power(double r2) const;
 
       /// \param r2 The distance squared
       /// \return Probability
-      double power_b(double r2);
+      double power_b(double r2) const;
 
       /// \param r2 The distance squared
       /// \return Probability
-      double power_us(double r2);
+      double power_us(double r2) const;
 
       /// \param r2 The distance squared
       /// \return Probability
-      double power_exp(double r2);
+      double power_exp(double r2) const;
 
       /// Gaussian distribution a.k.a. normal distribution and bell curve
       /// \param r2 The distance squared
       /// \return Probability
-      double gaussian(double r2);
+      double gaussian(double r2) const;
 
       /// Step function
       /// \param r2 The distance squared
       /// \return Probability
-      double step(double r2);
+      double step(double r2) const;
     };
 
     /// \brief To speed up calculation of kernel values we provide a couple of lookup
