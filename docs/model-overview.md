@@ -18,6 +18,8 @@ attributes. People's residence location does not change, but they interact with
 people in other cells via places (see below) and via random social interactions
 governed by a spatial kernel function.
 
+Each person is modelled using the 'Person' structure. Persons are held in a 1-dimensional array : 'Hosts'.
+
 ### People are associated with different civil institutions
 
 People are assigned to [places](./model-glossary.md#Places) (institutions such
@@ -25,6 +27,8 @@ as households, offices, schools etc.) that have a geographical location.
 [Place groups](./model-glossary.md#Places) which divides places into compartments
 (the intent here is that you're less likely to be infected by someone in the same
 office but who works on a different floor).
+
+Each place is modelled using the 'Place' structure. Places are held in a 2-dimensional array : 'Places'. The 2 indices of the array correspond to x,y coordinates of the 'Place'.
 
 People don't move. Instead the simulation employs spatial mixing probability
 distributions (spatial kernels) that control the probability that people in cell
