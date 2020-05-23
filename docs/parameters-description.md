@@ -66,6 +66,20 @@ The parameters class contains:
 </details>
 
 
+<details>
+  <summary>Variables related to cells and micro-cells</summary>
+  
+  | Variable | Description |
+  | --------------- | --------------- |
+  | NC | total number of cells | 
+  | ncw | number of columns in grid of cells | 
+  | nch | number of rows in grid of cells | 
+  | NMC | total number of micro-cells - calculated as function of number of cells and cells per microcell | 
+  | NMCL | number of micro-cell columns in each cell (squared to give number of micro-cells) | 
+  | nmcw | number of micro-cell columns in cell | 
+  | nmch | number of micro-cell rows in cell | 
+  |  |  | 
+</details>
 
 <details>
   <summary>Random seeds</summary>
@@ -76,6 +90,7 @@ The parameters class contains:
   | setupSeed2 |  | 
   | nextSetupSeed1 |  | 
   | setupSeed2 |  | 
+  |  |  | 
   
 </details>
 
