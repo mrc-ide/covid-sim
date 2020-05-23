@@ -1,8 +1,8 @@
-# Paramaters
+# Parameters
 
 WIP - interpretations below are based on reading the SetupModel.cpp file
 
-The paramaters class contains:
+The parameters class contains:
 - configurable options for running the simulation 
 - quantitative information used in the simulation
 - data produced about the setup process e.g. running totals
