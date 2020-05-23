@@ -9,7 +9,7 @@ public:
 	ParamReader(std::string const& param_file, std::string const& preparam_file, std::string const& admin_file);
 
     template<typename T>
-    bool extract(std::string const& param, T& output, T default);
+    bool extract(std::string const& param, T& output, T default_value);
 
 	template<typename T>
 	void extract_or_exit(std::string const& param, T& output);

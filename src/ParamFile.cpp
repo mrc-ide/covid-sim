@@ -46,7 +46,7 @@ ParamReader::ParamReader(std::string const& param_file, std::string const& prepa
 }
 
 template<typename T>
-bool ParamReader::extract(std::string const& param, T& output, T default)
+bool ParamReader::extract(std::string const& param, T& output, T default_value)
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
                   "Integral or floating point required.");
@@ -54,8 +54,8 @@ bool ParamReader::extract(std::string const& param, T& output, T default)
     auto it = m_param_value_map.find(param);
     if (it == m_param_value_map.cend())
     {
-        std::cout << "Parameter \"" << param << "\" not found. Using default " << default << std::endl;
-        output = default;
+        std::cout << "Parameter \"" << param << "\" not found. Using default " << default_value << std::endl;
+        output = default_value;
         return false;
     }
 
