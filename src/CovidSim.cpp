@@ -59,7 +59,7 @@ int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, i
 int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
-void SetICDF(double* icdf, int startValue);
+void SetICDF(double* icdf, double startValue);
 
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -5645,7 +5645,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 }
 
 /* helper function to set icdf arrays */
-void SetICDF(double* icdf, int startValue)
+void SetICDF(double* icdf, double startValue)
 {
 	icdf[CDF_RES] = startValue;
 	for (int i = 0; i < CDF_RES; i++)
