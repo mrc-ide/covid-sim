@@ -82,7 +82,7 @@ void CmdLineArgs::add_string_option(std::string const& option, StringParserFn fu
     add_custom_option(option, std::bind(func, std::placeholders::_1, std::ref(output)), doc);
 }
 
-int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
+void CmdLineArgs::parse(int argc, char* argv[], Param& P) {
     // Detect if the user wants to print out the full help output
     if (argc >= 2) {
         std::string first(argv[1]);
@@ -126,8 +126,6 @@ int CmdLineArgs::parse(int argc, char* argv[], Param& P) {
 
         it->second(value);
     }
-
-    return argc;
 }
 
 static const std::string USAGE =

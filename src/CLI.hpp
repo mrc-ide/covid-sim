@@ -68,7 +68,7 @@ public:
      * Call this function once all add_option() calls have been made to process
      * the arguments passed in from the command-line.
      */
-    int parse(int argc, char* argv[], Param& P);
+    void parse(int argc, char* argv[], Param& P);
 
     void print_help();
     void print_help_and_exit();

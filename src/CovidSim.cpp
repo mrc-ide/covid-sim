@@ -149,15 +149,6 @@ int main(int argc, char* argv[])
 	// the command line: ggilani - 15/10/2014
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
 
-	/**
-	 * Read in command line arguments:
-	 *   - random number seeds
-	 *   - (pre)parameter files
-	 *   - binary files
-	 *   - population data
-	 *   - output directory
-	 */
-
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, AdunitFile, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, AirTravelFile, "Air travel data file");
@@ -191,11 +182,6 @@ int main(int argc, char* argv[])
 	args.add_custom_option("SS", parse_save_snapshot_option, "Interval and file to save snapshots [double,string]");
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
-
-	// DELETE_BEFORE_MERGE
-	std::cout << "Parsed ParamFile: " << ParamFile << std::endl;
-	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
-	std::cout << "Parsed MaxNumThreads: " << P.MaxNumThreads << std::endl;
 
     // Check if S and L options were both specified (can only be one)
 	if (!SaveNetworkFile.empty() && !LoadNetworkFile.empty())
