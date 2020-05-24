@@ -49,13 +49,13 @@ void parse_number(std::string const& input, T& output) {
                       << " when parsing " << iss.str() << std::endl;
         }
         else {
-            std::cerr << "ERROR: Expected integral type, got " << iss.str() << std::endl;
+            std::cerr << "ERROR: Expected integral or floating point, got " << iss.str() << std::endl;
         }
         PrintHelpAndExit();
     }
 }
 
-void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func)
+void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, std::string const& doc)
 {
     if (m_option_map.find(option) != m_option_map.cend()) {
         std::cerr << "Duplicate option specified " << option << ", ignoring..." << std::endl;
@@ -66,19 +66,19 @@ void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func)
 
 
 template<typename T>
-void CmdLineArgs::add_number_option(std::string const& option, T& output)
+void CmdLineArgs::add_number_option(std::string const& option, T& output, std::string const& doc)
 {
-    add_custom_option(option, std::bind(parse_number<T>, std::placeholders::_1, std::ref(output)));
+    add_custom_option(option, std::bind(parse_number<T>, std::placeholders::_1, std::ref(output)), doc);
 }
 
 // Explicit template instantiations for the linker
 // https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
-template void CmdLineArgs::add_number_option<double>(std::string const&, double&);
-template void CmdLineArgs::add_number_option<int>(std::string const&, int&);
+template void CmdLineArgs::add_number_option<double>(std::string const&, double&, std::string const&);
+template void CmdLineArgs::add_number_option<int>(std::string const&, int&, std::string const&);
 
-void CmdLineArgs::add_string_option(std::string const& option, StringParserFn func, std::string& output)
+void CmdLineArgs::add_string_option(std::string const& option, StringParserFn func, std::string& output, std::string const& doc)
 {
-    add_custom_option(option, std::bind(func, std::placeholders::_1, std::ref(output)));
+    add_custom_option(option, std::bind(func, std::placeholders::_1, std::ref(output)), doc);
 }
 
 int CmdLineArgs::parse(int argc, char* argv[], Param& P) {

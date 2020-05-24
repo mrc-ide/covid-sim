@@ -159,38 +159,37 @@ int main(int argc, char* argv[])
 	 */
 
 	CmdLineArgs args;
-	args.add_string_option("A", parse_read_file, AdunitFile);
-	args.add_string_option("AP", parse_read_file, AirTravelFile);
-	args.add_custom_option("BM", parse_bmp_option);
-	args.add_number_option("c", P.MaxNumThreads);
-	args.add_number_option("C", P.PlaceCloseIndepThresh);
-	// generic command line specified params mapped to #<X> in param file
-	args.add_number_option("CLP1", P.clP1);
-	args.add_number_option("CLP2", P.clP2);
-	args.add_number_option("CLP3", P.clP3);
-	args.add_number_option("CLP4", P.clP4);
-	args.add_number_option("CLP5", P.clP5);
-	args.add_number_option("CLP6", P.clP6);
-	args.add_string_option("d", parse_read_file, RegDemogFile);
-	args.add_string_option("D", parse_read_file, DensityFile);
-	args.add_custom_option("I", parse_intervention_file_option);
+	args.add_string_option("A", parse_read_file, AdunitFile, "Administrative Division");
+	args.add_string_option("AP", parse_read_file, AirTravelFile, "Air travel data file");
+	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
+	args.add_number_option("c", P.MaxNumThreads, "Number of threads to use");
+	args.add_number_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
+	args.add_number_option("CLP1", P.clP1, "Overwrites #1 wildcard in parameter file");
+	args.add_number_option("CLP2", P.clP2, "Overwrites #2 wildcard in parameter file");
+	args.add_number_option("CLP3", P.clP3, "Overwrites #3 wildcard in parameter file");
+	args.add_number_option("CLP4", P.clP4, "Overwrites #4 wildcard in parameter file");
+	args.add_number_option("CLP5", P.clP5, "Overwrites #5 wildcard in parameter file");
+	args.add_number_option("CLP6", P.clP6, "Overwrites #6 wildcard in parameter file");
+	args.add_string_option("d", parse_read_file, RegDemogFile, "Regional demography file");
+	args.add_string_option("D", parse_read_file, DensityFile, "Population density file");
+	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
 	// quickly: ggilani - 15/10/14
-	args.add_number_option("KO", P.KernelOffsetScale);
-	args.add_number_option("KP", P.KernelPowerScale);
-	args.add_string_option("L", parse_read_file, LoadNetworkFile);
-	args.add_string_option("LS", parse_read_file, SnapshotLoadFile);
-	args.add_string_option("M", parse_write_dir, OutDensFile);
-	args.add_number_option("NR", GotNR);
-	args.add_string_option("O", parse_write_dir, OutFileBase);
-	args.add_string_option("P", parse_read_file, ParamFile);
-	args.add_string_option("PP", parse_read_file, PreParamFile);
-	args.add_number_option("R", P.R0scale);
-	args.add_string_option("s", parse_read_file, SchoolFile);
-	args.add_string_option("S", parse_write_dir, SaveNetworkFile);
-	args.add_custom_option("SS", parse_save_snapshot_option);
-	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert);
+	args.add_number_option("KO", P.KernelOffsetScale, "Scales the P.KernelOffsetScale parameter");
+	args.add_number_option("KP", P.KernelPowerScale, "Scales the P.KernelPowerScale parameter");
+	args.add_string_option("L", parse_read_file, LoadNetworkFile, "Network file to load");
+	args.add_string_option("LS", parse_read_file, SnapshotLoadFile, "Snapshot file to load");
+	args.add_string_option("M", parse_write_dir, OutDensFile, "Output density file");
+	args.add_number_option("NR", GotNR, "Number of realisations");
+	args.add_string_option("O", parse_write_dir, OutFileBase, "Output file path prefix");
+	args.add_string_option("P", parse_read_file, ParamFile, "Parameter file");
+	args.add_string_option("PP", parse_read_file, PreParamFile, "Pre-Parameter file");
+	args.add_number_option("R", P.R0scale, "R0 scaling");
+	args.add_string_option("s", parse_read_file, SchoolFile, "School file");
+	args.add_string_option("S", parse_write_dir, SaveNetworkFile, "Network file to save");
+	args.add_custom_option("SS", parse_save_snapshot_option, "Interval and file to save snapshots [double,string]");
+	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
 	// DELETE_BEFORE_MERGE
