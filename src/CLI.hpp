@@ -70,11 +70,15 @@ public:
      */
     int parse(int argc, char* argv[], Param& P);
 
+    void print_help();
+    void print_help_and_exit();
+
+    void print_detailed_help();
+    void print_detailed_help_and_exit();
+
 private:
     std::map<std::string, ParserFn> m_option_map;
+    std::map<std::string, std::string> m_doc_map;
 };
-
-void PrintHelpAndExit();
-void PrintDetailedHelpAndExit();
 
 #endif

@@ -197,12 +197,19 @@ int main(int argc, char* argv[])
 	std::cout << "Parsed PreParamFile: " << PreParamFile << std::endl;
 	std::cout << "Parsed MaxNumThreads: " << P.MaxNumThreads << std::endl;
 
-	// Check if S and L options were both specified (can only be one)
-	// or if P or O were not specified
-	if ((!SaveNetworkFile.empty() && !LoadNetworkFile.empty()) || ParamFile.empty() || OutFileBase.empty())
-		PrintHelpAndExit();
+    // Check if S and L options were both specified (can only be one)
+	if (!SaveNetworkFile.empty() && !LoadNetworkFile.empty())
+	{
+		std::cerr << "Specifying both /L and /S is not allowed" << std::endl;
+		args.print_detailed_help_and_exit();
+	}
 
-	///// END Read in command line arguments
+	// Check if P or O were not specified
+	if (ParamFile.empty() || OutFileBase.empty())
+	{
+		std::cerr << "Missing /P and /O arguments which are required" << std::endl;
+		args.print_detailed_help_and_exit();
+	}
 
 	OutFile = OutFileBase;
 
@@ -249,7 +256,7 @@ int main(int argc, char* argv[])
 	{
 		if (AirTravelFile.empty()) {
 			std::cerr << "Parameter file indicated airports should be used but '/AP' file was not given" << std::endl;
-			PrintHelpAndExit();
+			std::exit(1);
 		}
 		ReadAirTravel(AirTravelFile);
 	}
@@ -379,7 +386,7 @@ void parse_bmp_option(std::string const& input) {
 		P.BitmapFormat = BitmapFormats::PNG;
 #else
 		std::cerr << "PNG Bitmaps not supported - please build with Image Magic or WIN32 support" << std::endl;
-		PrintHelpAndExit();
+		std::exit(1);
 #endif
 	}
 	else if (input_copy.compare("bmp") == 0) {
@@ -387,7 +394,7 @@ void parse_bmp_option(std::string const& input) {
 	}
 	else {
 		std::cerr << "Unrecognised bitmap format: " << input_copy << std::endl;
-		PrintHelpAndExit();
+		std::exit(1);
 	}
 }
 
@@ -401,7 +408,7 @@ void parse_save_snapshot_option(std::string const& input) {
 	auto sep = input.find_first_of(',');
 	if (sep == std::string::npos) {
 		std::cerr << "Argument value didn't use a ',': " << input << std::endl;
-		PrintHelpAndExit();
+		std::exit(1);
 	}
 	parse_number(input.substr(0, sep), P.SnapshotSaveTime);
 	parse_read_file(input.substr(sep + 1), SnapshotSaveFile);
