@@ -94,36 +94,42 @@ The parameters class contains:
   
 </details>
 
-## Quantitative setup information
+## Quantitative information
 
 <details>
-  <summary>Arrays of values for a given age group</summary>
+  <summary>Information about the virus</summary>
   
   | Variable | Description |
   | --------------- | --------------- |
   | AgeInfectiousness[] | infectiousness values for given age group | 
   | ProportionSymptomatic[] | proportion of those that display symptoms for given age group | 
-  | RelativeSpatialContact[] |  | 
   | infectiousness[] |  | 
-  | EnhancedSocDistProportionCompliant[] | proportion of given age group likely to comply with social distancing | 
-  | ProportionSmartphoneUsersByAge[] | proportion of population of that age that use smart phones - used to determine likelihood of a person of a given age using a smart phone and in turn digital contact tracing  |
+  | SymptInfectiousnes | infectiousness rate when symptomatic | 
+  | InfectiousPeriod | amount of time an infected host is infectious for | 
+  | SymptSpatialContactRate |  | 
+  | infectious_icdf |  | 
+  | LatentToSymptDelay |  |
 </details>
 
+<details>
+  <summary>Information about the population</summary>
+  
+  | Variable | Description |
+  | --------------- | --------------- |
+  | EnhancedSocDistProportionCompliant[] | proportion of given age group likely to comply with social distancing | 
+  | ProportionSmartphoneUsersByAge[] | proportion of population of that age that use smart phones - used to determine likelihood of a person of a given age using a smart phone and in turn digital contact tracing  |
+  | RelativeSpatialContact[] |  | 
+  | PopSize | number of hosts |
+  | PropPopUsingDigitalContactTracing | proportion of population using digital contact tracing |
+</details>
 
 <details>
-  <summary>Constant values</summary>
+  <summary>Information about response measures</summary>
   
   | Variable | Description |
   | --------------- | --------------- |
   | VaccPriorityGroupAge[] | array containing two elements: the min and max age for vaccination priority group | 
   | VaccProp | proportion of population to be vaccinated | 
-  | SymptInfectiousnes | infectiousness rate when symptomatic | 
-  | InfectiousPeriod | amount of time an infected host is infectious for | 
-  | infectious_icdf |  | 
-  | SymptSpatialContactRate |  | 
-  | LatentToSymptDelay |  |
-  | PropPopUsingDigitalContactTracing | proportion of population using digital contact tracing |
-  | PopSize | number of hosts |
   |  |  |
   |  |  |
 
