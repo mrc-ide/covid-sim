@@ -33,7 +33,8 @@ The parameters class contains:
   | EnhancedSocDistClusterByHousehold |  | 
   | LocalBeta | | 
   | OutputBitmap | generate bitmap file of results | 
-  |  |  | 
+  | DoPlaceGroupTreat |  | 
+  |  |  |
   
 	
   
@@ -52,6 +53,16 @@ The parameters class contains:
   | SymptPlaceTypeContactRate[] | rate of those in given place type displaying symptoms who will use contact tracing? | 
   | SymptPlaceTypeWithdrawalProp[] |  | 
   | PlaceTypePropBetweenGroupLinks[] |  | 
+  | PlaceTypeSizePower[] |  |
+  | PlaceTypeSizeSD[] | Standard deviation in size of given place type |
+  | PlaceTypeMeanSize[] | Mean size of given place type |
+  | PlaceTypeSizeOffset[] |  |
+  | PlaceTypeSizeMax[] | Maximum size of given place type |
+  | PlaceTypeNearestNeighb[] |  |
+  | PlaceTypeMaxAgeRead[] | Maximum age of person that can be assigned to this place? |
+  |  |  |
+  |  |  |
+  
 </details>
 
 <details>
