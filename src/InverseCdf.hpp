@@ -20,7 +20,7 @@ public:
 	}
 
 	// Overloading [] operator to access elements in array style 
-	double& InverseCdf::operator[](int i);
+	double& operator[](int i);
 };
 
 
