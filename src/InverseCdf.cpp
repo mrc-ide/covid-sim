@@ -18,7 +18,7 @@ void InverseCdf::apply_exponent(double value)
 }
 
 // set defaults if not present in parameter file
-void InverseCdf::set_defaults(int startValue)
+void InverseCdf::set_defaults(double startValue)
 {
 	cdf_values_[CDF_RES] = startValue;
 	for (int i = 0; i < CDF_RES; i++)
