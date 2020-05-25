@@ -415,8 +415,8 @@ int main(int argc, char* argv[])
 		if (P.DoLoadSnapshot) LoadSnapshot();
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			long tmp1 = thisRunSeed1;
-			long tmp2 = thisRunSeed2;
+			int32_t tmp1 = thisRunSeed1;
+			int32_t tmp2 = thisRunSeed2;
 			setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
 			InitModel(i);
 		}
