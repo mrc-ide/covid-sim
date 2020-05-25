@@ -3845,7 +3845,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tPropSocDist\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\t");
-		fprintf(dat, "PropSocDist_v\tS_v\tI_v\tR\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
+		fprintf(dat, "PropSocDist_v\tS_v\tI_v\tR_v\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
@@ -3881,7 +3881,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				c* TSVar[i].PropSocDist- c * TSMean[i].PropSocDist* c * TSMean[i].PropSocDist,
 				c* TSVar[i].S- c * TSMean[i].S* c * TSMean[i].S,
 				c* TSVar[i].I- c * TSMean[i].I* c * TSMean[i].I,
-				c* TSVar[i].R- c * TSMean[i].I* c * TSMean[i].I,
+				c* TSVar[i].R- c * TSMean[i].R* c * TSMean[i].R,
 				c* TSVar[i].incI- c * TSMean[i].incI* c * TSMean[i].incI,
 				c* TSVar[i].incC- c * TSMean[i].incC* c * TSMean[i].incC,
 				c* TSVar[i].Mild- c * TSMean[i].Mild* c * TSMean[i].Mild,
