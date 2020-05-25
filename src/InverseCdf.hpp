@@ -8,7 +8,7 @@ class InverseCdf
 
 public:
 
-	void set_defaults(int startValue);
+	void set_defaults(double startValue);
 
 	void apply_exponent();
 	void apply_exponent(double value);
