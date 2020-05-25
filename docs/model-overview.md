@@ -28,7 +28,9 @@ as households, offices, schools etc.) that have a geographical location.
 (the intent here is that you're less likely to be infected by someone in the same
 office but who works on a different floor).
 
-Each place is modelled using the 'Place' structure. Places are held in a 2-dimensional array : 'Places'. The 2 indices of the array correspond to x,y coordinates of the 'Place'.
+Each place is modelled using the 'Place' structure. Places are held in a 2-dimensional array : 'Places'. 
+
+The first index of Places[][] corresponds to the type of place, the second index picks a specific Place of that type. For example if the index of the 'Hospitals' place type were 5, then Places[5][2] would be the third Hospital (array indices start at 0)
 
 People don't move. Instead the simulation employs spatial mixing probability
 distributions (spatial kernels) that control the probability that people in cell
