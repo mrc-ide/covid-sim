@@ -112,7 +112,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			i = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)i);
-			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf.get_value(i + 1) + (1.0 - q) * P.latent_icdf.get_value(i))) * P.TimeStepsPerDay);
+			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf[i + 1] + (1.0 - q) * P.latent_icdf[i])) * P.TimeStepsPerDay);
 		}
 		else
 			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);

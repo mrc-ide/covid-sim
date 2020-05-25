@@ -25,4 +25,9 @@ void InverseCdf::set_defaults(double startValue)
 		cdf_values_[i] = -log(1 - ((double)i) / CDF_RES);
 }
 
+double& InverseCdf::operator[](int i)
+{
+	return cdf_values_[i];
+}
+ 
 
