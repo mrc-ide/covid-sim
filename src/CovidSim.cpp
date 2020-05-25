@@ -135,10 +135,10 @@ int main(int argc, char* argv[])
 	{
 		///// Get seeds.
 		i = argc - 4;
-		sscanf(argv[i], "%li", &P.setupSeed1);
-		sscanf(argv[i + 1], "%li", &P.setupSeed2);
-		sscanf(argv[i + 2], "%li", &P.runSeed1);
-		sscanf(argv[i + 3], "%li", &P.runSeed2);
+		sscanf(argv[i], "%i", &P.setupSeed1);
+		sscanf(argv[i + 1], "%i", &P.setupSeed2);
+		sscanf(argv[i + 2], "%i", &P.runSeed1);
+		sscanf(argv[i + 3], "%i", &P.runSeed2);
 
 		///// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
@@ -405,8 +405,8 @@ int main(int argc, char* argv[])
 		}
 		// Now that we have set P.nextRunSeed* ready for the run, we need to save the values in case
 		// we need to reinitialise the RNG after the run is interrupted.
-		long thisRunSeed1 = P.nextRunSeed1;
-		long thisRunSeed2 = P.nextRunSeed2;
+		int32_t thisRunSeed1 = P.nextRunSeed1;
+		int32_t thisRunSeed2 = P.nextRunSeed2;
 //		if (i == 0 || P.ResetSeeds) 
 			setall(&P.nextRunSeed1, &P.nextRunSeed2);
 
@@ -4169,7 +4169,7 @@ void SaveRandomSeeds(void)
 
 	sprintf(outname, "%s.seeds.xls", OutFile);
 	if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
-	fprintf(dat, "%li\t%li\n", P.nextRunSeed1, P.nextRunSeed2);
+	fprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
 	fclose(dat);
 }
 
@@ -4202,7 +4202,7 @@ void LoadSnapshot(void)
 {
 	FILE* dat;
 	int i, j, * CellMemberArray, * CellSuscMemberArray;
-	long l;
+	int32_t l;
 	long long CM_offset, CSM_offset;
 	double t;
 	int** Array_InvCDF;
@@ -4228,8 +4228,8 @@ void LoadSnapshot(void)
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(long), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
+	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
+	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
