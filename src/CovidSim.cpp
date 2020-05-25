@@ -1015,7 +1015,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		{
 			P.infectious_icdf.set_defaults(ICDF_START);
 		}
-		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf.get_value(CDF_RES) / P.TimeStep);
+		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
