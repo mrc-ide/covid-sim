@@ -30,8 +30,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	char buf[2048];
 	FILE* dat;
 
-	if (!(Xcg1 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
-	if (!(Xcg2 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
+	if (!(Xcg1 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
+	if (!(Xcg2 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
@@ -501,7 +501,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			else
 				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn));
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
-			if (ranf_mt(tn) < q) 
+			if (ranf_mt(tn) < q)
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
 			int j = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)j);
@@ -998,7 +998,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
-		m += (Mcells[i].n = (int)ignbin_mt((long)(P.PopSize - m), s, 0));
+		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
@@ -1400,7 +1400,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					if (i == last_i)
 						m += (Mcells[last_i].np[j2] = P.Nplace[j2] - m);
 					else
-						m += (Mcells[i].np[j2] = (int)ignbin_mt((long)(P.Nplace[j2] - m), s, tn));
+						m += (Mcells[i].np[j2] = (int)ignbin_mt((int32_t)(P.Nplace[j2] - m), s, tn));
 					t -= ((double)Mcells[i].n) / maxd;
 					if (Mcells[i].np[j2] > 0)
 					{
@@ -2388,7 +2388,7 @@ void StratifyPlaces(void)
 							{
 								t = 1 / ((double)(Places[j][i].ng - k));
 								Places[j][i].group_start[k] = l;
-								Places[j][i].group_size[k] = 1 + ignbin_mt((long)m, t, tn);
+								Places[j][i].group_size[k] = 1 + ignbin_mt((int32_t)m, t, tn);
 								m -= (Places[j][i].group_size[k] - 1);
 								l += Places[j][i].group_size[k];
 							}
@@ -2459,7 +2459,7 @@ void StratifyPlaces(void)
 void LoadPeopleToPlaces(char* NetworkFile)
 {
 	int i, j, k, l, m, n, npt, i2;
-	long s1, s2;
+	int32_t s1, s2;
 	FILE* dat;
 	int fileversion;
 
@@ -2473,11 +2473,13 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	npt = P.PlaceTypeNoAirNum;
 	fread_big(&i, sizeof(int), 1, dat);
 	fread_big(&j, sizeof(int), 1, dat);
-	fread_big(&s1, sizeof(long), 1, dat);
-	fread_big(&s2, sizeof(long), 1, dat);
+	fread_big(&s1, sizeof(int32_t), 1, dat);
+	fread_big(&s2, sizeof(int32_t), 1, dat);
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
 	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
-	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) ERR_CRITICAL("Random number seeds do not match saved values\n");
+	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) {
+    ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
+  }
 	k = (P.PopSize + 999999) / 1000000;
 	for (i = 0; i < P.PopSize; i++)
 		for (j = 0; j < P.PlaceTypeNum; j++)
@@ -2525,8 +2527,8 @@ void SavePeopleToPlaces(char* NetworkFile)
 	{
 		fwrite_big(&npt, sizeof(int), 1, dat);
 		fwrite_big(&(P.PopSize), sizeof(int), 1, dat);
-		fwrite_big(&P.setupSeed1, sizeof(long), 1, dat);
-		fwrite_big(&P.setupSeed2, sizeof(long), 1, dat);
+		fwrite_big(&P.setupSeed1, sizeof(int32_t), 1, dat);
+		fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
 		for (i = 0; i < P.PopSize; i++)
 		{
 			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
