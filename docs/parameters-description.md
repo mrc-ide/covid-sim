@@ -9,6 +9,7 @@ The parameters class contains:
 - variables used to load/save information
 - variable used to manage processor / memory
 
+Note : Click the arrow next to each item to expand 
 
 ## Configurable Options
 <details>
