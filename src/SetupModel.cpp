@@ -1625,7 +1625,7 @@ void SetupAirports(void)
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
 	free(base);
 #pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) \
-		shared(P, Airports, Places, stderr_shared)
+		shared(P, Airports, Places, stderr_shared,MAX_DIST_AIRPORT_TO_HOTEL)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{

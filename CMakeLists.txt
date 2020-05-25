@@ -32,6 +32,11 @@ option(USE_WIN32_BMP
 
 # Packages used
 if(USE_OPENMP)
+# Kludge to get openmp working with clang using cmake on Visual Studio.
+  if(WIN32 AND (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+    set(OpenMP_CXX_FLAGS "-Xclang -fopenmp")
+    set(OpenMP_C_FLAGS "-Xclang -fopenmp")
+  endif()
   find_package(OpenMP REQUIRED)
 endif()
 
