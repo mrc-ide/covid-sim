@@ -628,7 +628,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
 						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
 						int i3 = ct->susceptible[m];
-						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
+						s2 = Hosts[i3].distance_squared_to(Hosts[ci]); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
 						f2 = 0;
 						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
@@ -1347,7 +1347,9 @@ int TreatSweep(double t)
 									if (P.TreatByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.TreatRadius2);
+									{
+										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.TreatRadius2);
+									}
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1436,7 +1438,7 @@ int TreatSweep(double t)
 										r = 1e20;
 									}
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.VaccRadius2);
+										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.VaccRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1597,7 +1599,7 @@ int TreatSweep(double t)
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.MoveRestrRadius2);
+										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.MoveRestrRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1717,7 +1719,7 @@ int TreatSweep(double t)
 						do
 						{
 							if (P.is_in_bounds(min))
-								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
+								if (Mcells[b].distance_squared_to(&Mcells[k]) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
 									if ((Mcells[k].n > 0) && (Mcells[k].keyworkerproph == 0))
