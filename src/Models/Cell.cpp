@@ -36,7 +36,7 @@ double Cell::distance_to_squared_min(Cell* other) const
 
 	if (P.DoUTM_coords)
 	{
-		if (P.in_cells_.width * ((double)abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > PI)
+		if (P.in_cells_.width * ((double)std::abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > PI)
 		{
 			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
 				j += P.number_of_cells.height;
@@ -54,14 +54,14 @@ double Cell::distance_to_squared_min(Cell* other) const
 			i++;
 		else if (m % P.number_of_cells.height < l % P.number_of_cells.height)
 			j++;
-		return dist2UTM(P.in_cells_.width * fabs((double)(i / P.number_of_cells.height)),
-						P.in_cells_.height * fabs((double)(i % P.number_of_cells.height)),
-		                P.in_cells_.width * fabs((double)(j / P.number_of_cells.height)),
-		                P.in_cells_.height * fabs((double)(j % P.number_of_cells.height)));
+		return dist2UTM(P.in_cells_.width * std::fabs((double)(i / P.number_of_cells.height)),
+						P.in_cells_.height * std::fabs((double)(i % P.number_of_cells.height)),
+		                P.in_cells_.width * std::fabs((double)(j / P.number_of_cells.height)),
+		                P.in_cells_.height * std::fabs((double)(j % P.number_of_cells.height)));
 	}
 	else
 	{
-		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width * ((double)abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > P.in_degrees_.width * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width * ((double)std::abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > P.in_degrees_.width * 0.5))
 		{
 			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
 				j += P.number_of_cells.height;
@@ -75,7 +75,7 @@ double Cell::distance_to_squared_min(Cell* other) const
 			else if (m / P.number_of_cells.height < l / P.number_of_cells.height)
 				j += P.number_of_cells.height;
 		}
-		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height * ((double)abs(m % P.number_of_cells.height - l % P.number_of_cells.height)) > P.in_degrees_.height * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height * ((double)std::abs(m % P.number_of_cells.height - l % P.number_of_cells.height)) > P.in_degrees_.height * 0.5))
 		{
 			if (m % P.number_of_cells.height > l % P.number_of_cells.height)
 				j++;
@@ -89,8 +89,8 @@ double Cell::distance_to_squared_min(Cell* other) const
 			else if (m % P.number_of_cells.height < l % P.number_of_cells.height)
 				j++;
 		}
-		double x = P.in_cells_.width * fabs((double)(i / P.number_of_cells.height - j / P.number_of_cells.height));
-		double y = P.in_cells_.height * fabs((double)(i % P.number_of_cells.height - j % P.number_of_cells.height));
+		double x = P.in_cells_.width * std::fabs((double)(i / P.number_of_cells.height - j / P.number_of_cells.height));
+		double y = P.in_cells_.height * std::fabs((double)(i % P.number_of_cells.height - j % P.number_of_cells.height));
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
