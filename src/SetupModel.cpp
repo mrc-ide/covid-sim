@@ -699,9 +699,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 {
-	int j, l, m, i2, j2, last_i, mr, ad, country;
+	int l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
-	double t, s, x, y, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
+	double t, s, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
 	char buf[4096], *col;
 	const char delimiters[] = " \t,";
 	FILE* dat = NULL, *dat2;
@@ -716,7 +716,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 
-	for (j = 0; j < P.NMC; j++)
+	for (int j = 0; j < P.NMC; j++)
 	{
 		Mcells[j].n = 0;
 		mcell_adunits[j] = -1;
@@ -733,8 +733,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
-			int k;
-			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
+			bool found = false;
+			Vector2<double> pos(BF[rn].x, BF[rn].y);
+			t = BF[rn].pop;
+			country = BF[rn].cnt;
+			j2 = BF[rn].ad;
 			rec = BF[rn];
 			if (P.DoAdUnits)
 			{
@@ -745,18 +748,18 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					{
 						if (j2 / P.AdunitLevel1Mask == AdUnits[P.AdunitLevel1Lookup[m]].id / P.AdunitLevel1Mask)
 						{
-							k = 1;
+							found = true;
 							AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 						}
 						else
-							k = 0;
+							found = false;
 					}
 					else
-						k = 0;
+						found = false;
 				}
 				else
 				{
-					k = 1;
+					found = true;
 					if (P.AdunitLevel1Lookup[m] < 0)
 					{
 						P.AdunitLevel1Lookup[m] = P.NumAdunits;
@@ -773,13 +776,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			}
 			else
 			{
-				k = 1;
+				found = 1;
 			}
-			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
+			if (found && P.SpatialBoundingBox.contains(pos))
 			{
-				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width_ + 0.1);
-				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height_ + 0.1);
-				l = j * P.get_number_of_micro_cells_high() + k;
+				Vector2<int> mc_pos = (Vector2<int>)(((Vector2<double>)pos - P.SpatialBoundingBox.start) / (Vector2<double>)P.in_microcells_ + 0.1).floor();
+				l = mc_pos.x * P.number_of_micro_cells().height + mc_pos.y;
 				if (l < P.NMC)
 				{
 					mr++;
