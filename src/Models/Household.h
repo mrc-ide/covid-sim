@@ -10,8 +10,8 @@ struct Household
 	unsigned short int nhr;
 
 	float distance_to(const Household &other);
-	float distance_squared_to(const Household &other);
+	float distance_to_squared(const Household &other);
 
 	float distance_to(const Place &other);
-	float distance_squared_to(const Place &other);
+	float distance_to_squared(const Place &other);
 };

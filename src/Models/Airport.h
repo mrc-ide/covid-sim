@@ -20,8 +20,8 @@ struct Airport
 	IndexList* DestMcells, *DestPlaces;
 
 	double distance_to(const Airport &other) const;
-	double distance_squared_to(const Airport &other) const;
+	double distance_to_squared(const Airport &other) const;
 	double distance_to(const Place &other) const;
-	double distance_squared_to(const Place &other) const;
+	double distance_to_squared(const Place &other) const;
 };
 

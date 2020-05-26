@@ -125,7 +125,7 @@ void TravelDepartSweep(double t)
 									k = Airports[i].conn_airports[l];
 									if (bm)
 									{
-										if (Airports[i].distance_squared_to(Airports[k]) > P.MoveRestrRadius2)
+										if (Airports[i].distance_to_squared(Airports[k]) > P.MoveRestrRadius2)
 										{
 											if (ranf_mt(tn) > P.MoveRestrEffect)
 											{
@@ -222,7 +222,7 @@ void TravelDepartSweep(double t)
 							}
 							if (f3)
 							{
-								double s2 = Households[Hosts[i2].hh].distance_squared_to(Places[P.HotelPlaceType][i]);
+								double s2 = Households[Hosts[i2].hh].distance_to_squared(Places[P.HotelPlaceType][i]);
 								int f2 = 1;
 								if ((bm) && (s2 > P.MoveRestrRadius2))
 								{
@@ -371,7 +371,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								Microcell* mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
-									if (Households[si->hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
+									if (Households[si->hh].distance_to_squared(Places[k][l]) > P.MoveRestrRadius2)
 										s3 *= P.MoveRestrEffect;
 								}
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
@@ -439,7 +439,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 											if (bm)
 											{
-												if (Households[Hosts[i3].hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
+												if (Households[Hosts[i3].hh].distance_to_squared(Places[k][l]) > P.MoveRestrRadius2)
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -508,7 +508,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
 											{
-												if (Households[Hosts[i3].hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
+												if (Households[Hosts[i3].hh].distance_to_squared(Places[k][l]) > P.MoveRestrRadius2)
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -628,7 +628,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
 						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
 						int i3 = ct->susceptible[m];
-						s2 = Hosts[i3].distance_squared_to(Hosts[ci]); /// calculate distance squared between this susceptible person and person ci/si identified earlier
+						s2 = Hosts[i3].distance_to_squared(Hosts[ci]); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
 						f2 = 0;
 						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
@@ -672,7 +672,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									s *= CalcPersonSusc(i3, ts, ci, tn);
 									if (bm)
 									{
-										if (Households[si->hh].distance_squared_to(Households[Hosts[i3].hh]) > P.MoveRestrRadius2)
+										if (Households[si->hh].distance_to_squared(Households[Hosts[i3].hh]) > P.MoveRestrRadius2)
 											s *= P.MoveRestrEffect;
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
@@ -1348,7 +1348,7 @@ int TreatSweep(double t)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
 									else
 									{
-										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.TreatRadius2);
+										f4 = ((r = Mcells[b].distance_to_squared(&Mcells[k])) < P.TreatRadius2);
 									}
 									if (f4)
 									{
@@ -1438,7 +1438,7 @@ int TreatSweep(double t)
 										r = 1e20;
 									}
 									else
-										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.VaccRadius2);
+										f4 = ((r = Mcells[b].distance_to_squared(&Mcells[k])) < P.VaccRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1599,7 +1599,7 @@ int TreatSweep(double t)
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 									else
-										f4 = ((r = Mcells[b].distance_squared_to(&Mcells[k])) < P.MoveRestrRadius2);
+										f4 = ((r = Mcells[b].distance_to_squared(&Mcells[k])) < P.MoveRestrRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1719,7 +1719,7 @@ int TreatSweep(double t)
 						do
 						{
 							if (P.is_in_bounds(min))
-								if (Mcells[b].distance_squared_to(&Mcells[k]) < P.KeyWorkerProphRadius2)
+								if (Mcells[b].distance_to_squared(&Mcells[k]) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
 									if ((Mcells[k].n > 0) && (Mcells[k].keyworkerproph == 0))

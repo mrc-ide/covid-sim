@@ -1646,14 +1646,14 @@ void SetupAirports(void)
 				tmin += 0.25 * MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL;
 				Airports[i].num_place = 0;
 				for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-					if (Airports[i].distance_squared_to(Places[P.HotelPlaceType][j]) < tmin)
+					if (Airports[i].distance_to_squared(Places[P.HotelPlaceType][j]) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
 			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
 			if (!(Airports[i].DestPlaces = (IndexList*)calloc(Airports[i].num_place, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-				if ((t = Airports[i].distance_squared_to(Places[P.HotelPlaceType][j])) < tmin)
+				if ((t = Airports[i].distance_to_squared(Places[P.HotelPlaceType][j])) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
@@ -2147,7 +2147,7 @@ void AssignPeopleToPlaces()
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{
 											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
-											t = Households[Hosts[i].hh].distance_squared_to(Places[tp][Mcells[ic].places[tp][cnt]]);
+											t = Households[Hosts[i].hh].distance_to_squared(Places[tp][Mcells[ic].places[tp][cnt]]);
 											s = numKernel(t);
 											if (tp < P.nsp)
 											{
@@ -2286,7 +2286,7 @@ void AssignPeopleToPlaces()
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
-									t = Households[Hosts[k].hh].distance_squared_to(Places[tp][j]);
+									t = Households[Hosts[k].hh].distance_to_squared(Places[tp][j]);
 									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{

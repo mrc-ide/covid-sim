@@ -13,6 +13,6 @@ Vector2<double> Microcell::position() const {
 	return Vector2<double>(x, y) * (Vector2<double>)P.in_microcells_;
 }
 
-double Microcell::distance_squared_to(Microcell *other) const {
-	return this->position().distance_squared_to(other->position());
+double Microcell::distance_to_squared(Microcell *other) const {
+	return this->position().distance_to_squared(other->position());
 }

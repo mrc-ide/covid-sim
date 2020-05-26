@@ -16,15 +16,15 @@ Vector2<double> Cell::position() const {
 
 double Cell::distance_to(Cell *other) const
 {
-	return std::sqrt(this->distance_squared_to(other));
+	return std::sqrt(this->distance_to_squared(other));
 }
 
-double Cell::distance_squared_to(Cell *other) const
+double Cell::distance_to_squared(Cell *other) const
 {
-	return this->position().distance_squared_to(other->position());
+	return this->position().distance_to_squared(other->position());
 }
 
-double Cell::distance_squared_to_min(Cell* other) const
+double Cell::distance_to_squared_min(Cell* other) const
 {
 	int l = (int)(this - Cells);
 	int m = (int)(other - Cells);

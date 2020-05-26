@@ -32,5 +32,5 @@ struct Microcell
 
 	int index() const;
 	Vector2<double> position() const;
-	double distance_squared_to(Microcell* other) const;
+	double distance_to_squared(Microcell* other) const;
 };

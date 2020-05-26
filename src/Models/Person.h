@@ -43,5 +43,5 @@ struct Person
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
 	double distance_to(const Person &other) const;
-	double distance_squared_to(const Person &other) const;
+	double distance_to_squared(const Person &other) const;
 };
