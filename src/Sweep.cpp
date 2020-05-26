@@ -331,7 +331,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				// otherwise hbeta is 0 and this section is skipped
 				if (hbeta > 0)
 				{
-					// For selected host si's household si->hh, 
+					// For selected host si's household (si->hh), 
 					// if the number of hosts (nh) in that Household is greater than 1
 					// AND the selected host is not travelling
 					if ((Households[si->hh].nh > 1) && (!si->Travelling))
@@ -345,17 +345,25 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 						// Test if any of the individuals in the selected persons household are absent from places
 						f = 0;
-						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
-							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
-								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
+						for (int i3 = l; (i3 < m) && (!f); i3++){ //// loop over people in household
+							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++){ //// loop over place types
+								if (Hosts[i3].PlaceLinks[i2] >= 0){ //// if person in household has any sort of link to place type
 									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
+								}
+							}
+						}
 
+						// if individuals in the household are absent from places (ie. f==1 from test immediately above), scale up the infectiousness (s3) of the household
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
+						
+						// Loop from l (the index of the first person in the household) to m-1 (the index of the last person in the household)
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
 								s = s3 * CalcHouseSusc(i3, ts, ci, tn);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
-								if (ranf_mt(tn) < s) //// if household member i3 will be infected...
+								
+								// Force of Infection (s) > random value between 0 and 1
+								if (ranf_mt(tn) < s) 
 								{
 									cq = Hosts[i3].pcell % P.NumThreads;
 									if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
@@ -364,17 +372,19 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 										else
 										{
-											Hosts[i3].infector = ci; //// assign person ci as infector of peron i3
+											// ** infect household member i3 **
+											Hosts[i3].infector = ci; //// assign person ci as infector of person i3
 											short int infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
 											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
 									}
-								} 
-							} 
-					} 
-				} 
+								}// FOI > s
+							} // people in household uninfected/susceptible and not travelling
+					} // loop over people in household
+				} // more than one person in household
 				
-				//// Place FOI component
+				// Still within selected cell (ci)
+				// do place infections
 				if (P.DoPlaces)
 				{
 					if (!HOST_ABSENT(ci))
