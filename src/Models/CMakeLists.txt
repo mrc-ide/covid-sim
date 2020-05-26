@@ -1,0 +1,12 @@
+target_sources(CovidSim
+    PRIVATE
+        Airport.cpp
+        Airport.h
+        Cell.cpp
+        Cell.h
+        Household.cpp
+        Household.h
+        Microcell.cpp
+        Microcell.h
+        Place.h
+)
