@@ -911,11 +911,10 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -955,11 +954,10 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -991,11 +989,10 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-				int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -1023,11 +1020,10 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1052,11 +1048,10 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1267,11 +1262,10 @@ int DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1299,11 +1293,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
