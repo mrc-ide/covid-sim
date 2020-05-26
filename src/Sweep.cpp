@@ -298,6 +298,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	fp = P.TimeStep / (1 - P.FalsePositiveRate);
 	sbeta = seasonality * fp * P.LocalBeta;
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
+	
+	// Establish if movement restrictions are in place on current day - store in bm, 0:false, 1:true 
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
@@ -383,58 +385,101 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					} // loop over people in household
 				} // more than one person in household
 				
-				// Still within selected cell (ci)
+				// Still within selected cell (ci) with selected host (si)
 				// do place infections
 				if (P.DoPlaces)
 				{
 					if (!HOST_ABSENT(ci))
 					{
+						// select microcell (mi) corresponding to selected host (si)
 						Microcell* mi = Mcells + si->mcell;
 						for (int k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
 						{
+							// select link (l) between selected host (si) and place from si's placelinks to place type k
 							int l = si->PlaceLinks[k];
 							if (l >= 0)  //// l>=0 means if place type k is relevant to person si. (Now allowing for partial attendance).
 							{
+								// infectiousness of place (s3)
+								// = false positive rate * seasonality * place infectiousness
 								s3 = fp * seasonality * CalcPlaceInf(ci, k, ts);
+								// select microcell of the place linked to host si with link l
 								Microcell* mp = Mcells + Places[k][l].mcell;
+								// if blanket movement restrictions are in place on current day
 								if (bm)
 								{
+									// if distance between si's household and linked place
+									// is greater than movement restriction radius
 									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
 										Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+									{
+										// multiply infectiousness of place by movement restriction effect
 										s3 *= P.MoveRestrEffect;
+									}
 								}
+								// else if movement restrictions in effect in either household microcell or place microcell
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
 								{
+									// multiply infectiousness of place by movement restriction effect
 									s3 *= P.MoveRestrEffect;
 								}
-
+								// if linked place isn't a hotel and selected host isn't travelling
 								if ((k != P.HotelPlaceType) && (!si->Travelling))
 								{
+									// i2 is index of group (of place type k) that selected host is linked to 
 									int i2 = (si->PlaceGroupLinks[k]);
+									
+									// calculate infectiousness (s4_scaled) 
+									// which varies if contact tracing is in place
+									// if contact tracing isn't in place s4_scaled is a copy of s3 
+									// if contact tracing is in place, s4_scaled is s3  * P.ScalingFactorPlaceDigitalContacts
+									// in either case s4_scaled is capped at 1
+									
+									// if contact tracing
 									if (fct)
 									{
+										// copy s3
 										s4 = s3;
+										// multiply s4 by P.ScalingFactorPlaceDigitalContacts 
 										s4_scaled = s4 *P.ScalingFactorPlaceDigitalContacts;
+										// cap s4 at 1
 										if (s4 > 1) s4 = 1;
+										// cap at 1
 										if (s4_scaled > 1) s4_scaled = 1;
 									}
 									else
 									{
+										// copy s3 to s4
 										s4 = s3;
+										// cap s4 at 1
 										if (s4 > 1) s4 = 1;
 										s4_scaled = s4;
 									}
 
+									// if infectiousness is < 0, we have an error - end the program
 									if (s4_scaled < 0)
 									{
 										fprintf(stderr_shared, "@@@ %lg\n", s4_scaled);
 										exit(1);
 									}
+									// else if infectiousness == 1 (should never be more than 1 due to capping above)
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
+									{
+										// set n to be number of people in group in place k,l
 										n = Places[k][l].group_size[i2];
+									}
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
+									{
 										n = (int)ignbin_mt((int32_t)Places[k][l].group_size[i2], s4_scaled, tn);
-									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+									}
+									
+									// if potential infectees > 0	
+									if (n > 0) 
+									{
+										// pick n members of place k,l and add them to sampling queue for thread tn
+										SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+									}
+									
+									// loop over sampling queue
 									for (int m = 0; m < n; m++)
 									{
 										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
