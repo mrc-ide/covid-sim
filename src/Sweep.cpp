@@ -371,8 +371,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								Microcell* mp = Mcells + Places[k][l].mcell;
 								if (bm)
 								{
-									if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
-										Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+									if (Households[si->hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
 										s3 *= P.MoveRestrEffect;
 								}
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
@@ -440,8 +439,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 
 											if (bm)
 											{
-												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+												if (Households[Hosts[i3].hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -510,8 +508,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
 											{
-												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+												if (Households[Hosts[i3].hh].distance_squared_to(Places[k][l]) > P.MoveRestrRadius2)
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
