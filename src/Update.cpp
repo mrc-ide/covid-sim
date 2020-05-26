@@ -72,7 +72,6 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
 	unsigned short int ts; //// time step
-	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
 	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
@@ -87,29 +86,31 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
-		q = x * x + y * y;
-		StateT[tn].sumRad2 += q;
+		double x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
+		double y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
+		const double radius_squared = x * x + y * y;
+		StateT[tn].sumRad2 += radius_squared;
 
-		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
+		if (radius_squared > StateT[tn].maxRad2)
+			StateT[tn].maxRad2 = radius_squared; //// update maximum radius squared from seeding infection
+
+		Cells[a->pcell].S--;
+		Cells[a->pcell].L++;			//// number of latently infected people increases by one.
+		Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
+		if (a->listpos < Cells[a->pcell].S)
 		{
-			Cells[a->pcell].S--;
-			Cells[a->pcell].L++;			//// number of latently infected people increases by one.
-			Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
-			if (a->listpos < Cells[a->pcell].S)
-			{
-				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
-				Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
-				a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
-				Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
-			}
+			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
+			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
+			a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
+			Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
 		}
 		StateT[tn].cumI_keyworker[a->keyworker]++;
 
 		if (P.DoLatent)
 		{
-			i = (int)floor((q = ranf_mt(tn) * CDF_RES));
+			// quantile of inverse CDF to choose latent period
+			double q = ranf_mt(tn) * CDF_RES;
+			i = (int)floor(q);
 			q -= ((double)i);
 			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf[i + 1] + (1.0 - q) * P.latent_icdf[i])) * P.TimeStepsPerDay);
 		}
@@ -143,7 +144,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if (*nEvents < P.MaxInfEvents)
 			{
-				RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
+				RecordEvent(t, ai, run, 0, tn);
 			}
 		}
 		if ((t > 0) && (P.DoOneGen))
