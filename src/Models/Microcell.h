@@ -2,7 +2,7 @@
 
 #include "IndexList.h"
 #include "Country.h"
-#include "Coordinates/Vector2.h"
+#include "Geometry/Vector2.h"
 
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IndexList.h"
-#include "Coordinates/Vector2.h"
+#include "Geometry/Vector2.h"
 #include "Place.h"
 
 /**

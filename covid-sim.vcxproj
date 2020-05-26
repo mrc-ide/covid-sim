@@ -108,7 +108,7 @@
     <ClCompile Include="src\Models\Microcell.cpp" />
     <ClCompile Include="src\Models\Airport.cpp" />
     <ClCompile Include="src\Models\Person.cpp" />
-    <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
+    <ClCompile Include="src\Geometry\MicroCellPosition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -137,10 +137,10 @@
     <ClInclude Include="src\Models\Airport.h" />
     <ClInclude Include="src\Models\Place.h" />
     <ClInclude Include="src\Models\Person.h" />
-    <ClInclude Include="src\Coordinates\MicroCellPosition.h" />
-    <ClInclude Include="src\Coordinates\Vector2.h" />
-    <ClInclude Include="src\Coordinates\Size.h" />
-    <ClInclude Include="src\Coordinates\BoundingBox.h" />
+    <ClInclude Include="src\Geometry\MicroCellPosition.h" />
+    <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="src\Geometry\Size.h" />
+    <ClInclude Include="src\Geometry\BoundingBox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
