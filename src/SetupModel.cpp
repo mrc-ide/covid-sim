@@ -824,8 +824,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[0]; //x
-						BF[rn].y = (double)(P.in_microcells_.height_ * (((double)(l % P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[1]; //y
+						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.number_of_micro_cells().height)) + 0.5)) + P.SpatialBoundingBox.start.x;
+						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.number_of_micro_cells().height)) + 0.5)) + P.SpatialBoundingBox.start.y;
 						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
 						BF[rn].pop = mcell_dens[l];
 						BF[rn].cnt = mcell_country[l];
@@ -898,6 +898,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				if (l / P.AdunitLevel1Mask == AdUnits[k].id / P.AdunitLevel1Mask)
 				{
 					col = strtok(NULL, delimiters);
+					double x;
 					sscanf(col, "%lg", &x);
 					P.PopByAdunit[k][1] += x;
 					t = 0;
@@ -910,6 +911,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					col = strtok(NULL, delimiters);
 					if (P.DoHouseholds)
 					{
+						double y;
 						sscanf(col, "%lg", &y);
 						for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
 						{
@@ -932,6 +934,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				P.PropAgeGroup[k][i - 1] /= t;
 				CumAgeDist[i] = CumAgeDist[i - 1] + P.PropAgeGroup[k][i - 1];
 			}
+			int j;
 			for (int i = j = 0; i < 1000; i++)
 			{
 				t = ((double)i) / 1000;
@@ -964,6 +967,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		CumAgeDist[0] = 0;
 		for (int i = 1; i <= NUM_AGE_GROUPS; i++)
 			CumAgeDist[i] = CumAgeDist[i - 1] + P.PropAgeGroup[0][i - 1];
+		int j;
 		for (int i = j = 0; i < 1000; i++)
 		{
 			t = ((double)i) / 1000;
