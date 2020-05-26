@@ -165,29 +165,27 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	else
 	{
-		P.ncw = P.nch = (int)sqrt((double)P.NC);
-		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
+		int cells_per_side = (int)sqrt((double)P.NC);
+		P.number_of_cells = Size<int>(cells_per_side, cells_per_side);
+		P.NC = P.number_of_cells.area();
+		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.number_of_cells.width);
 		s = floor(sqrt((double)P.PopSize));
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
+		P.SpatialBoundingBox.start = Vector2<double>(0, 0);
+		P.SpatialBoundingBox.end = Vector2<double>(s, s);
 		P.PopSize = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
-		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
-		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
-		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
+		P.in_degrees_ = Size<double>(s, s);
+		P.in_cells_ = P.in_degrees_ / (Size<double>)P.number_of_cells;
 	}
 	P.NMC = P.NMCL * P.NMCL * P.NC;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
-	P.scalex = P.BitmapScale;
-	P.scaley = P.BitmapAspectScale * P.BitmapScale;
-	P.bwidth = (int)(P.in_degrees_.width_ * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scalex);
-	P.bwidth = (P.bwidth + 3) / 4;
-	P.bwidth *= 4;
-	P.bheight = (int)(P.in_degrees_.height_ * (P.BoundingBox[3] - P.BoundingBox[1]) * P.scaley);
-	P.bheight += (4 - P.bheight % 4) % 4;
-	P.bheight2 = P.bheight + 20; // space for colour legend
-	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.bwidth, P.bheight);
+	P.scale = Vector2<double>(P.BitmapScale, P.BitmapAspectScale * P.BitmapScale);
+	P.b = (Size<int>)(P.in_degrees_ * P.bounding_box.size() * P.scale);
+	P.b.width = (P.b.width + 3) / 4;
+	P.b.width *= 4;
+	P.b.height += (4 - P.b.height % 4) % 4;
+	P.bheight2 = P.b.height + 20; // space for colour legend
+	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
 	P.bminx = (int)(P.in_degrees_.width_ * P.BoundingBox[0] * P.scalex);
 	P.bminy = (int)(P.in_degrees_.height_ * P.BoundingBox[1] * P.scaley);
 	P.in_microcells_.width_ = P.in_cells_.width_ / ((double)P.NMCL);

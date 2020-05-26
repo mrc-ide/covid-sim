@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector2.h"
+#include "Size.h"
 
 template<class T>
 struct BoundingBox {
@@ -9,6 +10,7 @@ struct BoundingBox {
 
 	T width() const;
 	T height() const;
+	Size<T> size() const;
 
 	bool contains(const Vector2<T> &point) const;
 };

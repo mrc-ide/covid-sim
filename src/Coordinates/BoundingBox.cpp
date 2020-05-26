@@ -17,3 +17,8 @@ bool BoundingBox<T>::contains(const Vector2<T> &point) const {
 		&& point.y >= start.y
 		&& point.y < end.y;
 }
+
+template<class T>
+Size<T> BoundingBox<T>::size() const {
+	return Size<T>(this->width(), this->height());
+}
