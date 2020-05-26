@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Coordinates/Location.h"
 #include "Place.h"
 
 struct Household
 {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	Location loc;
+	Vector2<float> loc;
 	unsigned short int nhr;
 
 	float distance_to(const Household &other);

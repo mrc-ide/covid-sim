@@ -5,7 +5,6 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
-#include "Coordinates/Location.h"
 #include "Household.h"
 #include "Cell.h"
 #include "Microcell.h"

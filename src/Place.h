@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Coordinates/Location.h>
 #include "Country.h"
+#include "Coordinates/Vector2.h"
 
 /**
  * @brief Represents an institution that people may belong to.
@@ -20,7 +20,7 @@ struct Place
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	Location loc;
+	Vector2<float> loc;
 	float ProbClose;
 	int* group_start, *group_size, *members;
 };

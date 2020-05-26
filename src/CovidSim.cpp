@@ -2349,7 +2349,7 @@ void ReadAirTravel(char* AirTravelFile)
 		traf *= (P.AirportTrafficScale * sc);
 		if (!P.SpatialBoundingBox.contains((Vector2<double>)Airports[i].loc))
 		{
-			Airports[i].loc = Location(-1, -1);
+			Airports[i].loc = Vector2<float>(-1, -1);
 			Airports[i].total_traffic = 0;
 		}
 		else
