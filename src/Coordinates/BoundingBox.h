@@ -9,5 +9,7 @@ struct BoundingBox {
 
 	T width() const;
 	T height() const;
+
+	bool contains(const Vector2<T> &point) const;
 };
 

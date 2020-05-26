@@ -2347,17 +2347,14 @@ void ReadAirTravel(char* AirTravelFile)
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
-			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y >= P.SpatialBoundingBox[3]))
+		if (!P.SpatialBoundingBox.contains((Vector2<double>)Airports[i].loc))
 		{
-			Airports[i].loc_x = Airports[i].loc_y = -1;
+			Airports[i].loc = Location(-1, -1);
 			Airports[i].total_traffic = 0;
 		}
 		else
 		{
-			//fprintf(stderr,"(%f\t%f) ",Airports[i].loc_x,Airports[i].loc_y);
-			Airports[i].loc_x -= (float)P.SpatialBoundingBox[0];
-			Airports[i].loc_y -= (float)P.SpatialBoundingBox[1];
+			Airports[i].loc -= (Vector2<float>)P.SpatialBoundingBox.start;
 			Airports[i].total_traffic = (float)traf;
 		}
 		t = 0;
