@@ -51,7 +51,7 @@ Vector2<T> Vector2<T>::operator+(const Vector2<T> &other) const {
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator+=(const Vector2<T> &other) {
+Vector2<T>& Vector2<T>::operator+=(const Vector2<T> &other) {
 	return *this = *this + other;
 }
 
@@ -61,7 +61,7 @@ Vector2<T> Vector2<T>::operator-(const Vector2<T> &other) const {
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator-=(const Vector2<T> &other) {
+Vector2<T>& Vector2<T>::operator-=(const Vector2<T> &other) {
 	return *this = *this - other;
 }
 

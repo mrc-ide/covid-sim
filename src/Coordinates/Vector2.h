@@ -20,9 +20,9 @@ struct Vector2 {
 	Vector2<T> ceil() const;
 
 	Vector2<T> operator+(const Vector2<T> &other) const;
-	Vector2<T> operator+=(const Vector2<T> &other);
+	Vector2<T>& operator+=(const Vector2<T> &other);
 	Vector2<T> operator-(const Vector2<T> &other) const;
-	Vector2<T> operator-=(const Vector2<T> &other);
+	Vector2<T>& operator-=(const Vector2<T> &other);
 	Vector2<T> operator*(const Vector2<T> &other) const;
 	Vector2<T> operator/(const Vector2<T> &other) const;
 
