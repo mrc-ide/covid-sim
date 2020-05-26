@@ -1,4 +1,4 @@
-#include <cmath>
+#include <cstdlib>
 #include "Microcell.h"
 #include "Param.h"
 #include "Model.h"
