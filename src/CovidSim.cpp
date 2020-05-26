@@ -2783,7 +2783,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		*nEvents = 0;
 		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
-			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].t = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].infectee_position = Vector2<double>(0, 0);
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
 			InfEventLog[i].infectee_adunit = InfEventLog[i].listpos = InfEventLog[i].infectee_cell = InfEventLog[i].infector_cell = InfEventLog[i].thread = 0;
 		}
