@@ -2,7 +2,7 @@
 #include "Model.h"
 #include "Param.h"
 #include "Dist.h"
-#include <cmath>
+#include <cstdlib>
 
 using namespace Models;
 using namespace Geometry;
