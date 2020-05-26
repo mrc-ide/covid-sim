@@ -16,11 +16,6 @@ enum BitmapFormats
   BF_BMP = 1   // BMP - fall-back
 };
 
-/// Size of spatial domain in various units
-struct DomainSize : Size<double>
-{
-};
-
 /**
  * @brief Stores the parameters for the simulation.
  *
@@ -112,9 +107,14 @@ struct Param
 	/// Number of pixels per degree in bitmap output
 	Vector2<double> scale;
 
-	DomainSize in_degrees_; ///< Size of spatial domain in degrees
-	DomainSize in_cells_; ///< Size of spatial domain in cells
-	DomainSize in_microcells_; ///< Size of spatial domain in microcells
+	///< Size of spatial domain in degrees
+	Size<double> in_degrees_;
+
+	///< Size of spatial domain in cells
+	Size<double> in_cells_;
+
+	///< Size of spatial domain in microcells
+	Size<double> in_microcells_;
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;

@@ -2832,9 +2832,8 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			int k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
-			int l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
-			j = k * P.get_number_of_micro_cells_high() + l;
+			Vector2<int> pos = (Vector2<int>)(P.LocationInitialInfection[i] / (Vector2<double>)P.in_microcells_);
+			j = pos.x * P.get_number_of_micro_cells_high() + pos.y;
 			m = 0;
 			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
@@ -2846,8 +2845,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[person].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[person].hh].loc_y;
+							P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[person].hh].loc;
 						}
 						Hosts[person].infector = -2;
 						Hosts[person].infect_type = INFECT_TYPE_MASK - 1;

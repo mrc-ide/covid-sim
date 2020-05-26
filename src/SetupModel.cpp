@@ -144,13 +144,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_degrees_.width = P.SpatialBoundingBox.width();
 		P.in_degrees_.height = P.SpatialBoundingBox.height();
 		P.number_of_cells = 4 * ((Size<int>)(P.in_degrees_ / P.in_cells_ / 4).ceil());
-		P.in_degrees_.width_ = ((double)P.ncw) * P.in_cells_.width_;
-		P.in_degrees_.height_ = ((double)P.nch) * P.in_cells_.height_;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width_;
-		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height_;
-		P.NC = P.ncw * P.nch;
+		P.in_degrees_ = ((Size<double>)P.number_of_cells) * P.in_cells_;
+		P.SpatialBoundingBox.end = P.SpatialBoundingBox.start + (Vector2<double>)P.in_degrees_;
+		P.NC = P.number_of_cells.area();
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
+		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.number_of_cells.width, P.number_of_cells.height);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width_ > 180) {
 			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
