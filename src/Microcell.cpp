@@ -8,8 +8,8 @@ int Microcell::index() const {
 }
 
 Vector2<double> Microcell::position() const {
-	int x = std::abs(this->index() / P.get_number_of_micro_cells_high());
-	int y = std::abs(this->index() % P.get_number_of_micro_cells_high());
+	int x = std::abs(this->index() / P.number_of_micro_cells().height);
+	int y = std::abs(this->index() % P.number_of_micro_cells().height);
 	return Vector2<double>(x, y) * (Vector2<double>)P.in_microcells_;
 }
 
