@@ -205,7 +205,8 @@ struct Results
  */
 struct Events
 {
-	double infectee_x, infectee_y, t, t_infector;
+	Vector2<double> infectee_position;
+	double t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
 };
 
