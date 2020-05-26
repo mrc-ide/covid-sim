@@ -85,12 +85,11 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumI++;
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
-		//// calculate radius squared, and increment sum of radii squared.
-		double x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		double y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
-		const double radius_squared = x * x + y * y;
-		StateT[tn].sumRad2 += radius_squared;
 
+		//// calculate radius squared, and increment sum of radii squared.
+		Vector2<double> pos = (Vector2<double>)Households[a->hh].loc - P.LocationInitialInfection[0];
+		const double radius_squared = pos.length_squared();
+		StateT[tn].sumRad2 += radius_squared;
 		if (radius_squared > StateT[tn].maxRad2)
 			StateT[tn].maxRad2 = radius_squared; //// update maximum radius squared from seeding infection
 
@@ -126,11 +125,10 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+				Vector2<int> i = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(i))
 				{
-					unsigned j = iy * bmh->width + ix;
+					unsigned j = i.y * bmh->width + i.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
