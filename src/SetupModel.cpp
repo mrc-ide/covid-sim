@@ -1644,8 +1644,7 @@ void SetupAirports(void)
 			if (!(Airports[i].DestPlaces = (IndexList*)calloc(Airports[i].num_place, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-				if ((t = dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
-					Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y)) < tmin)
+				if ((t = Airports[i].distance_squared_to(Places[P.HotelPlaceType][j])) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
@@ -2130,8 +2129,7 @@ void AssignPeopleToPlaces()
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{
 											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
-											t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
-												Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
+											t = Households[Hosts[i].hh].distance_squared_to(Places[tp][Mcells[ic].places[tp][cnt]]);
 											s = numKernel(t);
 											if (tp < P.nsp)
 											{
@@ -2270,7 +2268,7 @@ void AssignPeopleToPlaces()
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
-									t = dist2_raw(Households[Hosts[k].hh].loc_x, Households[Hosts[k].hh].loc_y, Places[tp][j].loc_x, Places[tp][j].loc_y);
+									t = Households[Hosts[k].hh].distance_squared_to(Places[tp][j]);
 									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{
