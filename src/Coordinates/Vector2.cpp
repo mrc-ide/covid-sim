@@ -5,6 +5,9 @@ template<class T>
 Vector2<T>::Vector2() : x(), y() {}
 
 template<class T>
+Vector2<T>::Vector2(T s) : x(s), y(s) {}
+
+template<class T>
 Vector2<T>::Vector2(T x, T y) : x(x), y(y) {}
 
 template<class T>
@@ -18,12 +21,12 @@ T Vector2<T>::length_squared() const {
 }
 
 template<class T>
-T Vector2<T>::distance_to(Vector2<T> other) const {
+T Vector2<T>::distance_to(const Vector2<T> &other) const {
 	return (T)std::sqrt(this->distance_squared_to(other));
 }
 
 template<class T>
-T Vector2<T>::distance_squared_to(Vector2<T> other) const {
+T Vector2<T>::distance_squared_to(const Vector2<T> &other) const {
 	return (T)dist2_raw(this->x, this->y, other.x, other.y);
 }
 
@@ -43,52 +46,52 @@ Vector2<T> Vector2<T>::ceil() const {
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator+(Vector2<T> other) const {
+Vector2<T> Vector2<T>::operator+(const Vector2<T> &other) const {
 	return Vector2<T>(this->x + other.x, this->y + other.y);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator+=(Vector2<T> other) {
+Vector2<T> Vector2<T>::operator+=(const Vector2<T> &other) {
 	return *this = *this + other;
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator-(Vector2<T> other) const {
+Vector2<T> Vector2<T>::operator-(const Vector2<T> &other) const {
 	return Vector2<T>(this->x - other.x, this->y - other.y);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator-=(Vector2<T> other) {
+Vector2<T> Vector2<T>::operator-=(const Vector2<T> &other) {
 	return *this = *this - other;
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator*(Vector2<T> other) const {
+Vector2<T> Vector2<T>::operator*(const Vector2<T> &other) const {
 	return Vector2<T>(this->x * other.x, this->y * other.y);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator/(Vector2<T> other) const {
+Vector2<T> Vector2<T>::operator/(const Vector2<T> &other) const {
 	return Vector2<T>(this->x / other.x, this->y / other.y);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator+(T other) const {
+Vector2<T> Vector2<T>::operator+(const T &other) const {
 	return Vector2<T>(this->x + other, this->y + other);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator-(T other) const {
+Vector2<T> Vector2<T>::operator-(const T &other) const {
 	return Vector2<T>(this->x - other, this->y - other);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator*(T other) const {
+Vector2<T> Vector2<T>::operator*(const T &other) const {
 	return Vector2<T>(this->x * other, this->y * other);
 }
 
 template<class T>
-Vector2<T> Vector2<T>::operator/(T other) const {
+Vector2<T> Vector2<T>::operator/(const T &other) const {
 	return Vector2<T>(this->x / other, this->y / other);
 }
 

@@ -7,15 +7,21 @@ struct Size {
 	T width;
 	T height;
 
-	T area() const;
-	bool contains(Vector2<T> point) const;
+	Size();
+	Size(T s);
+	Size(T width, T height);
 
+	T area() const;
+	bool contains(const Vector2<T> &point) const;
+
+	Size<T> floor() const;
 	Size<T> ceil() const;
 
-	Size<T> operator /(Size<T> other) const;
+	Size<T> operator *(const Size<T> &other) const;
+	Size<T> operator /(const Size<T> &other) const;
 
-	Size<T> operator *(T other) const;
-	Size<T> operator /(T other) const;
+	Size<T> operator *(const T &other) const;
+	Size<T> operator /(const T &other) const;
 
 	template<class U>
 	explicit operator Size<U>() const;
