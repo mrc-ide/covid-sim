@@ -37,22 +37,6 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	return 4 * EARTHRADIUS * EARTHRADIUS * pos.y;
 }
 
-double dist2(Person* a, Person* b)
-{
-	if (P.DoUTM_coords)
-		return Households[a->hh].distance_squared_to(Households[b->hh]);
-	else
-	{
-		Vector2<float> delta = (Households[a->hh].loc - Households[b->hh].loc).abs();
-		if (P.DoPeriodicBoundaries)
-		{
-			if (delta.x > P.in_degrees_.width * 0.5) delta.x = P.in_degrees_.width - delta.x;
-			if (delta.y > P.in_degrees_.height * 0.5) delta.y = P.in_degrees_.height - delta.y;
-		}
-		return delta.length_squared();
-	}
-}
-
 double dist2_raw(double ax, double ay, double bx, double by)
 {
 	if (P.DoUTM_coords)

@@ -9,4 +9,6 @@ target_sources(CovidSim
         Microcell.cpp
         Microcell.h
         Place.h
+        Person.cpp
+        Person.h
 )
