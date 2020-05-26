@@ -888,7 +888,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 
 void DoRecover(int ai, int tn, int run)
 {
-	int i, j, x, y;
+	int i, j;
 	Person* a;
 
 	a = Hosts + ai;
@@ -911,8 +911,8 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
+				int x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
+				int y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
 				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 				{
 					unsigned j = y * bmh->width + x;
@@ -927,13 +927,11 @@ void DoRecover(int ai, int tn, int run)
 			}
 		}
 	}
-	//else
-	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
 void DoDeath(int ai, int tn, int run)
 {
-	int i, x, y;
+	int i;
 	Person* a = Hosts + ai;
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
@@ -957,8 +955,8 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
+				int x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
+				int y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
 				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 				{
 					unsigned j = y * bmh->width + x;
@@ -977,8 +975,6 @@ void DoDeath(int ai, int tn, int run)
 
 void DoTreatCase(int ai, unsigned short int ts, int tn)
 {
-	int x, y;
-
 	if (State.cumT < P.TreatMaxCourses)
 	{
 #ifdef NO_TREAT_PROPH_CASES
@@ -995,8 +991,8 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
+				int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
+				int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
 				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 				{
 					unsigned j = y * bmh->width + x;
@@ -1014,7 +1010,6 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 void DoProph(int ai, unsigned short int ts, int tn)
 {
 	//// almost identical to DoProphNoDelay, except unsurprisingly this function includes delay between timestep and start of treatment. Also increments StateT[tn].cumT_keyworker by 1 every time.
-	int x, y;
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -1028,8 +1023,8 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
+			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
+			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
 			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1045,8 +1040,6 @@ void DoProph(int ai, unsigned short int ts, int tn)
 
 void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 {
-	int x, y;
-
 	if (State.cumT < P.TreatMaxCourses)
 	{
 		Hosts[ai].treat_start_time = ts;
@@ -1059,8 +1052,8 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
+			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
+			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
 			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1255,8 +1248,6 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 
 int DoVacc(int ai, unsigned short int ts)
 {
-	int x, y;
-
 	if (State.cumV >= P.VaccMaxCourses)
 		return 2;
 	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
@@ -1276,8 +1267,8 @@ int DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
+			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
+			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
 			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1294,8 +1285,6 @@ int DoVacc(int ai, unsigned short int ts)
 
 void DoVaccNoDelay(int ai, unsigned short int ts)
 {
-	int x, y;
-
 	if ((State.cumVG < P.VaccMaxCourses) && (!HOST_TO_BE_VACCED(ai)) && (Hosts[ai].inf >= InfStat_InfectiousAlmostSymptomatic) && (Hosts[ai].inf < InfStat_Dead_WasAsymp))
 	{
 		Hosts[ai].vacc_start_time = ts;
@@ -1310,8 +1299,8 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
+			int x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
+			int y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
 			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
 			{
 				unsigned j = y * bmh->width + x;
