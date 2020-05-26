@@ -2,6 +2,7 @@
 
 #include "IndexList.h"
 #include "Coordinates/Vector2.h"
+#include "Place.h"
 
 /**
  * @brief Airport state.
@@ -18,7 +19,9 @@ struct Airport
 	float* prop_traffic;
 	IndexList* DestMcells, *DestPlaces;
 
-	double distance_to(Airport* other) const;
-	double distance_squared_to(Airport* other) const;
+	double distance_to(const Airport &other) const;
+	double distance_squared_to(const Airport &other) const;
+	double distance_to(const Place &other) const;
+	double distance_squared_to(const Place &other) const;
 };
 

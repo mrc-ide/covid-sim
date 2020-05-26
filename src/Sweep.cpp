@@ -125,7 +125,7 @@ void TravelDepartSweep(double t)
 									k = Airports[i].conn_airports[l];
 									if (bm)
 									{
-										if (Airports[i].distance_squared_to(&Airports[k]) > P.MoveRestrRadius2)
+										if (Airports[i].distance_squared_to(Airports[k]) > P.MoveRestrRadius2)
 										{
 											if (ranf_mt(tn) > P.MoveRestrEffect)
 											{
