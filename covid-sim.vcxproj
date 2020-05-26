@@ -108,9 +108,6 @@
     <ClCompile Include="src\Microcell.cpp" />
     <ClCompile Include="src\Airport.cpp" />
     <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
-    <ClInclude Include="src\Coordinates\Vector2.cpp" />
-    <ClInclude Include="src\Coordinates\Size.cpp" />
-    <ClInclude Include="src\Coordinates\BoundingBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />

@@ -2,10 +2,7 @@ target_sources(CovidSim
     PRIVATE
         MicroCellPosition.cpp
         MicroCellPosition.h
-        Size.cpp
         Size.h
-        Vector2.cpp
         Vector2.h
-        BoundingBox.cpp
         BoundingBox.h
 )
