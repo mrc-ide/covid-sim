@@ -16,6 +16,7 @@ struct Vector2 {
 
 	Vector2<T> abs() const;
 	Vector2<T> floor() const;
+	Vector2<T> ceil() const;
 
 	Vector2<T> operator+(Vector2<T> other) const;
 	Vector2<T> operator+=(Vector2<T> other);

@@ -138,12 +138,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		}
 
 		P.in_cells_.height = P.in_cells_.width;
-		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.in_cells_.width_) * P.in_cells_.width_;
-		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.in_cells_.height_) * P.in_cells_.height_;
-		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.in_cells_.width_) * P.in_cells_.width_;
-		P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.in_cells_.height_) * P.in_cells_.height_;
-		P.in_degrees_.width_ = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.in_degrees_.height_ = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
+		P.SpatialBoundingBox.start = (P.SpatialBoundingBox.start / (Vector2<double>)P.in_cells_).floor() * (Vector2<double>) P.in_cells_;
+		P.SpatialBoundingBox.end = (P.SpatialBoundingBox.end / (Vector2<double>)P.in_cells_).ceil() * (Vector2<double>) P.in_cells_;
+
+		P.in_degrees_.width = P.SpatialBoundingBox.width();
+		P.in_degrees_.height = P.SpatialBoundingBox.height();
 		P.number_of_cells = 4 * ((Size<int>)(P.in_degrees_ / P.in_cells_ / 4).ceil());
 		P.ncw = 4 * ((int)ceil(P.in_degrees_.width_ / P.in_cells_.width_ / 4));
 		P.nch = 4 * ((int)ceil(P.in_degrees_.height_ / P.in_cells_.height_ / 4));

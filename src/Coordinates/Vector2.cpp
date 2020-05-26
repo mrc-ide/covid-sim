@@ -38,6 +38,11 @@ Vector2<T> Vector2<T>::floor() const {
 }
 
 template<class T>
+Vector2<T> Vector2<T>::ceil() const {
+	return Vector2<T>(std::ceil(this->x), std::ceil(this->y));
+}
+
+template<class T>
 Vector2<T> Vector2<T>::operator+(Vector2<T> other) const {
 	return Vector2<T>(this->x + other.x, this->y + other.y);
 }
