@@ -10,6 +10,7 @@
 #include "Bitmap.h"
 #include "Rand.h"
 
+using namespace Models;
 using namespace Geometry;
 
 //adding function to record an event: ggilani - 10/10/2014

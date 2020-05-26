@@ -1,5 +1,7 @@
 #include "Airport.h"
 
+using namespace Models;
+
 double Airport::distance_to(const Airport &other) const {
 	return this->loc.distance_to(other.loc);
 }

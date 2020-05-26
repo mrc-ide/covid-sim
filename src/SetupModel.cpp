@@ -16,6 +16,7 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 
+using namespace Models;
 using namespace Geometry;
 
 void* BinFileBuf;

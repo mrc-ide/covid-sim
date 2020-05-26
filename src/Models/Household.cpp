@@ -1,5 +1,7 @@
 #include "Household.h"
 
+using namespace Models;
+
 float Household::distance_to(const Household &other) {
 	return this->loc.distance_to(other.loc);
 }

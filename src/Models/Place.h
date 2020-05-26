@@ -3,6 +3,7 @@
 #include "Country.h"
 #include "Geometry/Vector2.h"
 
+namespace Models {
 /**
  * @brief Represents an institution that people may belong to.
  *
@@ -13,14 +14,14 @@
  * Places can have different groups (to model differential interaction strengths between groups
  * in the same place).
  */
-struct Place
-{
-	int n, mcell;
-	unsigned short int ng, treat, control_trig, country;
-	unsigned short int close_start_time, close_end_time, treat_end_time;
-	unsigned short int* AvailByAge;
-	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	Geometry::Vector2<float> loc;
-	float ProbClose;
-	int* group_start, *group_size, *members;
-};
+	struct Place {
+		int n, mcell;
+		unsigned short int ng, treat, control_trig, country;
+		unsigned short int close_start_time, close_end_time, treat_end_time;
+		unsigned short int *AvailByAge;
+		unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
+		Geometry::Vector2<float> loc;
+		float ProbClose;
+		int *group_start, *group_size, *members;
+	};
+}

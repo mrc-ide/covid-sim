@@ -220,12 +220,12 @@ struct AdminUnit
 
 #pragma pack(pop)
 
-extern Person* Hosts;
-extern Household* Households;
+extern Models::Person* Hosts;
+extern Models::Household* Households;
 extern PopVar State, StateT[MAX_NUM_THREADS];
-extern Cell* Cells, ** CellLookup;
-extern Microcell* Mcells, ** McellLookup;
-extern Place** Places;
+extern Models::Cell* Cells, ** CellLookup;
+extern Models::Microcell* Mcells, ** McellLookup;
+extern Models::Place** Places;
 extern AdminUnit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
@@ -233,7 +233,7 @@ extern AdminUnit AdUnits[MAX_ADUNITS];
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
 extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 
-extern Airport* Airports;
+extern Models::Airport* Airports;
 extern Events* InfEventLog;
 extern int* nEvents;
 

@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "CalcInfSusc.h"
-#include "Dist.h"
 #include "Error.h"
 #include "InfStat.h"
 #include "Kernels.h"
@@ -15,6 +14,7 @@
 #include "Sweep.h"
 #include "Update.h"
 
+using namespace Models;
 using namespace Geometry;
 
 void TravelReturnSweep(double t)

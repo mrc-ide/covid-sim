@@ -4,6 +4,7 @@
 #include "Dist.h"
 #include <cmath>
 
+using namespace Models;
 using namespace Geometry;
 
 int Cell::index() const {

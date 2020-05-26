@@ -2,6 +2,8 @@
 
 #include "../Model.h"
 
+using namespace Models;
+
 double Person::distance_to(const Person &other) const {
 	return std::sqrt(this->distance_to_squared(other));
 }

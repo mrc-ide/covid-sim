@@ -10,7 +10,6 @@
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"
-#include "Kernels.h"
 #include "Bitmap.h"
 #include "Model.h"
 #include "Param.h"
@@ -34,6 +33,7 @@
 #include <strings.h>
 #endif
 
+using namespace Models;
 using namespace Geometry;
 
 void ReadParams(char*, char*);

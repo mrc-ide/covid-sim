@@ -3,6 +3,7 @@
 #include "Param.h"
 #include "Model.h"
 
+using namespace Models;
 using namespace Geometry;
 
 int Microcell::index() const {
