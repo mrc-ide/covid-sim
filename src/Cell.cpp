@@ -1,6 +1,7 @@
 #include "Cell.h"
 #include "Model.h"
 #include "Param.h"
+#include "Dist.h"
 #include <cmath>
 
 int Cell::index() const {
@@ -32,63 +33,65 @@ double Cell::distance_squared_to_min(Cell* other) const
 
 	if (P.DoUTM_coords)
 	{
-		if (P.in_cells_.width_ * ((double)abs(m / P.nch - l / P.nch)) > PI)
+		if (P.in_cells_.width * ((double)abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > PI)
 		{
-			if (m / P.nch > l / P.nch)
-				j += P.nch;
-			else if (m / P.nch < l / P.nch)
-				i += P.nch;
+			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
+				j += P.number_of_cells.height;
+			else if (m / P.number_of_cells.height < l / P.number_of_cells.height)
+				i += P.number_of_cells.height;
 		}
 		else
 		{
-			if (m / P.nch > l / P.nch)
-				i += P.nch;
-			else if (m / P.nch < l / P.nch)
-				j += P.nch;
+			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
+				i += P.number_of_cells.height;
+			else if (m / P.number_of_cells.height < l / P.number_of_cells.height)
+				j += P.number_of_cells.height;
 		}
-		if (m % P.nch > l % P.nch)
+		if (m % P.number_of_cells.height > l % P.number_of_cells.height)
 			i++;
-		else if (m % P.nch < l % P.nch)
+		else if (m % P.number_of_cells.height < l % P.number_of_cells.height)
 			j++;
-		return dist2UTM(P.in_cells_.width_ * fabs((double)(i / P.nch)), P.in_cells_.height_ * fabs((double)(i % P.nch)),
-		                P.in_cells_.width_ * fabs((double)(j / P.nch)), P.in_cells_.height_ * fabs((double)(j % P.nch)));
+		return dist2UTM(P.in_cells_.width * fabs((double)(i / P.number_of_cells.height)),
+						P.in_cells_.height * fabs((double)(i % P.number_of_cells.height)),
+		                P.in_cells_.width * fabs((double)(j / P.number_of_cells.height)),
+		                P.in_cells_.height * fabs((double)(j % P.number_of_cells.height)));
 	}
 	else
 	{
-		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width_ * ((double)abs(m / P.nch - l / P.nch)) > P.in_degrees_.width_ * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width * ((double)abs(m / P.number_of_cells.height - l / P.number_of_cells.height)) > P.in_degrees_.width * 0.5))
 		{
-			if (m / P.nch > l / P.nch)
-				j += P.nch;
-			else if (m / P.nch < l / P.nch)
-				i += P.nch;
+			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
+				j += P.number_of_cells.height;
+			else if (m / P.number_of_cells.height < l / P.number_of_cells.height)
+				i += P.number_of_cells.height;
 		}
 		else
 		{
-			if (m / P.nch > l / P.nch)
-				i += P.nch;
-			else if (m / P.nch < l / P.nch)
-				j += P.nch;
+			if (m / P.number_of_cells.height > l / P.number_of_cells.height)
+				i += P.number_of_cells.height;
+			else if (m / P.number_of_cells.height < l / P.number_of_cells.height)
+				j += P.number_of_cells.height;
 		}
-		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height_ * ((double)abs(m % P.nch - l % P.nch)) > P.in_degrees_.height_ * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height * ((double)abs(m % P.number_of_cells.height - l % P.number_of_cells.height)) > P.in_degrees_.height * 0.5))
 		{
-			if (m % P.nch > l % P.nch)
+			if (m % P.number_of_cells.height > l % P.number_of_cells.height)
 				j++;
-			else if (m % P.nch < l % P.nch)
+			else if (m % P.number_of_cells.height < l % P.number_of_cells.height)
 				i++;
 		}
 		else
 		{
-			if (m % P.nch > l % P.nch)
+			if (m % P.number_of_cells.height > l % P.number_of_cells.height)
 				i++;
-			else if (m % P.nch < l % P.nch)
+			else if (m % P.number_of_cells.height < l % P.number_of_cells.height)
 				j++;
 		}
-		double x = P.in_cells_.width_ * fabs((double)(i / P.nch - j / P.nch));
-		double y = P.in_cells_.height_ * fabs((double)(i % P.nch - j % P.nch));
+		double x = P.in_cells_.width * fabs((double)(i / P.number_of_cells.height - j / P.number_of_cells.height));
+		double y = P.in_cells_.height * fabs((double)(i % P.number_of_cells.height - j % P.number_of_cells.height));
 		if (P.DoPeriodicBoundaries)
 		{
-			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
-			if (y > P.in_degrees_.height_ * 0.5) y = P.in_degrees_.height_ - y;
+			if (x > P.in_degrees_.width * 0.5) x = P.in_degrees_.width - x;
+			if (y > P.in_degrees_.height * 0.5) y = P.in_degrees_.height - y;
 		}
 		return x * x + y * y;
 	}
