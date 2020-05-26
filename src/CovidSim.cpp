@@ -2823,7 +2823,6 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 	int i /*seed location index*/;
 	int j /*microcell number*/;
-	int k, l /*k,l are grid coords at first, then l changed to be person within Microcell j, then k changed to be index of new infection*/;
 	int m = 0/*guard against too many infections and infinite loop*/;
 	int f /*range = {0, 1000}*/;
 	int n /*number of seed locations?*/;
@@ -2833,30 +2832,30 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
+			int k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
+			int l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
 			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
-				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
+				int person = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member person
+				if (Hosts[person].inf == InfStat_Susceptible) //// If Host person is uninfected.
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if (CalcPersonSusc(person, 0, 0, 0) > 0)
 					{
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i][0] = Households[Hosts[person].hh].loc_x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[person].hh].loc_y;
 						}
-						Hosts[l].infector = -2;
-						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
+						Hosts[person].infector = -2;
+						Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(person, t, 0, run); ///// guessing this updates a number of things about person person at time t in thread 0 for this run.
 						m = 0;
 					}
 				}
-				else { k--; m++; } //// k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
+				else { new_infection--; m++; } //// new_infection-- means if person person chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
 			}
 		}
 		else if (P.DoAllInitialInfectioninSameLoc)
@@ -2867,29 +2866,29 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				m = 0;
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
+					int person = (int)(ranf() * ((double)P.PopSize));
+					j = Hosts[person].mcell;
 					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
 				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+				for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 				{
-					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-					if (Hosts[l].inf == InfStat_Susceptible)
+					int person = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+					if (Hosts[person].inf == InfStat_Susceptible)
 					{
-						if (CalcPersonSusc(l, 0, 0, 0) > 0)
+						if (CalcPersonSusc(person, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
-							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-							DoInfect(l, t, 0, run);
+							P.LocationInitialInfection[i][0] = Households[Hosts[person].hh].loc_x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[person].hh].loc_y;
+							Hosts[person].infector = -2; Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
+							DoInfect(person, t, 0, run);
 							m = 0;
 						}
 					}
 					else
 					{
-						k--; m++;
+						new_infection--; m++;
 					}
 				}
 				if (m)
@@ -2901,35 +2900,36 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		else
 		{
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
+					int person = (int)(ranf() * ((double)P.PopSize));
+					j = Hosts[person].mcell;
 					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
 				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-				if (Hosts[l].inf == InfStat_Susceptible)
+
+				int infectee = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+				if (Hosts[infectee].inf == InfStat_Susceptible)
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if (CalcPersonSusc(infectee, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
-						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run);
+						P.LocationInitialInfection[i][0] = Households[Hosts[infectee].hh].loc_x;
+						P.LocationInitialInfection[i][1] = Households[Hosts[infectee].hh].loc_y;
+						Hosts[infectee].infector = -2; Hosts[infectee].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(infectee, t, 0, run);
 						m = 0;
 					}
 					else
 					{
-						k--; m++;
+						new_infection--; m++;
 					}
 				}
 				else
 				{
-					k--; m++;
+					new_infection--; m++;
 				}
 			}
 		}
