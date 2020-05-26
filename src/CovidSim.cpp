@@ -1240,13 +1240,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.bounding_box.start.x), 4, 1, 0))
 	{
-		P.bounding_box.start = Vector2<double>(0);
-		P.bounding_box.end = Vector2<double>(1);
+		P.bounding_box.start = Vector2<double>(0, 0);
+		P.bounding_box.end = Vector2<double>(1, 1);
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox.start.x), 4, 1, 0))
 	{
-		P.SpatialBoundingBox.start = Vector2<double>(0);
-		P.SpatialBoundingBox.end = Vector2<double>(1);
+		P.SpatialBoundingBox.start = Vector2<double>(0, 0);
+		P.SpatialBoundingBox.end = Vector2<double>(1, 1);
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;

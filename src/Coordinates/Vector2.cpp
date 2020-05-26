@@ -5,9 +5,6 @@ template<class T>
 Vector2<T>::Vector2() : x(), y() {}
 
 template<class T>
-Vector2<T>::Vector2(T s) : x(s), y(s) {}
-
-template<class T>
 Vector2<T>::Vector2(T x, T y) : x(x), y(y) {}
 
 template<class T>

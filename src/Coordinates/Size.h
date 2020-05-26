@@ -8,7 +8,6 @@ struct Size {
 	T height;
 
 	Size();
-	Size(T s);
 	Size(T width, T height);
 
 	T area() const;
@@ -21,6 +20,7 @@ struct Size {
 	Size<T> operator /(const Size<T> &other) const;
 
 	Size<T> operator *(const T &other) const;
+	friend Size<T> operator*(const T &other, const Size<T> &self);
 	Size<T> operator /(const T &other) const;
 
 	template<class U>

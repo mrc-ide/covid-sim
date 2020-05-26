@@ -5,9 +5,6 @@ template<class T>
 Size<T>::Size() : width(), height() {}
 
 template<class T>
-Size<T>::Size(T s) : width(s), height(s) {}
-
-template<class T>
 Size<T>::Size(T width, T height) : width(width), height(height) {}
 
 template<class T>
@@ -46,6 +43,10 @@ Size<T> Size<T>::operator/(const Size<T> &other) const {
 template<class T>
 Size<T> Size<T>::operator*(const T &other) const {
 	return Size<T>(this->width * other, this->height * other);
+}
+template<class T>
+Size<T> operator*(const T &other, const Size<T> &self) {
+	return Size<T>(other * self.width, other * self.height);
 }
 
 template<class T>

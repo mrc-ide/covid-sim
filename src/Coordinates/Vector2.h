@@ -6,7 +6,6 @@ struct Vector2 {
 	T y;
 
 	Vector2();
-	Vector2(T s);
 	Vector2(T x, T y);
 
 	T length() const;
