@@ -108,7 +108,6 @@
     <ClCompile Include="src\Microcell.cpp" />
     <ClCompile Include="src\Airport.cpp" />
     <ClCompile Include="src\Coordinates\MicroCellPosition.cpp" />
-    <ClCompile Include="src\Coordinates\Location.cpp" />
     <ClInclude Include="src\Coordinates\Vector2.cpp" />
     <ClInclude Include="src\Coordinates\Size.cpp" />
     <ClInclude Include="src\Coordinates\BoundingBox.cpp" />
@@ -140,7 +139,6 @@
     <ClInclude Include="src\Airport.h" />
     <ClInclude Include="src\Place.h" />
     <ClInclude Include="src\Coordinates\MicroCellPosition.h" />
-    <ClInclude Include="src\Coordinates\Location.h" />
     <ClInclude Include="src\Coordinates\Vector2.h" />
     <ClInclude Include="src\Coordinates\Size.h" />
     <ClInclude Include="src\Coordinates\BoundingBox.h" />
