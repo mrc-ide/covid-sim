@@ -147,13 +147,17 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_degrees_ = ((Size<double>)P.number_of_cells) * P.in_cells_;
 		P.SpatialBoundingBox.end = P.SpatialBoundingBox.start + (Vector2<double>)P.in_degrees_;
 		P.NC = P.number_of_cells.area();
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
+		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
+				P.SpatialBoundingBox.start.x,
+				P.SpatialBoundingBox.start.y,
+				P.SpatialBoundingBox.end.x,
+				P.SpatialBoundingBox.end.y);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.number_of_cells.width, P.number_of_cells.height);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
-		if (P.in_degrees_.width_ > 180) {
+		if (P.in_degrees_.width > 180) {
 			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
 		}
-		if (P.in_degrees_.height_ > 90) {
+		if (P.in_degrees_.height > 90) {
 			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
 		}
 		s = 1;

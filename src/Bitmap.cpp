@@ -60,12 +60,12 @@ void CaptureBitmap()
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
-				if ((i < P.NMC - 1) && (i / P.get_number_of_micro_cells_high() == (i + 1) / P.get_number_of_micro_cells_high()) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
+				if ((i < P.NMC - 1) && (i / P.number_of_micro_cells().height == (i + 1) / P.number_of_micro_cells().height) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
 					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + 1].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i > 0) && (i / P.get_number_of_micro_cells_high() == (i - 1) / P.get_number_of_micro_cells_high()) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
-				if ((i < P.NMC - P.get_number_of_micro_cells_high()) && (Mcells[i + P.get_number_of_micro_cells_high()].n > 0) && ((Mcells[i].country != Mcells[i + P.get_number_of_micro_cells_high()].country)
-					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.get_number_of_micro_cells_high()].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
+				if ((i > 0) && (i / P.number_of_micro_cells().height == (i - 1) / P.number_of_micro_cells().height) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
+				if ((i < P.NMC - P.number_of_micro_cells().height) && (Mcells[i + P.number_of_micro_cells().height].n > 0) && ((Mcells[i].country != Mcells[i + P.number_of_micro_cells().height].country)
+					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.number_of_micro_cells().height].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
+				if ((i >= P.number_of_micro_cells().height) && (Mcells[i - P.number_of_micro_cells().height].n > 0) && (Mcells[i].country != Mcells[i - P.number_of_micro_cells().height].country)) f = 1;
 				if (f)
 				{
 					Vector2<double> position = (Vector2<double>)P.get_micro_cell_position_from_cell_index(i);

@@ -46,9 +46,7 @@ struct Param
 	int NMCP, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 
 	Size<int> number_of_cells;
-
-	int get_number_of_micro_cells_wide() const;
-	int get_number_of_micro_cells_high() const;
+	Size<int> number_of_micro_cells() const;
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
 	int get_micro_cell_index_from_position(MicroCellPosition position) const;
 	bool is_in_bounds(MicroCellPosition position) const;
