@@ -5,10 +5,10 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
-#include "Household.h"
-#include "Cell.h"
-#include "Microcell.h"
-#include "Airport.h"
+#include "Models/Household.h"
+#include "Models/Cell.h"
+#include "Models/Microcell.h"
+#include "Models/Airport.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit

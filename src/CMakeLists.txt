@@ -1,8 +1,8 @@
 # CMakeLists.txt for src directory
 
 # Set up the IDE
-set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp Param.cpp Direction.cpp Household.cpp Cell.cpp Microcell.cpp Airport.cpp)
-set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h MachineDefines.h Error.h Dist.h Kernels.h Bitmap.h Model.h Param.h SetupModel.h ModelMacros.h InfStat.h CalcInfSusc.h Sweep.h Update.h Direction.h Household.h Cell.h Microcell.h IndexList.h Airport.h Place.h)
+set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp Param.cpp Direction.cpp Models/Household.cpp Models/Cell.cpp Models/Microcell.cpp Models/Airport.cpp)
+set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h MachineDefines.h Error.h Dist.h Kernels.h Bitmap.h Model.h Param.h SetupModel.h ModelMacros.h InfStat.h CalcInfSusc.h Sweep.h Update.h Direction.h Models/Household.h Models/Cell.h Models/Microcell.h IndexList.h Models/Airport.h Models/Place.h)
 source_group(covidsim\\main FILES ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 
 # CovidSim target
