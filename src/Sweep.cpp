@@ -222,7 +222,7 @@ void TravelDepartSweep(double t)
 							}
 							if (f3)
 							{
-								double s2 = dist2_raw(Households[Hosts[i2].hh].loc_x, Households[Hosts[i2].hh].loc_y, Places[P.HotelPlaceType][i].loc_x, Places[P.HotelPlaceType][i].loc_y);
+								double s2 = Households[Hosts[i2].hh].distance_squared_to(Places[P.HotelPlaceType][i]);
 								int f2 = 1;
 								if ((bm) && (s2 > P.MoveRestrRadius2))
 								{
