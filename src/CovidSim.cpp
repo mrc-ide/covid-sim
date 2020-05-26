@@ -3417,7 +3417,10 @@ void SaveResults(void)
 				sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.%i.png", OutFile, OutFile, i + 1);
 				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname);
 				fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
-					P.SpatialBoundingBox[3], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[0]);
+					P.SpatialBoundingBox.end.y,
+					P.SpatialBoundingBox.start.y,
+					P.SpatialBoundingBox.end.x,
+					P.SpatialBoundingBox.start.x);
 				fprintf(dat, "</GroundOverlay>\n");
 			}
 		fprintf(dat, "</Document>\n</kml>\n");
