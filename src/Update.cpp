@@ -21,7 +21,6 @@ void DoImmune(int ai)
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
 	Person* a;
 	int c;
-	int x, y;
 
 	a = Hosts + ai;
 	if (a->inf == InfStat_Susceptible)
@@ -54,11 +53,10 @@ void DoImmune(int ai)
 		Cells[c].R++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -68,6 +66,7 @@ void DoImmune(int ai)
 		}
 	}
 }
+
 void DoInfect(int ai, double t, int tn, int run) // Change person from susceptible to latently infected.  added int as argument to DoInfect to record run number: ggilani - 15/10/14
 {
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
