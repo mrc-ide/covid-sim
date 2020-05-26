@@ -16,6 +16,8 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 
+using namespace Geometry;
+
 void* BinFileBuf;
 BinFile* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];

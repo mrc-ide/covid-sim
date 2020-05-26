@@ -22,5 +22,5 @@ struct Cell
 	double distance_to_squared(Cell* other) const;
 	double distance_to_squared_min(Cell* other) const;
 	int index() const;
-	Vector2<double> position() const;
+	Geometry::Vector2<double> position() const;
 };

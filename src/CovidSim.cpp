@@ -34,6 +34,8 @@
 #include <strings.h>
 #endif
 
+using namespace Geometry;
+
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);

@@ -15,6 +15,7 @@
 #include "Sweep.h"
 #include "Update.h"
 
+using namespace Geometry;
 
 void TravelReturnSweep(double t)
 {

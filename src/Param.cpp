@@ -1,5 +1,7 @@
 #include "Param.h"
 
+using namespace Geometry;
+
 Size<int> Param::number_of_micro_cells() const {
 	return this->number_of_cells * this->NMCL;
 }

@@ -10,6 +10,8 @@
 #include "Bitmap.h"
 #include "Rand.h"
 
+using namespace Geometry;
+
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 

@@ -20,7 +20,7 @@ struct Place
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	Vector2<float> loc;
+	Geometry::Vector2<float> loc;
 	float ProbClose;
 	int* group_start, *group_size, *members;
 };

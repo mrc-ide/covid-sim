@@ -45,11 +45,11 @@ struct Param
 	int NCP; /**< Number of populated cells  */
 	int NMCP, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 
-	Size<int> number_of_cells;
-	Size<int> number_of_micro_cells() const;
-	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
-	int get_micro_cell_index_from_position(MicroCellPosition position) const;
-	bool is_in_bounds(MicroCellPosition position) const;
+	Geometry::Size<int> number_of_cells;
+	Geometry::Size<int> number_of_micro_cells() const;
+	Geometry::MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
+	int get_micro_cell_index_from_position(Geometry::MicroCellPosition position) const;
+	bool is_in_bounds(Geometry::MicroCellPosition position) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
@@ -57,10 +57,10 @@ struct Param
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
 
 	/// Size in pixels of the map area in the bitmap output
-	Size<int> b;
+	Geometry::Size<int> b;
 
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	Vector2<int> bmin;
+	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
@@ -79,9 +79,9 @@ struct Param
 	int OutputBitmap; // Whether to output a bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 
-	BoundingBox<double> SpatialBoundingBox;
+	Geometry::BoundingBox<double> SpatialBoundingBox;
 
-	Vector2<double> LocationInitialInfection[MAX_NUM_SEED_LOCATIONS];
+	Geometry::Vector2<double> LocationInitialInfection[MAX_NUM_SEED_LOCATIONS];
 	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
@@ -103,16 +103,16 @@ struct Param
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 
 	/// Number of pixels per degree in bitmap output
-	Vector2<double> scale;
+	Geometry::Vector2<double> scale;
 
 	///< Size of spatial domain in degrees
-	Size<double> in_degrees_;
+	Geometry::Size<double> in_degrees_;
 
 	///< Size of spatial domain in cells
-	Size<double> in_cells_;
+	Geometry::Size<double> in_cells_;
 
 	///< Size of spatial domain in microcells
-	Size<double> in_microcells_;
+	Geometry::Size<double> in_microcells_;
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;
@@ -155,7 +155,7 @@ struct Param
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
 
-	BoundingBox<double> bounding_box;
+	Geometry::BoundingBox<double> bounding_box;
 
 	double ColourPeriod, BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;

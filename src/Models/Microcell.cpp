@@ -3,6 +3,8 @@
 #include "Param.h"
 #include "Model.h"
 
+using namespace Geometry;
+
 int Microcell::index() const {
 	return (int)(this - Mcells);
 }

@@ -31,6 +31,6 @@ struct Microcell
 	IndexList* AirportList;
 
 	int index() const;
-	Vector2<double> position() const;
+	Geometry::Vector2<double> position() const;
 	double distance_to_squared(Microcell* other) const;
 };

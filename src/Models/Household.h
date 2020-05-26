@@ -6,7 +6,7 @@ struct Household
 {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	Vector2<float> loc;
+	Geometry::Vector2<float> loc;
 	unsigned short int nhr;
 
 	float distance_to(const Household &other);
