@@ -18,6 +18,7 @@ struct Cell
 	float tot_prob, *cum_trans, *max_trans;
 	short int CurInterv[MAX_INTERVENTION_TYPES];
 
+	double distance_to(Cell* other) const;
 	double distance_squared_to(Cell* other) const;
 	double distance_squared_to_min(Cell* other) const;
 	int index() const;

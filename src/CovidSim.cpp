@@ -2833,7 +2833,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
 			Vector2<int> pos = (Vector2<int>)(P.LocationInitialInfection[i] / (Vector2<double>)P.in_microcells_);
-			j = pos.x * P.get_number_of_micro_cells_high() + pos.y;
+			j = pos.x * P.number_of_micro_cells().height + pos.y;
 			m = 0;
 			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
@@ -2877,9 +2877,9 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 					{
 						if (CalcPersonSusc(person, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[person].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[person].hh].loc_y;
-							Hosts[person].infector = -2; Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
+							P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[person].hh].loc;
+							Hosts[person].infector = -2;
+							Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
 							DoInfect(person, t, 0, run);
 							m = 0;
 						}
@@ -2914,9 +2914,9 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				{
 					if (CalcPersonSusc(infectee, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[infectee].hh].loc_x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[infectee].hh].loc_y;
-						Hosts[infectee].infector = -2; Hosts[infectee].infect_type = INFECT_TYPE_MASK - 1;
+						P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[infectee].hh].loc;
+						Hosts[infectee].infector = -2;
+						Hosts[infectee].infect_type = INFECT_TYPE_MASK - 1;
 						DoInfect(infectee, t, 0, run);
 						m = 0;
 					}
@@ -4192,7 +4192,10 @@ void SaveEvents(void)
 	for (i = 0; i < *nEvents; i++)
 	{
 		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
-			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
+			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind,
+			InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit,
+			InfEventLog[i].infectee_position.x, InfEventLog[i].infectee_position.y, InfEventLog[i].t_infector,
+			InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
 	fclose(dat);
 }
@@ -5378,7 +5381,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.get_number_of_micro_cells_high();
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.number_of_micro_cells().height;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit

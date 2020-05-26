@@ -675,13 +675,19 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		fprintf(stderr, "Configured mass vaccination queue.\n");
 	}
 	PeakHeightSum = PeakHeightSS = PeakTimeSum = PeakTimeSS = 0;
-	int i = (P.ncw / 2) * P.nch + P.nch / 2;
-	int j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
-	fprintf(stderr, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
-	j = (P.ncw / 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
-	j = (P.ncw / 2 + 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist diag=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+	int i = (P.number_of_cells.width / 2) * P.number_of_cells.height + P.number_of_cells.height / 2;
+	int j = (P.number_of_cells.width / 2 + 2) * P.number_of_cells.height + P.number_of_cells.height / 2;
+	fprintf(stderr, "UTM dist horiz=%lg %lg\n",
+			Cells[i].distance_to(&Cells[j]),
+			Cells[j].distance_to(&Cells[i]));
+	j = (P.number_of_cells.width / 2) * P.number_of_cells.height + P.number_of_cells.height / 2 + 2;
+	fprintf(stderr, "UTM dist vert=%lg %lg\n",
+	        Cells[i].distance_to(&Cells[j]),
+	        Cells[j].distance_to(&Cells[i]));
+	j = (P.number_of_cells.width / 2 + 2) * P.number_of_cells.height + P.number_of_cells.height / 2 + 2;
+	fprintf(stderr, "UTM dist diag=%lg %lg\n",
+	        Cells[i].distance_to(&Cells[j]),
+	        Cells[j].distance_to(&Cells[i]));
 
 	//if(P.OutputBitmap)
 	//{

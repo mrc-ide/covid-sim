@@ -13,6 +13,11 @@ Vector2<double> Cell::position() const {
 	return Vector2<double>(x, y) * (Vector2<double>)P.in_cells_;
 }
 
+double Cell::distance_to(Cell *other) const
+{
+	return std::sqrt(this->distance_squared_to(other));
+}
+
 double Cell::distance_squared_to(Cell *other) const
 {
 	return this->position().distance_squared_to(other->position());
