@@ -1981,8 +1981,8 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
-							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.number_of_cells.height + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							j = (int)(Places[tp][i].loc.x / P.in_cells_.width);
+							k = j * P.number_of_cells.height + ((int)(Places[tp][i].loc.y / P.in_cells_.height));
 							Cells[k].I += (int)Places[tp][i].treat_end_time;
 						}
 					for (k = 0; k < P.NC; k++)
@@ -2000,7 +2000,7 @@ void AssignPeopleToPlaces()
 							f2 += Cells[j * P.number_of_cells.height + (i - 1)].I;
 							f3 += Cells[j * P.number_of_cells.height + (i - 1)].S;
 						}
-						if ((i > 0) && (j < P.ncw - 1))
+						if ((i > 0) && (j < P.number_of_cells.width - 1))
 						{
 							f2 += Cells[(j + 1) * P.number_of_cells.height + (i - 1)].I;
 							f3 += Cells[(j + 1) * P.number_of_cells.height + (i - 1)].S;
@@ -2010,7 +2010,7 @@ void AssignPeopleToPlaces()
 							f2 += Cells[(j - 1) * P.number_of_cells.height + i].I;
 							f3 += Cells[(j - 1) * P.number_of_cells.height + i].S;
 						}
-						if (j < P.ncw - 1)
+						if (j < P.number_of_cells.width - 1)
 						{
 							f2 += Cells[(j + 1) * P.number_of_cells.height + i].I;
 							f3 += Cells[(j + 1) * P.number_of_cells.height + i].S;
@@ -2025,7 +2025,7 @@ void AssignPeopleToPlaces()
 							f2 += Cells[j * P.number_of_cells.height + (i + 1)].I;
 							f3 += Cells[j * P.number_of_cells.height + (i + 1)].S;
 						}
-						if ((i < P.number_of_cells.height - 1) && (j < P.ncw - 1))
+						if ((i < P.number_of_cells.height - 1) && (j < P.number_of_cells.width - 1))
 						{
 							f2 += Cells[(j + 1) * P.number_of_cells.height + (i + 1)].I;
 							f3 += Cells[(j + 1) * P.number_of_cells.height + (i + 1)].S;
@@ -2044,8 +2044,8 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
-							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.number_of_cells.height + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							j = (int)(Places[tp][i].loc.x / P.in_cells_.width);
+							k = j * P.number_of_cells.height + ((int)(Places[tp][i].loc.y / P.in_cells_.height));
 							if ((Cells[k].L > 0) && (Cells[k].R > 0))
 							{
 								s = ((double)Cells[k].L) / ((double)Cells[k].R);
@@ -2082,7 +2082,7 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.NC; i++) Cells[i].S = 0;
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.number_of_cells.height * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.number_of_cells.height * ((int)(Places[tp][j].loc.x / P.in_cells_.width)) + ((int)(Places[tp][j].loc.y / P.in_cells_.height));
 						Cells[i].S += (int)Places[tp][j].treat_end_time;
 					}
 					for (int i = 0; i < P.NC; i++)
@@ -2096,7 +2096,7 @@ void AssignPeopleToPlaces()
 					}
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.number_of_cells.height * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.number_of_cells.height * ((int)(Places[tp][j].loc.x / P.in_cells_.width)) + ((int)(Places[tp][j].loc.y / P.in_cells_.height));
 						k = (int)Places[tp][j].treat_end_time;
 						for (j2 = 0; j2 < k; j2++)
 						{
@@ -2137,7 +2137,7 @@ void AssignPeopleToPlaces()
 						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
+							while (((k < nn) || (l < 4)) && (l < P.number_of_micro_cells().width))
 							{
 								if (P.is_in_bounds(mc_position))
 								{
