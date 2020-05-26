@@ -270,7 +270,7 @@ void TravelDepartSweep(double t)
 
 void InfectSweep(double t, int run) //added run number as argument in order to record it in event log
 {
-	//// This function loops over infected people, and decides whom to infect. Structure is 1) #pragma loop over all cells then 1a) infectious people, which chooses who they will infect, adds them to a queue
+	//// This function takes the day number (t) and run number (run) as inputs. It loops over infected people, and decides whom to infect. Structure is 1) #pragma loop over all cells then 1a) infectious people, which chooses who they will infect, adds them to a queue
 	//// Next 2) #pragma loop infects those people from queue (using DoInfect function). This is to avoid race conditions.
 	//// Loop 1a) calculates the force of infection exerted by each infected person on (and therefore number of new infections to) i) their house; ii) their place(s); iii) other spatial cells.
 	//// Each force of infection includes infectiousness and susceptibility components.
@@ -282,7 +282,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	int f, f2, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
-	double s; // household FOI on fellow household member, then place susceptibility, then random number for spatial infections allocation* / ;
+	double s; // household Force Of Infection (FOI) on fellow household member, then place susceptibility, then random number for spatial infections allocation* / ;
 	double s2; // spatial infectiousness, then distance in spatial infections allocation
 	double s3, s3_scaled; // household, then place infectiousness
 	double s4, s4_scaled; // place infectiousness (copy of s3 as some code commented out
@@ -294,7 +294,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	if (!P.DoSeasonality)	seasonality = 1.0;
 	else					seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
 
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	ts = (unsigned short int) (P.TimeStepsPerDay * t); // the timestep number of the start of the current day
 	fp = P.TimeStep / (1 - P.FalsePositiveRate);
 	sbeta = seasonality * fp * P.LocalBeta;
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
@@ -305,28 +305,45 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
-			Cell* c = CellLookup[b];
+			Cell* c = CellLookup[b]; // select Cell given by index b
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
-			for (int j = 0; j < c->I; j++) //// Loop over all infectious people c->I in cell c. Loop 1a)
+			for (int j = 0; j < c->I; j++) //// Loop over array of indices of infectious people c->I in cell c. Loop 1a)
 			{
-				//// get person index ci
+				//// get person index ci of j'th infected person in cell
 				ci = c->infected[j];
 				//// get person si from Hosts (array of people), using pointer arithmetic.
 				Person* si = Hosts + ci;
 
-				//calculate flag for digital contact tracing here at the beginning for each individual
+				//evaluate flag for digital contact tracing (fct) here at the beginning for each individual
+				// fct = 1 if:
+				// P.DoDigitalContactTracing = 1 (ie. digital contact tracing functionlity is switched on)
+				// AND Day number (t) is greater than the start day for contact tracing in this administrative unit (ie. contact tracing has started)
+				// AND Day number (t) is less than the end day for contact tracing in this administrative unit (ie. contact tracing has not ended)
+				// AND the selected host is a digital contact tracing user
+				// otherwise fct = 0
 				int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
 				&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 
-				//// Household FOI component
+				//// Household Force Of Infection (FOI) component
+				
+				// if P.DoHouseholds > 0 ie Households functionality is enabled, 
+				// hbeta is set as seasonality * fp * P.HouseholdTrans (see start of function)
+				// otherwise hbeta is 0 and this section is skipped
 				if (hbeta > 0)
 				{
+					// For selected host si's household si->hh, 
+					// if the number of hosts (nh) in that Household is greater than 1
+					// AND the selected host is not travelling
 					if ((Households[si->hh].nh > 1) && (!si->Travelling))
 					{
 						int l = Households[si->hh].FirstPerson;
 						int m = l + Households[si->hh].nh;
-						s3 = hbeta * CalcHouseInf(ci, ts);
+						// calculate infectiousness of selected household (s3)
+						// using the CalcHouseInf function on the selected cell and timestamp at start of current day
+						// then scaling by hbeta
+						s3 = hbeta * CalcHouseInf(ci, ts);  
 
+						// Test if any of the individuals in the selected persons household are absent from places
 						f = 0;
 						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
 							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
@@ -352,10 +369,11 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
 									}
-								}
-							}
-					}
-				}
+								} 
+							} 
+					} 
+				} 
+				
 				//// Place FOI component
 				if (P.DoPlaces)
 				{
