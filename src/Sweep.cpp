@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.in_cells_.height_));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc.x / P.in_cells_.width)) * P.number_of_cells.height + ((int)(Places[P.HotelPlaceType][i].loc.y / P.in_cells_.height));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
@@ -672,8 +672,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									s *= CalcPersonSusc(i3, ts, ci, tn);
 									if (bm)
 									{
-										if ((dist2_raw(Households[si->hh].loc_x, Households[si->hh].loc_y,
-											Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y) > P.MoveRestrRadius2))
+										if (Households[si->hh].distance_squared_to(Households[Hosts[i3].hh]) > P.MoveRestrRadius2)
 											s *= P.MoveRestrEffect;
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))

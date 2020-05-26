@@ -20,7 +20,8 @@ struct Size {
 	Size<T> operator /(const Size<T> &other) const;
 
 	Size<T> operator *(const T &other) const;
-	friend Size<T> operator*(const T &other, const Size<T> &self);
+	template<class U>
+	friend Size<U> operator*(const U &other, const Size<U> &self);
 	Size<T> operator /(const T &other) const;
 
 	template<class U>

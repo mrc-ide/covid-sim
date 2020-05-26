@@ -144,8 +144,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_degrees_.width = P.SpatialBoundingBox.width();
 		P.in_degrees_.height = P.SpatialBoundingBox.height();
 		P.number_of_cells = 4 * ((Size<int>)(P.in_degrees_ / P.in_cells_ / 4).ceil());
-		P.ncw = 4 * ((int)ceil(P.in_degrees_.width_ / P.in_cells_.width_ / 4));
-		P.nch = 4 * ((int)ceil(P.in_degrees_.height_ / P.in_cells_.height_ / 4));
 		P.in_degrees_.width_ = ((double)P.ncw) * P.in_cells_.width_;
 		P.in_degrees_.height_ = ((double)P.nch) * P.in_cells_.height_;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width_;
