@@ -5,6 +5,9 @@ template<class T>
 Size<T>::Size() : width(), height() {}
 
 template<class T>
+Size<T>::Size(const Vector2<T> &dimensions) : width(dimensions.x), height(dimensions.y) {}
+
+template<class T>
 Size<T>::Size(T width, T height) : width(width), height(height) {}
 
 template<class T>

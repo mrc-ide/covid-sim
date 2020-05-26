@@ -8,6 +8,7 @@ struct Size {
 	T height;
 
 	Size();
+	explicit Size(const Vector2<T> &dimensions);
 	Size(T width, T height);
 
 	T area() const;

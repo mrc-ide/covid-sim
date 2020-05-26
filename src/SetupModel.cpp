@@ -180,25 +180,22 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.NMC = P.NMCL * P.NMCL * P.NC;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scale = Vector2<double>(P.BitmapScale, P.BitmapAspectScale * P.BitmapScale);
-	P.b = (Size<int>)(P.in_degrees_ * P.bounding_box.size() * P.scale);
+	P.b = (Size<int>)(P.in_degrees_ * P.bounding_box.size() * (Size<double>)P.scale);
 	P.b.width = (P.b.width + 3) / 4;
 	P.b.width *= 4;
 	P.b.height += (4 - P.b.height % 4) % 4;
 	P.bheight2 = P.b.height + 20; // space for colour legend
 	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
-	P.bminx = (int)(P.in_degrees_.width_ * P.BoundingBox[0] * P.scalex);
-	P.bminy = (int)(P.in_degrees_.height_ * P.BoundingBox[1] * P.scaley);
-	P.in_microcells_.width_ = P.in_cells_.width_ / ((double)P.NMCL);
-	P.in_microcells_.height_ = P.in_cells_.height_ / ((double)P.NMCL);
+	P.bmin = (Vector2<int>)((Vector2<double>)P.in_degrees_ * P.bounding_box.start * P.scale);
+	P.in_microcells_ = P.in_cells_ / ((double)P.NMCL);
 	for (int i = 0; i < P.NumSeedLocations; i++)
 	{
-		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
-		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
+		P.LocationInitialInfection[i] -= P.SpatialBoundingBox.start;
 	}
 	// Find longest distance - may not be diagonally across the bounding box.
-	t = dist2_raw(0, 0, P.in_degrees_.width_, P.in_degrees_.height_);
-	double tw = dist2_raw(0, 0, P.in_degrees_.width_, 0);
-	double th = dist2_raw(0, 0, 0, P.in_degrees_.height_);
+	t = dist2_raw(0, 0, P.in_degrees_.width, P.in_degrees_.height);
+	double tw = dist2_raw(0, 0, P.in_degrees_.width, 0);
+	double th = dist2_raw(0, 0, 0, P.in_degrees_.height);
 	if (tw > t) t = tw;
 	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
@@ -207,8 +204,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.KernelDelta = t / P.NKR;
 	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
-		sqrt(dist2_raw(P.in_degrees_.width_ / 2, P.in_degrees_.height_ / 2, P.in_degrees_.width_ / 2 + P.in_microcells_.width_, P.in_degrees_.height_ / 2)),
-		sqrt(dist2_raw(P.in_degrees_.width_ / 2, P.in_degrees_.height_ / 2, P.in_degrees_.width_ / 2, P.in_degrees_.height_ / 2 + P.in_microcells_.height_)));
+		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
+		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
 	t2 = 0.0;
 
 	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
