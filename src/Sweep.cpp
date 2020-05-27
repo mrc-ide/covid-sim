@@ -525,27 +525,35 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// if blanket movement restrictions are in place
 											if (bm)
 											{
+												// if potential infectee i3's household is further from selected place
 												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
 													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
 												{
+													// multiply susceptibility by movement restriction effect
 													s *= P.MoveRestrEffect;
 												}
 											}
 											// else if movement restrictions are in place in either cell
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 											{
+												// multiply susceptibility by movement restriction effect
 												s *= P.MoveRestrEffect;
 											}
 
+											// if susceptiblity is 1 ie 100% or random number is less than s
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
+												// select cell containing potential infectee
 												cq = Hosts[i3].pcell % P.NumThreads;
+												// if infection queue for selected call < maximum length
 												if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
 												{
+													// false positive
 													if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
 														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
 													else
 													{
+														// infect i3 - add if to infection queue for selected cell
 														short int infect_type = 2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
 														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 													}
@@ -554,6 +562,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										}
 									}
 								}
+								
 								if ((k == P.HotelPlaceType) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
