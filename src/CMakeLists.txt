@@ -2,7 +2,7 @@
 
 # Set up the IDE
 set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp Param.cpp MicroCellPosition.cpp Direction.cpp InverseCdf.cpp)
-set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h MachineDefines.h Error.h Dist.h Kernels.h Bitmap.h Model.h Param.h SetupModel.h ModelMacros.h InfStat.h CalcInfSusc.h Sweep.h Update.h MicroCellPosition.hpp Direction.hpp InverseCdf.hpp)
+set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h MachineDefines.h Error.h Dist.h Kernels.h Bitmap.h Model.h Param.h SetupModel.h ModelMacros.h InfStat.h CalcInfSusc.h Sweep.h Update.h MicroCellPosition.hpp Direction.hpp InverseCdf.h)
 source_group(covidsim\\main FILES ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 
 # CovidSim target

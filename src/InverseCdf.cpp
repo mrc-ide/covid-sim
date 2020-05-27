@@ -1,4 +1,4 @@
-#include "InverseCdf.hpp"
+#include "InverseCdf.h"
 #include <math.h>
 #include "Rand.h"
 
