@@ -127,7 +127,7 @@
     <ClInclude Include="src\Update.h" />
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
-	<ClCompile Include="src\InverseCdf.hpp" />
+    <ClInclude Include="src\InverseCdf.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
