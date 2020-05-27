@@ -385,7 +385,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					} // loop over people in household
 				} // more than one person in household
 				
-				// Still within selected cell (ci) with selected host (si)
+				// Still with infected person (ci), selected host (si)
 				// do place infections
 				if (P.DoPlaces)
 				{
@@ -490,7 +490,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										
 										// ** add potential infectees to digital contact tracing queue**
 										// if contact tracing in place (fct) AND potential infectee (i3) is a contact tracing user 
-										// AND infectee index != cell index (note: suspect this should be selected person si instead of selected cell ci)
+										// AND potential infectee != infectionus person ci 
 										// AND potential infectee (i3) isn't absent
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
@@ -498,7 +498,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											s6 = P.ProportionDigitalContactsIsolate * s;
 											// if random number < s6
 											// AND number of contacts of ci(!) is less than maximum digital contact to trace
-											// (note: suspect this should be selected person si instead of selected cell ci)
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
@@ -519,6 +518,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
+											// select cell person i3 is in - note : doesn't seem to be used
 											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
@@ -563,29 +563,46 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									}
 								}
 								
+								// if selected host si is not travelling or selected link is to a hotel
 								if ((k == P.HotelPlaceType) || (!si->Travelling))
 								{
 									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
 									if (s3 > 1) s3 = 1;
+									// if contact tracing in place, multiply s3_scaled = s3*scalingfactor, otherwise s3_scaled = s3
 									s3_scaled = (fct) ? (s3 * P.ScalingFactorPlaceDigitalContacts) : s3;
+									// s3_scales shouldn't be less than 0 so generate error if it is
 									if (s3_scaled < 0)
 									{
 										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
 									}
+									// if s3_scaled >=1, everyone in the hotel is a potential infectee
 									else if (s3_scaled >= 1)
 										n = Places[k][l].n;
+									// if s3_scaled between 0 and 1, decide number of potential infectees based on
+									// using ignbin_mt function
 									else
 										n = (int)ignbin_mt((int32_t)Places[k][l].n, s3_scaled, tn);
+									// if more than 0 potential infectees, pick n hosts from the hotel and add to sampling queue
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
+									// loop over the sampling queue
 									for (int m = 0; m < n; m++)
 									{
+										// select potential infectee from sampling queue
 										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
+										// calculate place susceptibility s
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+										
+										// ** Do contact tracing in hotels **
+										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
+										
+										// if contact tracing in place AND potential infectee i3 is a contact tracing user AND i3 isn't absent AND i3 isn't ci (suspect this should be si)
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
+											// s6 = place susceptibility * proportion of digital contacts who self isolate
 											s6 = P.ProportionDigitalContactsIsolate * s;
+											// if number of contacts of infectious person < maximum and random number < s6
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
@@ -602,6 +619,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 
+										// if person i3 uninfected and not absent.
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
