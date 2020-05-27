@@ -752,8 +752,7 @@ void IncubRecoverySweep(double t, int run)
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(P, Places, Hosts, i, j, ht)
+#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
 					for(int tn=0;tn<P.NumThreads;tn++)
 						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
@@ -774,8 +773,7 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{

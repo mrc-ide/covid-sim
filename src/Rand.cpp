@@ -41,6 +41,7 @@ double ranf(void)
 	if (z < 1) z += (Xm1 - 1);
 	return ((double)z) / Xm1;
 }
+
 double ranf_mt(int tn)
 {
 	int32_t k, s1, s2, z;
@@ -95,6 +96,7 @@ void setall(int32_t *pseed1, int32_t *pseed2)
 	*pseed1 = iseed1;
 	*pseed2 = iseed2;
 }
+
 int32_t mltmod(int32_t a, int32_t s, int32_t m)
 /*
 **********************************************************************
@@ -434,6 +436,7 @@ S170:
 	ignbin = ix;
 	return ignbin;
 }
+
 int32_t ignpoi(double mu)
 /*
 **********************************************************************
@@ -668,6 +671,7 @@ S180:
 	ignpoi = k;
 	return ignpoi;
 }
+
 int32_t ignpoi_mt(double mu, int tn)
 /*
 **********************************************************************
@@ -1228,6 +1232,7 @@ S70:
 	if (u > q[i - 1]) goto S70;
 	return  a + umin * q[0];
 }
+
 double sexpo_mt(int tn)
 /*
 **********************************************************************
@@ -1257,10 +1262,9 @@ Q(N) = SUM(ALOG(2.0)**K/K!)    K=1,..,N ,      THE HIGHEST N
 (HERE 8) IS DETERMINED BY Q(N)=1.0 WITHIN STANDARD PRECISION
 */
 {
-	double q[8] = {
-		0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,
-			.9999999
-	};
+//	return -log(1 - ranf_mt(tn));  // a much simpler exponential generator!
+
+	double q[8] = {0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,0.99999999999999989};
 	int32_t i;
 	double sexpo_mt, a, u, ustar, umin;
 
@@ -1271,11 +1275,7 @@ S20:
 	a += q[0];
 S30:
 	u += u;
-	/*
-	* JJV changed the following to reflect the true algorithm and prevent
-	* JJV unpredictable behavior if U is initially 0.5.
-	*  if(u <= 1.0) goto S20;
-	*/
+
 	if (u < 1.0) goto S20;
 	u -= 1.0;
 	if (u > q[0]) goto S60;
@@ -1291,7 +1291,9 @@ S70:
 	i += 1;
 	if (u > q[i - 1]) goto S70;
 	return  a + umin * q[0];
+
 }
+
 double snorm(void)
 /*
 **********************************************************************
@@ -1581,6 +1583,7 @@ double gen_norm_mt(double mu, double sd, int tn)
 	//return x
 	return x * sd + mu;
 }
+
 /*function gen_gamma_mt
  * purpose: my own implementation of sampling from a gamma distribution, using Marsaglia-Tsang method, but for multi-threading
  *
@@ -1608,7 +1611,7 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 			z = gen_norm_mt(0, 1, tn);
 			v = 1 + z * c;
 			v = v * v * v;
-		} while ((z <= (-1.0 / c)) && (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
+		} while ((z <= (-1.0 / c)) || (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
 		//if beta is equal to 1, there is no scale. If beta is not equal to one, return scaled value
 		if (beta != 1)
 		{
@@ -1632,7 +1635,7 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 			z = gen_norm_mt(0, 1, tn);
 			v = 1 + z * c;
 			v = v * v * v;
-		} while ((z <= (-1.0 / c)) && (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
+		} while ((z <= (-1.0 / c)) || (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
 		//if beta is equal to 1, there is no scale. If beta is not equal to one, return scaled value
 		if (beta != 1)
 		{

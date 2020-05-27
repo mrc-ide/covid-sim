@@ -36,10 +36,8 @@ if(USE_OPENMP)
   if(WIN32 AND (CMAKE_C_COMPILER_ID MATCHES "Clang"))
     set(OpenMP_CXX_FLAGS "-Xclang -fopenmp")
     set(OpenMP_C_FLAGS "-Xclang -fopenmp")
-# link statically for clang
-    add_compile_options(-DLLVM_USE_CRT_RELEASE=MT)
   endif()
-  find_package(OpenMP REQUIRED)
+   find_package(OpenMP REQUIRED)
 endif()
 
 # Python3 needed for testing
