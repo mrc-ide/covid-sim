@@ -713,26 +713,50 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								
 							}// if place link relevant
 						}// loop over place types
-					}
-				}
-				//// Spatial FOI component
-				if (sbeta > 0) //// sum spatial infectiousness over all infected people, the infections from which are allocated after loop over infected people.
+					}// if host isn't absent
+				}// if places functionality enabled
+				
+				// END PLACE INFECTIONS
+				
+				// BEGIN SPATIAL INFECTIONS
+				
+				//// First determine spatial FOI component (s5)
+				
+				// if seasonality beta > 0
+				// do spatial infections 
+				//// ie sum spatial infectiousness over all infected people, the infections from which are allocated after loop over infected people.
+				if (sbeta > 0) 
 				{
 					if (si->Travelling) //// if host currently away from their cell, they cannot add to their cell's spatial infectiousness.
 					{
-						s2 = 0; f = 0;
+						s2 = 0; 
+						f = 0;
 					}
 					else
 					{
+						// calculate spatial infectiousness (s2) based on host and timestep
 						s2 = CalcSpatialInf(ci, ts);
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
-						if (fct) s2 *= P.ScalingFactorSpatialDigitalContacts;
+						if (fct)
+						{
+							s2 *= P.ScalingFactorSpatialDigitalContacts;
+						}
 					}
-					f = 0;
+					// test if selected person si is linked to a place that is closed, f=0 means no links to closed places, otherwise f=1
+					f = 0; // initialise f as 0
+					// If place functionality switched on
 					if (P.DoPlaces)
+					{
+						// loop over place types until closed place is found
 						for (int i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
+						{
 							if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
+							{
+								// if place is closed set f=1
 								f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
+							}
+						}
+					}// if doing places
 
 					if((f) && (HOST_ABSENT(ci))) //// if place is closed and person is absent then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness
 					{
@@ -749,16 +773,16 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				}
 			} // loop over infectious people in cell
 			
-			// END PLACE INFECTIONS
 			
-			// BEGIN SPATIAL INFECTIONS (WITHIN CELLS)
-			
-			//// Allocate spatial infections
+			//// Now allocate spatial infections using Force Of Infection (s5) calculated above
 			if (s5 > 0) //// if spatial infectiousness positive
 			{
+				
+				// decide how many potential cell to cell infections this cell could cause  
 				n = (int)ignpoi_mt(s5 * sbeta * ((double)c->tot_prob), tn); //// number people this cell's population might infect elsewhere. poisson random number based on spatial infectiousness s5, sbeta (seasonality) and this cell's "probability" (guessing this is a function of its population and geographical size).
-
+				// i2 = number of infectious people in cell c
 				int i2 = c->I;
+				
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
@@ -766,12 +790,20 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[tn].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[tn].cell_inf[i2 - 1] = (StateT[tn].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
-				for (int k = 0; k < n; k++)  //// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
+				
+				//// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
+				for (int k = 0; k < n; k++)  
 				{
-					int j;
 					//// decide on infector ci/si from cell c.
-					if (i2 == 1)	j = 0;
-					else				//// roughly speaking, this determines which infectious person in cell c infects which person elsewhere
+					int j; // j = index of infector
+					// if only one infectious person in cell
+					if (i2 == 1)
+					{
+						j = 0; // infector index is first in cell (person 0)
+					}
+					// if more than one infectious person in cell pick an infectious person (given by index j)
+					//// roughly speaking, this determines which infectious person in cell c infects which person elsewhere
+					else				
 					{
 						int m;
 						s = ranf_mt(tn);	///// choose random number between 0 and 1
@@ -794,7 +826,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						} while (f);
 					}
 					f = (StateT[tn].cell_inf[j] < 0); //// flag for whether infector j had their place(s) closed. <0 (true) = place closed / >=0 (false) = place not closed. Set in if (sbeta > 0) part of loop over infectious people.
+					// ci is the index of the jth infectious person in the cell
 					ci = c->infected[j];
+					// si is the jth selected person in the cell
 					Person* si = Hosts + ci;
 
 					//calculate flag for digital contact tracing here at the beginning for each individual infector
@@ -888,12 +922,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 									}
-								}
-							}
-						}
+								}// m < susceptible people in target cell
+							}// //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector
+						}// infectee isn't dead
 					} while (f2);
-				}
-			}
+				}// loop over infections doled out by cell
+			}// s5 > 0
 		}
 
 
