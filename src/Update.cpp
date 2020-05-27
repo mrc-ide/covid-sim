@@ -1083,7 +1083,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
 	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
 
-	int k, ai, j1, j2, l, f, m, f2;
+	int k, ai, j1, j2, l, f, f2;
 	unsigned short trig;
 	unsigned short int t_start, t_stop;
 	unsigned short int t_old, t_new;
