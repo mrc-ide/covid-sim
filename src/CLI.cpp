@@ -148,7 +148,7 @@ void CmdLineArgs::print_help()
 {
     std::stringstream ss;
     ss << "CovidSim";
-    for (auto const it : m_option_map) {
+    for (auto const& it : m_option_map) {
         ss << " [/" << it.first << ']';
     }
     std::cerr << ss.str() << ' ' << USAGE << std::endl;
@@ -165,7 +165,7 @@ void CmdLineArgs::print_detailed_help()
 {
     print_help();
     std::stringstream ss;
-    for (auto const it: m_doc_map) {
+    for (auto const& it : m_doc_map) {
         ss << '\t' << it.first << '\t' << it.second << '\n';
     }
     std::cerr << DETAILED_USAGE << '\n' << ss.str() << std::endl;
