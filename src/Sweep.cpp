@@ -479,16 +479,26 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									}
 									
-									// loop over sampling queue
+									// loop over sampling queue of potential infectees
 									for (int m = 0; m < n; m++)
 									{
+										// pick potential infectee index i3
 										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
+										// calculate place susceptbility based on infectee (i3), place type (k), timestep (ts)
+										// cell (ci) and thread number (tn)
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
-										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
-										//if infectee is also a user, add them as a contact
+										
+										// ** add potential infectees to digital contact tracing queue**
+										// if contact tracing in place (fct) AND potential infectee (i3) is a contact tracing user 
+										// AND infectee index != cell index (note: suspect this should be selected person si instead of selected cell ci)
+										// AND potential infectee (i3) isn't absent
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
+											// scale place susceptibility by proportion who self isolate and store as s6
 											s6 = P.ProportionDigitalContactsIsolate * s;
+											// if random number < s6
+											// AND number of contacts of ci(!) is less than maximum digital contact to trace
+											// (note: suspect this should be selected person si instead of selected cell ci)
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
@@ -503,23 +513,29 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
-										}
+										}// digital contact tracing queue
 
+										// 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
-
+											// if blanket movement restrictions are in place
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
 													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+												{
 													s *= P.MoveRestrEffect;
+												}
 											}
+											// else if movement restrictions are in place in either cell
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
+											{
 												s *= P.MoveRestrEffect;
+											}
 
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
