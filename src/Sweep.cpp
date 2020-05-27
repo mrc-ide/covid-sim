@@ -291,17 +291,32 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	double fp; //// false positive
 	unsigned short int ts;
 
-	if (!P.DoSeasonality)	seasonality = 1.0;
-	else					seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
+	// if not doing seasonality
+	if (!P.DoSeasonality)
+	{	
+		// set seasonality to 1
+		seasonality = 1.0;
+	}
+	else{
+		// otherwise pick seasonality from P.Seasonality array using day number in year
+		seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
+	}
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t); // the timestep number of the start of the current day
+	// fp = false positive
 	fp = P.TimeStep / (1 - P.FalsePositiveRate);
+	// sbeta seasonality beta
 	sbeta = seasonality * fp * P.LocalBeta;
+	
+	// hbeta = household beta
+	// if doing households, hbeta = seasonality * fp * P.HouseholdTrans, else hbeta = 0
 	hbeta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0;
 	
 	// Establish if movement restrictions are in place on current day - store in bm, 0:false, 1:true 
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
+	// File for storing error reports
 	FILE* stderr_shared = stderr;
+	
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
 		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
@@ -309,11 +324,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 		{
 			Cell* c = CellLookup[b]; // select Cell given by index b
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
-			for (int j = 0; j < c->I; j++) //// Loop over array of indices of infectious people c->I in cell c. Loop 1a)
+			
+			//// Loop over array of indices of infectious people c->I in cell c. Loop 1a)
+			for (int j = 0; j < c->I; j++) 
 			{
 				//// get person index ci of j'th infected person in cell
 				ci = c->infected[j];
-				//// get person si from Hosts (array of people), using pointer arithmetic.
+				//// get person si from Hosts (array of people) corresponding to ci, using pointer arithmetic.
 				Person* si = Hosts + ci;
 
 				//evaluate flag for digital contact tracing (fct) here at the beginning for each individual
@@ -330,9 +347,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				
 				//// Household Force Of Infection (FOI) component
 				
-				// if P.DoHouseholds > 0 ie Households functionality is enabled, 
-				// hbeta is set as seasonality * fp * P.HouseholdTrans (see start of function)
-				// otherwise hbeta is 0 and this section is skipped
+				// hbeta =  seasonality * fp * P.HouseholdTrans or 0 depending on whether households functionality is on or off - see start of function 
+				
+				// if household beta (hbeta) > 0 
 				if (hbeta > 0)
 				{
 					// For selected host si's household (si->hh), 
@@ -348,10 +365,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						s3 = hbeta * CalcHouseInf(ci, ts);  
 
 						// Test if any of the individuals in the selected persons household are absent from places
-						f = 0;
+						// f=0 means noone absent, f=1 means at least one absent
+						f = 0; // initialise f to be 0
 						for (int i3 = l; (i3 < m) && (!f); i3++){ //// loop over people in household
 							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++){ //// loop over place types
 								if (Hosts[i3].PlaceLinks[i2] >= 0){ //// if person in household has any sort of link to place type
+									// if person is absent set f=1
 									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
 								}
 							}
@@ -361,6 +380,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						
 						// Loop from l (the index of the first person in the household) to m-1 (the index of the last person in the household)
+						// ie. loop over everyone in the household
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 						{
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
@@ -370,6 +390,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								// Force of Infection (s) > random value between 0 and 1
 								if (ranf_mt(tn) < s) 
 								{
+									// identify which cell queue (index cq) to add infection to 
 									cq = Hosts[i3].pcell % P.NumThreads;
 									if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
 									{
