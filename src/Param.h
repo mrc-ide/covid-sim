@@ -5,7 +5,7 @@
 
 #include "Country.h"
 #include "Constants.h"
-#include "InverseCdf.hpp"
+#include "InverseCdf.h"
 #include "MicroCellPosition.hpp"
 
 /** @brief Enumeration of bitmap formats. */
