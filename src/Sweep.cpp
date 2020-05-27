@@ -435,7 +435,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
 
@@ -507,7 +506,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//if doing digital contact tracing, scale down susceptibility here
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
@@ -754,8 +752,7 @@ void IncubRecoverySweep(double t, int run)
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(P, Places, Hosts, i, j, ht)
+#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
 					for(int tn=0;tn<P.NumThreads;tn++)
 						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
@@ -776,8 +773,7 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
@@ -1539,7 +1535,6 @@ int TreatSweep(double t)
 
 							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
-								int ad2 = ad / P.PlaceCloseAdminUnitDivisor;
 								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
 								{
 									//if doing intervention delays and durations by admin unit based on global triggers
