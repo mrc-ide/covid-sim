@@ -1,14 +1,14 @@
 target_sources(CovidSim
     PRIVATE
-        Airport.cpp
-        Airport.h
-        Cell.cpp
-        Cell.h
-        Household.cpp
-        Household.h
-        Microcell.cpp
-        Microcell.h
-        Place.h
-        Person.cpp
-        Person.h
+        ${CMAKE_CURRENT_LIST_DIR}/Airport.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Airport.h
+        ${CMAKE_CURRENT_LIST_DIR}/Cell.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Cell.h
+        ${CMAKE_CURRENT_LIST_DIR}/Household.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Household.h
+        ${CMAKE_CURRENT_LIST_DIR}/Microcell.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Microcell.h
+        ${CMAKE_CURRENT_LIST_DIR}/Place.h
+        ${CMAKE_CURRENT_LIST_DIR}/Person.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Person.h
 )
