@@ -11,7 +11,10 @@ public:
 	void set_defaults(double start_value);
 
 	void apply_exponent();
+
 	void apply_exponent(double value);
+
+	unsigned short int choose(double Mean, int tn, double timesteps_per_day);
 
 	// Getter
 	double* get_values()
@@ -20,7 +23,10 @@ public:
 	}
 
 	// Overloading [] operator to access elements in array style 
-	double& operator[](int i);
+	double& operator[](int i)
+	{
+		return cdf_values_[i];
+	}
 };
 
 

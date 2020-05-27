@@ -109,6 +109,9 @@ const int MAXINTFILE = 10;
 /* default start value for icdf arrays */
 const int ICDF_START = 100;
 
+void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
+	double start_value = ICDF_START);
+
 int main(int argc, char* argv[])
 {
 	char ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, PreParamFile[1024]{}, buf[2048]{}, * sep;
@@ -1025,11 +1028,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.DoLatent)
 	{
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.latent_icdf.set_defaults(1e10);
-		}
-		P.latent_icdf.apply_exponent(); 
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", &P.latent_icdf, 1e10);
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include symptoms", "%i", (void*) & (P.DoSymptoms), 1, 1, 0)) P.DoSymptoms = 0;
@@ -1145,66 +1144,16 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
 		}
 		//// Get InverseCDFs
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.MildToRecovery_icdf.set_defaults(ICDF_START);
-		}
-
-		P.MildToRecovery_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.ILIToRecovery_icdf.set_defaults(ICDF_START);
-		}
-		P.ILIToRecovery_icdf.apply_exponent();
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", "%lf", (void*)P.ILIToDeath_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.ILIToDeath_icdf.set_defaults(ICDF_START);
-		}
-		P.ILIToDeath_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.SARIToRecovery_icdf.set_defaults(ICDF_START);
-		}
-		P.SARIToRecovery_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.CriticalToCritRecov_icdf.set_defaults(ICDF_START);
-		}
-		P.CriticalToCritRecov_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.CritRecovToRecov_icdf.set_defaults(ICDF_START);
-		}
-		P.CritRecovToRecov_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.ILIToSARI_icdf.set_defaults(ICDF_START);
-		}
-		P.ILIToSARI_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.SARIToCritical_icdf.set_defaults(ICDF_START);
-		}
-		P.SARIToCritical_icdf.apply_exponent();
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf"		, "%lf", (void*)P.SARIToDeath_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.SARIToDeath_icdf.set_defaults(ICDF_START);
-		}
-		P.SARIToDeath_icdf.apply_exponent();
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf.get_values(), CDF_RES + 1, 1, 0))
-		{
-			P.CriticalToDeath_icdf.set_defaults(ICDF_START);
-		}
-		P.CriticalToDeath_icdf.apply_exponent();
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", &P.MildToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", &P.ILIToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", &P.ILIToDeath_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", &P.SARIToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", &P.CriticalToCritRecov_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", &P.CritRecovToRecov_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", &P.ILIToSARI_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", &P.SARIToCritical_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for(i = 0; i < NUM_AGE_GROUPS; i++)
@@ -5640,3 +5589,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
 }
+
+
+void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
+	double start_value)
+{
+	if (!GetInputParameter2(param_file_dat, preparam_file_dat, icdf_name, "%lf", (void*)inverseCdf->get_values(), CDF_RES + 1, 1, 0))
+	{
+		inverseCdf->set_defaults(start_value);
+	}
+	inverseCdf->apply_exponent();
+}
+
