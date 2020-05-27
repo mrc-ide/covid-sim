@@ -129,8 +129,17 @@ void ParamReader::parse_param_file(std::string param_file)
                 break;
             }
             // store the parameter name and value for later use by ReadParams()
-            std::cerr << "Key:[" << param_line << "] Value:[" << value_line << "]" << std::endl;
-            m_param_value_map.emplace(param_line, value_line);
+            auto it = m_param_value_map.find(param_line);
+            if (it != m_param_value_map.cend())
+            {
+                std::cerr << "OVERRIDE: Param file (\"" << param_file << "\") is updating Key:["
+                          << param_line << "]" << " Value:[" << value_line << "]" << std::endl;
+                it->second = value_line;
+            }
+            else
+            {
+                m_param_value_map.emplace(param_line, value_line);
+            }
         }
     }
 }
