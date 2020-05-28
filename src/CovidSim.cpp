@@ -106,8 +106,8 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
 
-/* default start value for icdf arrays */
-const int ICDF_START = 100;
+// default start value for icdf double arrays (was hardcoded as 100)
+const double ICDF_START = 100.0;
 
 void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
 	double start_value = ICDF_START);
