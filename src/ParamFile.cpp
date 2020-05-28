@@ -37,12 +37,30 @@ ParamReader::ParamReader(std::string const& param_file, std::string const& prepa
     parse_param_file(param_file);
     parse_param_file(preparam_file);
     parse_param_file(admin_file);
+}
 
-/*
-    for (auto const& it : m_param_value_map) {
-        std::cout << "Key:[" << it.first << "] Value:[" << it.second << "]" << std::endl;
+template<typename T>
+bool ParamReader::raw_extract(std::istringstream& stream, T& output)
+{
+    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
+                  "Integral or floating point required.");
+
+    stream >> output;
+    if (stream.fail()) {
+        if (output == std::numeric_limits<T>::max()) {
+            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
+                      << " when parsing " << stream.str() << std::endl;
+        }
+        else if (output == std::numeric_limits<T>::min()) {
+            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
+                      << " when parsing " << stream.str() << std::endl;
+        }
+        else {
+            std::cerr << "ERROR: Expected integral type, got " << stream.str() << std::endl;
+        }
+        return false;
     }
-*/
+    return true;
 }
 
 template<typename T>
@@ -60,28 +78,8 @@ bool ParamReader::extract(std::string const& param, T& output, T default_value)
     }
 
     std::istringstream iss(it->second);
-    iss >> output;
-    if (iss.fail()) {
-        if (output == std::numeric_limits<T>::max()) {
-            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
-                      << " when parsing " << iss.str() << std::endl;
-        }
-        else if (output == std::numeric_limits<T>::min()) {
-            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
-                      << " when parsing " << iss.str() << std::endl;
-        }
-        else {
-            std::cerr << "ERROR: Expected integral type, got " << iss.str() << std::endl;
-        }
-        return false;
-    }
-    return true;
+    return raw_extract(iss, output);
 }
-
-// Explicit template instantiations for the linker
-// https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
-template bool ParamReader::extract<double>(std::string const&, double&, double);
-template bool ParamReader::extract<int>(std::string const&, int&, int);
 
 template<typename T>
 void ParamReader::extract_or_exit(std::string const& param, T& output)
@@ -92,11 +90,65 @@ void ParamReader::extract_or_exit(std::string const& param, T& output)
     }
 }
 
+template<typename T>
+bool ParamReader::extract_multiple(std::string const& param, T* output, std::size_t N, T default_value)
+{
+    auto it = m_param_value_map.find(param);
+    if (it == m_param_value_map.cend())
+    {
+        std::cout << "Parameter \"" << param << "\" not found. Using default "
+                    << default_value << std::endl;
+        for (auto i = 0; i < N; i++)
+            output[i] = default_value;
+        return false;
+    }
+
+    std::istringstream iss(it->second);
+    for (auto i = 0; i < N; i++)
+    {
+        if (!raw_extract(iss, output[i]))
+        {
+            std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for "
+                        << param << ". Using default " << default_value << std::endl;
+            for (auto i = 0; i < N; i++)
+                output[i] = default_value;
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, std::size_t N)
+{
+    auto it = m_param_value_map.find(param);
+    if (it == m_param_value_map.cend())
+    {
+        std::cerr << "ERROR: Parameter \"" << param << "\" not found." << std::endl;
+        std::exit(1);
+    }
+
+    std::istringstream iss(it->second);
+    for (auto i = 0; i < N; i++)
+    {
+        if (!raw_extract(iss, output[i]))
+        {
+            std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for " << param << std::endl;
+            std::exit(1);
+        }
+    }
+}
+
 // Explicit template instantiations for the linker
 // https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
+template bool ParamReader::extract<double>(std::string const&, double&, double);
+template bool ParamReader::extract<int>(std::string const&, int&, int);
 template void ParamReader::extract_or_exit<double>(std::string const&, double&);
 template void ParamReader::extract_or_exit<int>(std::string const&, int&);
-
+template bool ParamReader::extract_multiple<double>(std::string const&, double*, std::size_t, double);
+template bool ParamReader::extract_multiple<int>(std::string const&, int*, std::size_t, int);
+template void ParamReader::extract_multiple_or_exit<double>(std::string const&, double*, std::size_t);
+template void ParamReader::extract_multiple_or_exit<int>(std::string const&, int*, std::size_t);
 
 void ParamReader::parse_param_file(std::string param_file)
 {

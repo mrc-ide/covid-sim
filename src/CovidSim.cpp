@@ -535,7 +535,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	if (P.DoHouseholds)
 	{
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Household size distribution", "%lf", (void*)P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, 1, 0);
+		params.extract_multiple_or_exit("Household size distribution", P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE);
 		params.extract_or_exit("Household attack rate", P.HouseholdTrans);
 		params.extract_or_exit("Household transmission denominator power", P.HouseholdTransPow);
 		params.extract("Correct age distribution after household allocation to exactly match specified demography", P.DoCorrectAgeDist, 0);
@@ -667,19 +667,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 			P.DoWholeHouseholdImmunity = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity profile by age", "%lf", (void*)P.InitialImmunity, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.InitialImmunity[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates by age", "%lf", (void*)P.RelativeSpatialContact, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeSpatialContact[i] = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent infectiousness", "%lf", (void*)P.AgeInfectiousness, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.AgeInfectiousness[i] = 1.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent susceptibility", "%lf", (void*)P.AgeSusceptibility, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.AgeSusceptibility[i] = 1.0;
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Age distribution of population", "%lf", (void*)P.PropAgeGroup[0], NUM_AGE_GROUPS, 1, 0);
+		params.extract_multiple("Initial immunity profile by age", P.InitialImmunity, NUM_AGE_GROUPS, 0.0);
+		params.extract_multiple("Relative spatial contact rates by age", P.RelativeSpatialContact, NUM_AGE_GROUPS, 1.0);
+		params.extract_multiple("Age-dependent infectiousness", P.AgeInfectiousness, NUM_AGE_GROUPS, 1.0);
+		params.extract_multiple("Age-dependent susceptibility", P.AgeSusceptibility, NUM_AGE_GROUPS, 1.0);
+		params.extract_multiple_or_exit("Age distribution of population", P.PropAgeGroup[0], NUM_AGE_GROUPS);
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 			t += P.PropAgeGroup[0][i];
@@ -692,9 +684,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.AgeSusceptibility[i] /= t;
 		AgeSuscScale = t;
 		if (P.DoHouseholds) P.HouseholdTrans *= AgeSuscScale;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Relative travel rates by age", "%lf", (void*)P.RelativeTravelRate, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeTravelRate[i] = 1;
+		params.extract_multiple("Relative travel rates by age", P.RelativeTravelRate, NUM_AGE_GROUPS, 1.0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "WAIFW matrix", "%lf", (void*)P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0))
 		{
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -776,9 +766,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			params.extract("Allow initial infections to be in care homes", P.CareHomeAllowInitialInfections, 0);
 			params.extract("Minimum age of care home residents", P.CareHomeResidentMinimumAge, 1000);
 
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Proportion of age group 1 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup), P.PlaceTypeNum, 1, 0);
+			params.extract_multiple_or_exit("Minimum age for age group 1 in place types", P.PlaceTypeAgeMin, P.PlaceTypeNum);
+			params.extract_multiple_or_exit("Maximum age for age group 1 in place types", P.PlaceTypeAgeMax, P.PlaceTypeNum);
+			params.extract_multiple_or_exit("Proportion of age group 1 in place types", P.PlaceTypePropAgeGroup, P.PlaceTypeNum);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 2 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup2), P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -790,8 +780,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			}
 			else
 			{
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMin2, P.PlaceTypeNum, 1, 0);
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMax2, P.PlaceTypeNum, 1, 0);
+				params.extract_multiple_or_exit("Minimum age for age group 2 in place types", P.PlaceTypeAgeMin2, P.PlaceTypeNum);
+				params.extract_multiple_or_exit("Maximum age for age group 2 in place types", P.PlaceTypeAgeMax2, P.PlaceTypeNum);
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 3 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup3), P.PlaceTypeNum, 1, 0))
 			{
@@ -804,8 +794,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			}
 			else
 			{
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMin3, P.PlaceTypeNum, 1, 0);
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMax3, P.PlaceTypeNum, 1, 0);
+				params.extract_multiple_or_exit("Minimum age for age group 3 in place types", P.PlaceTypeAgeMin3, P.PlaceTypeNum);
+				params.extract_multiple_or_exit("Maximum age for age group 3 in place types", P.PlaceTypeAgeMax3, P.PlaceTypeNum);
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel shape params for place types", "%lf", (void*)&(P.PlaceTypeKernelShape), P.PlaceTypeNum, 1, 0))
 			{
@@ -816,7 +806,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				}
 			}
 			else
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel scale params for place types", "%lf", (void*)&(P.PlaceTypeKernelScale), P.PlaceTypeNum, 1, 0);
+				params.extract_multiple_or_exit("Kernel scale params for place types", P.PlaceTypeKernelScale, P.PlaceTypeNum);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param for place types", "%lf", (void*)&(P.PlaceTypeKernelP3), P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -826,18 +816,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				}
 			}
 			else
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel 4th param for place types", "%lf", (void*)&(P.PlaceTypeKernelP4), P.PlaceTypeNum, 1, 0);
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of closest places people pick from (0=all) for place types", "%i", (void*)&(P.PlaceTypeNearestNeighb), P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeNearestNeighb[i] = 0;
+				params.extract_multiple_or_exit("Kernel 4th param for place types", P.PlaceTypeKernelP4, P.PlaceTypeNum);
+			params.extract_multiple("Number of closest places people pick from (0=all) for place types", P.PlaceTypeNearestNeighb, P.PlaceTypeNum, 0);
 			if (P.DoAdUnits)
 			{
-				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Degree to which crossing administrative unit boundaries to go to places is inhibited", "%lf", (void*)&(P.InhibitInterAdunitPlaceAssignment), P.PlaceTypeNum, 1, 0))
-					for (i = 0; i < NUM_PLACE_TYPES; i++)
-						P.InhibitInterAdunitPlaceAssignment[i] = 0;
+				params.extract_multiple("Degree to which crossing administrative unit boundaries to go to places is inhibited", P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0.0);
 			}
 
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
+			params.extract("Include air travel", P.DoAirports, 0);
 			if (!P.DoAirports)
 			{
 				// Airports disabled => all places are not to do with airports, and we
@@ -849,8 +835,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			{
 				// When airports are activated we must have at least one airport place
 				// // and a hotel type.
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
+				params.extract_or_exit("Number of non-airport places", P.PlaceTypeNoAirNum);
+				params.extract_or_exit("Hotel place type", P.HotelPlaceType);
 				if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
 					ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 				}
@@ -858,8 +844,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 				}
 
-				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling factor for input file to convert to daily traffic", "%lf", (void*)&(P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
-				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of hotel attendees who are local", "%lf", (void*)&(P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;
+				params.extract("Scaling factor for input file to convert to daily traffic", P.AirportTrafficScale, 1.0);
+				params.extract("Proportion of hotel attendees who are local", P.HotelPropLocal, 0.0);
 				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of air journeys", "%lf", (void*)&(P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
 				{
 					P.JourneyDurationDistrib[0] = 1;
@@ -893,27 +879,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.InvLocalJourneyDurationDistrib[i] = j2;
 				}
 			}
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Mean size of place types", "%lf", (void*)P.PlaceTypeMeanSize, P.PlaceTypeNum, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Param 1 of place group size distribution", "%lf", (void*)P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum, 1, 0);
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Power of place size distribution", "%lf", (void*)P.PlaceTypeSizePower, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeSizePower[i] = 0;
+			params.extract_multiple_or_exit("Mean size of place types", P.PlaceTypeMeanSize, P.PlaceTypeNum);
+			params.extract_multiple_or_exit("Param 1 of place group size distribution", P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum);
+			params.extract_multiple("Power of place size distribution", P.PlaceTypeSizePower, P.PlaceTypeNum, 0.0);
 			//added to enable lognormal distribution - ggilani 09/02/17
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Standard deviation of place size distribution", "%lf", (void*)P.PlaceTypeSizeSD, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeSizeSD[i] = 0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Offset of place size distribution", "%lf", (void*)P.PlaceTypeSizeOffset, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeSizeOffset[i] = 0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMax, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeSizeMax[i] = 1e20;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMin, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeSizeMin[i] = 1.0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel type for place types", "%i", (void*)P.PlaceTypeKernelType, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.PlaceTypeKernelType[i] = P.MoveKernel.type_;
+			params.extract_multiple("Standard deviation of place size distribution", P.PlaceTypeSizeSD, P.PlaceTypeNum, 0.0);
+			params.extract_multiple("Offset of place size distribution", P.PlaceTypeSizeOffset, P.PlaceTypeNum, 0.0);
+			params.extract_multiple("Maximum of place size distribution", P.PlaceTypeSizeMax, P.PlaceTypeNum, 1e20);
+			params.extract_multiple("Minimum of place size distribution", P.PlaceTypeSizeMin, P.PlaceTypeNum, 1.0);
+			params.extract_multiple("Kernel type for place types", P.PlaceTypeKernelType, P.PlaceTypeNum, P.MoveKernel.type_);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -923,15 +897,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
 
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Proportion of between group place links", "%lf", (void*)P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative transmission rates for place types", "%lf", (void*)P.PlaceTypeTrans, P.PlaceTypeNum, 1, 0);
+		params.extract_multiple_or_exit("Proportion of between group place links", P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum);
+		params.extract_multiple_or_exit("Relative transmission rates for place types", P.PlaceTypeTrans, P.PlaceTypeNum);
 		for (i = 0; i < P.PlaceTypeNum; i++) P.PlaceTypeTrans[i] *= AgeSuscScale;
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Daily seasonality coefficients", "%lf", (void*)P.Seasonality, DAYS_PER_YEAR, 1, 0))
+	if (!params.extract_multiple("Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1.0))
 	{
 		P.DoSeasonality = 0;
-		for (i = 0; i < DAYS_PER_YEAR; i++)
-			P.Seasonality[i] = 1;
 	}
 	else
 	{
@@ -950,7 +922,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		fprintf(stderr, "Too many seed locations\n");
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
-	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
+	params.extract_multiple_or_exit("Initial number of infecteds", P.NumInitialInfections, P.NumSeedLocations);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
 	params.extract("Minimum population in microcell of initial infection", P.MinPopDensForInitialInfection, 0);
 	params.extract("Maximum population in microcell of initial infection", P.MaxPopDensForInitialInfection, 10000000);
@@ -992,8 +964,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.InitialInfectionsAdminUnit[i] = k;
 					P.InitialInfectionsAdminUnitId[i] = P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
 				}
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit seeding weights", "%lf", (void*)&(P.InitialInfectionsAdminUnitWeight[0]), P.NumSeedLocations, 1, 0))
-				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] = 1.0;
+			params.extract_multiple("Administrative unit seeding weights", P.InitialInfectionsAdminUnitWeight, P.NumSeedLocations, 1.0);
 			s = 0;
 			for (i = 0; i < P.NumSeedLocations; i++) s += P.InitialInfectionsAdminUnitWeight[i];
 			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] /= s;
@@ -1011,7 +982,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.DurImportTimeProfile > 0)
 	{
 		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Daily importation time profile", "%lf", (void*)P.ImportInfectionTimeProfile, P.DurImportTimeProfile, 1, 0);
+		params.extract_multiple_or_exit("Daily importation time profile", P.ImportInfectionTimeProfile, P.DurImportTimeProfile);
 	}
 	params.extract_or_exit("Reproduction number", P.R0);
 	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Beta for spatial transmission", "%lf", (void*)&(P.LocalBeta), 1, 1, 0))
@@ -1030,11 +1001,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	params.extract("Power of scaling of spatial R0 with density", P.R0DensityScalePower, 0.0);
 	if (P.DoInfectiousnessProfile)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectiousness profile", "%lf", (void*)P.infectious_prof, INFPROF_RES, 1, 0))
-		{
-			for (i = 0; i < INFPROF_RES; i++)
-				P.infectious_prof[i] = 1;
-		}
+		params.extract_multiple("Infectiousness profile", P.infectious_prof, INFPROF_RES, 1.0);
 		k = (int)ceil(P.InfectiousPeriod / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		s = 0;
@@ -1085,10 +1052,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	else
 	{
 		if (P.DoAge)
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Proportion symptomatic by age group", "%lf", (void*)P.ProportionSymptomatic, NUM_AGE_GROUPS, 1, 0);
+			params.extract_multiple_or_exit("Proportion symptomatic by age group", P.ProportionSymptomatic, NUM_AGE_GROUPS);
 		else
 		{
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Proportion symptomatic", "%lf", (void*)P.ProportionSymptomatic, 1, 1, 0);
+			params.extract_or_exit("Proportion symptomatic", P.ProportionSymptomatic[0]);
 			for (i = 1; i < NUM_AGE_GROUPS; i++)
 				P.ProportionSymptomatic[i] = P.ProportionSymptomatic[0];
 		}
@@ -1099,7 +1066,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		params.extract("Model symptomatic withdrawal to home as true absenteeism", P.DoRealSymptWithdrawal, 0);
 		if (P.DoPlaces)
 		{
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative level of place attendance if symptomatic", "%lf", (void*)P.SymptPlaceTypeContactRate, P.PlaceTypeNum, 1, 0);
+			params.extract_multiple_or_exit("Relative level of place attendance if symptomatic", P.SymptPlaceTypeContactRate, P.PlaceTypeNum);
 			if (P.DoRealSymptWithdrawal)
 			{
 				for (j = 0; j < NUM_PLACE_TYPES; j++)
@@ -1111,14 +1078,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			else
 				for (j = 0; j < NUM_PLACE_TYPES; j++) P.SymptPlaceTypeWithdrawalProp[j] = 0.0;
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum age of child at home for whom one adult also stays at home", "%i", (void*)&P.CaseAbsentChildAgeCutoff, 1, 1, 0)) P.CaseAbsentChildAgeCutoff = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of children at home for whom one adult also stays at home", "%lf", (void*)&P.CaseAbsentChildPropAdultCarers, 1, 1, 0)) P.CaseAbsentChildPropAdultCarers = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place close round household", "%i", (void*)&P.PlaceCloseRoundHousehold, 1, 1, 0)) P.PlaceCloseRoundHousehold = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Absenteeism place closure", "%i", (void*)&P.AbsenteeismPlaceClosure, 1, 1, 0)) P.AbsenteeismPlaceClosure = 0;
+		params.extract("Maximum age of child at home for whom one adult also stays at home", P.CaseAbsentChildAgeCutoff, 0);
+		params.extract("Proportion of children at home for whom one adult also stays at home", P.CaseAbsentChildPropAdultCarers, 0.0);
+		params.extract("Place close round household", P.PlaceCloseRoundHousehold, 1);
+		params.extract("Absenteeism place closure", P.AbsenteeismPlaceClosure, 0);
 		if (P.AbsenteeismPlaceClosure)
 		{
 			P.CaseAbsenteeismDelay = 0;  // Set to zero for tracking absenteeism
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max absent time", "%i", (void*)&P.MaxAbsentTime, 1, 1, 0)) P.MaxAbsentTime = MAX_ABSENT_TIME;
+			params.extract("Max absent time", P.MaxAbsentTime, MAX_ABSENT_TIME);
 			if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
 			{
 				ERR_CRITICAL_FMT("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
@@ -1126,45 +1093,44 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay in starting place absenteeism for cases who withdraw", "%lf", (void*)&P.CaseAbsenteeismDelay, 1, 1, 0)) P.CaseAbsenteeismDelay = 0;
+			params.extract("Delay in starting place absenteeism for cases who withdraw", P.CaseAbsenteeismDelay, 0.0);
 			P.MaxAbsentTime = 0; // Not used when !P.AbsenteeismPlaceClosure
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place absenteeism for cases who withdraw", "%lf", (void*)&P.CaseAbsenteeismDuration, 1, 1, 0)) P.CaseAbsenteeismDuration = 7;
+		params.extract("Duration of place absenteeism for cases who withdraw", P.CaseAbsenteeismDuration, 7.0);
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive rate", "%lf", (void*)&(P.FalsePositiveRate), 1, 1, 0)) P.FalsePositiveRate = 0.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive per capita incidence", "%lf", (void*)&(P.FalsePositivePerCapitaIncidence), 1, 1, 0)) P.FalsePositivePerCapitaIncidence = 0.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive relative incidence by age", "%lf", (void*)P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1, 0))
-			for (j = 0; j < NUM_AGE_GROUPS; j++) P.FalsePositiveAgeRate[j] = 1.0;
+		params.extract("False positive rate", P.FalsePositiveRate, 0.0);
+		params.extract("False positive per capita incidence", P.FalsePositivePerCapitaIncidence, 0.0);
+		params.extract_multiple("False positive relative incidence by age", P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1.0);
 	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum sensitivity of serology assay", "%lf", (void*)&(P.SeroConvMaxSens), 1, 1, 0)) P.SeroConvMaxSens = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 1", "%lf", (void*)&(P.SeroConvP1), 1, 1, 0)) P.SeroConvP1 = 14.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 2", "%lf", (void*)&(P.SeroConvP2), 1, 1, 0)) P.SeroConvP2 = 3.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Specificity of serology assay", "%lf", (void*)&(P.SeroConvSpec), 1, 1, 0)) P.SeroConvSpec = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of modelled infection prevalence to match surveys", "%lf", (void*)&(P.InfPrevSurveyScale), 1, 1, 0)) P.InfPrevSurveyScale = 1.0;
+	params.extract("Maximum sensitivity of serology assay", P.SeroConvMaxSens, 1.0);
+	params.extract("Seroconversion model parameter 1", P.SeroConvP1, 14.0);
+	params.extract("Seroconversion model parameter 2", P.SeroConvP2, 3.0);
+	params.extract("Specificity of serology assay", P.SeroConvSpec, 1.0);
+	params.extract("Scaling of modelled infection prevalence to match surveys", P.InfPrevSurveyScale, 1.0);
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*)&(P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
+	params.extract("Do Severity Analysis", P.DoSeverity, 0);
 	if (P.DoSeverity)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleIFR), 1, 1, 0)) P.ScaleIFR = 1.0;
+		params.extract("Factor to scale IFR", P.ScaleIFR, 1.0);
 		//// Means for icdf's.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCriticalOffset", "%lf", (void*)&(P.Mean_TimeToTestCriticalOffset), 1, 1, 0)) P.Mean_TimeToTestCriticalOffset = 1.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestCritRecovOffset", "%lf", (void*)&(P.Mean_TimeToTestCritRecovOffset), 1, 1, 0)) P.Mean_TimeToTestCritRecovOffset = 1.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age dependent severity delays", "%i", (void*)&i, 1, 1, 0)) i = 0;
+		params.extract("MeanTimeToTest", P.Mean_TimeToTest, 0.0);
+		params.extract("MeanTimeToTestOffset", P.Mean_TimeToTestOffset, 1.0);
+		params.extract("MeanTimeToTestCriticalOffset", P.Mean_TimeToTestCriticalOffset, 1.0);
+		params.extract("MeanTimeToTestCritRecovOffset", P.Mean_TimeToTestCritRecovOffset, 1.0);
+		params.extract("Age dependent severity delays", i, 0);
 		if (!i)
 		{
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)&(P.Mean_MildToRecovery[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)&(P.Mean_ILIToRecovery[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)&(P.Mean_SARIToRecovery[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)&(P.Mean_CriticalToCritRecov[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)&(P.Mean_CritRecovToRecov[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)&(P.Mean_ILIToSARI[0]), 1, 1, 0);
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)&(P.Mean_ILIToDeath[0]), 1, 1, 0)) P.Mean_ILIToDeath[0] = 7.0;
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)&(P.Mean_SARIToCritical[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)&(P.Mean_SARIToDeath[0]), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)&(P.Mean_CriticalToDeath[0]), 1, 1, 0);
+			params.extract_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery[0]);
+			params.extract_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery[0]);
+			params.extract_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery[0]);
+			params.extract_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov[0]);
+			params.extract_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov[0]);
+			params.extract_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI[0]);
+			params.extract("Mean_ILIToDeath", P.Mean_ILIToDeath[0], 7.0);
+			params.extract_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical[0]);
+			params.extract_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath[0]);
+			params.extract_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath[0]);
 			for (int AgeGroup = 1; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
 				P.Mean_MildToRecovery		[AgeGroup] = P.Mean_MildToRecovery		[0];
@@ -1181,17 +1147,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_MildToRecovery", "%lf", (void*)(P.Mean_MildToRecovery), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToRecovery", "%lf", (void*)(P.Mean_ILIToRecovery), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToRecovery", "%lf", (void*)(P.Mean_SARIToRecovery), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToCritRecov", "%lf", (void*)(P.Mean_CriticalToCritRecov), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CritRecovToRecov", "%lf", (void*)(P.Mean_CritRecovToRecov), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_ILIToSARI", "%lf", (void*)(P.Mean_ILIToSARI), NUM_AGE_GROUPS, 1, 0);
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean_ILIToDeath", "%lf", (void*)(P.Mean_ILIToDeath), NUM_AGE_GROUPS, 1, 0))
-				for (j = 0; j < NUM_AGE_GROUPS; j++) P.Mean_ILIToDeath[j] = 7.0;
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToCritical", "%lf", (void*)(P.Mean_SARIToCritical), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)(P.Mean_SARIToDeath), NUM_AGE_GROUPS, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
+			params.extract_multiple_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI, NUM_AGE_GROUPS);
+			params.extract_multiple("Mean_ILIToDeath", P.Mean_ILIToDeath, NUM_AGE_GROUPS, 7.0);
+			params.extract_multiple_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath, NUM_AGE_GROUPS);
+			params.extract_multiple_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath, NUM_AGE_GROUPS);
 		}
 
 		//// Get InverseCDFs
@@ -1206,33 +1171,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_Mild_ByAge[i] = 0.5;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_ILI_ByAge", "%lf", (void*)P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_ILI_ByAge[i] = 0.3;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_SARI_ByAge", "%lf", (void*)P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_SARI_ByAge[i] = 0.15;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Critical_ByAge", "%lf", (void*)P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_Critical_ByAge[i] = 0.05;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_SARI_ByAge", "%lf", (void*)P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_SARI_ByAge[i] = 0.50;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_Critical_ByAge", "%lf", (void*)P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_Critical_ByAge[i] = 0.50;
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ILI_ByAge", "%lf", (void*)P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_ILI_ByAge[i] = 0.00;
+		params.extract_multiple("Prop_Mild_ByAge", P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5);
+		params.extract_multiple("Prop_ILI_ByAge", P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3);
+		params.extract_multiple("Prop_SARI_ByAge", P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 0.15);
+		params.extract_multiple("Prop_Critical_ByAge", P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 0.05);
+		params.extract_multiple("CFR_SARI_ByAge", P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.50);
+		params.extract_multiple("CFR_Critical_ByAge", P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.50);
+		params.extract_multiple("CFR_ILI_ByAge", P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 0.00);
 
 		//Add param to allow severity to be uniformly scaled up or down.
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1344,10 +1289,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Treatment start time", "%lf", (void*) & (P.TreatTimeStartBase), 1, 1, 0)) P.TreatTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 	if (P.DoPlaces)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of places treated after case detected", "%lf", (void*)P.TreatPlaceProbCaseId, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.TreatPlaceProbCaseId[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of people treated in targeted places", "%lf", (void*)P.TreatPlaceTotalProp, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.TreatPlaceTotalProp[i] = 0;
+		params.extract_multiple("Proportion of places treated after case detected", P.TreatPlaceProbCaseId, P.PlaceTypeNum, 0.0);
+		params.extract_multiple("Proportion of people treated in targeted places", P.TreatPlaceTotalProp, P.PlaceTypeNum, 0.0);
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of doses available", "%lf", (void*) & (P.TreatMaxCoursesBase), 1, 1, 0)) P.TreatMaxCoursesBase = 1e20;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Start time of additional treatment production", "%lf", (void*) & (P.TreatNewCoursesStartTime), 1, 1, 0)) P.TreatNewCoursesStartTime = USHRT_MAX / P.TimeStepsPerDay;
@@ -1447,14 +1390,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		double AdunitDurationCaseIsolation	[MAX_ADUNITS];
 		double AdunitDurationPlaceClose		[MAX_ADUNITS];
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to social distancing by admin unit"			, "%lf", (void*)AdunitDelayToSocialDistance	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToSocialDistance	[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to household quarantine by admin unit"		, "%lf", (void*)AdunitDelayToHQuarantine	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToHQuarantine		[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to case isolation by admin unit"			, "%lf", (void*)AdunitDelayToCaseIsolation	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToCaseIsolation	[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to place closure by admin unit"				, "%lf", (void*)AdunitDelayToPlaceClose		, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToPlaceClose		[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of social distancing by admin unit"		, "%lf", (void*)AdunitDurationSocialDistance, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationSocialDistance	[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of household quarantine by admin unit"	, "%lf", (void*)AdunitDurationHQuarantine	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationHQuarantine		[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of case isolation by admin unit"			, "%lf", (void*)AdunitDurationCaseIsolation	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationCaseIsolation	[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place closure by admin unit"			, "%lf", (void*)AdunitDurationPlaceClose	, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationPlaceClose		[i] = 0;
+		params.extract_multiple("Delay to social distancing by admin unit"		, AdunitDelayToSocialDistance	, P.NumAdunits, 0.0);
+		params.extract_multiple("Delay to household quarantine by admin unit"	, AdunitDelayToHQuarantine		, P.NumAdunits, 0.0);
+		params.extract_multiple("Delay to case isolation by admin unit"			, AdunitDelayToCaseIsolation	, P.NumAdunits, 0.0);
+		params.extract_multiple("Delay to place closure by admin unit"			, AdunitDelayToPlaceClose		, P.NumAdunits, 0.0);
+		params.extract_multiple("Duration of social distancing by admin unit"	, AdunitDurationSocialDistance	, P.NumAdunits, 0.0);
+		params.extract_multiple("Duration of household quarantine by admin unit", AdunitDurationHQuarantine		, P.NumAdunits, 0.0);
+		params.extract_multiple("Duration of case isolation by admin unit"		, AdunitDurationCaseIsolation	, P.NumAdunits, 0.0);
+		params.extract_multiple("Duration of place closure by admin unit"		, AdunitDurationPlaceClose		, P.NumAdunits, 0.0);
 
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -1479,14 +1422,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Digital contact tracing trigger incidence per cell", "%lf", (void*) & (P.DigitalContactTracing_CellIncThresh), 1, 1, 0)) P.DigitalContactTracing_CellIncThresh = 1000000000;
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of population or households covered by digital contact tracing", "%lf", (void*) & (P.PropPopUsingDigitalContactTracing), 1, 1, 0)) P.PropPopUsingDigitalContactTracing = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of smartphone users by age", "%lf", (void*)P.ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1, 0))
-		{
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-			{
-				P.ProportionSmartphoneUsersByAge[i] = 1;
-			}
-		}
+		params.extract("Proportion of population or households covered by digital contact tracing", P.PropPopUsingDigitalContactTracing, 1.0);
+		params.extract_multiple("Proportion of smartphone users by age", P.ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1.0);
 		if (P.DoPlaces)
 		{
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Cluster digital app clusters by household", "%i", (void*) & (P.ClusterDigitalContactUsers), 1, 1, 0)) P.ClusterDigitalContactUsers = 0; // by default, don't cluster by location
@@ -1513,8 +1450,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			double AdunitDelayToDCT[MAX_ADUNITS];
 			double AdunitDurationDCT[MAX_ADUNITS];
 
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay to digital contact tracing by admin unit", "%lf", (void*)AdunitDelayToDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDelayToDCT[i] = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of digital contact tracing by admin unit", "%lf", (void*)AdunitDurationDCT, P.NumAdunits, 1, 0)) for (i = 0; i < P.NumAdunits; i++) AdunitDurationDCT[i] = 0;
+			params.extract_multiple("Delay to digital contact tracing by admin unit", AdunitDelayToDCT, P.NumAdunits, 0.0);
+			params.extract_multiple("Duration of digital contact tracing by admin unit", AdunitDurationDCT, P.NumAdunits, 0.0);
 			for (i = 0; i < P.NumAdunits; i++)
 			{
 				AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
@@ -1560,10 +1497,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of second place closure", "%lf", (void*) & (P.PlaceCloseDuration2), 1, 1, 0)) P.PlaceCloseDuration2 = 7;
 	if (P.DoPlaces)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of places remaining open after closure by place type", "%lf", (void*)P.PlaceCloseEffect, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.PlaceCloseEffect[i] = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportional attendance after closure by place type", "%lf", (void*)P.PlaceClosePropAttending, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.PlaceClosePropAttending[i] = 0;
+		params.extract_multiple("Proportion of places remaining open after closure by place type", P.PlaceCloseEffect, P.PlaceTypeNum, 1.0);
+		params.extract_multiple("Proportional attendance after closure by place type", P.PlaceClosePropAttending, P.PlaceTypeNum, 0.0);
 	}
 	if (P.DoHouseholds)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after closure", "%lf", (void*)& P.PlaceCloseHouseholdRelContact, 1, 1, 0)) P.PlaceCloseHouseholdRelContact = 1;
@@ -1572,14 +1507,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include holidays", "%i", (void*) & (P.DoHolidays), 1, 1, 0)) P.DoHolidays = 0;
 	if (P.DoHolidays)
 	{
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of places remaining open during holidays by place type", "%lf", (void*)P.HolidayEffect, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.HolidayEffect[i] = 1;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of holidays", "%i", (void*) & (P.NumHolidays), 1, 1, 0)) P.NumHolidays = 0;
+		params.extract_multiple("Proportion of places remaining open during holidays by place type", P.HolidayEffect, P.PlaceTypeNum, 1.0);
+		params.extract("Number of holidays", P.NumHolidays, 0);
 		if (P.NumHolidays > DAYS_PER_YEAR) P.NumHolidays = DAYS_PER_YEAR;
 		if (P.NumHolidays > 0)
 		{
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Holiday start times", "%lf", (void*)P.HolidayStartTime, P.NumHolidays, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Holiday durations", "%lf", (void*)P.HolidayDuration, P.NumHolidays, 1, 0);
+			params.extract_multiple_or_exit("Holiday start times", P.HolidayStartTime, P.NumHolidays);
+			params.extract_multiple_or_exit("Holiday durations", P.HolidayDuration, P.NumHolidays);
 		}
 	}
 	else
@@ -1594,12 +1528,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure fractional incidence threshold", "%lf", (void*) & (P.PlaceCloseFracIncTrig), 1, 1, 0)) P.PlaceCloseFracIncTrig = 0;
 	if ((P.DoAdUnits) && (P.DoPlaces))
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure in administrative units rather than rings", "%i", (void*) & (P.PlaceCloseByAdminUnit), 1, 1, 0)) P.PlaceCloseByAdminUnit = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Administrative unit divisor for place closure", "%i", (void*) & (P.PlaceCloseAdminUnitDivisor), 1, 1, 0)) P.PlaceCloseAdminUnitDivisor = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place types to close for admin unit closure (0/1 array)", "%i", (void*) & (P.PlaceCloseAdunitPlaceTypes), P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < P.PlaceTypeNum; i++) P.PlaceCloseAdunitPlaceTypes[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Cumulative proportion of place members needing to become sick for admin unit closure", "%lf", (void*) & (P.PlaceCloseCasePropThresh), 1, 1, 0)) P.PlaceCloseCasePropThresh = 2;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of places in admin unit needing to pass threshold for place closure", "%lf", (void*) & (P.PlaceCloseAdunitPropThresh), 1, 1, 0)) P.PlaceCloseAdunitPropThresh = 2;
+		params.extract("Place closure in administrative units rather than rings", P.PlaceCloseByAdminUnit, 0);
+		params.extract("Administrative unit divisor for place closure", P.PlaceCloseAdminUnitDivisor, 1);
+		params.extract_multiple("Place types to close for admin unit closure (0/1 array)", P.PlaceCloseAdunitPlaceTypes, P.PlaceTypeNum, 0);
+		params.extract("Cumulative proportion of place members needing to become sick for admin unit closure", P.PlaceCloseCasePropThresh, 2.0);
+		params.extract("Proportion of places in admin unit needing to pass threshold for place closure", P.PlaceCloseAdunitPropThresh, 2.0);
 		if ((P.PlaceCloseAdminUnitDivisor < 1) || (P.PlaceCloseByAdminUnit == 0)) P.PlaceCloseAdminUnitDivisor = 1;
 	}
 	else
@@ -1617,10 +1550,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of social distancing after change", "%lf", (void*) & (P.SocDistDuration2), 1, 1, 0)) P.SocDistDuration2 = 7;
 	if (P.DoPlaces)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rate given social distancing by place type", "%lf", (void*)P.SocDistPlaceEffect, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.SocDistPlaceEffect[i] = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rate given enhanced social distancing by place type", "%lf", (void*)P.EnhancedSocDistPlaceEffect, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.EnhancedSocDistPlaceEffect[i] = 1;
+		params.extract_multiple("Relative place contact rate given social distancing by place type", P.SocDistPlaceEffect, P.PlaceTypeNum, 1.0);
+		params.extract_multiple("Relative place contact rate given enhanced social distancing by place type", P.EnhancedSocDistPlaceEffect, P.PlaceTypeNum, 1.0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rate given social distancing by place type after change", "%lf", (void*)P.SocDistPlaceEffect2, P.PlaceTypeNum, 1, 0))
 			for (i = 0; i < NUM_PLACE_TYPES; i++) P.SocDistPlaceEffect2[i] = P.SocDistPlaceEffect[i];
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative place contact rate given enhanced social distancing by place type after change", "%lf", (void*)P.EnhancedSocDistPlaceEffect2, P.PlaceTypeNum, 1, 0))
@@ -1636,19 +1567,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	else
 		P.EnhancedSocDistClusterByHousehold = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given social distancing", "%lf", (void*)& P.SocDistSpatialEffect, 1, 1, 0)) P.SocDistSpatialEffect = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given social distancing after change", "%lf", (void*)&P.SocDistSpatialEffect2, 1, 1, 0)) P.SocDistSpatialEffect2 = P.SocDistSpatialEffect;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Minimum radius for social distancing", "%lf", (void*) & (P.SocDistRadius), 1, 1, 0)) P.SocDistRadius = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Social distancing start time", "%lf", (void*) & (P.SocDistTimeStartBase), 1, 1, 0)) P.SocDistTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay for change in effectiveness of social distancing", "%lf", (void*)&(P.SocDistChangeDelay), 1, 1, 0)) P.SocDistChangeDelay = USHRT_MAX / P.TimeStepsPerDay;
-	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion compliant with enhanced social distancing by age group", "%lf", (void*)P.EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, 1, 0))
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion compliant with enhanced social distancing", "%lf", (void*)&t, 1, 1, 0)) t = 0;
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			P.EnhancedSocDistProportionCompliant[i] = t;
-	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given enhanced social distancing", "%lf", (void*)& P.EnhancedSocDistSpatialEffect, 1, 1, 0)) P.EnhancedSocDistSpatialEffect = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given enhanced social distancing after change", "%lf", (void*)&P.EnhancedSocDistSpatialEffect2, 1, 1, 0)) P.EnhancedSocDistSpatialEffect2 = P.EnhancedSocDistSpatialEffect;
+	params.extract("Relative spatial contact rate given social distancing", P.SocDistSpatialEffect, 1.0);
+	params.extract("Relative spatial contact rate given social distancing after change", P.SocDistSpatialEffect2, P.SocDistSpatialEffect);
+	params.extract("Minimum radius for social distancing", P.SocDistRadius, 0.0);
+	params.extract("Social distancing start time", P.SocDistTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract("Delay for change in effectiveness of social distancing", P.SocDistChangeDelay, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract("Proportion compliant with enhanced social distancing", t, 0.0);
+	params.extract_multiple("Proportion compliant with enhanced social distancing by age group", P.EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, t);
+	params.extract("Relative spatial contact rate given enhanced social distancing", P.EnhancedSocDistSpatialEffect, 1.0);
+	params.extract("Relative spatial contact rate given enhanced social distancing after change", P.EnhancedSocDistSpatialEffect2, P.EnhancedSocDistSpatialEffect);
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Social distancing only once", "%i", (void*) & (P.DoSocDistOnceOnly), 1, 1, 0)) P.DoSocDistOnceOnly = 0;
 	if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4;
@@ -1672,8 +1599,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative household contact rate after quarantine", "%lf", (void*) & (P.HQuarantineHouseEffect), 1, 1, 0)) P.HQuarantineHouseEffect = 1;
 		if (P.DoPlaces)
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual place contacts after household quarantine by place type", "%lf", (void*)P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++) P.HQuarantinePlaceEffect[i] = 1;
+			params.extract_multiple("Residual place contacts after household quarantine by place type", P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1.0);
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Residual spatial contacts after household quarantine", "%lf", (void*) & (P.HQuarantineSpatialEffect), 1, 1, 0)) P.HQuarantineSpatialEffect = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Household level compliance with quarantine", "%lf", (void*) & (P.HQuarantinePropHouseCompliant), 1, 1, 0)) P.HQuarantinePropHouseCompliant = 1;
@@ -1970,15 +1896,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (P.DoPlaces)
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers randomly distributed in the population", "%i", (void*) & (P.KeyWorkerPopNum), 1, 1, 0)) P.KeyWorkerPopNum = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers in different places by place type", "%i", (void*)P.KeyWorkerPlaceNum, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPlaceNum[i] = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of staff who are key workers per chosen place by place type", "%lf", (void*)P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1, 0))
-				for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPropInKeyPlaces[i] = 1.0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for key worker prophylaxis", "%i", (void*) & (P.KeyWorkerProphCellIncThresh), 1, 1, 0)) P.KeyWorkerProphCellIncThresh = 1000000000;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Key worker prophylaxis start time", "%lf", (void*) & (P.KeyWorkerProphTimeStartBase), 1, 1, 0)) P.KeyWorkerProphTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of key worker prophylaxis", "%lf", (void*) & (P.KeyWorkerProphDuration), 1, 1, 0)) P.KeyWorkerProphDuration = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time interval from start of key worker prophylaxis before policy restarted", "%lf", (void*) & (P.KeyWorkerProphRenewalDuration), 1, 1, 0)) P.KeyWorkerProphRenewalDuration = P.KeyWorkerProphDuration;
+			params.extract("Number of key workers randomly distributed in the population", P.KeyWorkerPopNum, 0);
+			params.extract_multiple("Number of key workers in different places by place type", P.KeyWorkerPlaceNum, P.PlaceTypeNum, 0);
+			params.extract_multiple("Proportion of staff who are key workers per chosen place by place type", P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1.0);
+			params.extract("Trigger incidence per cell for key worker prophylaxis", P.KeyWorkerProphCellIncThresh, 1000000000);
+			params.extract("Key worker prophylaxis start time", P.KeyWorkerProphTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+			params.extract("Duration of key worker prophylaxis", P.KeyWorkerProphDuration, 0.0);
+			params.extract("Time interval from start of key worker prophylaxis before policy restarted", P.KeyWorkerProphRenewalDuration, P.KeyWorkerProphDuration);
 			if (P.DoHouseholds)
 			{
 				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of key workers whose households are also treated as key workers", "%lf", (void*) & (P.KeyWorkerHouseProp), 1, 1, 0)) P.KeyWorkerHouseProp = 0;
