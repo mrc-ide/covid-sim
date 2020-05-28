@@ -5,6 +5,7 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
+#include "IInfectionState.h"
 
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
@@ -37,6 +38,8 @@ struct Person
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 	short int infect_type;		// INFECT_TYPE_MASK
 	InfStat inf;
+
+	IInfectionState* infectionState;
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;

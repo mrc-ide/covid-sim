@@ -20,6 +20,7 @@
 #include "CalcInfSusc.h"
 #include "Update.h"
 #include "Sweep.h"
+#include "Susceptible.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -2555,6 +2556,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].detected_time = 0;
 			Hosts[k].digitalContactTraced = 0;
 			Hosts[k].inf = InfStat_Susceptible;
+			Hosts[k].infectionState = new Susceptible(P);
 			Hosts[k].num_treats = 0;
 			Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 			Hosts[k].infector = -1;

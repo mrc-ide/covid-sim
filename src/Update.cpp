@@ -23,6 +23,10 @@ void DoImmune(int ai)
 	int x, y;
 
 	a = Hosts + ai;
+
+	a->infectionState->GetsBetter(ai, 0, 0, 0);
+	return;
+
 	if (a->inf == InfStat_Susceptible)
 	{
 		c = a->pcell;
@@ -76,6 +80,9 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
+
+	a->infectionState->GetsWorse(ai, t, tn, run);
+	return;
 
 	if (a->inf == InfStat_Susceptible) //// Only change anything if person a/ai uninfected at start of this function.
 	{
@@ -434,6 +441,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
 	a = Hosts + ai;
+
+	a->infectionState->GetsWorse(ai, ts, tn, run);
+	return;
+
 	if (a->inf == InfStat_Latent)
 	{
 		a->infectiousness = (float)P.AgeInfectiousness[age];
@@ -1082,7 +1093,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
 	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
 
-	int k, ai, j1, j2, l, f, m, f2;
+	int k, ai, j1, j2, l, f, f2;
 	unsigned short trig;
 	unsigned short int t_start, t_stop;
 	unsigned short int t_old, t_new;
