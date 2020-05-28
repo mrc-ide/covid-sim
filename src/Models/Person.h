@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Country.h"
+#include "../InfStat.h"
+
 struct Person
 {
 	int pcell;			// place cell, Cells[person->pcell] holds this person

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../IndexList.h"
+
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
  *

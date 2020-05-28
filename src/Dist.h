@@ -1,7 +1,6 @@
 #ifndef COVIDSIM_DIST_H_INCLUDED_
 #define COVIDSIM_DIST_H_INCLUDED_
 
-#include "Model.h"
 #include "Models/Person.h"
 #include "Models/Cell.h"
 #include "Models/Microcell.h"
