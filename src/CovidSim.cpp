@@ -2372,7 +2372,6 @@ void ReadAirTravel(char* AirTravelFile)
 		}
 		else
 		{
-			//fprintf(stderr,"(%f\t%f) ",Airports[i].loc_x,Airports[i].loc_y);
 			Airports[i].loc.x -= (float)P.SpatialBoundingBox[0];
 			Airports[i].loc.y -= (float)P.SpatialBoundingBox[1];
 			Airports[i].total_traffic = (float)traf;
