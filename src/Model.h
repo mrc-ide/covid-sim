@@ -7,6 +7,9 @@
 #include "Constants.h"
 #include "InfStat.h"
 #include "IndexList.h"
+
+#include "Geometry/Vector2.h"
+
 #include "Models/Person.h"
 #include "Models/Cell.h"
 #include "Models/Microcell.h"
@@ -22,7 +25,7 @@ struct Household
 	int FirstPerson;
 	unsigned short int nh; // number people in household
 	unsigned short int nhr;
-	float loc_x, loc_y;
+	Geometry::Vector2<float> loc;
 };
 
 /*

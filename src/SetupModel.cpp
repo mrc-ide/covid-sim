@@ -1149,8 +1149,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				Households[Hosts[i].hh].FirstPerson = i;
 				Households[Hosts[i].hh].nh = m;
 				Households[Hosts[i].hh].nhr = m;
-				Households[Hosts[i].hh].loc_x = (float)xh;
-				Households[Hosts[i].hh].loc_y = (float)yh;
+				Households[Hosts[i].hh].loc.x = (float)xh;
+				Households[Hosts[i].hh].loc.y = (float)yh;
 				i += m;
 				k += m;
 			}
@@ -2136,7 +2136,7 @@ void AssignPeopleToPlaces()
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{
 											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
-											t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
+											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
 												Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
 											s = numKernel(t);
 											if (tp < P.nsp)
@@ -2276,7 +2276,7 @@ void AssignPeopleToPlaces()
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
-									t = dist2_raw(Households[Hosts[k].hh].loc_x, Households[Hosts[k].hh].loc_y, Places[tp][j].loc_x, Places[tp][j].loc_y);
+									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc_x, Places[tp][j].loc_y);
 									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{

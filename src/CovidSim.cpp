@@ -2882,8 +2882,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 						}
 						Hosts[l].infector = -2;
 						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
@@ -2915,8 +2915,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					{
 						if (CalcPersonSusc(l, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 							DoInfect(l, t, 0, run);
 							m = 0;
@@ -2951,8 +2951,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 						DoInfect(l, t, 0, run);
 						m = 0;
@@ -3199,7 +3199,7 @@ void SaveDistribs(void)
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
 						k = Hosts[i].PlaceLinks[j];
-						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y, Places[j][k].loc_x, Places[j][k].loc_y)) / OUTPUT_DIST_SCALE;
+						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y, Places[j][k].loc_x, Places[j][k].loc_y)) / OUTPUT_DIST_SCALE;
 						k = (int)s;
 						if (k < MAX_DIST) PlaceDistDistrib[j][k]++;
 					}

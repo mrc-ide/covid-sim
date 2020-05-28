@@ -51,11 +51,11 @@ double dist2(Person* a, Person* b)
 	double x, y;
 
 	if (P.DoUTM_coords)
-		return dist2UTM(Households[a->hh].loc_x, Households[a->hh].loc_y, Households[b->hh].loc_x, Households[b->hh].loc_y);
+		return dist2UTM(Households[a->hh].loc.x, Households[a->hh].loc.y, Households[b->hh].loc.x, Households[b->hh].loc.y);
 	else
 	{
-		x = fabs(Households[a->hh].loc_x - Households[b->hh].loc_x);
-		y = fabs(Households[a->hh].loc_y - Households[b->hh].loc_y);
+		x = fabs(Households[a->hh].loc.x - Households[b->hh].loc.x);
+		y = fabs(Households[a->hh].loc.y - Households[b->hh].loc.y);
 		return periodic_xy(x, y);
 	}
 }
