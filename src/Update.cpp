@@ -54,8 +54,8 @@ void DoImmune(int ai)
 		Cells[c].R++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
@@ -140,8 +140,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int ix = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
-				int iy = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
+				int ix = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bmin.x;
+				int iy = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bmin.y;
 				if ((ix >= 0) && (ix < P.b.width) && (iy >= 0) && (iy < P.b.height))
 				{
 					unsigned j = iy * bmh->width + ix;
@@ -942,8 +942,8 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
+				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bmin.x;
+				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bmin.y;
 				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
@@ -993,8 +993,8 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
+				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bmin.x;
+				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bmin.y;
 				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
@@ -1031,8 +1031,8 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
-				y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
+				x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bmin.x;
+				y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bmin.y;
 				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
@@ -1064,8 +1064,8 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1095,8 +1095,8 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1315,8 +1315,8 @@ void DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
@@ -1355,8 +1355,8 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;

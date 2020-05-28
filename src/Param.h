@@ -62,7 +62,7 @@ struct Param
 	/// Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
 	int bheight2;
 
-	int bminx, bminy;
+	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;

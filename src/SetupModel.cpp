@@ -189,8 +189,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.b.height += (4 - P.b.height % 4) % 4;
 	P.bheight2 = P.b.height + 20; // space for colour legend
 	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
-	P.bminx = (int)(P.in_degrees_.width * P.BoundingBox[0] * P.scalex);
-	P.bminy = (int)(P.in_degrees_.height * P.BoundingBox[1] * P.scaley);
+	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox[0] * P.scalex);
+	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox[1] * P.scaley);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);
 	P.in_microcells_.height = P.in_cells_.height / ((double)P.NMCL);
 	for (int i = 0; i < P.NumSeedLocations; i++)

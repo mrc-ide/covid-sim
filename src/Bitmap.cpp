@@ -45,8 +45,8 @@ void CaptureBitmap()
 		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			x = ((int)(Households[Hosts[i].hh].loc.x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[i].hh].loc.y * P.scaley)) - P.bminy;
+			x = ((int)(Households[Hosts[i].hh].loc.x * P.scalex)) - P.bmin.x;
+			y = ((int)(Households[Hosts[i].hh].loc.y * P.scaley)) - P.bmin.y;
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				j = y * bmh->width + x;
@@ -70,8 +70,8 @@ void CaptureBitmap()
 				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.in_microcells_.height * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
+					x = (int)(P.in_microcells_.width * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bmin.x;
+					y = (int)(P.in_microcells_.height * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bmin.y;
 					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 					{
 						j = y * bmh->width + x;
