@@ -32,8 +32,8 @@ static inline void trim(std::string& s) {
 
 ParamReader::ParamReader(std::string const& param_file, std::string const& preparam_file, std::string const& admin_file)
 {
-    // params from certain CLI arguments take priority over one another
-    // Admin File >> PreParam File >> Param File
+    // duplicate params from different files take priority over one another:
+    //     admin_file >> preparam_file >> param_file
     parse_param_file(param_file);
     parse_param_file(preparam_file);
     parse_param_file(admin_file);
