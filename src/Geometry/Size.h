@@ -101,16 +101,12 @@ namespace Geometry {
 	template<class T>
 	template<class U>
 	Size<T>::operator Size<U>() const {
-		return Size<U>((U)
-		this->width, (U)
-		this->height);
+		return Size<U>((U)this->width, (U)this->height);
 	}
 
 	template<class T>
 	template<class U>
 	Size<T>::operator Vector2<U>() const {
-		return Vector2<U>((U)
-		this->width, (U)
-		this->height);
+		return Vector2<U>((U)this->width, (U)this->height);
 	}
 }

@@ -146,8 +146,6 @@ namespace Geometry {
 	template<class T>
 	template<class U>
 	Vector2<T>::operator Vector2<U>() const {
-		return Vector2<U>((U)
-		this->x, (U)
-		this->y);
+		return Vector2<U>((U)this->x, (U)this->y);
 	}
 }
