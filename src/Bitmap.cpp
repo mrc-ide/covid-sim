@@ -37,7 +37,7 @@ void CaptureBitmap()
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.bwidth * P.bheight);
+	mi = (int)(P.b.width * P.b.height);
 	if (fst)
 	{
 		fst = 0;
@@ -47,7 +47,7 @@ void CaptureBitmap()
 		{
 			x = ((int)(Households[Hosts[i].hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[i].hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				j = y * bmh->width + x;
 				if ((j < bmh->imagesize) && (j >= 0))
@@ -72,20 +72,20 @@ void CaptureBitmap()
 				{
 					x = (int)(P.in_microcells_.width * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
 					y = (int)(P.in_microcells_.height * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 					{
 						j = y * bmh->width + x;
 						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.b.width / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.b.width) * 2);
 			f = ((int)prev);
 			for (j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.bheight + 5) * bmh->width + P.bwidth / 4 + i] = f;
+				bmPixels[(j + P.b.height + 5) * bmh->width + P.b.width / 4 + i] = f;
 			}
 		}
 	}
@@ -224,7 +224,7 @@ void InitBMHead()
 	int i, j, k, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.bwidth * P.bheight2;
+	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
@@ -235,7 +235,7 @@ void InitBMHead()
 	bmh->spare = 0;
 	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.bwidth;
+	bmh->width = P.b.width;
 	bmh->height = P.bheight2;
 	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel

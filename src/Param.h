@@ -55,8 +55,13 @@ struct Param
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
-	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
+
+	/// Size in pixels of the map area in the bitmap output
+	Geometry::Size<int> b;
+
+	/// Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
+	int bheight2;
+
 	int bminx, bminy;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15

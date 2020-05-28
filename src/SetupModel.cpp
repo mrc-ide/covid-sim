@@ -182,13 +182,13 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
-	P.bwidth = (int)(P.in_degrees_.width * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scalex);
-	P.bwidth = (P.bwidth + 3) / 4;
-	P.bwidth *= 4;
-	P.bheight = (int)(P.in_degrees_.height * (P.BoundingBox[3] - P.BoundingBox[1]) * P.scaley);
-	P.bheight += (4 - P.bheight % 4) % 4;
-	P.bheight2 = P.bheight + 20; // space for colour legend
-	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.bwidth, P.bheight);
+	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scalex);
+	P.b.width = (P.b.width + 3) / 4;
+	P.b.width *= 4;
+	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox[3] - P.BoundingBox[1]) * P.scaley);
+	P.b.height += (4 - P.b.height % 4) % 4;
+	P.bheight2 = P.b.height + 20; // space for colour legend
+	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
 	P.bminx = (int)(P.in_degrees_.width * P.BoundingBox[0] * P.scalex);
 	P.bminy = (int)(P.in_degrees_.height * P.BoundingBox[1] * P.scaley);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);

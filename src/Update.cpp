@@ -56,7 +56,7 @@ void DoImmune(int ai)
 		{
 			x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -142,7 +142,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 			{
 				int ix = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
 				int iy = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
-				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+				if ((ix >= 0) && (ix < P.b.width) && (iy >= 0) && (iy < P.b.height))
 				{
 					unsigned j = iy * bmh->width + ix;
 					if (j < bmh->imagesize)
@@ -944,7 +944,7 @@ void DoRecover(int ai, int tn, int run)
 			{
 				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
 				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -995,7 +995,7 @@ void DoDeath(int ai, int tn, int run)
 			{
 				x = ((int)(Households[a->hh].loc.x * P.scalex)) - P.bminx;
 				y = ((int)(Households[a->hh].loc.y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1033,7 +1033,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			{
 				x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
 				y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1066,7 +1066,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		{
 			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1097,7 +1097,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		{
 			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1317,7 +1317,7 @@ void DoVacc(int ai, unsigned short int ts)
 		{
 			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1357,7 +1357,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		{
 			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scalex)) - P.bminx;
 			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
