@@ -10,9 +10,10 @@
 
 #include "Geometry/Vector2.h"
 
-#include "Models/Person.h"
 #include "Models/Cell.h"
+#include "Models/Household.h"
 #include "Models/Microcell.h"
+#include "Models/Person.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
@@ -20,13 +21,6 @@
 #pragma pack(push, 2)
 
 
-struct Household
-{
-	int FirstPerson;
-	unsigned short int nh; // number people in household
-	unsigned short int nhr;
-	Geometry::Vector2<float> loc;
-};
 
 /*
 In the main InfectSweep loop, we cannot safely set

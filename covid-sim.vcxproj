@@ -129,6 +129,7 @@
     <ClInclude Include="src\Geometry\Size.h" />
     <ClInclude Include="src\Geometry\Vector2.h" />
     <ClInclude Include="src\Models\Cell.h" />
+    <ClInclude Include="src\Models\Household.h" />
     <ClInclude Include="src\Models\Microcell.h" />
     <ClInclude Include="src\Models\Person.h" />
   </ItemGroup>
