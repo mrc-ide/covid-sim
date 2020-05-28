@@ -22,7 +22,9 @@ public:
     void extract_multiple_or_exit(std::string const& param, T* output, std::size_t N);
 
 private:
-    void parse_param_file(std::string param_file);
+    bool exists(std::string const& param);
+
+    void parse_param_file(std::string const& param_file);
 
     template<typename T>
     bool raw_extract(std::istringstream& stream, T& output);

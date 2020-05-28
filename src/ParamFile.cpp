@@ -66,50 +66,46 @@ bool ParamReader::raw_extract(std::istringstream& stream, T& output)
 template<typename T>
 bool ParamReader::extract(std::string const& param, T& output, T default_value)
 {
-    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
-                  "Integral or floating point required.");
-
-    auto it = m_param_value_map.find(param);
-    if (it == m_param_value_map.cend())
+    if (!exists(param))
     {
-        std::cout << "Parameter \"" << param << "\" not found. Using default " << default_value << std::endl;
+        std::cout << "Using default value: " << default_value << std::endl;
         output = default_value;
         return false;
     }
 
-    std::istringstream iss(it->second);
+    std::istringstream iss(m_param_value_map[param]);
     return raw_extract(iss, output);
 }
 
 template<typename T>
 void ParamReader::extract_or_exit(std::string const& param, T& output)
 {
-    if (extract<T>(param, output, 0) == false)
-    {
+    if (!exists(param))
         std::exit(1);
-    }
+
+    std::istringstream iss(m_param_value_map[param]);
+    if (!raw_extract(iss, output))
+        std::exit(1);
 }
 
 template<typename T>
 bool ParamReader::extract_multiple(std::string const& param, T* output, std::size_t N, T default_value)
 {
-    auto it = m_param_value_map.find(param);
-    if (it == m_param_value_map.cend())
+    if (!exists(param))
     {
-        std::cout << "Parameter \"" << param << "\" not found. Using default "
-                    << default_value << std::endl;
+        std::cerr << "Using default value: " << default_value << std::endl;
         for (auto i = 0; i < N; i++)
             output[i] = default_value;
         return false;
     }
 
-    std::istringstream iss(it->second);
+    std::istringstream iss(m_param_value_map[param]);
     for (auto i = 0; i < N; i++)
     {
         if (!raw_extract(iss, output[i]))
         {
             std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for "
-                        << param << ". Using default " << default_value << std::endl;
+                      << param << ".\nUsing default value: " << default_value << std::endl;
             for (auto i = 0; i < N; i++)
                 output[i] = default_value;
             return false;
@@ -121,14 +117,10 @@ bool ParamReader::extract_multiple(std::string const& param, T* output, std::siz
 template<typename T>
 void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, std::size_t N)
 {
-    auto it = m_param_value_map.find(param);
-    if (it == m_param_value_map.cend())
-    {
-        std::cerr << "ERROR: Parameter \"" << param << "\" not found." << std::endl;
+    if (!exists(param))
         std::exit(1);
-    }
 
-    std::istringstream iss(it->second);
+    std::istringstream iss(m_param_value_map[param]);
     for (auto i = 0; i < N; i++)
     {
         if (!raw_extract(iss, output[i]))
@@ -150,7 +142,18 @@ template bool ParamReader::extract_multiple<int>(std::string const&, int*, std::
 template void ParamReader::extract_multiple_or_exit<double>(std::string const&, double*, std::size_t);
 template void ParamReader::extract_multiple_or_exit<int>(std::string const&, int*, std::size_t);
 
-void ParamReader::parse_param_file(std::string param_file)
+bool ParamReader::exists(std::string const& param)
+{
+    auto it = m_param_value_map.find(param);
+    if (it == m_param_value_map.cend())
+    {
+        std::cout << "ERROR: Parameter \"" << param << "\" not found." << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void ParamReader::parse_param_file(std::string const& param_file)
 {
     std::ifstream param_stream(param_file);
     if (!param_stream)
