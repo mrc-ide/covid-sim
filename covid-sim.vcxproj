@@ -128,6 +128,9 @@
     <ClInclude Include="src\Geometry\BoundingBox.h" />
     <ClInclude Include="src\Geometry\Size.h" />
     <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="src\Models\Cell.h" />
+    <ClInclude Include="src\Models\Microcell.h" />
+    <ClInclude Include="src\Models\Person.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

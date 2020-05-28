@@ -2,6 +2,10 @@
 #define COVIDSIM_DIST_H_INCLUDED_
 
 #include "Model.h"
+#include "Models/Person.h"
+#include "Models/Cell.h"
+#include "Models/Microcell.h"
+
 extern double sinx[361], cosx[361], asin2sqx[1001];
 double dist2UTM(double, double, double, double);
 double dist2(Person*, Person*);
