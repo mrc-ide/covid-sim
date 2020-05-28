@@ -617,7 +617,9 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			// wasted effort
 			bool cumV_OK;
 #pragma omp critical (state_cumV)
-			cumV_OK = State.cumV < P.VaccMaxCourses;
+			{
+				cumV_OK = State.cumV < P.VaccMaxCourses;
+			}
 			if (cumV_OK && (t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
 			{
 				j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
