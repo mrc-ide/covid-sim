@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc.x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc.y / P.in_cells_.height_));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc.x / P.in_cells_.width)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc.y / P.in_cells_.height));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{

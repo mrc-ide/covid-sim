@@ -7,18 +7,13 @@
 #include "Constants.h"
 #include "MicroCellPosition.hpp"
 
+#include "Geometry/Size.h"
+
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
 {
   BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
   BF_BMP = 1   // BMP - fall-back
-};
-
-/// Size of spatial domain in various units
-struct DomainSize
-{
-	double width_;
-	double height_;
 };
 
 /**
@@ -100,9 +95,9 @@ struct Param
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 	double scalex, scaley; // Number of pixels per degree in bitmap output
-	DomainSize in_degrees_; ///< Size of spatial domain in degrees
-	DomainSize in_cells_; ///< Size of spatial domain in cells
-	DomainSize in_microcells_; ///< Size of spatial domain in microcells
+	Geometry::Size<double> in_degrees_; ///< Size of spatial domain in degrees
+	Geometry::Size<double> in_cells_; ///< Size of spatial domain in cells
+	Geometry::Size<double> in_microcells_; ///< Size of spatial domain in microcells
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;

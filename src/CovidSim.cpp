@@ -1265,7 +1265,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width_), 1, 1, 0)) P.in_cells_.width_ = 1.0 / 120.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*) & (P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*) & (P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
@@ -2867,8 +2867,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
+			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width);
+			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height);
 			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
 			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
