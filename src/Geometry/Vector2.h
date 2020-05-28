@@ -60,7 +60,7 @@ namespace Geometry {
 
 	template<class T>
 	T Vector2<T>::length() const {
-		return sqrt(this->length());
+		return sqrt(this->length_squared());
 	}
 
 	template<class T>
