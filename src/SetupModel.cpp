@@ -1337,15 +1337,15 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		{
 			fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
 			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
-			Places[j][P.Nplace[j]].loc_x = (float)(x - P.SpatialBoundingBox[0]);
-			Places[j][P.Nplace[j]].loc_y = (float)(y - P.SpatialBoundingBox[1]);
+			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox[0]);
+			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox[1]);
 			if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) && (y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
 			{
-				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc_x / P.in_cells_.width_)) + ((int)(Places[j][P.Nplace[j]].loc_y / P.in_cells_.height_));
+				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width_)) + ((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height_));
 				if (Cells[i].n == 0) mr++;
 				Places[j][P.Nplace[j]].n = m;
-				i = (int)(Places[j][P.Nplace[j]].loc_x / P.in_microcells_.width_);
-				int k = (int)(Places[j][P.Nplace[j]].loc_y / P.in_microcells_.height_);
+				i = (int)(Places[j][P.Nplace[j]].loc.x / P.in_microcells_.width_);
+				int k = (int)(Places[j][P.Nplace[j]].loc.y / P.in_microcells_.height_);
 				j2 = i * P.get_number_of_micro_cells_high() + k;
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
@@ -1416,8 +1416,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 						{
 							xh = P.in_microcells_.width_ * (ranf_mt(tn) + x);
 							yh = P.in_microcells_.height_ * (ranf_mt(tn) + y);
-							Places[j2][k].loc_x = (float)xh;
-							Places[j2][k].loc_y = (float)yh;
+							Places[j2][k].loc.x = (float)xh;
+							Places[j2][k].loc.y = (float)yh;
 							Places[j2][k].n = 0;
 							Places[j2][k].mcell = i;
 							Places[j2][k].country = Mcells[i].country;
@@ -1643,7 +1643,7 @@ void SetupAirports(void)
 				Airports[i].num_place = 0;
 				for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
 					if (dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
-						Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y) < tmin)
+						Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
 			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
@@ -1651,7 +1651,7 @@ void SetupAirports(void)
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
 				if ((t = dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
-					Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y)) < tmin)
+					Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y)) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
@@ -1979,8 +1979,8 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
-							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							j = (int)(Places[tp][i].loc.x / P.in_cells_.width_);
+							k = j * P.nch + ((int)(Places[tp][i].loc.y / P.in_cells_.height_));
 							Cells[k].I += (int)Places[tp][i].treat_end_time;
 						}
 					for (k = 0; k < P.NC; k++)
@@ -2033,8 +2033,8 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
-							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							j = (int)(Places[tp][i].loc.x / P.in_cells_.width_);
+							k = j * P.nch + ((int)(Places[tp][i].loc.y / P.in_cells_.height_));
 							if ((Cells[k].L > 0) && (Cells[k].R > 0))
 							{
 								s = ((double)Cells[k].L) / ((double)Cells[k].R);
@@ -2071,7 +2071,7 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.NC; i++) Cells[i].S = 0;
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.nch * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.nch * ((int)(Places[tp][j].loc.x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc.y / P.in_cells_.height_));
 						Cells[i].S += (int)Places[tp][j].treat_end_time;
 					}
 					for (int i = 0; i < P.NC; i++)
@@ -2085,7 +2085,7 @@ void AssignPeopleToPlaces()
 					}
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.nch * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.nch * ((int)(Places[tp][j].loc.x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc.y / P.in_cells_.height_));
 						k = (int)Places[tp][j].treat_end_time;
 						for (j2 = 0; j2 < k; j2++)
 						{
@@ -2137,7 +2137,7 @@ void AssignPeopleToPlaces()
 										{
 											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
 											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
-												Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
+												Places[tp][Mcells[ic].places[tp][cnt]].loc.x, Places[tp][Mcells[ic].places[tp][cnt]].loc.y);
 											s = numKernel(t);
 											if (tp < P.nsp)
 											{
@@ -2276,7 +2276,7 @@ void AssignPeopleToPlaces()
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
-									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc_x, Places[tp][j].loc_y);
+									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
 									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{

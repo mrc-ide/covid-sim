@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.in_cells_.height_));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc.x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc.y / P.in_cells_.height_));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
@@ -222,7 +222,7 @@ void TravelDepartSweep(double t)
 							}
 							if (f3)
 							{
-								double s2 = dist2_raw(Households[Hosts[i2].hh].loc.x, Households[Hosts[i2].hh].loc.y, Places[P.HotelPlaceType][i].loc_x, Places[P.HotelPlaceType][i].loc_y);
+								double s2 = dist2_raw(Households[Hosts[i2].hh].loc.x, Households[Hosts[i2].hh].loc.y, Places[P.HotelPlaceType][i].loc.x, Places[P.HotelPlaceType][i].loc.y);
 								int f2 = 1;
 								if ((bm) && (s2 > P.MoveRestrRadius2))
 								{
@@ -379,7 +379,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if (bm)
 								{
 									if ((dist2_raw(Households[si->hh].loc.x, Households[si->hh].loc.y,
-										Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+										Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
 										s3 *= P.MoveRestrEffect;
 								}
 								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
@@ -448,7 +448,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc.x, Households[Hosts[i3].hh].loc.y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+													Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
@@ -518,7 +518,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc.x, Households[Hosts[i3].hh].loc.y,
-													Places[k][l].loc_x, Places[k][l].loc_y) > P.MoveRestrRadius2))
+													Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
 													s *= P.MoveRestrEffect;
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
