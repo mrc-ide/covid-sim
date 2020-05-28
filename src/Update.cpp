@@ -1270,7 +1270,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 	int x, y;
 	bool cumVG_OK = false;
 
-	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+	if (HOST_TO_BE_VACCED(ai)
+		|| (Hosts[ai].is_symptomatic() && !Hosts[ai].is_exposed())
+		|| Hosts[ai].is_dead())
 		return;
 #pragma omp critical (state_cumVG)
 	if (State.cumVG < P.VaccMaxCourses)
