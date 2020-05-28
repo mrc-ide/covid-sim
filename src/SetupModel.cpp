@@ -285,7 +285,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (P.DoRecordInfEvents)
 	{
 		if (!(InfEventLog = (Events*)calloc(P.MaxInfEvents, sizeof(Events)))) ERR_CRITICAL("Unable to allocate events storage\n");
-		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
 	if(P.OutputNonSeverity) SaveAgeDistrib();
