@@ -1,11 +1,12 @@
 #include "Susceptible.h"
 #include "Model.h"
+#include "Latent.h"
 #include "ImmuneAtStart.h"
 #include "InfectiousAlmostSymptomatic.h"
 #include "ModelMacros.h"
-#include "Latent.h"
 #include <math.h>
 #include "Rand.h"
+#include "Case.h"
 
 // get worse
 /*
@@ -18,14 +19,14 @@ InfectiousAsymptomaticNotCase
 
 void Susceptible::GetsWorse(int ai, double t, int tn, int run)
 {
-	Hosts->infectionState = new Latent(P);
 	BecomesInfected(ai, t, tn, run);
+	Hosts->infectionState = new Latent(P);
 }
 
 void Susceptible::GetsBetter(int ai, double t, int tn, int run)
 {
-	Hosts->infectionState = new ImmuneAtStart();
 	BecomesImmune(ai);
+	Hosts->infectionState = new ImmuneAtStart();
 }
 
 void Susceptible::BecomesImmune(int ai)
@@ -66,11 +67,11 @@ void Susceptible::BecomesImmune(int ai)
 	Cells[c].latent--;
 	Cells[c].infected--;
 	Cells[c].R++;
-	if (P.OutputBitmap)
+	if (P->OutputBitmap)
 	{
-		x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-		y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-		if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+		x = ((int)(Households[a->hh].loc_x * P->scalex)) - P->bminx;
+		y = ((int)(Households[a->hh].loc_y * P->scaley)) - P->bminy;
+		if ((x >= 0) && (x < P->bwidth) && (y >= 0) && (y < P->bheight))
 		{
 			unsigned j = y * bmh->width + x;
 			if (j < bmh->imagesize)
@@ -92,7 +93,7 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
 
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	ts = (unsigned short int) (P->TimeStepsPerDay * t);
 	a->inf = InfStat_Latent; //// set person a to be infected
 	a->infection_time = (unsigned short int) ts; //// record their infection time
 	///// Change threaded state variables to reflect new infection status of person a.
@@ -100,8 +101,8 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 	StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 	StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 	//// calculate radius squared, and increment sum of radii squared.
-	x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-	y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
+	x = (Households[a->hh].loc_x - P->LocationInitialInfection[0][0]);
+	y = (Households[a->hh].loc_y - P->LocationInitialInfection[0][1]);
 	q = x * x + y * y;
 	StateT[tn].sumRad2 += q;
 
@@ -120,27 +121,27 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 	}
 	StateT[tn].cumI_keyworker[a->keyworker]++;
 
-	if (P.DoLatent)
+	if (P->DoLatent)
 	{
 		i = (int)floor((q = ranf_mt(tn) * CDF_RES));
 		q -= ((double)i);
-		a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf[i + 1] + (1.0 - q) * P.latent_icdf[i])) * P.TimeStepsPerDay);
+		a->latent_time = (unsigned short int) floor(0.5 + (t - P->LatentPeriod * log(q * P->latent_icdf[i + 1] + (1.0 - q) * P->latent_icdf[i])) * P->TimeStepsPerDay);
 	}
 	else
-		a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
+		a->latent_time = (unsigned short int) (t * P->TimeStepsPerDay);
 
-	//if (P.DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P.latent_icdf, P.LatentPeriod, tn);
-	//else			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
+	//if (P->DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P->latent_icdf, P->LatentPeriod, tn);
+	//else			a->latent_time = (unsigned short int) (t * P->TimeStepsPerDay);
 
-	if (P.DoAdUnits)		StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
+	if (P->DoAdUnits)		StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
 
-	if (P.OutputBitmap)
+	if (P->OutputBitmap)
 	{
-		if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
+		if ((P->OutputBitmapDetected == 0) || ((P->OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 		{
-			int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-			int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-			if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+			int ix = ((int)(Households[a->hh].loc_x * P->scalex)) - P->bminx;
+			int iy = ((int)(Households[a->hh].loc_y * P->scaley)) - P->bminy;
+			if ((ix >= 0) && (ix < P->bwidth) && (iy >= 0) && (iy < P->bheight))
 			{
 				unsigned j = iy * bmh->width + ix;
 				if (j < bmh->imagesize)
@@ -152,23 +153,28 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 		}
 	}
 	//added this to record event if flag is set to 1 : ggilani - 10/10/2014
-	if (P.DoRecordInfEvents)
+	if (P->DoRecordInfEvents)
 	{
-		if (*nEvents < P.MaxInfEvents)
+		if (*nEvents < P->MaxInfEvents)
 		{
 			RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
 		}
 	}
-	// TODO
-/*	if ((t > 0) && (P.DoOneGen))
+	if ((t > 0) && (P->DoOneGen))
 	{
-		DoIncub(ai, ts, tn, run);
-		DoCase(ai, t, ts, tn);
-		DoRecover(ai, tn, run);
-	}*/
+		auto latentState = new Latent(P);
+		latentState->GetsWorse(ai, t, tn, run);
+
+		auto infealmostsymp = new InfectiousAlmostSymptomatic(P);
+		infealmostsymp->GetsWorse(ai, t, tn, run);
+
+		auto caseState = new Case();
+		caseState->GetsBetter(ai, t, tn, run);
+		//DoIncub(ai, ts, tn, run);
+		//DoCase(ai, t, ts, tn);
+		//DoRecover(ai, tn, run);
+	}
 }
-
-
 void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
 {
 	/* Function: RecordEvent(t, ai)
@@ -196,8 +202,8 @@ void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //add
 		InfEventLog[*nEvents].t = t;
 		InfEventLog[*nEvents].infectee_ind = ai;
 		InfEventLog[*nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
-		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
+		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P->SpatialBoundingBox[0];
+		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P->SpatialBoundingBox[1];
 		InfEventLog[*nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[*nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[*nEvents].thread = tn;
@@ -211,17 +217,17 @@ void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //add
 			}
 			else
 			{
-				InfEventLog[*nEvents].t_infector = (int)(Hosts[bi].infection_time / P.TimeStepsPerDay);
+				InfEventLog[*nEvents].t_infector = (int)(Hosts[bi].infection_time / P->TimeStepsPerDay);
 				InfEventLog[*nEvents].infector_cell = Hosts[bi].pcell;
 			}
 		}
 		else if (type == 1) //onset event - record infectee's onset time
 		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].infection_time / P.TimeStepsPerDay);
+			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].infection_time / P->TimeStepsPerDay);
 		}
 		else if ((type == 2) || (type == 3)) //recovery or death event - record infectee's onset time
 		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].latent_time / P.TimeStepsPerDay);
+			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].latent_time / P->TimeStepsPerDay);
 		}
 
 		//increment the index of the infection event
@@ -229,5 +235,3 @@ void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //add
 	}
 
 }
-
-

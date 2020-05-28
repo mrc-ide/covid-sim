@@ -1,5 +1,14 @@
-#pragma once
-class Dead
+#include "IInfectionState.h"
+#include "Param.h"
+class Dead :
+	public IInfectionState
 {
+public:
+	Dead(Param* p)
+		: IInfectionState(p)
+	{
+	}
+	virtual void GetsWorse(int ai, double t, int tn, int run);
+	virtual void GetsBetter(int ai, double t, int tn, int run);
 };
 

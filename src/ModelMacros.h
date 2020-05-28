@@ -9,9 +9,12 @@
 #define PLACE_CLOSED(x, y) ((Places[x][y].close_start_time <= ts) && (Places[x][y].close_end_time > ts))
 #define HOST_TO_BE_VACCED(x) (Hosts[x].vacc_start_time < USHRT_MAX - 1)
 #define HOST_VACCED(x) (Hosts[x].vacc_start_time+P.usVaccTimeToEfficacy<=ts)
+#define HOST_VACCED_PTR(x) (Hosts[x].vacc_start_time+P->usVaccTimeToEfficacy<=ts)
 #define HOST_VACCED_SWITCH(x) (Hosts[x].vacc_start_time >= P.usVaccTimeEfficacySwitch)
 #define HOST_QUARANTINED(x) ((Hosts[x].quar_comply == 1) && (Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_start_time <= ts))
+#define HOST_QUARANTINED_PTR(x) ((Hosts[x].quar_comply == 1) && (Hosts[x].quar_start_time + P->usHQuarantineHouseDuration > ts) && (Hosts[x].quar_start_time <= ts))
 #define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
+#define HOST_TO_BE_QUARANTINED_PTR(x) ((Hosts[x].quar_start_time + P->usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
 #define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay <= ts) && (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration > ts))
 #define HOST_ABSENT(x) ((Hosts[x].absent_start_time <= ts) && (Hosts[x].absent_stop_time > ts))
 
