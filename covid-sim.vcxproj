@@ -125,6 +125,9 @@
     <ClInclude Include="src\Update.h" />
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
+    <ClInclude Include="src\Geometry\BoundingBox.h" />
+    <ClInclude Include="src\Geometry\Size.h" />
+    <ClInclude Include="src\Geometry\Vector2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
