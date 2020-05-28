@@ -1298,12 +1298,19 @@ int DoVacc(int ai, unsigned short int ts)
 void DoVaccNoDelay(int ai, unsigned short int ts)
 {
 	int x, y;
+	bool cumVG_OK = false;
 
-	if ((State.cumVG < P.VaccMaxCourses) && (!HOST_TO_BE_VACCED(ai)) && (Hosts[ai].inf >= InfStat_InfectiousAlmostSymptomatic) && (Hosts[ai].inf < InfStat_Dead_WasAsymp))
+	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+		return;
+#pragma omp critical (state_cumVG)
+	if (State.cumVG < P.VaccMaxCourses)
+	{
+		cumVG_OK = true;
+		State.cumVG++;
+	}
+	if (cumVG_OK)
 	{
 		Hosts[ai].vacc_start_time = ts;
-#pragma omp critical (state_cumVG) //changed to VG
-		State.cumVG++; //changed to VG
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp critical (state_cumV_daily)
