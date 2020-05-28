@@ -10,7 +10,6 @@
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"
-#include "Kernels.h"
 #include "Bitmap.h"
 #include "Model.h"
 #include "Param.h"
@@ -33,6 +32,9 @@
 #else
 #include <strings.h>
 #endif
+
+using namespace Models;
+using namespace Geometry;
 
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
@@ -936,7 +938,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0].x), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0] = Vector2<double>(0, 0);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.MinPopDensForInitialInfection), 1, 1, 0)) P.MinPopDensForInitialInfection = 0;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
@@ -1238,17 +1240,17 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.CFR_ILI_ByAge[i] = 0.00;
 	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.bounding_box.start.x), 4, 1, 0))
 	{
-		P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
-		P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+		P.bounding_box.start = Vector2<double>(0, 0);
+		P.bounding_box.end = Vector2<double>(1, 1);
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox[0]), 4, 1, 0))
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox.start.x), 4, 1, 0))
 	{
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
+		P.SpatialBoundingBox.start = Vector2<double>(0, 0);
+		P.SpatialBoundingBox.end = Vector2<double>(1, 1);
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width_), 1, 1, 0)) P.in_cells_.width_ = 1.0 / 120.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*) & (P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*) & (P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
@@ -2343,21 +2345,18 @@ void ReadAirTravel(char* AirTravelFile)
 	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
-		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
+		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
-			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y >= P.SpatialBoundingBox[3]))
+		if (!P.SpatialBoundingBox.contains((Vector2<double>)Airports[i].loc))
 		{
-			Airports[i].loc_x = Airports[i].loc_y = -1;
+			Airports[i].loc = Vector2<float>(-1, -1);
 			Airports[i].total_traffic = 0;
 		}
 		else
 		{
-			//fprintf(stderr,"(%f\t%f) ",Airports[i].loc_x,Airports[i].loc_y);
-			Airports[i].loc_x -= (float)P.SpatialBoundingBox[0];
-			Airports[i].loc_y -= (float)P.SpatialBoundingBox[1];
+			Airports[i].loc -= (Vector2<float>)P.SpatialBoundingBox.start;
 			Airports[i].total_traffic = (float)traf;
 		}
 		t = 0;
@@ -2455,7 +2454,7 @@ void ReadAirTravel(char* AirTravelFile)
 			for (j = 0; j < Airports[i].num_connected; j++)
 			{
 				k = (int)Airports[i].conn_airports[j];
-				traf = floor(sqrt(dist2_raw(Airports[i].loc_x, Airports[i].loc_y, Airports[k].loc_x, Airports[k].loc_y)) / OUTPUT_DIST_SCALE);
+				traf = floor(Airports[i].distance_to(Airports[k]) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
@@ -2786,7 +2785,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		*nEvents = 0;
 		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
-			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].t = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].infectee_position = Vector2<double>(0, 0);
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
 			InfEventLog[i].infectee_adunit = InfEventLog[i].listpos = InfEventLog[i].infectee_cell = InfEventLog[i].infector_cell = InfEventLog[i].thread = 0;
 		}
@@ -2825,7 +2825,6 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 	int i /*seed location index*/;
 	int j /*microcell number*/;
-	int k, l /*k,l are grid coords at first, then l changed to be person within Microcell j, then k changed to be index of new infection*/;
 	int m = 0/*guard against too many infections and infinite loop*/;
 	int f /*range = {0, 1000}*/;
 	int n /*number of seed locations?*/;
@@ -2835,30 +2834,28 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
-			j = k * P.get_number_of_micro_cells_high() + l;
+			Vector2<int> pos = (Vector2<int>)(P.LocationInitialInfection[i] / (Vector2<double>)P.in_microcells_);
+			j = pos.x * P.number_of_micro_cells().height + pos.y;
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
-				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
+				int person = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member person
+				if (Hosts[person].inf == InfStat_Susceptible) //// If Host person is uninfected.
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if (CalcPersonSusc(person, 0, 0, 0) > 0)
 					{
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[person].hh].loc;
 						}
-						Hosts[l].infector = -2;
-						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
+						Hosts[person].infector = -2;
+						Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(person, t, 0, run); ///// guessing this updates a number of things about person person at time t in thread 0 for this run.
 						m = 0;
 					}
 				}
-				else { k--; m++; } //// k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
+				else { new_infection--; m++; } //// new_infection-- means if person person chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
 			}
 		}
 		else if (P.DoAllInitialInfectioninSameLoc)
@@ -2869,29 +2866,29 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				m = 0;
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
+					int person = (int)(ranf() * ((double)P.PopSize));
+					j = Hosts[person].mcell;
 					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
 				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+				for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 				{
-					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-					if (Hosts[l].inf == InfStat_Susceptible)
+					int person = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+					if (Hosts[person].inf == InfStat_Susceptible)
 					{
-						if (CalcPersonSusc(l, 0, 0, 0) > 0)
+						if (CalcPersonSusc(person, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
-							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-							DoInfect(l, t, 0, run);
+							P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[person].hh].loc;
+							Hosts[person].infector = -2;
+							Hosts[person].infect_type = INFECT_TYPE_MASK - 1;
+							DoInfect(person, t, 0, run);
 							m = 0;
 						}
 					}
 					else
 					{
-						k--; m++;
+						new_infection--; m++;
 					}
 				}
 				if (m)
@@ -2903,35 +2900,36 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		else
 		{
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (int new_infection = 0; (new_infection < nsi[i]) && (m < 10000); new_infection++)
 			{
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
+					int person = (int)(ranf() * ((double)P.PopSize));
+					j = Hosts[person].mcell;
 					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
 				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-				if (Hosts[l].inf == InfStat_Susceptible)
+
+				int infectee = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
+				if (Hosts[infectee].inf == InfStat_Susceptible)
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if (CalcPersonSusc(infectee, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
-						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run);
+						P.LocationInitialInfection[i] = (Vector2<double>)Households[Hosts[infectee].hh].loc;
+						Hosts[infectee].infector = -2;
+						Hosts[infectee].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(infectee, t, 0, run);
 						m = 0;
 					}
 					else
 					{
-						k--; m++;
+						new_infection--; m++;
 					}
 				}
 				else
 				{
-					k--; m++;
+					new_infection--; m++;
 				}
 			}
 		}
@@ -3168,7 +3166,7 @@ void SaveDistribs(void)
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
 						k = Hosts[i].PlaceLinks[j];
-						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y, Places[j][k].loc_x, Places[j][k].loc_y)) / OUTPUT_DIST_SCALE;
+						s = Households[Hosts[i].hh].distance_to(Places[j][k]) / OUTPUT_DIST_SCALE;
 						k = (int)s;
 						if (k < MAX_DIST) PlaceDistDistrib[j][k]++;
 					}
@@ -3419,7 +3417,10 @@ void SaveResults(void)
 				sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.%i.png", OutFile, OutFile, i + 1);
 				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname);
 				fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
-					P.SpatialBoundingBox[3], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[0]);
+					P.SpatialBoundingBox.end.y,
+					P.SpatialBoundingBox.start.y,
+					P.SpatialBoundingBox.end.x,
+					P.SpatialBoundingBox.start.x);
 				fprintf(dat, "</GroundOverlay>\n");
 			}
 		fprintf(dat, "</Document>\n</kml>\n");
@@ -4196,7 +4197,10 @@ void SaveEvents(void)
 	for (i = 0; i < *nEvents; i++)
 	{
 		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
-			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
+			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind,
+			InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit,
+			InfEventLog[i].infectee_position.x, InfEventLog[i].infectee_position.y, InfEventLog[i].t_infector,
+			InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
 	fclose(dat);
 }
@@ -4229,8 +4233,8 @@ void LoadSnapshot(void)
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.number_of_cells.width) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.number_of_cells.height) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
@@ -4301,9 +4305,9 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.number_of_cells.width), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.number_of_cells.height), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5339,7 +5343,7 @@ void CalcOriginDestMatrix_adunit()
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
-			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from_mcl = (cl_from / P.number_of_cells.height) * P.NMCL * P.number_of_micro_cells().height + (cl_from % P.number_of_cells.height) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
 			for (int k = 0; k < P.NMCL; k++)
@@ -5347,7 +5351,7 @@ void CalcOriginDestMatrix_adunit()
 				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.get_number_of_micro_cells_high();
+					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.number_of_micro_cells().height;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5363,7 +5367,7 @@ void CalcOriginDestMatrix_adunit()
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
-				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to_mcl = (cl_to / P.number_of_cells.height) * P.NMCL * P.number_of_micro_cells().height + (cl_to % P.number_of_cells.height) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				double total_flow;
@@ -5382,7 +5386,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.get_number_of_micro_cells_high();
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.number_of_micro_cells().height;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit

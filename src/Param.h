@@ -5,23 +5,15 @@
 
 #include "Country.h"
 #include "Constants.h"
-#include "MicroCellPosition.hpp"
+#include "Geometry/MicroCellPosition.h"
+#include "Geometry/Size.h"
+#include "Geometry/BoundingBox.h"
 
 /** @brief Enumeration of bitmap formats. */
 enum BitmapFormats
 {
   BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
   BF_BMP = 1   // BMP - fall-back
-};
-
-/// Size of spatial domain in various units
-struct DomainSize
-{
-	/// The width
-	double width_;
-
-	/// The height
-	double height_;
 };
 
 /**
@@ -51,21 +43,24 @@ struct Param
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NMCP, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 
-	int get_number_of_micro_cells_wide() const;
-	int get_number_of_micro_cells_high() const;
-	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
-	int get_micro_cell_index_from_position(MicroCellPosition position) const;
-	bool is_in_bounds(MicroCellPosition position) const;
+	Geometry::Size<int> number_of_cells;
+	Geometry::Size<int> number_of_micro_cells() const;
+	Geometry::MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
+	int get_micro_cell_index_from_position(Geometry::MicroCellPosition position) const;
+	bool is_in_bounds(Geometry::MicroCellPosition position) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
+
+	/// Size in pixels of the map area in the bitmap output
+	Geometry::Size<int> b;
+
 	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	int bminx, bminy;
+	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
@@ -83,7 +78,11 @@ struct Param
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	int OutputBitmap; // Whether to output a bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
+
+	Geometry::BoundingBox<double> SpatialBoundingBox;
+
+	Geometry::Vector2<double> LocationInitialInfection[MAX_NUM_SEED_LOCATIONS];
+	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 
@@ -102,10 +101,18 @@ struct Param
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
-	double scalex, scaley; // Number of pixels per degree in bitmap output
-	DomainSize in_degrees_; ///< Size of spatial domain in degrees
-	DomainSize in_cells_; ///< Size of spatial domain in cells
-	DomainSize in_microcells_; ///< Size of spatial domain in microcells
+
+	/// Number of pixels per degree in bitmap output
+	Geometry::Vector2<double> scale;
+
+	///< Size of spatial domain in degrees
+	Geometry::Size<double> in_degrees_;
+
+	///< Size of spatial domain in cells
+	Geometry::Size<double> in_cells_;
+
+	///< Size of spatial domain in microcells
+	Geometry::Size<double> in_microcells_;
 	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
 	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;
@@ -147,7 +154,10 @@ struct Param
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
-	double ColourPeriod, BoundingBox[4], BitmapScale;
+
+	Geometry::BoundingBox<double> bounding_box;
+
+	double ColourPeriod, BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;

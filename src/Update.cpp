@@ -10,6 +10,9 @@
 #include "Bitmap.h"
 #include "Rand.h"
 
+using namespace Models;
+using namespace Geometry;
+
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
@@ -21,7 +24,6 @@ void DoImmune(int ai)
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
 	Person* a;
 	int c;
-	int x, y;
 
 	a = Hosts + ai;
 	if (a->inf == InfStat_Susceptible)
@@ -54,11 +56,10 @@ void DoImmune(int ai)
 		Cells[c].R++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -68,12 +69,12 @@ void DoImmune(int ai)
 		}
 	}
 }
+
 void DoInfect(int ai, double t, int tn, int run) // Change person from susceptible to latently infected.  added int as argument to DoInfect to record run number: ggilani - 15/10/14
 {
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
 	unsigned short int ts; //// time step
-	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
 	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
@@ -87,30 +88,31 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumI++;
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
-		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
-		q = x * x + y * y;
-		StateT[tn].sumRad2 += q;
 
-		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
+		//// calculate radius squared, and increment sum of radii squared.
+		Vector2<double> pos = (Vector2<double>)Households[a->hh].loc - P.LocationInitialInfection[0];
+		const double radius_squared = pos.length_squared();
+		StateT[tn].sumRad2 += radius_squared;
+		if (radius_squared > StateT[tn].maxRad2)
+			StateT[tn].maxRad2 = radius_squared; //// update maximum radius squared from seeding infection
+
+		Cells[a->pcell].S--;
+		Cells[a->pcell].L++;			//// number of latently infected people increases by one.
+		Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
+		if (a->listpos < Cells[a->pcell].S)
 		{
-			Cells[a->pcell].S--;
-			Cells[a->pcell].L++;			//// number of latently infected people increases by one.
-			Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
-			if (a->listpos < Cells[a->pcell].S)
-			{
-				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
-				Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
-				a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
-				Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
-			}
+			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
+			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
+			a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
+			Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
 		}
 		StateT[tn].cumI_keyworker[a->keyworker]++;
 
 		if (P.DoLatent)
 		{
-			i = (int)floor((q = ranf_mt(tn) * CDF_RES));
+			// quantile of inverse CDF to choose latent period
+			double q = ranf_mt(tn) * CDF_RES;
+			i = (int)floor(q);
 			q -= ((double)i);
 			a->latent_time = (unsigned short int) floor(0.5 + (t - P.LatentPeriod * log(q * P.latent_icdf[i + 1] + (1.0 - q) * P.latent_icdf[i])) * P.TimeStepsPerDay);
 		}
@@ -126,11 +128,10 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+				Vector2<int> i = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(i))
 				{
-					unsigned j = iy * bmh->width + ix;
+					unsigned j = i.y * bmh->width + i.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -144,7 +145,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if (*nEvents < P.MaxInfEvents)
 			{
-				RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
+				RecordEvent(t, ai, run, 0, tn);
 			}
 		}
 		if ((t > 0) && (P.DoOneGen))
@@ -183,8 +184,7 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 		InfEventLog[*nEvents].t = t;
 		InfEventLog[*nEvents].infectee_ind = ai;
 		InfEventLog[*nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
-		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
+		InfEventLog[*nEvents].infectee_position = (Vector2<double>)Households[Hosts[ai].hh].loc + P.SpatialBoundingBox.start;
 		InfEventLog[*nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[*nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[*nEvents].thread = tn;
@@ -891,7 +891,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 
 void DoRecover(int ai, int tn, int run)
 {
-	int i, j, x, y;
+	int i, j;
 	Person* a;
 
 	a = Hosts + ai;
@@ -914,11 +914,10 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -930,13 +929,11 @@ void DoRecover(int ai, int tn, int run)
 			}
 		}
 	}
-	//else
-	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
 void DoDeath(int ai, int tn, int run)
 {
-	int i, x, y;
+	int i;
 	Person* a = Hosts + ai;
 
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
@@ -960,11 +957,10 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[a->hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -980,8 +976,6 @@ void DoDeath(int ai, int tn, int run)
 
 void DoTreatCase(int ai, unsigned short int ts, int tn)
 {
-	int x, y;
-
 	if (State.cumT < P.TreatMaxCourses)
 	{
 #ifdef NO_TREAT_PROPH_CASES
@@ -998,11 +992,10 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+				if (P.b.contains(pos))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pos.y * bmh->width + pos.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -1017,7 +1010,6 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 void DoProph(int ai, unsigned short int ts, int tn)
 {
 	//// almost identical to DoProphNoDelay, except unsurprisingly this function includes delay between timestep and start of treatment. Also increments StateT[tn].cumT_keyworker by 1 every time.
-	int x, y;
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -1031,11 +1023,10 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1048,8 +1039,6 @@ void DoProph(int ai, unsigned short int ts, int tn)
 
 void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 {
-	int x, y;
-
 	if (State.cumT < P.TreatMaxCourses)
 	{
 		Hosts[ai].treat_start_time = ts;
@@ -1062,11 +1051,10 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1258,8 +1246,6 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 
 int DoVacc(int ai, unsigned short int ts)
 {
-	int x, y;
-
 	if (State.cumV >= P.VaccMaxCourses)
 		return 2;
 	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
@@ -1279,11 +1265,10 @@ int DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1297,8 +1282,6 @@ int DoVacc(int ai, unsigned short int ts)
 
 void DoVaccNoDelay(int ai, unsigned short int ts)
 {
-	int x, y;
-
 	if ((State.cumVG < P.VaccMaxCourses) && (!HOST_TO_BE_VACCED(ai)) && (Hosts[ai].inf >= InfStat_InfectiousAlmostSymptomatic) && (Hosts[ai].inf < InfStat_Dead_WasAsymp))
 	{
 		Hosts[ai].vacc_start_time = ts;
@@ -1313,11 +1296,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> pos = ((Vector2<int>)((Vector2<double>)Households[Hosts[ai].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(pos))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pos.y * bmh->width + pos.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic

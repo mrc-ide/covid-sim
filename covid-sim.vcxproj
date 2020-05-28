@@ -102,8 +102,13 @@
     <ClCompile Include="src\Sweep.cpp" />
     <ClCompile Include="src\Update.cpp" />
     <ClCompile Include="src\Param.cpp" />
-    <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
+    <ClCompile Include="src\Models\Household.cpp" />
+    <ClCompile Include="src\Models\Cell.cpp" />
+    <ClCompile Include="src\Models\Microcell.cpp" />
+    <ClCompile Include="src\Models\Airport.cpp" />
+    <ClCompile Include="src\Models\Person.cpp" />
+    <ClCompile Include="src\Geometry\MicroCellPosition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -124,8 +129,18 @@
     <ClInclude Include="src\CovidSim.h" />
     <ClInclude Include="src\Sweep.h" />
     <ClInclude Include="src\Update.h" />
-    <ClInclude Include="src\MicroCellPosition.hpp" />
-    <ClInclude Include="src\Direction.hpp" />
+    <ClInclude Include="src\Direction.h" />
+    <ClInclude Include="src\IndexList.h" />
+    <ClInclude Include="src\Models\Household.h" />
+    <ClInclude Include="src\Models\Cell.h" />
+    <ClInclude Include="src\Models\Microcell.h" />
+    <ClInclude Include="src\Models\Airport.h" />
+    <ClInclude Include="src\Models\Place.h" />
+    <ClInclude Include="src\Models\Person.h" />
+    <ClInclude Include="src\Geometry\MicroCellPosition.h" />
+    <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="src\Geometry\Size.h" />
+    <ClInclude Include="src\Geometry\BoundingBox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,6 +10,8 @@
 #include "Param.h"
 #include "Model.h"
 
+using namespace Geometry;
+
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** BITMAP stuff.
 
@@ -31,13 +33,12 @@ extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
-	int x, y, f, mi;
-	unsigned j;
+	int f;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.bwidth * P.bheight);
+	int mi = P.b.area();
 	if (fst)
 	{
 		fst = 0;
@@ -45,11 +46,10 @@ void CaptureBitmap()
 		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			Vector2<int> resolution = ((Vector2<int>)((Vector2<double>)Households[Hosts[i].hh].loc * P.scale)) - P.bmin;
+			if (P.b.contains(resolution))
 			{
-				j = y * bmh->width + x;
+				unsigned j = resolution.y * bmh->width + resolution.x;
 				if ((j < bmh->imagesize) && (j >= 0))
 				{
 					bmPopulation[j]++;
@@ -62,30 +62,35 @@ void CaptureBitmap()
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
-				if ((i < P.NMC - 1) && (i / P.get_number_of_micro_cells_high() == (i + 1) / P.get_number_of_micro_cells_high()) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
+				if ((i < P.NMC - 1) && (i / P.number_of_micro_cells().height == (i + 1) / P.number_of_micro_cells().height) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
 					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + 1].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i > 0) && (i / P.get_number_of_micro_cells_high() == (i - 1) / P.get_number_of_micro_cells_high()) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
-				if ((i < P.NMC - P.get_number_of_micro_cells_high()) && (Mcells[i + P.get_number_of_micro_cells_high()].n > 0) && ((Mcells[i].country != Mcells[i + P.get_number_of_micro_cells_high()].country)
-					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.get_number_of_micro_cells_high()].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
+				if ((i > 0) && (i / P.number_of_micro_cells().height == (i - 1) / P.number_of_micro_cells().height) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
+				if ((i < P.NMC - P.number_of_micro_cells().height) && (Mcells[i + P.number_of_micro_cells().height].n > 0) && ((Mcells[i].country != Mcells[i + P.number_of_micro_cells().height].country)
+					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.number_of_micro_cells().height].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
+				if ((i >= P.number_of_micro_cells().height) && (Mcells[i - P.number_of_micro_cells().height].n > 0) && (Mcells[i].country != Mcells[i - P.number_of_micro_cells().height].country)) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width_ * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.in_microcells_.height_ * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					Vector2<double> position = (Vector2<double>)P.get_micro_cell_position_from_cell_index(i);
+					Vector2<int> bitmap_position =
+							(Vector2<int>)(
+								(Vector2<double>)P.in_microcells_
+								* (position + Vector2<double>(0.5, 0.5))
+								* P.scale
+							) - P.bmin;
+					if (P.b.contains(bitmap_position))
 					{
-						j = y * bmh->width + x;
+						int j = bitmap_position.y * bmh->width + bitmap_position.x;
 						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.b.width / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.b.width) * 2);
 			f = ((int)prev);
-			for (j = 0; j < 10; j++)
+			for (int j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.bheight + 5) * bmh->width + P.bwidth / 4 + i] = f;
+				bmPixels[(j + P.b.height + 5) * bmh->width + P.b.width / 4 + i] = f;
 			}
 		}
 	}
@@ -221,10 +226,10 @@ void OutputBitmap(int tp)
 }
 void InitBMHead()
 {
-	int i, j, k, k2, value;
+	int i, j, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.bwidth * P.bheight2;
+	int k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
 	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
@@ -235,7 +240,7 @@ void InitBMHead()
 	bmh->spare = 0;
 	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.bwidth;
+	bmh->width = P.b.width;
 	bmh->height = P.bheight2;
 	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel

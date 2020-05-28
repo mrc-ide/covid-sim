@@ -2,8 +2,10 @@
 #include <iostream>
 #include "Kernels.h"
 #include "Error.h"
-#include "Dist.h"
 #include "Param.h"
+#include "Model.h"
+
+using namespace Models;
 
 // To speed up calculation of kernel values we provide a couple of lookup
 // tables.
@@ -61,7 +63,7 @@ void InitKernel(double norm)
 		for (int j = 0; j < P.NCP; j++)
 		{
 			Cell *m = CellLookup[j];
-			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));
+			l->max_trans[j] = (float)numKernel(l->distance_to_squared_min(m));
 			l->tot_prob += l->max_trans[j] * (float)m->n;
 		}
 	}

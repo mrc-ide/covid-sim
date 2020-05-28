@@ -5,61 +5,16 @@
 #include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
-
+#include "Models/Household.h"
+#include "Models/Cell.h"
+#include "Models/Microcell.h"
+#include "Models/Airport.h"
+#include "Models/Person.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
 
 #pragma pack(push, 2)
-
-struct Person
-{
-	int pcell;			// place cell, Cells[person->pcell] holds this person
-	int mcell;			// microcell, Mcells[person->mcell] holds this person
-	int hh;				// Household[person->hh] holds this person
-	int infector;		// If >=0, Hosts[person->infector] was who infected this person
-	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
-
-	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc,ProbAbsent,ProbCare;
-
-	unsigned int esocdist_comply : 1;
-	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
-	unsigned int to_die : 1;
-	unsigned int detected : 1; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
-
-	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
-	unsigned char age;
-	unsigned char quar_comply;		// can be 0, 1, or 2
-	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
-
-	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
-	short int infect_type;		// INFECT_TYPE_MASK
-	InfStat inf;
-
-	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
-	unsigned short int absent_start_time, absent_stop_time;
-	unsigned short int quar_start_time, isolation_start_time;
-	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease.
-	unsigned short int recovery_or_death_time;	// set in DoIncub function
-	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
-	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
-	unsigned int digitalContactTraced : 1;
-	unsigned int index_case_dct : 2;
-	unsigned int digitalContactTracingUser : 1;
-	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
-	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
-
-};
-
-struct Household
-{
-	int FirstPerson;
-	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
-	unsigned short int nhr;
-};
 
 /*
 In the main InfectSweep loop, we cannot safely set
@@ -210,7 +165,8 @@ struct Results
  */
 struct Events
 {
-	double infectee_x, infectee_y, t, t_infector;
+	Geometry::Vector2<double> infectee_position;
+	double t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
 };
 
@@ -230,95 +186,6 @@ struct Events
   rq=ratio of quarantine time to duration of absence due to illness
   rc=ratio of school/workplace closure duration of absence due to illness
 */
-
-/**
- * @brief Used for computing spatial interactions more efficiently.
- */
-struct IndexList
-{
-	int id;
-	float prob;
-};
-
-/**
- * @brief Airport state.
- *
- * Not used for COVID-19 right now. Might be more relevant for USA and
- * other countries that have lots of internal flights. Slows the simulation.
- */
-struct Airport
-{
-	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
-	unsigned short int num_connected, *conn_airports;
-	float total_traffic, loc_x, loc_y;
-	float* prop_traffic;
-	IndexList* DestMcells, *DestPlaces;
-};
-
-/**
- * @brief The basic unit of the simulation and is associated to a geographical location.
- *
- * Interventions (e.g., school closures) are tracked at this level. It contains a list of its
- * members (people), places (schools, universities, workplaces etc.), road networks, links to
- * airports etc.
- */
-struct Microcell
-{
-	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
-	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
-	*/
-	int n /*Number of people in microcell*/, adunit;
-	int* members;
-	unsigned short int country;
-
-	int* places[NUM_PLACE_TYPES];
-	unsigned short int np[NUM_PLACE_TYPES];
-	unsigned short int moverest, placeclose, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
-	unsigned short int move_start_time, move_end_time;
-	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
-	unsigned short int treat, vacc, treat_trig, vacc_trig;
-	unsigned short int treat_start_time, treat_end_time;
-	unsigned short int vacc_start_time;
-	IndexList* AirportList;
-};
-
-/**
- * @brief Holds microcells.
- *
- * Keeps track of susceptible, latent and infected people (in addition to details like who
- * is vaccinated, treated etc.) Also contains data for the spatial gravity model for social
- * interactions (probability distributions).
-*/
-struct Cell
-{
-	int n, S, L, I, R, D, cumTC, S0, tot_treat, tot_vacc;
-	int* members, *susceptible, *latent, *infected; //// pointers to people in cell. e.g. *susceptible identifies where the final susceptible member of cel is.
-	int* InvCDF;
-	float tot_prob, *cum_trans, *max_trans;
-	short int CurInterv[MAX_INTERVENTION_TYPES];
-};
-
-/**
- * @brief Represents an institution that people may belong to.
- *
- * PLACE be an elementary school, high schools, universities, workplaces etc. Places
- * belong to a microcell (and therefore have a spatial location). Places may have state
- * (i.e., closed or open). Mechanisms exist for absenteeism tracking (but are not currently used).
- * The `members` array lists all individuals who belong to a place.
- * Places can have different groups (to model differential interaction strengths between groups
- * in the same place).
- */
-struct Place
-{
-	int n, mcell;
-	unsigned short int ng, treat, control_trig, country;
-	unsigned short int close_start_time, close_end_time, treat_end_time;
-	unsigned short int* AvailByAge;
-	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	float loc_x, loc_y;
-	float ProbClose;
-	int* group_start, *group_size, *members;
-};
 
 /**
  * @brief Deprecated intervention mechanism.
@@ -353,12 +220,12 @@ struct AdminUnit
 
 #pragma pack(pop)
 
-extern Person* Hosts;
-extern Household* Households;
+extern Models::Person* Hosts;
+extern Models::Household* Households;
 extern PopVar State, StateT[MAX_NUM_THREADS];
-extern Cell* Cells, ** CellLookup;
-extern Microcell* Mcells, ** McellLookup;
-extern Place** Places;
+extern Models::Cell* Cells, ** CellLookup;
+extern Models::Microcell* Mcells, ** McellLookup;
+extern Models::Place** Places;
 extern AdminUnit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
@@ -366,7 +233,7 @@ extern AdminUnit AdUnits[MAX_ADUNITS];
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
 extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 
-extern Airport* Airports;
+extern Models::Airport* Airports;
 extern Events* InfEventLog;
 extern int* nEvents;
 

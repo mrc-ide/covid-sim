@@ -1,5 +1,7 @@
-#include "MicroCellPosition.hpp"
+#include "MicroCellPosition.h"
 #include <stdexcept>
+
+using namespace Geometry;
 
 MicroCellPosition MicroCellPosition::operator+(Direction direction) const {
 	switch (direction) {
