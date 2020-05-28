@@ -1543,7 +1543,7 @@ void SetupAirports(void)
 			for (int j = 0; j < P.Nairports; j++)
 				if (Airports[j].total_traffic > 0)
 				{
-					t = numKernel(dist2_raw(x, y, Airports[j].loc_x, Airports[j].loc_y)) * Airports[j].total_traffic;
+					t = numKernel(dist2_raw(x, y, Airports[j].loc.x, Airports[j].loc.y)) * Airports[j].total_traffic;
 					if (k < NNA)
 					{
 						Mcells[i].AirportList[k].id = j;
@@ -1642,7 +1642,7 @@ void SetupAirports(void)
 				tmin += 0.25 * MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL;
 				Airports[i].num_place = 0;
 				for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-					if (dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
+					if (dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
 						Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
@@ -1650,7 +1650,7 @@ void SetupAirports(void)
 			if (!(Airports[i].DestPlaces = (IndexList*)calloc(Airports[i].num_place, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-				if ((t = dist2_raw(Airports[i].loc_x, Airports[i].loc_y,
+				if ((t = dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
 					Places[P.HotelPlaceType][j].loc_x, Places[P.HotelPlaceType][j].loc_y)) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);

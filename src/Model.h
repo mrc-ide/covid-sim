@@ -221,7 +221,8 @@ struct Airport
 {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int num_connected, *conn_airports;
-	float total_traffic, loc_x, loc_y;
+	float total_traffic;
+	Geometry::Vector2<float> loc;
 	float* prop_traffic;
 	IndexList* DestMcells, *DestPlaces;
 };
