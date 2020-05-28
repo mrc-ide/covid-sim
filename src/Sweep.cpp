@@ -831,35 +831,49 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 					// si is the jth selected person in the cell
 					Person* si = Hosts + ci;
 
-					//calculate flag for digital contact tracing here at the beginning for each individual infector
+					//calculate flag (fct) for digital contact tracing here at the beginning for each individual infector
 					int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart)
 						&& (t < AdUnits[Mcells[si->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1)); // && (ts <= (Hosts[ci].detected_time + P.usCaseIsolationDelay)));
 
 
 					//// decide on infectee
+					
+					// do the following while f2=0 
 					do
 					{
 						//// chooses which cell person will infect
+						// pick random s between 0 and 1
 						s = ranf_mt(tn);
+						// generate l using InvCDF of selected cell and random integer between 0 and 1024
 						int l = c->InvCDF[(int)floor(s * 1024)];
+						// loop over c->cum_trans array until find a value >= random number s
 						while (c->cum_trans[l] < s) l++;
+						// selecte the cell corresponding to l
 						Cell* ct = CellLookup[l];
 
 						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
 						int m = (int)(ranf_mt(tn) * ((double)ct->S0));
 						int i3 = ct->susceptible[m];
+						
 						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
 						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
+						
+						// initialise f2=0 (f2=1 is the while condition for this loop)
 						f2 = 0;
+						// if random number greater than acceptance probablility or infectee is dead
 						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
+							// set f2=1 so loop continues 
 							f2 = 1;
 						}
 						else
 						{
-							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
+							//// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
+							if ((!Hosts[i3].Travelling) && ((c != ct) || (Hosts[i3].hh != si->hh))) 
 							{
+								// pick microcell of infector (mi)
 								Microcell* mi = Mcells + si->mcell;
+								// pick microcell of infectee (mt)
 								Microcell* mt = Mcells + Hosts[i3].mcell;
 								s = CalcSpatialSusc(i3, ts, ci, tn);
 
