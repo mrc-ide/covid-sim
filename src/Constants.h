@@ -88,7 +88,8 @@ const int MAX_DUR_IMPORT_PROFILE = 10245;
 
 const int MAX_AIRPORTS = 5000;
 const int NNA = 10;
-const double MAX_DIST_AIRPORT_TO_HOTEL = 200000.0;
+// Need to use define for MAX_DIST_AIRPORT_TO_HOTEL to avoid differences between GCC and clang in requirements to share const doubles in OpenMP default(none) pragmas
+#define MAX_DIST_AIRPORT_TO_HOTEL 200000.0
 const int MIN_HOTELS_PER_AIRPORT = 20;
 const int HOTELS_PER_1000PASSENGER = 10;
 

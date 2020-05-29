@@ -405,7 +405,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
 										n = Places[k][l].group_size[i2];
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
-										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].group_size[i2], s4_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									for (int m = 0; m < n; m++)
 									{
@@ -435,7 +435,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
 
@@ -477,7 +476,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s3_scaled >= 1)
 										n = Places[k][l].n;
 									else
-										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].n, s3_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
 									for (int m = 0; m < n; m++)
 									{
@@ -507,7 +506,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//if doing digital contact tracing, scale down susceptibility here
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
@@ -754,8 +752,7 @@ void IncubRecoverySweep(double t, int run)
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(P, Places, Hosts, i, j, ht)
+#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
 					for(int tn=0;tn<P.NumThreads;tn++)
 						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
@@ -776,8 +773,7 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
@@ -1338,19 +1334,19 @@ int TreatSweep(double t)
 					}
 					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
 						int maxx = 0;
-						int i, j, m, l;
-						i = j = m = f2 = 0;
+						int i, m, l;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.TreatByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.TreatAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.TreatByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
@@ -1367,23 +1363,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == 1) { f3 = f2; f2 = 0; }
+									if (j == Up)
+									{
+										f3 = f2;
+										f2 = 0;
+									}
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
 						}
 					}
@@ -1428,18 +1421,18 @@ int TreatSweep(double t)
 					}
 					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.VaccByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.VaccAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.VaccByAdminUnit)
 									{
@@ -1460,23 +1453,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == 1) { f3 = f2; f2 = 0; }
+									if (j == Up)
+									{
+										f3 = f2;
+										f2 = 0;
+									}
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
@@ -1545,7 +1535,6 @@ int TreatSweep(double t)
 
 							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
-								int ad2 = ad / P.PlaceCloseAdminUnitDivisor;
 								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
 								{
 									//if doing intervention delays and durations by admin unit based on global triggers
@@ -1596,18 +1585,18 @@ int TreatSweep(double t)
 
 					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Direction::Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.MoveRestrByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.MoveRestrAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
@@ -1623,23 +1612,16 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
@@ -1730,15 +1712,15 @@ int TreatSweep(double t)
 					}
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						do
 						{
-							if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+							if (P.is_in_bounds(min))
 								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
@@ -1755,23 +1737,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-							if (j == 0)
-								minx = minx + 1;
-							else if (j == 1)
-								miny = miny - 1;
-							else if (j == 2)
-								minx = minx - 1;
-							else if (j == 3)
-								miny = miny + 1;
+							min += j;
 							m = (m + 1) % l;
 							if (m == 0)
 							{
-								j = (j + 1) % 4;
+								j = rotate_left(j);
 								i = (i + 1) % 2;
 								if (i == 0) l++;
-								if (j == 1) { f3 = f2; f2 = 0; }
+								if (j == Up)
+								{
+									f3 = f2;
+									f2 = 0;
+								}
 							}
-							k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+							k = P.get_micro_cell_index_from_position(min);
 						} while (f3);
 					}
 

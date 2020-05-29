@@ -327,7 +327,7 @@ struct Place
  */
 struct Intervention
 {
-	int InterventionType, DoAUThresh, NoStartAfterMin;
+	int InterventionType, DoAUThresh, NoStartAfterMin,dummy; //dummy for 8 byte alignment
 	double StartTime, StopTime, MinDuration, RepeatInterval, TimeOffset;
 	double StartThresholdHigh, StartThresholdLow, StopThreshold, Level, LevelCellVar, LevelAUVar, LevelCountryVar, ControlParam, LevelClustering;
 	unsigned int MaxRounds, MaxResource;
@@ -340,7 +340,7 @@ struct AdminUnit
 {
 	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
 	Intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
-	char cnt_name[100], ad_name[200];
+	char cnt_name[96], ad_name[200];
 	int NP, place_close_trig;
 	double CaseIsolationTimeStart, HQuarantineTimeStart, DigitalContactTracingTimeStart;
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
@@ -368,7 +368,7 @@ extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSV
 
 extern Airport* Airports;
 extern Events* InfEventLog;
-extern int* nEvents;
+extern int nEvents;
 
 
 extern double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];

@@ -30,8 +30,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	char buf[2048];
 	FILE* dat;
 
-	if (!(Xcg1 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
-	if (!(Xcg2 = (long*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(long)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
+	if (!(Xcg1 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
+	if (!(Xcg2 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
@@ -178,8 +178,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
 	}
 	P.NMC = P.NMCL * P.NMCL * P.NC;
-	P.nmcw = P.ncw * P.NMCL;
-	P.nmch = P.nch * P.NMCL;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
@@ -287,7 +285,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (P.DoRecordInfEvents)
 	{
 		if (!(InfEventLog = (Events*)calloc(P.MaxInfEvents, sizeof(Events)))) ERR_CRITICAL("Unable to allocate events storage\n");
-		if (!(nEvents = (int*)calloc(1, sizeof(int)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
 
 	if(P.OutputNonSeverity) SaveAgeDistrib();
@@ -503,7 +500,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			else
 				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn));
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
-			if (ranf_mt(tn) < q) 
+			if (ranf_mt(tn) < q)
 				Hosts[i].infectiousness = (float)(-P.SymptInfectiousness * Hosts[i].infectiousness);
 			int j = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)j);
@@ -622,7 +619,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	for (int i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
-	if (!P.EnhancedSocDistClusterByHousehold)
+	if (P.EnhancedSocDistClusterByHousehold)
 	{
 		for (int i = 0; i < P.NH;i++)
 		{
@@ -780,7 +777,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 			{
 				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width_ + 0.1);
 				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height_ + 0.1);
-				l = j * P.nmch + k;
+				l = j * P.get_number_of_micro_cells_high() + k;
 				if (l < P.NMC)
 				{
 					mr++;
@@ -823,8 +820,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.nmch)) + 0.5)) + P.SpatialBoundingBox[0]; //x
-						BF[rn].y = (double)(P.in_microcells_.height_ * (((double)(l % P.nmch)) + 0.5)) + P.SpatialBoundingBox[1]; //y
+						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[0]; //x
+						BF[rn].y = (double)(P.in_microcells_.height_ * (((double)(l % P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[1]; //y
 						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
 						BF[rn].pop = mcell_dens[l];
 						BF[rn].cnt = mcell_country[l];
@@ -1000,7 +997,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
-		m += (Mcells[i].n = (int)ignbin_mt((long)(P.PopSize - m), s, 0));
+		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
@@ -1027,12 +1024,12 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
 		Cells[i].n = 0;
-		int k = (i / P.nch) * P.NMCL * P.nmch + (i % P.nch) * P.NMCL;
+		int k = (i / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (i % P.nch) * P.NMCL;
 		Cells[i].members = State.CellMemberArray + j2;
 		for (l = 0; l < P.NMCL; l++)
 			for (m = 0; m < P.NMCL; m++)
 			{
-				j = k + m + l * P.nmch;
+				j = k + m + l * P.get_number_of_micro_cells_high();
 				if (Mcells[j].n > 0)
 				{
 					Mcells[j].members = State.CellMemberArray + j2;
@@ -1087,7 +1084,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	for (j2 = 0; j2 < P.NMCP; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
-		l = ((j / P.nmch) / P.NMCL) * P.nch + ((j % P.nmch) / P.NMCL);
+		l = ((j / P.get_number_of_micro_cells_high()) / P.NMCL) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.NMCL);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
@@ -1125,8 +1122,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
 			j = (int)(McellLookup[j2] - Mcells);
-			x = (double)(j / P.nmch);
-			y = (double)(j % P.nmch);
+			x = (double)(j / P.get_number_of_micro_cells_high());
+			y = (double)(j % P.get_number_of_micro_cells_high());
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
 				fprintf(stderr_shared, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
@@ -1251,7 +1248,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	{
 		int k = (int)(P.LocationInitialInfection[0][0] / P.in_microcells_.width_);
 		l = (int)(P.LocationInitialInfection[0][1] / P.in_microcells_.height_);
-		j = k * P.nmch + l;
+		j = k * P.get_number_of_micro_cells_high() + l;
 
 		double rand_r = 0.0; //added these variables so that if initial infection location is empty we can search the 10km neighbourhood to find a suitable cell
 		double rand_theta = 0.0;
@@ -1264,7 +1261,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				rand_r = 0.083 * sqrt(rand_r); rand_theta = 2 * PI * rand_theta; //rand_r is multiplied by 0.083 as this is roughly equal to 10km in decimal degrees
 				k = (int)((P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta)) / P.in_microcells_.width_);
 				l = (int)((P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta)) / P.in_microcells_.height_);
-				j = k * P.nmch + l;
+				j = k * P.get_number_of_micro_cells_high() + l;
 				counter++;
 			}
 			if (counter < 100)
@@ -1343,7 +1340,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 				Places[j][P.Nplace[j]].n = m;
 				i = (int)(Places[j][P.Nplace[j]].loc_x / P.in_microcells_.width_);
 				int k = (int)(Places[j][P.Nplace[j]].loc_y / P.in_microcells_.height_);
-				j2 = i * P.nmch + k;
+				j2 = i * P.get_number_of_micro_cells_high() + k;
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
@@ -1402,13 +1399,13 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 					if (i == last_i)
 						m += (Mcells[last_i].np[j2] = P.Nplace[j2] - m);
 					else
-						m += (Mcells[i].np[j2] = (int)ignbin_mt((long)(P.Nplace[j2] - m), s, tn));
+						m += (Mcells[i].np[j2] = (int)ignbin_mt((int32_t)(P.Nplace[j2] - m), s, tn));
 					t -= ((double)Mcells[i].n) / maxd;
 					if (Mcells[i].np[j2] > 0)
 					{
 						if (!(Mcells[i].places[j2] = (int*)malloc(Mcells[i].np[j2] * sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
-						x = (double)(i / P.nmch);
-						y = (double)(i % P.nmch);
+						x = (double)(i / P.get_number_of_micro_cells_high());
+						y = (double)(i % P.get_number_of_micro_cells_high());
 						for (j = 0; j < Mcells[i].np[j2]; j++)
 						{
 							xh = P.in_microcells_.width_ * (ranf_mt(tn) + x);
@@ -1533,8 +1530,8 @@ void SetupAirports(void)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
-			x = (((double)(i / P.nmch)) + 0.5) * P.in_microcells_.width_;
-			y = (((double)(i % P.nmch)) + 0.5) * P.in_microcells_.height_;
+			x = (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.width_;
+			y = (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.height_;
 			k = l = 0;
 			tmin = 1e20;
 			for (int j = 0; j < P.Nairports; j++)
@@ -1626,8 +1623,7 @@ void SetupAirports(void)
 		}
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
 	free(base);
-#pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) \
-		shared(P, Airports, Places, stderr_shared)
+#pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) shared(P, Airports, Places, stderr_shared)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
@@ -1853,9 +1849,9 @@ void AssignHouseholdAges(int n, int pers, int tn)
 	for (i = 0; i < n; i++) Hosts[pers + i].age = (unsigned char) a[i];
 }
 
-void AssignPeopleToPlaces(void)
+void AssignPeopleToPlaces()
 {
-	int i2, j, j2, k, k2, l, m, m2, tp, f, f2, f3, f4, ic, mx, my, a, cnt, ca, nt, nn;
+	int i2, j, j2, k, k2, l, m, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
@@ -2116,18 +2112,19 @@ void AssignPeopleToPlaces(void)
 					{
 						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
-						l = 1; k = m = m2 = f2 = 0;
+						l = 1; k = m = f2 = 0;
 						int i = PeopleArray[j];
 						ic = Hosts[i].mcell;
-						mx = ic / P.nmch;
-						my = ic % P.nmch;
+
+						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
+						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							while (((k < nn) || (l < 4)) && (l < P.nmcw))
+							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
-								if ((mx >= 0) && (my >= 0) && (mx < P.nmcw) && (my < P.nmch))
+								if (P.is_in_bounds(mc_position))
 								{
-									ic = mx * P.nmch + my;
+									ic = P.get_micro_cell_index_from_position(mc_position);
 									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
@@ -2149,7 +2146,9 @@ void AssignPeopleToPlaces(void)
 												else if (t > 0)
 													s *= t;
 											}
-											k2 = 0; j2 = 0; t = 1e10;
+											k2 = 0;
+											j2 = 0;
+											t = 1e10;
 											if (s > 0)
 											{
 												if (k < nn)
@@ -2177,18 +2176,11 @@ void AssignPeopleToPlaces(void)
 										}
 									}
 								}
-								if (m2 == 0)
-									mx = mx + 1;
-								else if (m2 == 1)
-									my = my - 1;
-								else if (m2 == 2)
-									mx = mx - 1;
-								else if (m2 == 3)
-									my = my + 1;
+								mc_position += m2;
 								f2 = (f2 + 1) % l;
 								if (f2 == 0)
 								{
-									m2 = (m2 + 1) % 4;
+									m2 = rotate_left(m2);
 									m = (m + 1) % 2;
 									if (m == 0) l++;
 								}
@@ -2222,13 +2214,12 @@ void AssignPeopleToPlaces(void)
 								}
 							}
 						}
-
 					}
 				}
 				else
 				{
 					k2 = cnt - ca;
-					m2 = cnt;
+					int m2 = cnt;
 					a = k2 / 1000;
 					f = k2;
 					for (ic = 0; ic <= 30; ic++)
@@ -2243,7 +2234,8 @@ void AssignPeopleToPlaces(void)
 							f = (27 - ic) * a;
 						else
 						{
-							m2 = k2 - 1; f = 0;
+							m2 = k2 - 1;
+							f = 0;
 						}
 
 						for (i2 = m2; i2 >= f; i2--)
@@ -2394,7 +2386,7 @@ void StratifyPlaces(void)
 							{
 								t = 1 / ((double)(Places[j][i].ng - k));
 								Places[j][i].group_start[k] = l;
-								Places[j][i].group_size[k] = 1 + ignbin_mt((long)m, t, tn);
+								Places[j][i].group_size[k] = 1 + ignbin_mt((int32_t)m, t, tn);
 								m -= (Places[j][i].group_size[k] - 1);
 								l += Places[j][i].group_size[k];
 							}
@@ -2465,7 +2457,7 @@ void StratifyPlaces(void)
 void LoadPeopleToPlaces(char* NetworkFile)
 {
 	int i, j, k, l, m, n, npt, i2;
-	long s1, s2;
+	int32_t s1, s2;
 	FILE* dat;
 	int fileversion;
 
@@ -2479,11 +2471,13 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	npt = P.PlaceTypeNoAirNum;
 	fread_big(&i, sizeof(int), 1, dat);
 	fread_big(&j, sizeof(int), 1, dat);
-	fread_big(&s1, sizeof(long), 1, dat);
-	fread_big(&s2, sizeof(long), 1, dat);
+	fread_big(&s1, sizeof(int32_t), 1, dat);
+	fread_big(&s2, sizeof(int32_t), 1, dat);
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
 	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
-	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) ERR_CRITICAL("Random number seeds do not match saved values\n");
+	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) {
+    ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
+  }
 	k = (P.PopSize + 999999) / 1000000;
 	for (i = 0; i < P.PopSize; i++)
 		for (j = 0; j < P.PlaceTypeNum; j++)
@@ -2531,8 +2525,8 @@ void SavePeopleToPlaces(char* NetworkFile)
 	{
 		fwrite_big(&npt, sizeof(int), 1, dat);
 		fwrite_big(&(P.PopSize), sizeof(int), 1, dat);
-		fwrite_big(&P.setupSeed1, sizeof(long), 1, dat);
-		fwrite_big(&P.setupSeed2, sizeof(long), 1, dat);
+		fwrite_big(&P.setupSeed1, sizeof(int32_t), 1, dat);
+		fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
 		for (i = 0; i < P.PopSize; i++)
 		{
 			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
