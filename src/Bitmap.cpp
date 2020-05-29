@@ -316,10 +316,10 @@ void InitBMHead()
 
 void Bitmap_Finalise()
 {
+#ifdef _WIN32
   if (P.BitmapFormat == BF_PNG)
   {
-#ifdef _WIN32
     Gdiplus::GdiplusShutdown(m_gdiplusToken);
-#endif
   }
+#endif
 }
