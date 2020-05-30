@@ -6,8 +6,10 @@
 // that causes VS/Intel compilers to fail to build if libomp.lib is
 // not found. The following should include the lib file only on Clang.
 
-#ifdef __clang__
+#ifdef _WIN32
+  #ifdef __clang__
 #pragma comment(lib, "libomp.lib")
+  #endif
 #endif
 
 #include "MachineDefines.h"
