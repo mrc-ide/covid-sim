@@ -4563,6 +4563,7 @@ void RecordSample(double t, int n)
 		cumTG += StateT[j].cumTG;
 		cumSI += StateT[j].cumSI;
 		nTG += StateT[j].nTG;
+		StateT[j].cumTG = StateT[j].cumSI = StateT[j].nTG = 0;
 		cumFC += StateT[j].cumFC;
 		cumCT += StateT[j].cumCT; //added contact tracing
 		cumCC += StateT[j].cumCC; //added cases who are contacts

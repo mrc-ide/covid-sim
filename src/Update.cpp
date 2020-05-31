@@ -119,7 +119,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		if (a->infector >= 0) // record generation times and serial intervals
 		{
 			StateT[tn].cumTG += (((int)a->infection_time) - ((int)Hosts[a->infector].infection_time));
-			StateT[tn].cumSI += (((int)a->infection_time) - ((int)Hosts[a->infector].infection_time));
+			StateT[tn].cumSI += (((int)a->latent_time) - ((int)Hosts[a->infector].latent_time));
 			StateT[tn].nTG++;
 		}
 
