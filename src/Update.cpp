@@ -116,6 +116,12 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		}
 		else
 			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
+		if (a->infector >= 0) // record generation times and serial intervals
+		{
+			StateT[tn].cumTG += (((int)a->infection_time) - ((int)Hosts[a->infector].infection_time));
+			StateT[tn].cumSI += (((int)a->infection_time) - ((int)Hosts[a->infector].infection_time));
+			StateT[tn].nTG++;
+		}
 
 		//if (P.DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P.latent_icdf, P.LatentPeriod, tn);
 		//else			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);

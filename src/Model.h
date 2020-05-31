@@ -95,7 +95,7 @@ struct ContactEvent
  */
 struct PopVar
 {
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC, cumTG, cumSI, nTG;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
 	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
@@ -155,8 +155,7 @@ struct PopVar
  */
 struct Results
 {
-	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
-	double incH; //added incidence of hospitalisation: ggilani 28/10/14
+	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC, meanTG, meanSI ;
 	double CT, incCT, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
 	double cumT, cumUT, cumTP, cumV, cumTmax, cumVmax, cumDC, extinct, cumVG; //added cumVG
