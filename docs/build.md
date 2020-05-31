@@ -15,6 +15,11 @@ cmake ..
 make
 ```
 
+On MacOS, make sure you have OpenMP installed:
+```sh
+brew install libomp
+```
+
 ### Testing
 
 Once `make` has completed use:
