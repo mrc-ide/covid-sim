@@ -93,20 +93,13 @@
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
     <ClCompile Include="src\Case.cpp" />
-    <ClCompile Include="src\Dead.cpp" />
-    <ClCompile Include="src\Dead_WasAsymp.cpp" />
-    <ClCompile Include="src\Dead_WasSymp.cpp" />
     <ClCompile Include="src\Dist.cpp" />
     <ClCompile Include="src\Error.cpp" />
-    <ClCompile Include="src\ImmuneAtStart.cpp" />
     <ClCompile Include="src\InfectiousAlmostSymptomatic.cpp" />
     <ClCompile Include="src\InfectiousAsymptomaticNotCase.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
     <ClCompile Include="src\Latent.cpp" />
     <ClCompile Include="src\Rand.cpp" />
-    <ClCompile Include="src\Recovered.cpp" />
-    <ClCompile Include="src\RecoveredFromAsymp.cpp" />
-    <ClCompile Include="src\RecoveredFromSymp.cpp" />
     <ClCompile Include="src\SetupModel.cpp" />
     <ClCompile Include="src\CovidSim.cpp" />
     <ClCompile Include="src\Susceptible.cpp" />
@@ -124,7 +117,6 @@
     <ClInclude Include="src\Case.h" />
     <ClInclude Include="src\Constants.h" />
     <ClInclude Include="src\Country.h" />
-    <ClInclude Include="src\Dead.h" />
     <ClInclude Include="src\Dead_WasAsymp.h" />
     <ClInclude Include="src\Dead_WasSymp.h" />
     <ClInclude Include="src\Dist.h" />
@@ -141,7 +133,6 @@
     <ClInclude Include="src\ModelMacros.h" />
     <ClInclude Include="src\Param.h" />
     <ClInclude Include="src\Rand.h" />
-    <ClInclude Include="src\Recovered.h" />
     <ClInclude Include="src\RecoveredFromAsymp.h" />
     <ClInclude Include="src\RecoveredFromSymp.h" />
     <ClInclude Include="src\SetupModel.h" />

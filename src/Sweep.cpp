@@ -14,7 +14,8 @@
 #include "Param.h"
 #include "Sweep.h"
 #include "Update.h"
-
+#include "InfectiousAlmostSymptomatic.h"
+#include "Case.h"
 
 void TravelReturnSweep(double t)
 {
@@ -277,7 +278,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	//// Infectiousness is (broadly) a function of 1 person (their age, treatment status, places, no. people in their household etc.)
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
-
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells.
 	int f, f2, cq /*cell queue*/, bm, ci /*person index*/;
 	double seasonality, sbeta, hbeta;
@@ -734,7 +734,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				else
 					DoInfect(infectee, t, j, run);
 			}
-			StateT[k].n_queue[j] = 0;
 		}
 	}
 }
@@ -744,7 +743,6 @@ void IncubRecoverySweep(double t, int run)
 	double ht;
 	unsigned short int ts; //// this timestep
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
-
 	if (P.DoPlaces)
 		for (int i = 0; i < P.NumHolidays; i++)
 		{
@@ -795,7 +793,7 @@ void IncubRecoverySweep(double t, int run)
 				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
 				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
+					si->infectionState->GetsWorse(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
 
 				if (P.DoSeverity)
 				{
@@ -822,9 +820,9 @@ void IncubRecoverySweep(double t, int run)
 					else /// if they die and this timestep is after they've died.
 					{
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							DoRecover(ci, tn, run);
+							Hosts->infectionState->GetsBetter(ci, 0, tn, run);
 						else
-							DoDeath(ci, tn, run);
+							Hosts->infectionState->GetsWorse(ci, 0.0, tn, run);
 					}
 
 					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector

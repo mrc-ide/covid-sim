@@ -21,6 +21,16 @@
 #include "Update.h"
 #include "Sweep.h"
 #include "Susceptible.h"
+#include "InfectiousAlmostSymptomatic.h"
+#include "Latent.h"
+#include "InfectiousAsymptomaticNotCase.h"
+#include "Case.h"
+#include "RecoveredFromAsymp.h"
+#include "RecoveredFromSymp.h"
+#include "ImmuneAtStart.h"
+#include "Dead_WasAsymp.h"
+#include "Dead_WasSymp.h"
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -459,6 +469,9 @@ int main(int argc, char* argv[])
 	//SaveSummaryResults();
 
 	Bitmap_Finalise();
+
+	// TODO
+	delete [] *Hosts->stateHandlers;
 
 	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
@@ -2422,6 +2435,17 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	int nim;
 	int nsi[MAX_NUM_SEED_LOCATIONS];
 
+	Hosts->stateHandlers[InfStatType_Susceptible] = new Susceptible(&P);
+	Hosts->stateHandlers[InfStatType_Latent] = new Latent(&P);
+	Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic] = new InfectiousAlmostSymptomatic(&P);
+	Hosts->stateHandlers[InfStatType_InfectiousAsymptomaticNotCase] = new InfectiousAsymptomaticNotCase(&P);
+	Hosts->stateHandlers[InfStatType_Case] = new Case();
+	Hosts->stateHandlers[InfStatType_RecoveredFromAsymp] = new RecoveredFromAsymp();
+	Hosts->stateHandlers[InfStatType_RecoveredFromSymp] = new RecoveredFromSymp();
+	Hosts->stateHandlers[InfStatType_ImmuneAtStart] = new ImmuneAtStart();
+	Hosts->stateHandlers[InfStatType_Dead_WasAsymp] = new Dead_WasAsymp();
+	Hosts->stateHandlers[InfStatType_Dead_WasSymp] = new Dead_WasSymp();
+
 	if (P.OutputBitmap)
 	{
 #ifdef _WIN32
@@ -2895,7 +2919,6 @@ int RunModel(int run) //added run number as parameter
 	double t, cI, lcI, t2;
 	unsigned short int ts;
 	int continueEvents = 1;
-
 
 /*	fprintf(stderr, "Checking consistency of initial state...\n");
 	int i, i2, k2;

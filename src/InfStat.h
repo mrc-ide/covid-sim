@@ -17,6 +17,19 @@ enum InfStat {
 	InfStat_Dead = 5														//// Dead (will use this for abs() values) so code reads correctly
 };
 
+enum InfStatTypes {
+	InfStatType_Susceptible = 0,										//// Susceptible
+	InfStatType_Latent = 1,												  //// E or L (neither infectious nor symptomatic).
+	InfStatType_InfectiousAlmostSymptomatic = 2,		//// Infectious and about to become a case.
+	InfStatType_InfectiousAsymptomaticNotCase = 3,	//// Not just asymptomatic, but also will not become symptomatic (i.e. a case.)
+	InfStatType_Case = 4,													//// case. Infectious and symptomatic.
+	InfStatType_RecoveredFromAsymp = 5,							//// Recovered from asymptomatic infection
+	InfStatType_RecoveredFromSymp = 6,							//// Recovered from symptomatic infection
+	InfStatType_ImmuneAtStart = 7,									//// Immune at start of epidemic - used to model partially immune population. Distinct therefore from recovered, who recovered during runtime. Doesn't take negative values.
+	InfStatType_Dead_WasAsymp = 8,									//// Dead was asymptomatic
+	InfStatType_Dead_WasSymp = 9,									//// Dead was symptomatic
+};
+
 // SeverityClass defintions / labels (numbers arbitrary but must be different to each other).
 enum Severity {
 	Severity_Asymptomatic = -1,									//// Flag value.

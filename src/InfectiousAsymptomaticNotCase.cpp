@@ -4,17 +4,8 @@
 #include "ModelMacros.h"
 #include "Bitmap.h"
 #include "Dead_WasAsymp.h"
-// get worse
-/*
-Dead
-Dead_WasAsymp
-*/
+#include "RecoveredFromAsymp.h"
 
-// get better
-/*
-Recovered
-RecoveredFromAsymp
-*/
 
 void InfectiousAsymptomaticNotCase::GetsWorse(int ai, double t, int tn, int run)
 {
@@ -26,6 +17,55 @@ void InfectiousAsymptomaticNotCase::GetsWorse(int ai, double t, int tn, int run)
 
 void InfectiousAsymptomaticNotCase::GetsBetter(int ai, double t, int tn, int run)
 {
+	DoRecover(ai, tn, run);
+
+	Person* a = Hosts + ai;
+	a->infectionState = new RecoveredFromAsymp();
+}
+
+void InfectiousAsymptomaticNotCase::DoRecover(int ai, int tn, int run)
+{
+	int i, j, x, y;
+	Person* a;
+
+	a = Hosts + ai;
+	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
+	{
+		i = a->listpos;
+		Cells[a->pcell].I--; //// one less infectious person
+		Cells[a->pcell].R++; //// one more recovered person
+		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
+		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
+		{
+			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
+			Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+			a->listpos = j;
+			Cells[a->pcell].susceptible[j] = ai;
+		}
+		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
+
+		if (P->OutputBitmap)
+		{
+			if ((P->OutputBitmapDetected == 0) || ((P->OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
+			{
+				x = ((int)(Households[a->hh].loc_x * P->scalex)) - P->bminx;
+				y = ((int)(Households[a->hh].loc_y * P->scaley)) - P->bminy;
+				if ((x >= 0) && (x < P->bwidth) && (y >= 0) && (y < P->bheight))
+				{
+					unsigned j = y * bmh->width + x;
+					if (j < bmh->imagesize)
+					{
+#pragma omp atomic
+						bmRecovered[j]++;
+#pragma omp atomic
+						bmInfected[j]--;
+					}
+				}
+			}
+		}
+	}
+	//else
+	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
 void InfectiousAsymptomaticNotCase::DoDeath(int ai, int tn, int run)

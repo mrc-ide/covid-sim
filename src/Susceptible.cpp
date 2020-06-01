@@ -162,17 +162,9 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 	}
 	if ((t > 0) && (P->DoOneGen))
 	{
-		auto latentState = new Latent(P);
-		latentState->GetsWorse(ai, t, tn, run);
-
-		auto infealmostsymp = new InfectiousAlmostSymptomatic(P);
-		infealmostsymp->GetsWorse(ai, t, tn, run);
-
-		auto caseState = new Case();
-		caseState->GetsBetter(ai, t, tn, run);
-		//DoIncub(ai, ts, tn, run);
-		//DoCase(ai, t, ts, tn);
-		//DoRecover(ai, tn, run);
+		((Latent*)Hosts->stateHandlers[InfStatType_Latent])->GetsWorse(ai, ts, tn, run);
+		((InfectiousAlmostSymptomatic*)Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic])->GetsWorse(ai, t, tn, run);
+		((Case*)Hosts->stateHandlers[InfStatType_Case])->GetsBetter(ai, t, tn, run);
 	}
 }
 void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //added int as argument to RecordEvent to record run number: ggilani - 15/10/14

@@ -17,5 +17,7 @@ public:
 private:
 
 	void DoDeath(int ai, int tn, int run);
+	void DoRecover(int ai, int tn, int run);
+
 };
 

@@ -22,31 +22,10 @@
     <ClCompile Include="src\Latent.cpp">
       <Filter>InfectionStates</Filter>
     </ClCompile>
-    <ClCompile Include="src\RecoveredFromAsymp.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RecoveredFromSymp.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
     <ClCompile Include="src\Case.cpp">
       <Filter>InfectionStates</Filter>
     </ClCompile>
-    <ClCompile Include="src\Dead.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Dead_WasAsymp.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Dead_WasSymp.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Recovered.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
     <ClCompile Include="src\InfectiousAlmostSymptomatic.cpp">
-      <Filter>InfectionStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImmuneAtStart.cpp">
       <Filter>InfectionStates</Filter>
     </ClCompile>
     <ClCompile Include="src\InfectiousAsymptomaticNotCase.cpp">
@@ -90,16 +69,10 @@
     <ClInclude Include="src\Case.h">
       <Filter>InfectionStates</Filter>
     </ClInclude>
-    <ClInclude Include="src\Dead.h">
-      <Filter>InfectionStates</Filter>
-    </ClInclude>
     <ClInclude Include="src\Dead_WasAsymp.h">
       <Filter>InfectionStates</Filter>
     </ClInclude>
     <ClInclude Include="src\Dead_WasSymp.h">
-      <Filter>InfectionStates</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Recovered.h">
       <Filter>InfectionStates</Filter>
     </ClInclude>
     <ClInclude Include="src\RecoveredFromSymp.h">

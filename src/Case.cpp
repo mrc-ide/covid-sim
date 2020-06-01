@@ -22,7 +22,7 @@ void Case::GetsBetter(int ai, double t, int tn, int run)
 
 	Person* a = Hosts + ai;
 
-	a->infectionState = new RecoveredFromSymp(P);
+	a->infectionState = new RecoveredFromSymp();
 }
 
 void Case::DoRecover(int ai, int tn, int run)
