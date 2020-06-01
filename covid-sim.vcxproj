@@ -98,6 +98,7 @@
     <ClCompile Include="src\Error.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
     <ClCompile Include="src\Memory.cpp" />
+    <ClCompile Include="src\ParamFile.cpp" />
     <ClCompile Include="src\Rand.cpp" />
     <ClCompile Include="src\SetupModel.cpp" />
     <ClCompile Include="src\CovidSim.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelMacros.h" />
     <ClInclude Include="src\Param.h" />
+    <ClInclude Include="src\ParamFile.hpp" />
     <ClInclude Include="src\Rand.h" />
     <ClInclude Include="src\SetupModel.h" />
     <ClInclude Include="src\CovidSim.h" />
