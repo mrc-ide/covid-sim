@@ -3,7 +3,7 @@
 Results generated as indicated below should exactly match those in the `*T8_NR10*` output files in the `GB_suppress` and `GB_mitigation` folders (see CODECHECK certificate 2020-010
 https://doi.org/10.5281/zenodo.3865491). 
 
-Results will be close to but not identical to those in the original report since: (a) the results produced here average over 10 stochastic realisations; (c) the population dataset has changed to Worldpop (open-source) rather than Landscan (closed); (d) the multi-threaded algorithm to create the simulation's household-to-place network has been modified to be single threaded and thus deterministic. Covidsim is now deterministic across platforms (linux, Mac and Windows) and across compilers (gcc, clang, intel and msvc) for a specified number of threads and fixed random number seeds.
+Results will be close to but not identical to those in the original report since: (a) the results produced here average over 10 stochastic realisations; (b) the population dataset has changed to Worldpop (open-source) rather than Landscan (closed); (c) the multi-threaded algorithm to create the simulation's household-to-place network has been modified to be single threaded and thus deterministic. Covidsim is now deterministic across platforms (linux, Mac and Windows) and across compilers (gcc, clang, intel and msvc) for a specified number of threads and fixed random number seeds.
 
 ## Instructions common to both Suppression and Mitigation runs
 
