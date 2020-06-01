@@ -5004,12 +5004,12 @@ void RecordSample(double t, int n)
 				{
 					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
-					if (thr < 0.05) thr = 0.05;
+					if (thr < 0.05) thr = 0.04;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
 					if (P.ModelCalibIteration == 1)
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1)))
 						{
 							P.ModelCalibIteration = 100;
 							P.StopCalibration = 1;
@@ -5024,7 +5024,7 @@ void RecordSample(double t, int n)
 					}
 					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1))
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1)))
 						{
 							P.ModelCalibIteration=100;
 							P.StopCalibration = 1;
@@ -5043,7 +5043,7 @@ void RecordSample(double t, int n)
 					}
 					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0))
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
+						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1)))
 						{
 							P.ModelCalibIteration = 100;
 							P.StopCalibration = 1;

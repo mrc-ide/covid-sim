@@ -126,7 +126,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		//if (P.DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P.latent_icdf, P.LatentPeriod, tn);
 		//else			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
 
-		if (P.DoAdUnits)		StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
+		if (P.DoAdUnits) StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
 
 		if (P.OutputBitmap)
 		{
@@ -461,15 +461,16 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		}
 		else
 		{
-			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
+			//// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
+			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); 
 
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (	((a->Severity_Final == Severity_Critical)	&& (ranf_mt(tn) < P.CFR_Critical_ByAge	[age]))		||
-					((a->Severity_Final == Severity_SARI	)	&& (ranf_mt(tn) < P.CFR_SARI_ByAge		[age]))		||
-					((a->Severity_Final == Severity_ILI		)	&& (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]))		)
+			if (((a->Severity_Final == Severity_Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age]))||
+				((a->Severity_Final == Severity_SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age]))||
+				((a->Severity_Final == Severity_ILI	) && (ranf_mt(tn) < P.CFR_ILI_ByAge[age])))
 				a->to_die = 1;
 
 			//// choose events and event times
@@ -480,27 +481,27 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI[age], tn);
 				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical[age], tn);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath[age], tn);
+					a->recovery_or_death_time = a->Critical_time + ChooseFromICDF(P.CriticalToDeath_icdf, P.Mean_CriticalToDeath[age], tn);
 				else
 				{
-					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov[age], tn);
-					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov[age], tn);
+					a->RecoveringFromCritical_time = a->Critical_time + ChooseFromICDF(P.CriticalToCritRecov_icdf, P.Mean_CriticalToCritRecov[age], tn);
+					a->recovery_or_death_time = a->RecoveringFromCritical_time + ChooseFromICDF(P.CritRecovToRecov_icdf, P.Mean_CritRecovToRecov[age], tn);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
 				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
 				if (a->to_die)
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath[age], tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf, P.Mean_SARIToDeath[age], tn);
 				else
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery[age], tn);
+					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf, P.Mean_SARIToRecovery[age], tn);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath[age], tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf, P.Mean_ILIToDeath[age], tn);
 				else
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery[age], tn);
+					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery[age], tn);
 			}
 		}
 
