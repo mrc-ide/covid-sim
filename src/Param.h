@@ -278,7 +278,7 @@ struct Param
 	int DoInterventionDelaysByAdUnit;
 
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults;
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults, OutputAdUnitAge;
 
 	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
 	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult

@@ -132,15 +132,17 @@ struct PopVar
 
 	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
-	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS]; 
+	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];
+
+	int prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 	//// above quantities need to be amended in following parts of code:
-	//// i) InitModel (set to zero); Done
+	//// i) InitModel (set to zero); 
 	//// ii) RecordSample: (collate from threads);
 	//// iii) RecordSample: add to incidence / Timeseries).
 	//// iv) SaveResults
 	//// v) SaveSummaryResults
-	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
+	///// And various parts of Update.cpp where variables need must be incremented, decremented.
 
 };
 
@@ -189,6 +191,9 @@ struct Results
 	double cumMild_age[NUM_AGE_GROUPS], cumILI_age[NUM_AGE_GROUPS], cumSARI_age[NUM_AGE_GROUPS], cumCritical_age[NUM_AGE_GROUPS], cumCritRecov_age[NUM_AGE_GROUPS]; // cumulative incidence by admin unit
 	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+
+	double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+
 
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)

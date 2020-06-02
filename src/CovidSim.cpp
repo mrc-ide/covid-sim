@@ -2518,15 +2518,16 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		State.cumMild	= State.cumILI		= State.cumSARI = State.cumCritical = State.cumCritRecov	= 0;
 		State.cumDeath_ILI = State.cumDeath_SARI = State.cumDeath_Critical = 0;
 
-		for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-		{
-			State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
-			State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] =
-			State.cumMild_adunit[AdminUnit] = State.cumILI_adunit[AdminUnit] =
-			State.cumSARI_adunit[AdminUnit] = State.cumCritical_adunit[AdminUnit] = State.cumCritRecov_adunit[AdminUnit] =
-			State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
-			State.cumD_adunit[AdminUnit] = 0;
-		}
+		if (P.DoAdUnits)
+			for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
+			{
+				State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
+				State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] =
+				State.cumMild_adunit[AdminUnit] = State.cumILI_adunit[AdminUnit] =
+				State.cumSARI_adunit[AdminUnit] = State.cumCritical_adunit[AdminUnit] = State.cumCritRecov_adunit[AdminUnit] =
+				State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
+				State.cumD_adunit[AdminUnit] = 0;
+			}
 		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 		{
 			State.Mild_age[AgeGroup] = State.ILI_age[AgeGroup] =
@@ -2536,6 +2537,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDeath_ILI_age[AgeGroup] = State.cumDeath_SARI_age[AgeGroup] = State.cumDeath_Critical_age[AgeGroup] = 0;
 		}
 	}
+	if (P.DoAdUnits)
+		for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				State.prevInf_age_adunit[AgeGroup][Adunit] = 0;
+				State.cumInf_age_adunit	[AgeGroup][Adunit] = 0;
+			}
 
 	for (int i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
 	for (int i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
@@ -2604,6 +2612,16 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	}
 	nim = 0;
+
+	if (P.DoAdUnits)
+		for (int Thread = 0; Thread < MAX_NUM_THREADS; Thread++)
+			for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				{
+					StateT[Thread].prevInf_age_adunit[AgeGroup][Adunit] = 0;
+					StateT[Thread].cumInf_age_adunit [AgeGroup][Adunit] = 0;
+				}
+
 
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, Hosts)
@@ -4529,6 +4547,37 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		}
 }
 
+void RecordAdminAgeBreakdowns(int t_int)
+{
+	//// **** Infections by age and admin unit (can parallelize later)
+	for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+		{
+			// Record incidence. Need new total minus old total (same as minus old total plus new total).
+			// First subtract old total before reset, collated and updated.
+			TimeSeries[t_int].incInf_age_adunit[AgeGroup][AdUnit] = (double)(-State.cumInf_age_adunit[AgeGroup][AdUnit]);
+
+			// reset totals
+			State.prevInf_age_adunit[AgeGroup][AdUnit] = 0;
+			State.cumInf_age_adunit [AgeGroup][AdUnit] = 0;
+
+			// sum totals
+			for (int Thread = 0; Thread < P.NumThreads; Thread++)
+			{
+				State.prevInf_age_adunit[AgeGroup][AdUnit] += StateT[Thread].prevInf_age_adunit[AgeGroup][AdUnit];
+				State.cumInf_age_adunit [AgeGroup][AdUnit] += StateT[Thread].cumInf_age_adunit [AgeGroup][AdUnit];
+			}
+
+			// record in time series.
+			TimeSeries[t_int].prevInf_age_adunit[AgeGroup][AdUnit] = State.prevInf_age_adunit[AgeGroup][AdUnit];
+			TimeSeries[t_int].cumInf_age_adunit [AgeGroup][AdUnit] = State.cumInf_age_adunit [AgeGroup][AdUnit];
+
+			// Record incidence. Need new total minus old total. Add new total
+			TimeSeries[t_int].incInf_age_adunit[AgeGroup][AdUnit] += (double)(State.cumInf_age_adunit[AgeGroup][AdUnit]);
+		}
+
+}
+
 void RecordSample(double t, int n)
 {
 	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC, cumTG, cumSI, nTG;
@@ -4696,6 +4745,9 @@ void RecordSample(double t, int n)
 	State.cumAPC = cumAPC;
 	State.cumAPA = cumAPA;
 	State.cumAPCS = cumAPCS;
+
+	//// **** Infections by age and admin unit (can parallelize later)
+	RecordAdminAgeBreakdowns(n); 
 
 	if (P.DoSeverity)
 	{
