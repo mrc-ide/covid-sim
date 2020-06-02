@@ -416,11 +416,26 @@ int main(int argc, char* argv[])
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
 		if (P.DoLoadSnapshot) LoadSnapshot();
+		int ModelCalibLoop = 0;
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			int32_t tmp1 = thisRunSeed1;
-			int32_t tmp2 = thisRunSeed2;
-			setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
+			if ((P.ModelCalibIteration == 10) && (ModelCalibLoop < 3))
+			{
+				thisRunSeed1 = P.nextRunSeed1;
+				thisRunSeed2 = P.nextRunSeed2;
+				setall(&P.nextRunSeed1, &P.nextRunSeed2);
+				P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
+				P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
+				P.PreControlClusterIdCaseThreshold = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+				P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
+				ModelCalibLoop++;
+			}
+			else
+			{
+				int32_t tmp1 = thisRunSeed1;
+				int32_t tmp2 = thisRunSeed2;
+				setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
+			}
 			InitModel(i);
 		}
 		if (P.OutputNonSummaryResults)
@@ -4980,7 +4995,7 @@ void RecordSample(double t, int n)
 	}
 
 	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<4)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 4)))))
+		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
@@ -5007,30 +5022,16 @@ void RecordSample(double t, int n)
 					if (thr < 0.05) thr = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
-					if (P.ModelCalibIteration == 1)
+					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
+						P.StopCalibration = 1;
+					else if (P.ModelCalibIteration == 0)
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration = 100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
-						else
-						{
-							s = pow(s, 0.95);
-							k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
-							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
-						}
+						k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
+						if (k > 0) P.PreControlClusterIdCaseThreshold = k;
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 1))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0))
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration=100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
-						else if (s > 1)
+						if (s > 1)
 						{
 							P.PreIntervTime--;
 							P.PreControlClusterIdHolOffset--;
@@ -5041,25 +5042,20 @@ void RecordSample(double t, int n)
 							P.PreControlClusterIdHolOffset++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 3) && ((P.ModelCalibIteration) % 2 == 0))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))
 					{
-						if ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr / 2) && (s < 1)))
-						{
-							P.ModelCalibIteration = 100;
-							P.StopCalibration = 1;
-							fprintf(stderr, "Calibration ended.\n");
-						}
-						else
-							P.SeedingScaling /=pow(s, 0.5);
+						P.SeedingScaling /=pow(s, 0.2+0.4*ranf()); // include random number to prevent loops
 					}
 					P.ModelCalibIteration++;
-					if(P.ModelCalibIteration<16) InterruptRun = 1;
 					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
+					if(P.StopCalibration)
+						fprintf(stderr, "Calibration ended.\n");
+					else
+						InterruptRun = 1;
 				}
 				else
 				{
 					P.StopCalibration = 1;
-					InterruptRun = 1;
 				}
 			}
 		}
