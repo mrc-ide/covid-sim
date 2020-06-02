@@ -455,10 +455,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->inf = InfStat_InfectiousAsymptomaticNotCase;
 
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
-		{
-			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
-		}
+			a->recovery_or_death_time = a->latent_time + ((P.DoInfectiousnessProfile)? ((unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay)):ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn));
 		else
 		{
 			//// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
@@ -478,8 +475,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery[age], tn);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI[age], tn);
-				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical[age], tn);
+				a->SARI_time= CaseTime+ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
+				a->Critical_time= a->SARI_time+ChooseFromICDF(P.SARIToCritical_icdf, P.Mean_SARIToCritical[age], tn);
 				if (a->to_die)
 					a->recovery_or_death_time = a->Critical_time + ChooseFromICDF(P.CriticalToDeath_icdf, P.Mean_CriticalToDeath[age], tn);
 				else

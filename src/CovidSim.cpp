@@ -1149,93 +1149,43 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
 		}
 		//// Get ICDFs
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.MildToRecovery_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.ILIToRecovery_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.ILIToRecovery_icdf[i] = exp(-P.ILIToRecovery_icdf[i]);
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", "%lf", (void*)P.ILIToDeath_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.ILIToDeath_icdf, ICDF_START);
-		}
-		for (i = 0; i <= CDF_RES; i++) P.ILIToDeath_icdf[i] = exp(-P.ILIToDeath_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.SARIToRecovery_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.SARIToRecovery_icdf[i] = exp(-P.SARIToRecovery_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.CriticalToCritRecov_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.CriticalToCritRecov_icdf[i] = exp(-P.CriticalToCritRecov_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.CritRecovToRecov_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.CritRecovToRecov_icdf[i] = exp(-P.CritRecovToRecov_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.ILIToSARI_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.ILIToSARI_icdf[i] = exp(-P.ILIToSARI_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.SARIToCritical_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.SARIToCritical_icdf[i] = exp(-P.SARIToCritical_icdf[i]);
-
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf"		, "%lf", (void*)P.SARIToDeath_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.SARIToDeath_icdf, ICDF_START);
-		}
-		for (i = 0; i <= CDF_RES; i++) P.SARIToDeath_icdf[i] = exp(-P.SARIToDeath_icdf[i]);
-
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.CriticalToDeath_icdf, ICDF_START);
-		}
-		for(i = 0; i <= CDF_RES; i++) P.CriticalToDeath_icdf[i] = exp(-P.CriticalToDeath_icdf[i]);
-
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", "%lf", (void*)P.MildToRecovery_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.MildToRecovery_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", "%lf", (void*)P.ILIToRecovery_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.ILIToRecovery_icdf, ICDF_START);
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", "%lf", (void*)P.ILIToDeath_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.ILIToDeath_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", "%lf", (void*)P.SARIToRecovery_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.SARIToRecovery_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", "%lf", (void*)P.CriticalToCritRecov_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.CriticalToCritRecov_icdf, ICDF_START); 
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", "%lf", (void*)P.CritRecovToRecov_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.CritRecovToRecov_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", "%lf", (void*)P.ILIToSARI_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.ILIToSARI_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", "%lf", (void*)P.SARIToCritical_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.SARIToCritical_icdf, ICDF_START);
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", "%lf", (void*)P.SARIToDeath_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.SARIToDeath_icdf, ICDF_START);
+		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", "%lf", (void*)P.CriticalToDeath_icdf, CDF_RES + 1, 1, 0)) SetICDF(P.CriticalToDeath_icdf, ICDF_START); 
+		for (i = 0; i <= CDF_RES; i++)
+			{
+				P.MildToRecovery_icdf[i] = exp(-P.MildToRecovery_icdf[i]);
+				P.ILIToRecovery_icdf[i] = exp(-P.ILIToRecovery_icdf[i]);
+				P.ILIToDeath_icdf[i] = exp(-P.ILIToDeath_icdf[i]);
+				P.SARIToRecovery_icdf[i] = exp(-P.SARIToRecovery_icdf[i]);
+				P.CriticalToCritRecov_icdf[i] = exp(-P.CriticalToCritRecov_icdf[i]);
+				P.CritRecovToRecov_icdf[i] = exp(-P.CritRecovToRecov_icdf[i]);
+				P.ILIToSARI_icdf[i] = exp(-P.ILIToSARI_icdf[i]);
+				P.SARIToCritical_icdf[i] = exp(-P.SARIToCritical_icdf[i]);
+				P.SARIToDeath_icdf[i] = exp(-P.SARIToDeath_icdf[i]);
+				P.CriticalToDeath_icdf[i] = exp(-P.CriticalToDeath_icdf[i]);
+			}
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_Mild_ByAge[i] = 0.5;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.Prop_Mild_ByAge[i] = 0.5;
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_ILI_ByAge", "%lf", (void*)P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_ILI_ByAge[i] = 0.3;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.Prop_ILI_ByAge[i] = 0.3;
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_SARI_ByAge", "%lf", (void*)P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_SARI_ByAge[i] = 0.15;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.Prop_SARI_ByAge[i] = 0.15;
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Critical_ByAge", "%lf", (void*)P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.Prop_Critical_ByAge[i] = 0.05;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.Prop_Critical_ByAge[i] = 0.05;
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_SARI_ByAge", "%lf", (void*)P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_SARI_ByAge[i] = 0.50;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.CFR_SARI_ByAge[i] = 0.50;
 		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_Critical_ByAge", "%lf", (void*)P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_Critical_ByAge[i] = 0.50;
-
+			for(i = 0; i < NUM_AGE_GROUPS; i++) P.CFR_Critical_ByAge[i] = 0.50;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ILI_ByAge", "%lf", (void*)P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.CFR_ILI_ByAge[i] = 0.00;
+			for (i = 0; i < NUM_AGE_GROUPS; i++) P.CFR_ILI_ByAge[i] = 0.00;
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
