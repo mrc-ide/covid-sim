@@ -53,7 +53,7 @@ CovidSim
     [/R:R0scaling]
     [/s:SchoolFile]
     [/S:NetworkFileToSave]
-    [/T:CaseOrDeathThresholdBeforeAlert]
+    [/T:PreControlClusterIdCaseThreshold]
     SetupSeed1 SetupSeed2 RunSeed1 RunSeed2
 ```
 Required arguments:
