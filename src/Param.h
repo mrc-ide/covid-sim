@@ -247,45 +247,11 @@ struct Param
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
+	double PreControlClusterIdTime, PreControlClusterIdCalTime, PreControlClusterIdHolOffset, PreIntervIdCalTime,PreIntervTime,SeedingScaling;
+	int PreControlClusterIdCaseThreshold, PreControlClusterIdCaseThreshold2, PreControlClusterIdUseDeaths, PreControlClusterIdDuration, DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold,StopCalibration,ModelCalibIteration;
+	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
-	/**< CALIBRATION PARAMETERS
-
-	Params below govern how epidemic is calibrated.
-	Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
-	Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
-	Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
-	Simulation time day 0 (i.e. t = 0 in runtime) is recorded as Epidemic_StartDate_CalTime.
-	Variables with _CalTime suffix refer to calendar time (relative to Calendar time Day 0). Variables with _SimTime suffix refer to simulation time.
-	Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
-
-	Calibration parameters specified in pre-parameter file.
-	*/
-	
-	double DateTriggerReached_SimTime;			// Day of simulation that trigger is reached. 	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
-	double DateTriggerReached_CalTime;			// Day of year trigger is reached (where trigger refers to either cumulative deaths or cumulative ICU admissions, absolute or per-capita etc.)
-	double HolidaysStartDay_SimTime;			// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
-	double Interventions_StartDate_CalTime;		// Calendar day interventions start, relative to Day 0 calendar time.
-	double Epidemic_StartDate_CalTime;			// First day of epidemic relative to Calendar time Day 0.	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
-	double SeedingScaling;						// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
-	bool TriggerAlertOnDeaths;					// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration). 
-	bool DoAlertTriggerAfterInterv;				// Alert trigger starts after interventions, i.e. were there interventions before date specified in DateTriggerReached_CalTime / "Day of year trigger is reached"?
-	int WindowToEvaluateTriggerAlert;			// Number of days to accummulate cases/deaths before alert
-	int CaseOrDeathThresholdBeforeAlert;		// Number of deaths accummulated before alert (if TriggerAlertOnDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if TriggerAlertOnDeaths == 0)
-	int CaseOrDeathThresholdBeforeAlert_Fixed;	// CaseOrDeathThresholdBeforeAlert adjusted during calibration. Need to record fixed version in order to reset so that calibration works for multiple realisations
-	int AlertTriggerAfterIntervThreshold;		// initialized to CaseOrDeathThresholdBeforeAlert (i.e. number cases or deaths accumulated before alert).
-	bool StopCalibration;
-	int ModelCalibIteration;
-
-	/**< Trigger parameters */
-	bool DoPerCapitaTriggers;				// Use cases per thousand threshold for area controls
-	bool DoGlobalTriggers;					// Use global triggers for interventions
-	bool DoAdminTriggers;					// Use admin unit triggers for interventions
-	bool DoICUTriggers;						// Use ICU case triggers for interventions
-	int TriggersSamplingInterval;			// Number of sampling intervals over which cumulative incidence measured for global trigger
-
-	int MoveRestrCellIncThresh, DoHQretrigger;
-
-	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
+	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, TriggersSamplingInterval, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
 	int PlaceCloseCellIncStopThresh, SocDistCellIncStopThresh;
 	int PlaceCloseAdunitPlaceTypes[NUM_PLACE_TYPES];
 

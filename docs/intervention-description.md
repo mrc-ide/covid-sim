@@ -43,19 +43,19 @@ of runtime to match the user-specified inputs. It will approximately (through an
 iterative calibration process) match a user-specified threshold cumulative
 epidemic size (either [Number of deaths accumulated before alert] for deaths or
 [Number of detected cases needed before outbreak alert triggered] for detected
-cases, depending on value of `P.TriggerAlertOnDeaths` [Trigger alert on
+cases, depending on value of `P.PreControlClusterIdUseDeaths` [Trigger alert on
 deaths]) occurring up to the day specified by [Day of year trigger is reached]
-(`P.DateTriggerReached_CalTime`). If [Alert trigger starts after interventions]
+(`P.PreControlClusterIdCalTime`). If [Alert trigger starts after interventions]
 is set to 1 in the input pre-parameter file, this threshold can occur after the
 start of interventions, in which case the start day of interventions,
-[Day of year interventions start] (`P.Interventions_StartDate_CalTime`) should be also
+[Day of year interventions start] (`P.PreIntervIdCalTime`) should be also
 specified.
 
 Intervention times in the intervention parameter files are relative to
-`P.Interventions_StartDate_CalTime`.
+`P.PreIntervIdCalTime`.
 (e.g. if `P.HQuarantineTimeStartBase` / [Household quarantine start time] is set
 to 10, then in the start date of household quarantine policy will be ten days
-after `P.Interventions_StartDate_CalTime`).
+after `P.PreIntervIdCalTime`).
 
 Importantly, the model distinguishes between the period during which a policy is
 implemented, and the period during which the actual intervention is implemented.
