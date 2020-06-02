@@ -39,8 +39,8 @@
 #    checksums file:
 #
 #    cd bad/test
-#    python regressiontest_UK_100th.py --accept
-#    git add regressiontest_UK_100th.checksums.txt
+#    python3 regressiontest_UK_100th.py --accept
+#    git add uk-input/results-j1.cksum uk-input/results-j2.cksum
 #    git commit -m "Update checksums"
 #    git push
 
@@ -76,7 +76,6 @@ import subprocess
 # Sort out directories
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'uk-input')
-output_dir = os.path.join(script_dir, 'uk-output')
 wpop_file_gz = os.path.join(
         script_dir,
         os.pardir,
@@ -84,16 +83,21 @@ wpop_file_gz = os.path.join(
         "populations",
         "wpop_eur.txt.gz")
 
-print("Invoking integration-test.py")
-cmd = [
-        sys.executable,
-        os.path.join(script_dir, "integration-test.py"),
-        "--output", output_dir,
-        "--input", input_dir,
-        "--popfile", os.path.join(wpop_file_gz),
-        "--r", "1.1"
-]
+for j in [1, 2]:
+    print("Invoking integration-test.py j={0}".format(j))
+    output_dir = os.path.join(script_dir, 'uk-output-j{0}'.format(j))
+    cksums = os.path.join(input_dir, "results-j{0}.cksum".format(j))
+    cmd = [
+            sys.executable,
+            os.path.join(script_dir, "integration-test.py"),
+            "--output", output_dir,
+            "--input", input_dir,
+            "--checksums", cksums,
+            "--popfile", os.path.join(wpop_file_gz),
+            "--r", "1.1",
+            "-j", "{0}".format(j)
+    ]
 
-cmd.extend(sys.argv[1:])
-print("Command line: " + " ".join(cmd))
-process = subprocess.run(cmd, check=True)
+    cmd.extend(sys.argv[1:])
+    print("Command line: " + " ".join(cmd))
+    process = subprocess.run(cmd, check=True)

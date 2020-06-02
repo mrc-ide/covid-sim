@@ -40,7 +40,7 @@
 #
 #    cd bad/test
 #    ./regressiontest_US_based.py --accept
-#    git add us-input/results.checksums.txt
+#    git add us-input/results-j1.cksum us-input/results-j2.cksum
 #    git commit -m "Update checksums"
 #    git push
 
@@ -76,7 +76,6 @@ import subprocess
 # Sort out directories
 script_dir = os.path.dirname(os.path.realpath(__file__))
 input_dir = os.path.join(script_dir, 'us-input')
-output_dir = os.path.join(script_dir, 'us-output')
 wpop_file_gz = os.path.join(
         script_dir,
         os.pardir,
@@ -84,15 +83,20 @@ wpop_file_gz = os.path.join(
         "populations",
         "wpop_usacan.txt.gz")
 
-print("Invoking integration-test.py")
-cmd = [
-        sys.executable,
-        os.path.join(script_dir, "integration-test.py"),
-        "--output", output_dir,
-        "--input", input_dir,
-        "--popfile", os.path.join(wpop_file_gz)
-]
+for j in [1, 2]:
+    print("Invoking integration-test.py j={0}".format(j))
+    output_dir = os.path.join(script_dir, 'us-output-j{0}'.format(j))
+    cksums = os.path.join(input_dir, "results-j{0}.cksum".format(j))
+    cmd = [
+            sys.executable,
+            os.path.join(script_dir, "integration-test.py"),
+            "--output", output_dir,
+            "--checksums", cksums,
+            "--input", input_dir,
+            "--popfile", os.path.join(wpop_file_gz),
+            "-j", "{0}".format(j)
+    ]
 
-cmd.extend(sys.argv[1:])
-print("Command line: " + " ".join(cmd))
-process = subprocess.run(cmd, check=True)
+    cmd.extend(sys.argv[1:])
+    print("Command line: " + " ".join(cmd))
+    process = subprocess.run(cmd, check=True)

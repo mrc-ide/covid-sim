@@ -5,6 +5,7 @@ Invoke as:
 
 integration-test.py --covidsim <exe> --input <input_dir> \
    --output <output_dir> --popfile <pop file> \
+   --checksums <checksum file>
    [--schools <shoolfile>] [--accept]
 
 It will run 3 tests:
@@ -52,7 +53,7 @@ match expected checksums.
 #
 #    cd bad/test
 #    ./integration-test.py <opts> --accept
-#    git add *-input/results.checksums.txt
+#    git add <checksum file>
 #    git commit -m "Update checksums"
 #    git push
 
@@ -101,6 +102,9 @@ def parse_args():
     args.popfile = tar.gz population file
     args.schools = school file
     args.accept = accept new results
+    args.j = how many threads to use
+    args.r = r value to pass to CovidSim
+    args.checksums = file containing expected checksum results
     """
     # Defaults
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -138,6 +142,14 @@ def parse_args():
             "--r",
             help="r value to pass to covid-sim, default = 1.5",
             default="1.5")
+    parser.add_argument(
+            "-j",
+            help="Number of threads",
+            default=1)
+    parser.add_argument(
+            "--checksums",
+            help="Checksum file for result comparison",
+            required=True)
 
     return parser.parse_args()
 
@@ -177,12 +189,14 @@ print("Using executable: {0}".format(covidsim_exe))
 if not os.path.exists(args.popfile):
     print("Unable to find population file: {0}".format(args.popfile))
     exit(1)
+if not os.path.exists(args.checksums):
+    print("Unable to find checksums file: {0}".format(args.checksums))
+    exit(1)
 if args.schools is not None and not os.path.exists(args.schools):
     print("Unable to find schools file: {0}".format(args.schools))
     exit(1)
 for i in ["pre-params.txt", "input-noint-params.txt",
-          "admin-params.txt", "input-params.txt",
-          "results.checksums.txt"]:
+          "admin-params.txt", "input-params.txt"]:
     f = os.path.join(args.input, i)
     if not os.path.exists(f):
         print("Unable to find input file: {0}".format(f))
@@ -197,22 +211,16 @@ with gzip.open(args.popfile, 'rb') as f_in,  open(wpop_file, 'wb') as f_out:
     shutil.copyfileobj(f_in, f_out)
 
 # Run the simulation.
-mt_loop = {}
-mt_loop[1] = 'st-'
-mt_loop[2] = 'mt-'
-
-for threads, prefix in mt_loop.items():
-
-    wpop_bin = os.path.join(args.output, prefix + "pop.bin")
-    network_bin = os.path.join(args.output, prefix + "network.bin")
-    print('=== RUN 1: No Intervention - Build network {0}:'.format(prefix))
+    wpop_bin = os.path.join(args.output, "pop.bin")
+    network_bin = os.path.join(args.output, "network.bin")
+    print('=== RUN 1: No Intervention - Build network:')
     cmd = [
             covidsim_exe,
-            '/c:{0}'.format(threads),
+            '/c:{0}'.format(args.j),
             '/BM:bmp',
             '/PP:' + os.path.join(args.input, 'pre-params.txt'),
             '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
-            '/O:' + os.path.join(args.output, prefix + 'results-noint'),
+            '/O:' + os.path.join(args.output, 'results-noint'),
             '/D:' + wpop_file,
             '/M:' + wpop_bin,
             '/A:' + os.path.join(args.input, 'admin-params.txt')
@@ -233,11 +241,11 @@ for threads, prefix in mt_loop.items():
     print('=== RUN 2: No Intervention - Load network:')
     cmd = [
             covidsim_exe,
-            '/c:{0}'.format(threads),
+            '/c:{0}'.format(args.j),
             '/BM:bmp',
             '/PP:' + os.path.join(args.input, 'pre-params.txt'),
             '/P:' + os.path.join(args.input, 'input-noint-params.txt'),
-            '/O:' + os.path.join(args.output, prefix + 'results-noint-repeat'),
+            '/O:' + os.path.join(args.output, 'results-noint-repeat'),
             '/D:' + wpop_bin,
             '/A:' + os.path.join(args.input, 'admin-params.txt')
     ]
@@ -257,11 +265,11 @@ for threads, prefix in mt_loop.items():
     print('=== RUN 3: Intervention - Load network:')
     cmd = [
             covidsim_exe,
-            '/c:{0}'.format(threads),
+            '/c:{0}'.format(args.j),
             '/BM:bmp',
             '/PP:' + os.path.join(args.input, 'pre-params.txt'),
             '/P:' + os.path.join(args.input, 'input-params.txt'),
-            '/O:' + os.path.join(args.output, prefix + 'results-int'),
+            '/O:' + os.path.join(args.output, 'results-int'),
             '/D:' + wpop_bin,
             '/A:' + os.path.join(args.input, 'admin-params.txt')
     ]
@@ -279,7 +287,7 @@ for threads, prefix in mt_loop.items():
     process = subprocess.run(cmd, check=True)
 
     repeat_files_checked = 0
-    for fn2 in glob.glob(os.path.join(args.output, prefix + 'results-noint-repeat*.xls')):
+    for fn2 in glob.glob(os.path.join(args.output, 'results-noint-repeat*.xls')):
         fn1 = fn2.replace('-repeat', '')
         with open(fn1, 'rb') as f:
             dat1 = f.read()
@@ -296,7 +304,7 @@ for threads, prefix in mt_loop.items():
         print('FAILURE: Not enough repeat files found')
         failed = True
 
-expected_checksums = os.path.join(args.input, 'results.checksums.txt')
+expected_checksums = args.checksums
 actual_checksums = os.path.join(args.output, 'results.checksums.txt')
 
 # Compute SHA-512 checksums for the generated files.
