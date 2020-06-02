@@ -12,15 +12,10 @@ void Latent::GetsWorse(int ai, unsigned short ts, int tn, int run)
 	int inf_stat = DoIncub(ai, ts, tn, run);
 
 	if (inf_stat == InfStat_InfectiousAlmostSymptomatic)
-		Hosts->infectionState = new InfectiousAlmostSymptomatic(P);
+		Hosts->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic];
 
 	if (inf_stat == InfStat_InfectiousAsymptomaticNotCase)
-		Hosts->infectionState = new InfectiousAsymptomaticNotCase(P);
-
-}
-
-void Latent::GetsBetter(int ai, double t, int tn, int run)
-{
+		Hosts->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAsymptomaticNotCase];
 
 }
 

@@ -732,7 +732,7 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
-	//		int k;
+			int k;
 			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
 			rec = BF[rn];
 			if (P.DoAdUnits)

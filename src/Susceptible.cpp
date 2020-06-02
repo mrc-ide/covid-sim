@@ -20,13 +20,13 @@ InfectiousAsymptomaticNotCase
 void Susceptible::GetsWorse(int ai, double t, int tn, int run)
 {
 	BecomesInfected(ai, t, tn, run);
-	Hosts->infectionState = new Latent(P);
+	Hosts->infectionState = Hosts->stateHandlers[InfStatType_Latent];
 }
 
 void Susceptible::GetsBetter(int ai, double t, int tn, int run)
 {
 	BecomesImmune(ai);
-	Hosts->infectionState = new ImmuneAtStart();
+	Hosts->infectionState = Hosts->stateHandlers[InfStatType_ImmuneAtStart];
 }
 
 void Susceptible::BecomesImmune(int ai)

@@ -1,16 +1,18 @@
 #include "IInfectionState.h"
 #include "Param.h"
+#include "InfectiousBase.h"
+
 class Case :
-	public IInfectionState
+	public IInfectionState,
+	protected InfectiousBase
 {
 public:
-	Case()
+
+	Case(Param* p)
+		: IInfectionState(p), InfectiousBase(p)
 	{
 	}
 	virtual void GetsWorse(int ai, double t, int tn, int run);
 	virtual void GetsBetter(int ai, double t, int tn, int run);
 
-
-	void DoRecover(int ai, int tn, int run);
-	void DoDeath(int ai, int tn, int run);
 };

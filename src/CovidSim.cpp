@@ -2439,7 +2439,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	Hosts->stateHandlers[InfStatType_Latent] = new Latent(&P);
 	Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic] = new InfectiousAlmostSymptomatic(&P);
 	Hosts->stateHandlers[InfStatType_InfectiousAsymptomaticNotCase] = new InfectiousAsymptomaticNotCase(&P);
-	Hosts->stateHandlers[InfStatType_Case] = new Case();
+	Hosts->stateHandlers[InfStatType_Case] = new Case(&P);
 	Hosts->stateHandlers[InfStatType_RecoveredFromAsymp] = new RecoveredFromAsymp();
 	Hosts->stateHandlers[InfStatType_RecoveredFromSymp] = new RecoveredFromSymp();
 	Hosts->stateHandlers[InfStatType_ImmuneAtStart] = new ImmuneAtStart();
@@ -2580,7 +2580,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].detected_time = 0;
 			Hosts[k].digitalContactTraced = 0;
 			Hosts[k].inf = InfStat_Susceptible;
-			Hosts[k].infectionState = new Susceptible(&P);
+			Hosts[k].infectionState = Hosts[k].stateHandlers[InfStatType_Susceptible];
 			Hosts[k].num_treats = 0;
 			Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 			Hosts[k].infector = -1;
@@ -2598,6 +2598,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Hosts[k].Severity_Current = Severity_Asymptomatic;
 				Hosts[k].Severity_Final = Severity_Asymptomatic;
 				Hosts[k].inf = InfStat_Susceptible;
+				Hosts[k].infectionState = Hosts[k].stateHandlers[InfStatType_Susceptible];
 			}
 		}
 
@@ -2637,7 +2638,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 									{
 										nim += Households[Hosts[k].hh].nh;
 										for (int m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
-											DoImmune(k + m);
+											Hosts[k].infectionState->GetsBetter(k + m, 0.0, 0, run);
 									}
 								}
 							}
@@ -2647,7 +2648,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 							int m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
 							{
-								DoImmune(k); nim += 1;
+								Hosts[k].infectionState->GetsBetter(k, 0.0, 0, run);
+								nim += 1;
 							}
 						}
 					}
@@ -2826,7 +2828,10 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 						}
 						Hosts[l].infector = -2;
 						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
+
+						//DoInfect(l, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
+						Hosts[l].infectionState->GetsWorse(l, t, 0, run);
+
 						m = 0;
 					}
 				}
@@ -2857,7 +2862,8 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
 							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
 							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-							DoInfect(l, t, 0, run);
+							//DoInfect(l, t, 0, run);
+							Hosts[l].infectionState->GetsWorse(l, t, 0, run);
 							m = 0;
 						}
 					}
@@ -2893,7 +2899,8 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
 						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
 						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run);
+						//DoInfect(l, t, 0, run);
+						Hosts[l].infectionState->GetsWorse(l, t, 0, run);
 						m = 0;
 					}
 					else

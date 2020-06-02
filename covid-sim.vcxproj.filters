@@ -31,6 +31,9 @@
     <ClCompile Include="src\InfectiousAsymptomaticNotCase.cpp">
       <Filter>InfectionStates</Filter>
     </ClCompile>
+    <ClCompile Include="src\InfectiousBase.cpp">
+      <Filter>InfectionStates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -85,6 +88,9 @@
       <Filter>InfectionStates</Filter>
     </ClInclude>
     <ClInclude Include="src\InfectiousAsymptomaticNotCase.h">
+      <Filter>InfectionStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\InfectiousBase.h">
       <Filter>InfectionStates</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,8 +8,10 @@ public:
 
 	virtual void GetsBetter(int ai, double t, int tn, int run) {}
 
+	
+protected:
 	Param* P;
-public:
+
 	IInfectionState(Param* p)
 	{
 		P = p;

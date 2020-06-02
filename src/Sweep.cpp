@@ -732,8 +732,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 				if (infect_type == -1) //// i.e. if host doesn't have an infector
 					DoFalseCase(infectee, t, ts, j);
 				else
-					DoInfect(infectee, t, j, run);
+					Hosts[infectee].infectionState->GetsWorse(infectee, t, j, run);
 			}
+			StateT[k].n_queue[j] = 0;
 		}
 	}
 }
@@ -782,7 +783,10 @@ void IncubRecoverySweep(double t, int run)
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
 				if (ts >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
-					DoIncub(c->latent[j], ts, tn, run); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
+				{
+					//DoIncub(c->latent[j], ts, tn, run); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
+					Hosts[c->latent[j]].infectionState->GetsWorse(c->latent[j], ts, tn, run);
+				}
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
@@ -814,15 +818,15 @@ void IncubRecoverySweep(double t, int run)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
-						DoRecover(ci, tn, run);
+						si->infectionState->GetsBetter(ci, 0, tn, run);
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					}
 					else /// if they die and this timestep is after they've died.
 					{
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							Hosts->infectionState->GetsBetter(ci, 0, tn, run);
+							si->infectionState->GetsBetter(ci, 0, tn, run);
 						else
-							Hosts->infectionState->GetsWorse(ci, 0.0, tn, run);
+							si->infectionState->GetsWorse(ci, 0.0, tn, run);
 					}
 
 					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector
