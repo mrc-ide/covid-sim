@@ -214,69 +214,22 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	t2 = 0.0;
 
 	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
+
 	if (!(TimeSeries = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	if (!(TSMeanE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	if (!(TSVarE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	if (!(TSMeanNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	if (!(TSVarNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	TSMean = TSMeanE; TSVar = TSVarE;
-
 	///// This loops over index l twice just to reset the pointer TSMean from TSMeanE to TSMeanNE (same for TSVar).
+	int num_in_results = sizeof(Results) / sizeof(double);
 	for (l = 0; l < 2; l++)
 	{
 		for (int i = 0; i < P.NumSamples; i++)
 		{
-			TSMean[i].S = TSMean[i].I = TSMean[i].R = TSMean[i].D = TSMean[i].L =
-				TSMean[i].incI = TSMean[i].incR = TSMean[i].incC = TSMean[i].incDC = TSMean[i].cumDC =
-				TSMean[i].incTC = TSMean[i].cumT = TSMean[i].cumTP = TSMean[i].cumUT = TSMean[i].cumV = TSMean[i].incH =
-				TSMean[i].incCT = TSMean[i].CT = TSMean[i].incCC = TSMean[i].incDCT = TSMean[i].DCT = //added contact tracing, cases who are contacts
-				TSMean[i].cumTmax = TSMean[i].cumVmax = TSMean[i].incD = TSMean[i].incHQ = TSMean[i].incAC =
-				TSMean[i].incAH = TSMean[i].incAA = TSMean[i].incACS = TSMean[i].incAPC =
-				TSMean[i].incAPA = TSMean[i].incAPCS = TSMean[i].Rdenom = 0;
-			TSVar[i].S = TSVar[i].I = TSVar[i].R = TSVar[i].D = TSVar[i].L =
-				TSVar[i].incI = TSVar[i].incR = TSVar[i].incC = TSVar[i].incTC = TSVar[i].incD = TSVar[i].incH = TSVar[i].incCT = TSVar[i].CT = TSVar[i].incCC = TSMean[i].incDCT = TSVar[i].DCT = 0;
-			for (int j = 0; j < NUM_PLACE_TYPES; j++) TSMean[i].PropPlacesClosed[j] = TSVar[i].PropPlacesClosed[j] = 0;
-			for (int j = 0; j < INFECT_TYPE_MASK; j++) TSMean[i].incItype[j] = TSMean[i].Rtype[j] = 0;
-			for (int j = 0; j < NUM_AGE_GROUPS; j++) TSMean[i].incCa[j] = TSMean[i].incIa[j] = TSMean[i].incDa[j] = TSMean[i].Rage[j] = 0;
-			for (int j = 0; j < 2; j++)
-				TSMean[i].incI_keyworker[j] = TSVar[i].incI_keyworker[j] =
-				TSMean[i].incC_keyworker[j] = TSVar[i].incC_keyworker[j] =
-				TSMean[i].cumT_keyworker[j] = TSVar[i].cumT_keyworker[j] = 0;
-			if (P.DoAdUnits)
-				for (int j = 0; j <= P.NumAdunits; j++)
-					TSMean[i].incI_adunit[j] = TSVar[i].incI_adunit[j] =
-					TSMean[i].incC_adunit[j] = TSVar[i].incC_adunit[j] =
-					TSMean[i].incD_adunit[j] = TSVar[i].incD_adunit[j] =
-					TSMean[i].incDC_adunit[j] = TSVar[i].incDC_adunit[j] =//added detected cases here: ggilani 03/02/15
-					TSMean[i].incH_adunit[j] = TSVar[i].incH_adunit[j] =
-					TSMean[i].incCT_adunit[j] = TSVar[i].incCT_adunit[j] = //added contact tracing
-					TSMean[i].incCC_adunit[j] = TSVar[i].incCC_adunit[j] = //added cases who are contacts: ggilani 28/05/2019
-					TSMean[i].incDCT_adunit[j] = TSVar[i].incDCT_adunit[j] = //added digital contact tracing: ggilani 11/03/20
-					TSMean[i].cumT_adunit[j] = TSVar[i].cumT_adunit[j] = 0;
-
-			if (P.DoSeverity)
-			{
-				//// TSMean (each severity for prevalence, incidence and cumulative incidence)
-				TSMean[i].Mild = TSMean[i].ILI = TSMean[i].SARI = TSMean[i].Critical = TSMean[i].CritRecov =
-					TSMean[i].incMild = TSMean[i].incILI = TSMean[i].incSARI = TSMean[i].incCritical = TSMean[i].incCritRecov =
-					TSMean[i].incDeath_ILI = TSMean[i].incDeath_SARI = TSMean[i].incDeath_Critical =
-					TSMean[i].cumDeath_ILI = TSMean[i].cumDeath_SARI = TSMean[i].cumDeath_Critical =
-					TSMean[i].cumMild = TSMean[i].cumILI = TSMean[i].cumSARI = TSMean[i].cumCritical = TSMean[i].cumCritRecov = 0;
-
-				//// TSVar (each severity for prevalence, incidence and cumulative incidence)
-				TSVar[i].Mild = TSVar[i].ILI = TSVar[i].SARI = TSVar[i].Critical = TSVar[i].CritRecov =
-					TSVar[i].incMild = TSVar[i].incILI = TSVar[i].incSARI = TSVar[i].incCritical = TSVar[i].incCritRecov =
-					TSVar[i].cumMild = TSVar[i].cumILI = TSVar[i].cumSARI = TSVar[i].cumCritical = TSVar[i].cumCritRecov = 0;
-
-				//// TSMean admin unit (each severity for prevalence, incidence and cumulative incidence by admin unit)
-				if (P.DoAdUnits)
-					for (int j = 0; j <= P.NumAdunits; j++)
-						TSMean[i].Mild_adunit[j] = TSMean[i].ILI_adunit[j] = TSMean[i].SARI_adunit[j] = TSMean[i].Critical_adunit[j] = TSMean[i].CritRecov_adunit[j] =
-						TSMean[i].incMild_adunit[j] = TSMean[i].incILI_adunit[j] = TSMean[i].incSARI_adunit[j] = TSMean[i].incCritical_adunit[j] = TSMean[i].incCritRecov_adunit[j] =
-						TSMean[i].incDeath_ILI_adunit[j] = TSMean[i].incDeath_SARI_adunit[j] = TSMean[i].incDeath_Critical_adunit[j] =
-						TSMean[i].cumDeath_ILI_adunit[j] = TSMean[i].cumDeath_SARI_adunit[j] = TSMean[i].cumDeath_Critical_adunit[j] =
-						TSMean[i].cumMild_adunit[j] = TSMean[i].cumILI_adunit[j] = TSMean[i].cumSARI_adunit[j] = TSMean[i].cumCritical_adunit[j] = TSMean[i].cumCritRecov_adunit[j] = 0;
-			}
+			double *ts_mean = (double *)&TSMean[i];
+			double *ts_var = (double *)&TSVar[i];
+			for (int j = 0; j < num_in_results; j++) ts_mean[j] = ts_var[j] = 0.0;
 		}
 		TSMean = TSMeanNE; TSVar = TSVarNE;
 	}

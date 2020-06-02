@@ -348,6 +348,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										else
 										{
 											Hosts[i3].infector = ci; //// assign person ci as infector of peron i3
+											//infect_type: first 4 bits store type of infection
+											//				1= household
+											//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
+											//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
+											//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
+											// bits >4 store the generation of infection
+
 											short int infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
 											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
