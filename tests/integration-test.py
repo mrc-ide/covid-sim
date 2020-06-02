@@ -197,7 +197,7 @@ if args.covidsim is None:
     os.chdir(cwd)
 else:
     covidsim_exe = args.covidsim
-    if not os.path.exeists(covidsim_exe):
+    if not os.path.exists(covidsim_exe):
         print("Unable to find CovidSim executable: {0}".format(covidsim_exe))
         exit(1)
 

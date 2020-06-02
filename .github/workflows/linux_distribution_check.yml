@@ -19,7 +19,7 @@ jobs:
         make
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V"
+        make -Cbuild test ARGS="-V -j2"
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -42,4 +42,4 @@ jobs:
         make
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V"
+        make -Cbuild test ARGS="-V -j2"
