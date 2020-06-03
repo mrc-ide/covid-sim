@@ -5481,6 +5481,11 @@ bool readString(const char* SItemName, FILE* dat, char *buf) {
     }
 }
 
+// #define to map *nix strncasecmp to windows equivalent
+#ifdef WIN32
+#define strncasecmp _strnicmp
+#endif
+
 int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, void* ItemPtr, int NumItem, int NumItem2, int Offset)
 {
 	char match[10000] = "", ReadItemName[10000] = "", ItemName[10000];
@@ -5492,7 +5497,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	while (!FindFlag)
 	{
 		if(!readString(SItemName, dat, match)) return 0;
-		FindFlag = (!strncmp(match, ItemName, strlen(match)));
+		FindFlag = (!strncasecmp(match, ItemName, strlen(match)));
 		if (FindFlag)
 		{
 			CurPos = ftell(dat);
