@@ -72,6 +72,10 @@ The Python script [run_sample.py](./data/run_sample.py) demonstrates how to
 invoke CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
 
+The directory [report9](./report9) contains files to allow the results tables in the Imperial College 
+`Report 9 - Impact of non-pharmaceutical interventions (NPIs) to reduce COVID-19 mortality and healthcare demand`
+to be reproduced.
+
 ## Documentation
 
 Model documentation can be found in the [docs](./docs) directory.  Of
