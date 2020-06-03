@@ -134,7 +134,9 @@ struct PopVar
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];
 
-	int prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	//int prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	int ** prevInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+
 
 	//// above quantities need to be amended in following parts of code:
 	//// i) InitModel (set to zero); 
@@ -192,8 +194,9 @@ struct Results
 	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
-	double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
-
+	//double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	//double* prevInf_age_adunit[NUM_AGE_GROUPS], * incInf_age_adunit[NUM_AGE_GROUPS], * cumInf_age_adunit[NUM_AGE_GROUPS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	double ** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)

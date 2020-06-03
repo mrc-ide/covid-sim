@@ -234,11 +234,88 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		TSMean = TSMeanNE; TSVar = TSVarNE;
 	}
 
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		State.prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
+		State.cumInf_age_adunit  = new int* [NUM_AGE_GROUPS]();
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			State.prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
+			State.cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
+		}
+		//// print to console
+		//fprintf(stderr, "prevInf_age_adunit:\n");
+		//for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		//{
+		//	fprintf(stderr, "AgeGroup %i:\t", AgeGroup);
+		//	for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+		//		fprintf(stderr, "\tAdUnit %i: %i", AdUnit, State.prevInf_age_adunit[AgeGroup][AdUnit]);
+		//	fprintf(stderr, "\n");
+		//}
+			
+
+
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
+		{
+			StateT[Thread].prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
+			StateT[Thread].cumInf_age_adunit  = new int* [NUM_AGE_GROUPS]();
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				StateT[Thread].prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
+				StateT[Thread].cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
+			}
+
+			//// print to console
+			//fprintf(stderr, "StateT[%i]. prevInf_age_adunit:\n", Thread);
+			//for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			//{
+			//	fprintf(stderr, "AgeGroup %i:\t", AgeGroup);
+			//	for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			//		fprintf(stderr, "\tAdUnit %i: %i", AdUnit, StateT[Thread].prevInf_age_adunit[AgeGroup][AdUnit]);
+			//	fprintf(stderr, "\n");
+			//}
+
+		}
+
+		//fprintf(stderr, "NumAdunits = %i \n", P.NumAdunits);
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			TimeSeries[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TimeSeries[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TimeSeries[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				TimeSeries[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TimeSeries[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TimeSeries[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				//if (!(TimeSeries[Time].prevInf_age_adunit[AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				//if (!(TimeSeries[Time].incInf_age_adunit [AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
+				//if (!(TimeSeries[Time].cumInf_age_adunit [AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
+			}
+		}
+	}
+
+
+
 	//added memory allocation and initialisation of infection event log, if DoRecordInfEvents is set to 1: ggilani - 10/10/2014
 	if (P.DoRecordInfEvents)
 	{
 		if (!(InfEventLog = (Events*)calloc(P.MaxInfEvents, sizeof(Events)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
+
 
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 

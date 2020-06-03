@@ -536,7 +536,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
-  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
+  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 1;			//// ON by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
@@ -2616,8 +2616,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	}
 	nim = 0;
 
-	if (P.DoAdUnits)
-		for (int Thread = 0; Thread < MAX_NUM_THREADS; Thread++)
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
 			for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 				{
