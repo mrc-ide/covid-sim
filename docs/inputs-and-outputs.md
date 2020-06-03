@@ -259,7 +259,6 @@ Contains time-stamped (e.g., daily) statistics for the simulation over the whole
 | incC | incidence of cases |
 | incDC | incidence of detected cases |
 | incTC | incidence of treated cases |
-| incH | incidence of hospitalisations – again, probably can ignore this as was written specifically for the Ebola model and we’re using a  different approach here. |
 | cumT | cumulative number of treated cases |
 | cumTmax | the maximum number of cumulative treated cases from the runs being averaged over |
 | cumTP | cumulative number of privately treated cases |
