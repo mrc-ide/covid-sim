@@ -174,14 +174,32 @@ if args.covidsim is None:
     subprocess.run(['cmake', args.srcdir])
     subprocess.run(['cmake', '--build', '.'])
 
-    if os.name == 'nt':
-        covidsim_exe = os.path.join(build_dir, "Debug", "src", "CovidSim.exe")
-    else:
-        covidsim_exe = os.path.join(build_dir, "src", "CovidSim")
+    # CMake may build the executable into multiple places depending on
+    # build platform and make system.
+    covidsim_exe_paths = [
+            os.path.join(build_dir, "src", "CovidSim"),
+            os.path.join(build_dir, "src", "CovidSim.exe"),
+            os.path.join(build_dir, "Debug", "src", "CovidSim.exe"),
+            os.path.join(build_dir, "src", "Debug", "CovidSim.exe")]
+
+    covidsim_exe = None
+    for p in covidsim_exe_paths:
+        if os.path.exists(p):
+            covidsim_exe = p
+            break
+
+    if covidsim_exe is None:
+        print("Unable to determine location of built CovidSim executable")
+        print("Looked for:")
+        print("\n".join(covidsim_exe_paths))
+        exit(1)
 
     os.chdir(cwd)
 else:
     covidsim_exe = args.covidsim
+    if not os.path.exeists(covidsim_exe):
+        print("Unable to find CovidSim executable: {0}".format(covidsim_exe))
+        exit(1)
 
 print("Using executable: {0}".format(covidsim_exe))
 
