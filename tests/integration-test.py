@@ -323,7 +323,7 @@ with gzip.open(args.popfile, 'rb') as f_in,  open(wpop_file, 'wb') as f_out:
         failed = True
 
 expected_checksums = args.checksums
-actual_checksums = os.path.join(args.output, 'results.checksums.txt')
+actual_checksums = os.path.join(args.output, 'results.cksum')
 
 # Compute SHA-512 checksums for the generated files.
 paths = []
@@ -350,7 +350,6 @@ for dirname, filename in paths:
         dat = f.read()
         sha = hashlib.sha512(dat).hexdigest()
         line = filename + (' ' * (1 + max_filename_len - len(filename))) + sha
-        print(line)
         sha512sums.append(line)
 
 sha512sums.sort()
@@ -361,14 +360,13 @@ print('end')
 # Write the checksums into a file in the temporary directory. (This is
 # useful for updating the reference checksums file if the results have
 # changed for a legitimate reason.)
-with open(actual_checksums, 'wb') as checksums_outfile:
-    checksums_outfile.write('\n'.join(sha512sums).encode('utf-8'))
+with open(actual_checksums, 'w') as checksums_outfile:
+    checksums_outfile.write('\n'.join(sha512sums))
 
 # Read the expected checksums from the reference file.
 sha512sums_reference = list(
         filter(None,
-               open(expected_checksums, 'rb').read().decode('utf-8')
-               .split('\n')))
+               open(expected_checksums, 'r').read().split('\n')))
 print('Reference checksums:')
 print('\n'.join(sha512sums_reference))
 print('end')
@@ -394,8 +392,8 @@ else:
 
     if args.accept:
         print('Accepting results.')
-        with open(actual_checksums, 'rb') as checksums_in, \
-                open(expected_checksums, 'wb') as checksums_out:
+        with open(actual_checksums, 'r') as checksums_in, \
+                open(expected_checksums, 'w') as checksums_out:
                 shutil.copyfileobj(checksums_in, checksums_out)
     else:
         failed = True
