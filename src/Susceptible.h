@@ -18,8 +18,5 @@ private:
 
 	void BecomesImmune(int ai);
 	void BecomesInfected(int ai, double t, int tn, int run);
-	void RecordEvent(double t, int ai, int run, int type, int tn);
-	
-
 };
 

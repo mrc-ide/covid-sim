@@ -7,6 +7,9 @@
 #include "Rand.h"
 #include "Case.h"
 
+
+extern void RecordEvent(double t, int ai, int run, int type, int tn);
+
 void Susceptible::GetsWorse(int ai, double t, int tn, int run)
 {
 	BecomesInfected(ai, t, tn, run);
@@ -147,10 +150,7 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 	//added this to record event if flag is set to 1 : ggilani - 10/10/2014
 	if (P->DoRecordInfEvents)
 	{
-		if (*nEvents < P->MaxInfEvents)
-		{
-			RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
-		}
+		RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
 	}
 	if ((t > 0) && (P->DoOneGen))
 	{
@@ -158,64 +158,4 @@ void Susceptible::BecomesInfected(int ai, double t, int tn, int run) // Change p
 		((InfectiousAlmostSymptomatic*)Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic])->GetsWorse(ai, t, tn, run);
 		((Case*)Hosts->stateHandlers[InfStatType_Case])->GetsBetter(ai, t, tn, run);
 	}
-}
-void Susceptible::RecordEvent(double t, int ai, int run, int type, int tn) //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
-{
-	/* Function: RecordEvent(t, ai)
-	 * Records an infection event in the event log
-	 *
-	 * Parameters:
-	 *	t: time of infection event
-	 *	ai: index of infectee
-	 *	nEventsPoint: pointer to number of events
-	 *
-	 * Returns: void
-	 *
-	 * Author: ggilani, Date: 10/10/2014
-	 */
-	 //Declare int to store infector's index
-	int bi;
-
-	bi = Hosts[ai].infector;
-
-	//Save information to event
-#pragma omp critical (inf_event)
-	{
-		InfEventLog[*nEvents].run = run;
-		InfEventLog[*nEvents].type = type;
-		InfEventLog[*nEvents].t = t;
-		InfEventLog[*nEvents].infectee_ind = ai;
-		InfEventLog[*nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P->SpatialBoundingBox[0];
-		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P->SpatialBoundingBox[1];
-		InfEventLog[*nEvents].listpos = Hosts[ai].listpos;
-		InfEventLog[*nEvents].infectee_cell = Hosts[ai].pcell;
-		InfEventLog[*nEvents].thread = tn;
-		if (type == 0) //infection event - record time of onset of infector and infector
-		{
-			InfEventLog[*nEvents].infector_ind = bi;
-			if (bi < 0)
-			{
-				InfEventLog[*nEvents].t_infector = -1;
-				InfEventLog[*nEvents].infector_cell = -1;
-			}
-			else
-			{
-				InfEventLog[*nEvents].t_infector = (int)(Hosts[bi].infection_time / P->TimeStepsPerDay);
-				InfEventLog[*nEvents].infector_cell = Hosts[bi].pcell;
-			}
-		}
-		else if (type == 1) //onset event - record infectee's onset time
-		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].infection_time / P->TimeStepsPerDay);
-		}
-		else if ((type == 2) || (type == 3)) //recovery or death event - record infectee's onset time
-		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].latent_time / P->TimeStepsPerDay);
-		}
-
-		//increment the index of the infection event
-		(*nEvents)++;
-	}
-
 }
