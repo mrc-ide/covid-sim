@@ -1,11 +1,5 @@
 #include "InfectiousAsymptomaticNotCase.h"
 #include "Model.h"
-#include <math.h>
-#include "ModelMacros.h"
-#include "Bitmap.h"
-#include "Dead_WasAsymp.h"
-#include "RecoveredFromAsymp.h"
-
 
 void InfectiousAsymptomaticNotCase::GetsWorse(int ai, double t, int tn, int run)
 {

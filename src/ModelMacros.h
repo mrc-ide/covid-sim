@@ -14,7 +14,6 @@
 #define HOST_QUARANTINED(x) ((Hosts[x].quar_comply == 1) && (Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_start_time <= ts))
 #define HOST_QUARANTINED_PTR(x) ((Hosts[x].quar_comply == 1) && (Hosts[x].quar_start_time + P->usHQuarantineHouseDuration > ts) && (Hosts[x].quar_start_time <= ts))
 #define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
-#define HOST_TO_BE_QUARANTINED_PTR(x) ((Hosts[x].quar_start_time + P->usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
 #define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay <= ts) && (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration > ts))
 #define HOST_ABSENT(x) ((Hosts[x].absent_start_time <= ts) && (Hosts[x].absent_stop_time > ts))
 

@@ -8,27 +8,13 @@
 #include <stdio.h>
 #include "Bitmap.h"
 
-// get worse
-/*
-Dead
-Dead_WasSymp
-*/
-
-// get better
-/*
-Recovered
-RecoveredFromSymp
-*/
-
-
 extern void DoDetectedCase(int ai, double t, unsigned short int ts, int tn);
 extern void DoILI(int ai, int tn);
 extern void DoMild(int ai, int tn);
 
 void InfectiousAlmostSymptomatic::GetsWorse(int ai, double t, int tn, int run)
 {
-
-	DoCase(ai, t, tn, run); // TODO - case conversion
+	DoCase(ai, t, tn, run);
 
 	Person* a = Hosts + ai;
 	a->infectionState = Hosts->stateHandlers[InfStatType_Case];

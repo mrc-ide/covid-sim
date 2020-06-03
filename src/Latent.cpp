@@ -2,20 +2,17 @@
 #include "Model.h"
 #include "ModelMacros.h"
 #include "Rand.h"
-#include "InfectiousAlmostSymptomatic.h"
-#include "InfectiousAsymptomaticNotCase.h"
-#include "Update.h"
 
 void Latent::GetsWorse(int ai, unsigned short ts, int tn, int run)
 {
-	
 	int inf_stat = DoIncub(ai, ts, tn, run);
 
+	Person* a = Hosts + ai;
 	if (inf_stat == InfStat_InfectiousAlmostSymptomatic)
-		Hosts->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic];
+		a->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAlmostSymptomatic];
 
 	if (inf_stat == InfStat_InfectiousAsymptomaticNotCase)
-		Hosts->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAsymptomaticNotCase];
+		a->infectionState = Hosts->stateHandlers[InfStatType_InfectiousAsymptomaticNotCase];
 
 }
 

@@ -1,32 +1,24 @@
 #include "Susceptible.h"
+#include <math.h>
 #include "Model.h"
 #include "Latent.h"
-#include "ImmuneAtStart.h"
 #include "InfectiousAlmostSymptomatic.h"
 #include "ModelMacros.h"
-#include <math.h>
 #include "Rand.h"
 #include "Case.h"
-
-// get worse
-/*
-Latent
-InfectiousAlmostSymptomatic
-InfectiousAsymptomaticNotCase
-*/
-
-// get better
 
 void Susceptible::GetsWorse(int ai, double t, int tn, int run)
 {
 	BecomesInfected(ai, t, tn, run);
-	Hosts->infectionState = Hosts->stateHandlers[InfStatType_Latent];
+	Person* a = Hosts + ai;
+	a->infectionState = Hosts->stateHandlers[InfStatType_Latent];
 }
 
 void Susceptible::GetsBetter(int ai, double t, int tn, int run)
 {
-	BecomesImmune(ai);
-	Hosts->infectionState = Hosts->stateHandlers[InfStatType_ImmuneAtStart];
+	BecomesImmune(tn);
+	Person* a = Hosts + ai;
+	a->infectionState = Hosts->stateHandlers[InfStatType_ImmuneAtStart];
 }
 
 void Susceptible::BecomesImmune(int ai)

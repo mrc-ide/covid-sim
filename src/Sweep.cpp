@@ -14,8 +14,6 @@
 #include "Param.h"
 #include "Sweep.h"
 #include "Update.h"
-#include "InfectiousAlmostSymptomatic.h"
-#include "Case.h"
 
 void TravelReturnSweep(double t)
 {

@@ -2638,7 +2638,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 									{
 										nim += Households[Hosts[k].hh].nh;
 										for (int m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
-											Hosts[k].infectionState->GetsBetter(k + m, 0.0, 0, run);
+											Hosts[k].infectionState->GetsBetter(k, 0.0, k + m, run);
 									}
 								}
 							}
@@ -2648,7 +2648,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 							int m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
 							{
-								Hosts[k].infectionState->GetsBetter(k, 0.0, 0, run);
+								Hosts[k].infectionState->GetsBetter(k, 0.0, k, run);
 								nim += 1;
 							}
 						}

@@ -1,11 +1,8 @@
 #include "InfectiousBase.h"
-#include "Model.h"
 #include <math.h>
+#include "Model.h"
 #include "ModelMacros.h"
 #include "Bitmap.h"
-#include "Dead_WasAsymp.h"
-#include "RecoveredFromAsymp.h"
-
 
 void InfectiousBase::DoRecover(int ai, int tn, int run)
 {
