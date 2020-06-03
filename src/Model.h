@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
+#include <cstddef>
+
 #include "Country.h"
 #include "MachineDefines.h"
 #include "Constants.h"
@@ -139,7 +141,7 @@ struct PopVar
 
 
 	//// above quantities need to be amended in following parts of code:
-	//// i) InitModel (set to zero); 
+	//// i) InitModel (set to zero);
 	//// ii) RecordSample: (collate from threads);
 	//// iii) RecordSample: add to incidence / Timeseries).
 	//// iv) SaveResults
@@ -159,7 +161,16 @@ struct PopVar
  */
 struct Results
 {
-	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC, meanTG, meanSI ;
+	// Initial values should not be touched by mean/var calculation
+	double t;
+	//double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	//double* prevInf_age_adunit[NUM_AGE_GROUPS], * incInf_age_adunit[NUM_AGE_GROUPS], * cumInf_age_adunit[NUM_AGE_GROUPS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	double ** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+
+	// The following values must all be doubles or inline arrays of doubles
+	// The first variable must be S.  If that changes change the definition of
+	// ResultsDoubleOffsetStart below.
+	double S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC, meanTG, meanSI ;
 	double CT, incCT, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
 	double cumT, cumUT, cumTP, cumV, cumTmax, cumVmax, cumDC, extinct, cumVG; //added cumVG
@@ -194,9 +205,6 @@ struct Results
 	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
-	//double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
-	//double* prevInf_age_adunit[NUM_AGE_GROUPS], * incInf_age_adunit[NUM_AGE_GROUPS], * cumInf_age_adunit[NUM_AGE_GROUPS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
-	double ** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)
@@ -208,6 +216,9 @@ struct Results
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
 
 };
+
+// The offset (in number of doubles) of the first double field in Results.
+const std::size_t ResultsDoubleOffsetStart = offsetof(Results, S) / sizeof(double);
 
 /**
  * Supports producing individual infection events from the simulation (and is not used that

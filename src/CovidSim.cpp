@@ -546,7 +546,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity"		, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
   	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
 
-	
+
 
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.NKR, 1, 1, 0)) P.NKR = 4000000;
 	if (P.NKR < 2000000)
@@ -4787,7 +4787,7 @@ void RecordSample(double t, int n)
 	State.cumAPCS = cumAPCS;
 
 	//// **** Infections by age and admin unit (can parallelize later)
-	RecordAdminAgeBreakdowns(n); 
+	RecordAdminAgeBreakdowns(n);
 
 	if (P.DoSeverity)
 	{
@@ -5394,11 +5394,19 @@ void RecordInfTypes(void)
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
-			for (i = 1 /* skip over `t` */; i < nf; i++)
+			for (std::size_t i = ResultsDoubleOffsetStart /* skip over initial fields */; i < nf; i++)
 			{
 				res_av[i] += res[i];
 				res_var[i] += res[i] * res[i];
 			}
+			for (std::size_t age = 0; age < NUM_AGE_GROUPS; ++age) {
+				for (std::size_t adunit = 0; adunit < P.NumAdunits; ++adunit) {
+					TSMean[n].prevInf_age_adunit[age][adunit] = TimeSeries[n + lc].prevInf_age_adunit[age][adunit];
+					TSMean[n].cumInf_age_adunit[age][adunit] = TimeSeries[n + lc].cumInf_age_adunit[age][adunit];
+					TSMean[n].incInf_age_adunit[age][adunit] = TimeSeries[n + lc].incInf_age_adunit[age][adunit];
+				}
+			}
+
 			if (TSMean[n].cumTmax < TimeSeries[n + lc].cumT) TSMean[n].cumTmax = TimeSeries[n + lc].cumT;
 			if (TSMean[n].cumVmax < TimeSeries[n + lc].cumV) TSMean[n].cumVmax = TimeSeries[n + lc].cumV;
 		}
