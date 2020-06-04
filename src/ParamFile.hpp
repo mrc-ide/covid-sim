@@ -56,6 +56,9 @@ public:
     template<typename T>
     bool extract_multiple(std::string const& param, T* output, std::size_t N, T default_value);
 
+    template<typename T>
+    bool extract_multiple_no_default(std::string const& param, T* output, std::size_t N);
+
     /**
      * Extract and assign multiple parameter values to `N` values in `output` or exit the program.
      *

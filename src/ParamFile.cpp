@@ -115,6 +115,27 @@ bool ParamReader::extract_multiple(std::string const& param, T* output, std::siz
 }
 
 template<typename T>
+bool ParamReader::extract_multiple_no_default(std::string const& param, T* output, std::size_t N)
+{
+    if (!exists(param))
+    {
+        return false;
+    }
+
+    std::istringstream iss(m_param_value_map[param]);
+    for (auto i = 0; i < N; i++)
+    {
+        if (!raw_extract(iss, output[i]))
+        {
+            std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for "
+                      << param << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
 void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, std::size_t N)
 {
     if (!exists(param))
@@ -194,6 +215,8 @@ template void ParamReader::extract_or_exit<double>(std::string const&, double&);
 template void ParamReader::extract_or_exit<int>(std::string const&, int&);
 template bool ParamReader::extract_multiple<double>(std::string const&, double*, std::size_t, double);
 template bool ParamReader::extract_multiple<int>(std::string const&, int*, std::size_t, int);
+template bool ParamReader::extract_multiple_no_default<double>(std::string const&, double*, std::size_t);
+template bool ParamReader::extract_multiple_no_default<int>(std::string const&, int*, std::size_t);
 template void ParamReader::extract_multiple_or_exit<double>(std::string const&, double*, std::size_t);
 template void ParamReader::extract_multiple_or_exit<int>(std::string const&, int*, std::size_t);
 
