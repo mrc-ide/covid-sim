@@ -236,6 +236,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
+		// initialize State age and admin unit breakdowns
 		State.prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
 		State.cumInf_age_adunit  = new int* [NUM_AGE_GROUPS]();
 		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
@@ -243,18 +244,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			State.prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
 			State.cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
 		}
-		//// print to console
-		//fprintf(stderr, "prevInf_age_adunit:\n");
-		//for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-		//{
-		//	fprintf(stderr, "AgeGroup %i:\t", AgeGroup);
-		//	for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
-		//		fprintf(stderr, "\tAdUnit %i: %i", AdUnit, State.prevInf_age_adunit[AgeGroup][AdUnit]);
-		//	fprintf(stderr, "\n");
-		//}
-			
 
-
+		// initialize threaded State age and admin unit breakdowns
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
 		{
 			StateT[Thread].prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
@@ -264,20 +255,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				StateT[Thread].prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
 				StateT[Thread].cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
 			}
-
-			//// print to console
-			//fprintf(stderr, "StateT[%i]. prevInf_age_adunit:\n", Thread);
-			//for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-			//{
-			//	fprintf(stderr, "AgeGroup %i:\t", AgeGroup);
-			//	for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
-			//		fprintf(stderr, "\tAdUnit %i: %i", AdUnit, StateT[Thread].prevInf_age_adunit[AgeGroup][AdUnit]);
-			//	fprintf(stderr, "\n");
-			//}
-
 		}
 
-		//fprintf(stderr, "NumAdunits = %i \n", P.NumAdunits);
+		// initialize TimeSeries age and admin unit breakdowns
 		for (int Time = 0; Time < P.NumSamples; Time++)
 		{
 			TimeSeries[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
@@ -301,14 +281,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				TSMeanNE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
 				TSMeanNE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
 				TSMeanNE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				//if (!(TimeSeries[Time].prevInf_age_adunit[AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
-				//if (!(TimeSeries[Time].incInf_age_adunit [AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
-				//if (!(TimeSeries[Time].cumInf_age_adunit [AgeGroup] = (double*)calloc(P.NumAdunits, sizeof(double)))) ERR_CRITICAL("Unable to allocate state storage\n");
 			}
 		}
 	}
-
-
 
 	//added memory allocation and initialisation of infection event log, if DoRecordInfEvents is set to 1: ggilani - 10/10/2014
 	if (P.DoRecordInfEvents)

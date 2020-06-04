@@ -4201,13 +4201,13 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		// colnames
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
 		fprintf(dat, "\n");
 
 		// Populate
@@ -4219,10 +4219,10 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 					fprintf(dat, "\t%.10f", c * TSMean[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", c * TSMean[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+					fprintf(dat, "\t%.10f", c * TSMean[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
 	}
@@ -5360,7 +5360,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (P.PreIntervIdCalTime>0)?((int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime)):0;
+	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
