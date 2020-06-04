@@ -613,12 +613,22 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		}
 	if (P.DoHouseholds)
 	{
-		if ((!P.DoMassVacc) && (t >= P.VaccTimeStart) && (State.cumV < P.VaccMaxCourses))
-			if ((t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
+		if ((!P.DoMassVacc) && (t >= P.VaccTimeStart))
+		{
+			// DoVacc is going to test that `State.cumV < P.VaccMaxCourses` itself before
+			// incrementing State.cumV, but by checking here too we can avoid a lot of
+			// wasted effort
+			bool cumV_OK;
+#pragma omp critical (state_cumV)
+			{
+				cumV_OK = State.cumV < P.VaccMaxCourses;
+			}
+			if (cumV_OK && (t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
 			{
 				j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 				for (j = j1; j < j2; j++) DoVacc(j, ts);
 			}
+		}
 
 		//// Giant compound if statement. If doing delays by admin unit, then window of HQuarantine dependent on admin unit-specific duration. This if statement ensures that this timepoint within window, regardless of how window defined.
 		if ((P.DoInterventionDelaysByAdUnit &&
@@ -1259,20 +1269,23 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 	}
 }
 
-int DoVacc(int ai, unsigned short int ts)
+void DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
+	bool cumV_OK = false;
 
-	if (State.cumV >= P.VaccMaxCourses)
-		return 2;
-	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
-		return 1;
-	else
+	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+		return;
+#pragma omp critical (state_cumV)
+	if (State.cumV < P.VaccMaxCourses)
+	{
+		cumV_OK = true;
+		State.cumV++;
+	}
+	if (cumV_OK)
 	{
 		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
 
-#pragma omp critical (state_cumV)
-		State.cumV++;
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp critical (state_cumV_daily)
@@ -1295,7 +1308,6 @@ int DoVacc(int ai, unsigned short int ts)
 			}
 		}
 	}
-	return 0;
 }
 
 void DoVaccNoDelay(int ai, unsigned short int ts)
