@@ -449,9 +449,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
-	int i, j, j1, j2, k, f, nc, na;
-	char CountryNameBuf[128 * MAX_COUNTRIES], AdunitListNamesBuf[128 * MAX_ADUNITS];
-	char* CountryNames[MAX_COUNTRIES], * AdunitListNames[MAX_ADUNITS];
+	int i, j, j1, j2, k, nc;
+	std::vector<std::string> CountryNames;
 
 	AgeSuscScale = 1.0;
 	ParamReader params(ParamFile, PreParamFile, AdUnitFile);
@@ -461,14 +460,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	if (P.FitIter == 0)
 	{
-		for (i = 0; i < MAX_COUNTRIES; i++) {
-			CountryNames[i] = CountryNameBuf + 128 * i;
-			CountryNames[i][0] = 0;
-		}
-		for (i = 0; i < MAX_ADUNITS; i++) {
-			AdunitListNames[i] = AdunitListNamesBuf + 128 * i;
-			AdunitListNames[i][0] = 0;
-		}
 		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
 		params.extract("Longitude cut line", P.LongitudeCutLine, -360.0);
 		params.extract_or_exit("Update timestep", P.TimeStep);
@@ -559,38 +550,40 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		params.extract("Divisor for countries", P.CountryDivisor, 1);
 		if (P.DoAdUnits)
 		{
-			char** AdunitNames, * AdunitNamesBuf;
-			if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			std::vector<std::vector<std::string>> AdunitNames;
 
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
 				P.AdunitLevel1Lookup[i] = -1;
-				AdunitNames[3 * i] = AdunitNamesBuf + 3 * i * 360;
-				AdunitNames[3 * i + 1] = AdunitNamesBuf + 3 * i * 360 + 60;
-				AdunitNames[3 * i + 2] = AdunitNamesBuf + 3 * i * 360 + 160;
 			}
 			params.extract("Divisor for level 1 administrative units", P.AdunitLevel1Divisor, 1);
 			params.extract("Mask for level 1 administrative units", P.AdunitLevel1Mask, 1000000000);
-			na = (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Codes and country/province names for admin units", "%s", (void*)AdunitNames, 3 * ADUNIT_LOOKUP_SIZE, 1, 0)) / 3;
+			params.extract_string_matrix_or_exit("Codes and country/province names for admin units", AdunitNames, 3);
 			params.extract("Number of countries to include", nc, 0);
-			if ((na > 0) && (nc > 0))
+			if (!AdunitNames.empty() && (nc > 0))
 			{
 				P.DoAdunitBoundaries = (nc > 0);
 				nc = abs(nc);
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of names of countries to include", "%s", (nc > 1) ? ((void*)CountryNames) : ((void*)CountryNames[0]), nc, 1, 0);
+				params.extract_multiple_strings_or_exit("List of names of countries to include", CountryNames, nc);
 				P.NumAdunits = 0;
-				for (i = 0; i < na; i++)
-					for (j = 0; j < nc; j++)
-						if ((AdunitNames[3 * i + 1][0]) && (!strcmp(AdunitNames[3 * i + 1], CountryNames[j])) && (atoi(AdunitNames[3 * i]) != 0))
+				for (auto const& adunit_param : AdunitNames)
+				{
+					for (auto const& country : CountryNames)
+					{
+						auto const& adunit_id = adunit_param[0];
+						auto const& adunit_country = adunit_param[1];
+						if (!adunit_country.empty() && adunit_country.compare(country) == 0 && (atoi(adunit_id.c_str()) != 0))
 						{
-							AdUnits[P.NumAdunits].id = atoi(AdunitNames[3 * i]);
-							P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
-							if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
-							if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
-							//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
+							auto& adunit = AdUnits[P.NumAdunits];
+							adunit.id = atoi(adunit_id.c_str());
+							P.AdunitLevel1Lookup[(adunit.id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
+							adunit.cnt_name = adunit_country;
+							adunit.ad_name = adunit_param[2];
+							// std::cerr << adunit.id << " " << adunit.cnt_name << " " << adunit.ad_name << " ## " << std::endl;
 							P.NumAdunits++;
 						}
+					}
+				}
 			}
 			else
 			{
@@ -599,33 +592,30 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				{
 					P.DoAdunitBoundaries = 1;
 					if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
-					GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of level 1 administrative units to include", "%s", (P.NumAdunits > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumAdunits, 1, 0);
-					na = P.NumAdunits;
+					std::vector<std::string> AdunitListNames;
+					params.extract_multiple_strings_or_exit("List of level 1 administrative units to include", AdunitListNames, P.NumAdunits);
 					for (i = 0; i < P.NumAdunits; i++)
 					{
-						f = 0;
-						if (na > 0)
+						auto it = std::find_if(AdunitNames.cbegin(), AdunitNames.cend(),
+												[&AdunitListNames, i](auto const& vec) { return (vec[2].compare(AdunitListNames[i]) == 0);});
+						if (it != AdunitNames.cend())
 						{
-							for (j = 0; (j < na) && (!f); j++) f = (!strcmp(AdunitNames[3 * j + 2], AdunitListNames[i]));
-							if (f) k = atoi(AdunitNames[3 * (j - 1)]);
+							auto const& AdunitName = *it;
+							k = std::stoi(AdunitName[0]);
+							AdUnits[i].cnt_name = AdunitName[1];
+							AdUnits[i].ad_name = AdunitName[2];
 						}
-						if ((na == 0) || (!f)) k = atoi(AdunitListNames[i]);
+						else
+						{
+							k = std::stoi(AdunitListNames[i]);
+						}
 						AdUnits[i].id = k;
 						P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = i;
-						for (j = 0; j < na; j++)
-							if (atoi(AdunitNames[3 * j]) == k)
-							{
-								if (strlen(AdunitNames[3 * j + 1]) < 100) strcpy(AdUnits[i].cnt_name, AdunitNames[3 * j + 1]);
-								if (strlen(AdunitNames[3 * j + 2]) < 200) strcpy(AdUnits[i].ad_name, AdunitNames[3 * j + 2]);
-								j = na;
-							}
 					}
 				}
 				else
 					P.DoAdunitBoundaries = 0;
 			}
-			Memory::xfree(AdunitNames);
-			Memory::xfree(AdunitNamesBuf);
 
 			params.extract("Output incidence by administrative unit", P.DoAdunitOutput, 0);
 			params.extract("Draw administrative unit boundaries on maps", P.DoAdunitBoundaryOutput, 0);
@@ -949,20 +939,18 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (P.DoAdUnits)
 		{
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.NumSeedLocations > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumSeedLocations, 1, 0))
+			std::vector<std::string> AdunitSeedLocationIds;
+			if (params.extract_multiple_strings_no_default("Administrative unit to seed initial infection into", AdunitSeedLocationIds, P.NumSeedLocations))
 				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
 			else
 				for (i = 0; i < P.NumSeedLocations; i++)
 				{
-					f = 0;
-					if (P.NumAdunits > 0)
-					{
-						for (j = 0; (j < P.NumAdunits) && (!f); j++) f = (!strcmp(AdUnits[j].ad_name, AdunitListNames[i]));
-						if (f) k = AdUnits[j - 1].id;
-					}
-					if (!f) k = atoi(AdunitListNames[i]);
+					bool found = false;
+					for (j = 0; (j < P.NumAdunits) && (!found); j++) found = (AdUnits[j].ad_name.compare(AdunitSeedLocationIds[i]) == 0);
+					if (found) k = AdUnits[j-1].id;
+					if (!found) k = std::stoi(AdunitSeedLocationIds[i]);
 					P.InitialInfectionsAdminUnit[i] = k;
-					P.InitialInfectionsAdminUnitId[i] = P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
+					P.InitialInfectionsAdminUnitId[i]=P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
 				}
 			params.extract_multiple("Administrative unit seeding weights", P.InitialInfectionsAdminUnitWeight, P.NumSeedLocations, 1.0);
 			s = 0;
@@ -2150,7 +2138,7 @@ void ReadInterventions(std::string const& IntFile)
 						f = 1; au = -1;
 						do
 						{
-							au++; f = strcmp(txt, AdUnits[au].ad_name);
+							au++; f = strcmp(txt, AdUnits[au].ad_name.c_str());
 						} while ((f) && (au < P.NumAdunits));
 						if (!f)
 						{
@@ -2200,7 +2188,7 @@ void ReadInterventions(std::string const& IntFile)
 					sscanf(buf, "%s", txt);
 					j = atoi(txt);
 					for (au = 0; au < P.NumAdunits; au++)
-						if (((j == 0) && (strcmp(txt, AdUnits[au].cnt_name) == 0)) || ((j > 0) && (j == AdUnits[au].cnt_id)))
+						if (((j == 0) && (strcmp(txt, AdUnits[au].cnt_name.c_str()) == 0)) || ((j > 0) && (j == AdUnits[au].cnt_id)))
 						{
 							r = CurInterv.Level + (2.0 * ranf() - 1) * CurInterv.LevelAUVar + s;
 							if ((CurInterv.Level < 1) && (r > 1))
@@ -3235,9 +3223,9 @@ void SaveResults(std::string const& output_file_base)
 		outname = output_file_base + ".adunit.xls";
 		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name);
+		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name.c_str());
+		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name.c_str());
+		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name.c_str());
 
 		fprintf(dat, "\n");
 		for (i = 0; i < P.NumSamples; i++)
@@ -3261,11 +3249,11 @@ void SaveResults(std::string const& output_file_base)
     		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name);
+			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name.c_str());
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name);
+			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name.c_str());
 		}
 		fprintf(dat, "\n");
 		//print actual output
@@ -3429,7 +3417,7 @@ void SaveResults(std::string const& output_file_base)
 			{
 				for (i = 0; i < P.NumAdunits; i++)
 				{
-					fprintf(dat, "\t%s%s", colname.c_str(), AdUnits[i].ad_name);
+					fprintf(dat, "\t%s%s", colname.c_str(), AdUnits[i].ad_name.c_str());
 				}
 			}
 
@@ -3486,13 +3474,13 @@ void SaveResults(std::string const& output_file_base)
 		// colnames
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// incidence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// prevalence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// cumulative incidence
 		fprintf(dat, "\n");
 
 		// Populate
@@ -3624,10 +3612,10 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		outname = output_file_base + ".adunit.xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t");
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name.c_str());
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name.c_str());
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name.c_str()); //added detected cases: ggilani 03/02/15
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name.c_str());
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%i", AdUnits[i].n);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
 		fprintf(dat, "\n");
@@ -3651,10 +3639,10 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			outname = output_file_base + ".adunitVar.xls";
 			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name.c_str()); //added detected cases: ggilani 03/02/15
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name.c_str());
 			fprintf(dat, "\n");
 			for (i = 0; i < P.NumSamples; i++)
 			{
@@ -3680,11 +3668,11 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name); // //printing headers for inc per admin unit
+			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name.c_str()); // //printing headers for inc per admin unit
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name); // //printing headers for prevalence of digital contact tracing per admin unit
+			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name.c_str()); // //printing headers for prevalence of digital contact tracing per admin unit
 		}
 		fprintf(dat, "\n");
 		//print actual output
@@ -4042,40 +4030,40 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
 			//// prevalance
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARIP_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCriticalP_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecovP_%s"			, AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"					, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"					, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"					, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARIP_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCriticalP_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecovP_%s"			, AdUnits[i].ad_name.c_str());
 
 			//// incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARIP_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCriticalP_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecovP_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_ILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_SARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath__Critical_%s"	, AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s"					, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARIP_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCriticalP_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecovP_%s"		, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_ILI_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_SARI_%s"		, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath__Critical_%s"	, AdUnits[i].ad_name.c_str());
 
 			//// cumulative incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_ILI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_SARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_Critical_%s"	, AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s"				, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_%s"			, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_ILI_%s"		, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_SARI_%s"		, AdUnits[i].ad_name.c_str());
+			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_Critical_%s"	, AdUnits[i].ad_name.c_str());
 
 			fprintf(dat, "\n");
 
@@ -4155,13 +4143,13 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		// colnames
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// incidence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// prevalence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name.c_str());	// cumulative incidence
 		fprintf(dat, "\n");
 
 		// Populate

@@ -131,6 +131,61 @@ void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, 
     }
 }
 
+bool ParamReader::extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N)
+{
+    if (!exists(param))
+        return false;
+
+    std::istringstream iss(m_param_value_map[param]);
+    std::string token;
+    for (auto i = 0; i < N; i++)
+    {
+        iss >> token;
+        if (iss.fail())
+        {
+            std::cerr << "ERROR: Only got " << i << " out of " << N << " parameters for " << param << std::endl;
+            return false;
+        }
+        output.emplace_back(token);
+    }
+    return true;
+}
+
+void ParamReader::extract_multiple_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N)
+{
+    if (!extract_multiple_strings_no_default(param, output, N))
+        std::exit(1);
+}
+
+void ParamReader::extract_string_matrix_or_exit(std::string const& param, std::vector<std::vector<std::string>>& output, std::size_t num_cols)
+{
+    if (!exists(param))
+        std::exit(1);
+
+    // iterate over every row of the matrix
+    std::istringstream matrix(m_param_value_map[param]);
+    std::istringstream line_stream;
+    for (std::string line; std::getline(matrix, line);)
+    {
+        // iterate over every token in each row and add it in a vector
+        line_stream.str(line);
+        std::vector<std::string> new_row;
+        for (auto i = 0; i < num_cols; i++)
+        {
+            std::string token;
+            line_stream >> token;
+            if (line_stream.fail())
+            {
+                std::cerr << "ERROR: Only got " << i << " out of " << num_cols << " columns in line (" << line
+                          << ") for parameter " << param << std::endl;
+                std::exit(1);
+            }
+            new_row.push_back(std::move(token));
+        }
+        output.push_back(std::move(new_row));
+    }
+}
+
 // Explicit template instantiations for the linker
 // https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
 template bool ParamReader::extract<double>(std::string const&, double&, double);

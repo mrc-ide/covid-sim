@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 /**
  * Class to handle reading and extracting values out of input parameter files
@@ -63,6 +64,12 @@ public:
      */
     template<typename T>
     void extract_multiple_or_exit(std::string const& param, T* output, std::size_t N);
+
+    bool extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N);
+
+    void extract_multiple_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N);
+
+    void extract_string_matrix_or_exit(std::string const& param, std::vector<std::vector<std::string>>& output, std::size_t num_cols);
 
 private:
     /**

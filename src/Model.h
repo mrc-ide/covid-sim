@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <string>
 #include <vector>
 
 #include "Country.h"
@@ -277,7 +278,7 @@ struct AdminUnit
 {
 	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
 	Intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
-	char cnt_name[96], ad_name[200];
+	std::string cnt_name, ad_name;
 	int NP, place_close_trig;
 	double CaseIsolationTimeStart, HQuarantineTimeStart, DigitalContactTracingTimeStart;
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
