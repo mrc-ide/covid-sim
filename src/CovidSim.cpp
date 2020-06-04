@@ -536,7 +536,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
-  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 1;			//// ON by default.
+  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
@@ -545,8 +545,6 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType"			, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity"		, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
   	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
-
-
 
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.NKR, 1, 1, 0)) P.NKR = 4000000;
 	if (P.NKR < 2000000)
@@ -2540,7 +2538,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDeath_ILI_age[AgeGroup] = State.cumDeath_SARI_age[AgeGroup] = State.cumDeath_Critical_age[AgeGroup] = 0;
 		}
 	}
-	if (P.DoAdUnits)
+	if (P.DoAdUnits && P.OutputAdUnitAge)
 		for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
@@ -3557,6 +3555,42 @@ void SaveResults(void)
 				if(i != P.NumSamples - 1) fprintf(dat, "\n");
 			}
 			fclose(dat);
+		}
+	}
+
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		//// output infections by age and admin unit
+		sprintf(outname, "%s.age.adunit.xls", OutFile);
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		fprintf(dat, "t");
+
+		// colnames
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+		fprintf(dat, "\n");
+
+		// Populate
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			fprintf(dat, "%.10f", TSMean[Time].t);
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
+			fprintf(dat, "\n");
 		}
 	}
 }
@@ -4787,7 +4821,8 @@ void RecordSample(double t, int n)
 	State.cumAPCS = cumAPCS;
 
 	//// **** Infections by age and admin unit (can parallelize later)
-	RecordAdminAgeBreakdowns(n);
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+		RecordAdminAgeBreakdowns(n);
 
 	if (P.DoSeverity)
 	{
@@ -5399,13 +5434,14 @@ void RecordInfTypes(void)
 				res_av[i] += res[i];
 				res_var[i] += res[i] * res[i];
 			}
-			for (std::size_t age = 0; age < NUM_AGE_GROUPS; ++age) {
-				for (std::size_t adunit = 0; adunit < P.NumAdunits; ++adunit) {
-					TSMean[n].prevInf_age_adunit[age][adunit] = TimeSeries[n + lc].prevInf_age_adunit[age][adunit];
-					TSMean[n].cumInf_age_adunit[age][adunit] = TimeSeries[n + lc].cumInf_age_adunit[age][adunit];
-					TSMean[n].incInf_age_adunit[age][adunit] = TimeSeries[n + lc].incInf_age_adunit[age][adunit];
-				}
-			}
+			if (P.DoAdUnits && P.OutputAdUnitAge)
+				for (std::size_t age = 0; age < NUM_AGE_GROUPS; ++age)
+					for (std::size_t adunit = 0; adunit < P.NumAdunits; ++adunit)
+					{
+						TSMean[n].prevInf_age_adunit[age][adunit] = TimeSeries[n + lc].prevInf_age_adunit[age][adunit];
+						TSMean[n].cumInf_age_adunit [age][adunit] = TimeSeries[n + lc].cumInf_age_adunit [age][adunit];
+						TSMean[n].incInf_age_adunit [age][adunit] = TimeSeries[n + lc].incInf_age_adunit [age][adunit];
+					}
 
 			if (TSMean[n].cumTmax < TimeSeries[n + lc].cumT) TSMean[n].cumTmax = TimeSeries[n + lc].cumT;
 			if (TSMean[n].cumVmax < TimeSeries[n + lc].cumV) TSMean[n].cumVmax = TimeSeries[n + lc].cumV;
