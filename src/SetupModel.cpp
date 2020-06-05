@@ -30,8 +30,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	char buf[2048];
 	FILE* dat;
 
-	if (!(Xcg1 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
-	if (!(Xcg2 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
+	if (!(Xcg1 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t))) ||
+		!(Xcg2 = (int32_t*)malloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t)))) ERR_CRITICAL("Unable to allocate ranf storage\n");
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
@@ -204,8 +204,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (tw > t) t = tw;
 	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
-	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
-	if (!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
+	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double))) ||
+		!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
 	P.KernelDelta = t / P.NKR;
 	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
@@ -215,11 +215,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
 
-	if (!(TimeSeries = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TimeSeries = (Results*)calloc(P.NumSamples, sizeof(Results))) ||
+		!(TSMeanE = (Results*)calloc(P.NumSamples, sizeof(Results))) ||
+		!(TSVarE = (Results*)calloc(P.NumSamples, sizeof(Results))) ||
+		!(TSMeanNE = (Results*)calloc(P.NumSamples, sizeof(Results))) ||
+		!(TSVarNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	TSMean = TSMeanE; TSVar = TSVarE;
 	///// This loops over index l twice just to reset the pointer TSMean from TSMeanE to TSMeanNE (same for TSVar).
 	int num_in_results = sizeof(Results) / sizeof(double);
@@ -713,11 +713,11 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	int *mcell_adunits, *mcell_num, *mcell_country;
 
 	if (!(Cells = (Cell*)calloc(P.NC, sizeof(Cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_num = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_dens = (double*)malloc(P.NMC * sizeof(double)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell))) ||
+		!(mcell_num = (int*)malloc(P.NMC * sizeof(int))) ||
+		!(mcell_dens = (double*)malloc(P.NMC * sizeof(double))) ||
+		!(mcell_country = (int*)malloc(P.NMC * sizeof(int))) ||
+		!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 
 	for (j = 0; j < P.NMC; j++)
 	{
@@ -960,8 +960,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	}
 	else
 	{
-		if (!(State.InvAgeDist = (int**)malloc(sizeof(int*)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
-		if (!(State.InvAgeDist[0] = (int*)malloc(1000 * sizeof(int)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
+		if (!(State.InvAgeDist = (int**)malloc(sizeof(int*))) ||
+			!(State.InvAgeDist[0] = (int*)malloc(1000 * sizeof(int)))) ERR_CRITICAL("Unable to allocate InvAgeDist storage\n");
 		CumAgeDist[0] = 0;
 		for (int i = 1; i <= NUM_AGE_GROUPS; i++)
 			CumAgeDist[i] = CumAgeDist[i - 1] + P.PropAgeGroup[0][i - 1];
@@ -1051,8 +1051,8 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
-	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(State.CellSuscMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*))) ||
+		!(State.CellSuscMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	int susceptibleAccumulator = 0;
 	i2 = 0;
 	for (j = 0; j < P.NC; j++)
@@ -1072,9 +1072,9 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 		Cell *c = CellLookup[i];
 		if (c->n > 0)
 		{
-			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(c->max_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(c->cum_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int))) ||
+				!(c->max_trans = (float*)malloc(P.NCP * sizeof(float))) ||
+				!(c->cum_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 		}
 	}
 	for (int i = 0; i < P.NC; i++)
@@ -1157,14 +1157,14 @@ void SetupPopulation(char* DensityFile, char* SchoolFile, char* RegDemogFile)
 	if (P.DoCorrectAgeDist)
 	{
 		double** AgeDistAd, ** AgeDistCorrF, ** AgeDistCorrB;
-		if (!(AgeDistAd = (double**)malloc(MAX_ADUNITS * sizeof(double*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-		if (!(AgeDistCorrF = (double**)malloc(MAX_ADUNITS * sizeof(double*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-		if (!(AgeDistCorrB = (double**)malloc(MAX_ADUNITS * sizeof(double*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		if (!(AgeDistAd = (double**)malloc(MAX_ADUNITS * sizeof(double*))) ||
+			!(AgeDistCorrF = (double**)malloc(MAX_ADUNITS * sizeof(double*))) ||
+			!(AgeDistCorrB = (double**)malloc(MAX_ADUNITS * sizeof(double*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 		for (int i = 0; i < P.NumAdunits; i++)
 		{
-			if (!(AgeDistAd[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(AgeDistCorrF[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(AgeDistCorrB[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(AgeDistAd[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double))) ||
+				!(AgeDistCorrF[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double))) ||
+				!(AgeDistCorrB[i] = (double*)malloc((NUM_AGE_GROUPS + 1) * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 		}
 
 		// compute AgeDistAd[i][j] = total number of people in adunit i, age group j
@@ -1517,8 +1517,8 @@ void SetupAirports(void)
 	P.KernelP3 = P.AirportKernelP3;
 	P.KernelP4 = P.AirportKernelP4;
 	InitKernel(1.0);
-	if (!(Airports[0].DestMcells = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(base = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(Airports[0].DestMcells = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList))) ||
+		!(base = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
 	for (int i = 0; i < P.NMC; i++)
@@ -2095,8 +2095,8 @@ void AssignPeopleToPlaces()
 				}
 				for (int i = 0; i < P.NumThreads; i++)
 				{
-					if (!(NearestPlaces[i] = (int*)calloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-					if (!(NearestPlacesProb[i] = (double*)calloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(double)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+					if (!(NearestPlaces[i] = (int*)calloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(int))) ||
+						!(NearestPlacesProb[i] = (double*)calloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(double)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 				}
 				P.KernelType = P.PlaceTypeKernelType[tp];
 				P.KernelScale = P.PlaceTypeKernelScale[tp];
@@ -2383,8 +2383,8 @@ void StratifyPlaces(void)
 								Places[j][i].ng = 1;
 							else
 								Places[j][i].ng = 1 + (int)ignpoi_mt(t, tn);
-							if (!(Places[j][i].group_start = (int*)calloc(Places[j][i].ng, sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
-							if (!(Places[j][i].group_size = (int*)calloc(Places[j][i].ng, sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
+							if (!(Places[j][i].group_start = (int*)calloc(Places[j][i].ng, sizeof(int))) ||
+								!(Places[j][i].group_size = (int*)calloc(Places[j][i].ng, sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 							int m = Places[j][i].n - Places[j][i].ng;
 							int l;
 							for (int k = l = 0; k < Places[j][i].ng; k++)
@@ -2423,13 +2423,13 @@ void StratifyPlaces(void)
 					int l = 0;
 					for (int j = 0; j < P.Nplace[k]; j++)
 						l += (int)Places[k][j].ng;
-					if (!(StateT[i].p_queue[k] = (int*)calloc(l, sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-					if (!(StateT[i].pg_queue[k] = (int*)calloc(l, sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+					if (!(StateT[i].p_queue[k] = (int*)calloc(l, sizeof(int))) ||
+						!(StateT[i].pg_queue[k] = (int*)calloc(l, sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 				}
 				else
 				{
-					if (!(StateT[i].p_queue[k] = (int*)calloc(P.Nplace[k], sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
-					if (!(StateT[i].pg_queue[k] = (int*)calloc(P.Nplace[k], sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
+					if (!(StateT[i].p_queue[k] = (int*)calloc(P.Nplace[k], sizeof(int))) ||
+						!(StateT[i].pg_queue[k] = (int*)calloc(P.Nplace[k], sizeof(int)))) ERR_CRITICAL("Unable to allocate state storage\n");
 				}
 			}
 		}
