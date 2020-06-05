@@ -234,11 +234,63 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		TSMean = TSMeanNE; TSVar = TSVarNE;
 	}
 
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		// initialize State age and admin unit breakdowns
+		State.prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
+		State.cumInf_age_adunit  = new int* [NUM_AGE_GROUPS]();
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			State.prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
+			State.cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
+		}
+
+		// initialize threaded State age and admin unit breakdowns
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
+		{
+			StateT[Thread].prevInf_age_adunit = new int* [NUM_AGE_GROUPS]();
+			StateT[Thread].cumInf_age_adunit  = new int* [NUM_AGE_GROUPS]();
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				StateT[Thread].prevInf_age_adunit[AgeGroup] = new int[P.NumAdunits]();
+				StateT[Thread].cumInf_age_adunit [AgeGroup] = new int[P.NumAdunits]();
+			}
+		}
+
+		// initialize TimeSeries age and admin unit breakdowns
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			TimeSeries[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TimeSeries[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TimeSeries[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanE [Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMeanNE[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				TimeSeries[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TimeSeries[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TimeSeries[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMeanNE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+			}
+		}
+	}
+
 	//added memory allocation and initialisation of infection event log, if DoRecordInfEvents is set to 1: ggilani - 10/10/2014
 	if (P.DoRecordInfEvents)
 	{
 		if (!(InfEventLog = (Events*)calloc(P.MaxInfEvents, sizeof(Events)))) ERR_CRITICAL("Unable to allocate events storage\n");
 	}
+
 
 	if(P.OutputNonSeverity) SaveAgeDistrib();
 

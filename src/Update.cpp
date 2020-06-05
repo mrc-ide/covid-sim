@@ -126,8 +126,16 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		//if (P.DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P.latent_icdf, P.LatentPeriod, tn);
 		//else			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
 
-		if (P.DoAdUnits)		StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
+		if (P.DoAdUnits)
+		{
+			StateT[tn].cumI_adunit[Mcells[a->mcell].adunit]++;
 
+			if (P.OutputAdUnitAge)
+			{
+				StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]++;
+				StateT[tn].cumInf_age_adunit [HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]++;
+			}
+		}
 		if (P.OutputBitmap)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
@@ -922,6 +930,8 @@ void DoRecover(int ai, int tn, int run)
 			Cells[a->pcell].susceptible[j] = ai;
 		}
 		a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
+		if (P.DoAdUnits && P.OutputAdUnitAge)
+			StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 
 		if (P.OutputBitmap)
 		{
@@ -968,7 +978,12 @@ void DoDeath(int ai, int tn, int run)
 
 		/*		a->listpos=-1; */
 		StateT[tn].cumDa[HOST_AGE_GROUP(ai)]++;
-		if (P.DoAdUnits) StateT[tn].cumD_adunit[Mcells[a->mcell].adunit]++;
+
+		if (P.DoAdUnits)
+		{
+			StateT[tn].cumD_adunit[Mcells[a->mcell].adunit]++;
+			if (P.OutputAdUnitAge) StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
+		}
 		if (P.OutputBitmap)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))

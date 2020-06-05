@@ -537,6 +537,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
+  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
@@ -2519,15 +2520,16 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		State.cumMild	= State.cumILI		= State.cumSARI = State.cumCritical = State.cumCritRecov	= 0;
 		State.cumDeath_ILI = State.cumDeath_SARI = State.cumDeath_Critical = 0;
 
-		for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
-		{
-			State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
-			State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] =
-			State.cumMild_adunit[AdminUnit] = State.cumILI_adunit[AdminUnit] =
-			State.cumSARI_adunit[AdminUnit] = State.cumCritical_adunit[AdminUnit] = State.cumCritRecov_adunit[AdminUnit] =
-			State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
-			State.cumD_adunit[AdminUnit] = 0;
-		}
+		if (P.DoAdUnits)
+			for (int AdminUnit = 0; AdminUnit <= P.NumAdunits; AdminUnit++)
+			{
+				State.Mild_adunit[AdminUnit] = State.ILI_adunit[AdminUnit] =
+				State.SARI_adunit[AdminUnit] = State.Critical_adunit[AdminUnit] = State.CritRecov_adunit[AdminUnit] =
+				State.cumMild_adunit[AdminUnit] = State.cumILI_adunit[AdminUnit] =
+				State.cumSARI_adunit[AdminUnit] = State.cumCritical_adunit[AdminUnit] = State.cumCritRecov_adunit[AdminUnit] =
+				State.cumDeath_ILI_adunit[AdminUnit] = State.cumDeath_SARI_adunit[AdminUnit] = State.cumDeath_Critical_adunit[AdminUnit] =
+				State.cumD_adunit[AdminUnit] = 0;
+			}
 		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 		{
 			State.Mild_age[AgeGroup] = State.ILI_age[AgeGroup] =
@@ -2537,6 +2539,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDeath_ILI_age[AgeGroup] = State.cumDeath_SARI_age[AgeGroup] = State.cumDeath_Critical_age[AgeGroup] = 0;
 		}
 	}
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+		for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				State.prevInf_age_adunit[AgeGroup][Adunit] = 0;
+				State.cumInf_age_adunit	[AgeGroup][Adunit] = 0;
+			}
 
 	for (int i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
 	for (int i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
@@ -2605,6 +2614,16 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	}
 	nim = 0;
+
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
+			for (int Adunit = 0; Adunit < P.NumAdunits; Adunit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				{
+					StateT[Thread].prevInf_age_adunit[AgeGroup][Adunit] = 0;
+					StateT[Thread].cumInf_age_adunit [AgeGroup][Adunit] = 0;
+				}
+
 
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, Hosts)
@@ -3539,6 +3558,42 @@ void SaveResults(void)
 			fclose(dat);
 		}
 	}
+
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		//// output infections by age and admin unit
+		sprintf(outname, "%s.age.adunit.xls", OutFile);
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		fprintf(dat, "t");
+
+		// colnames
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+		fprintf(dat, "\n");
+
+		// Populate
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			fprintf(dat, "%.10f", TSMean[Time].t);
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
+			fprintf(dat, "\n");
+		}
+	}
 }
 
 void SaveSummaryResults(void) //// calculates and saves summary results (called for average of extinct and non-extinct realisation time series - look in main)
@@ -4170,6 +4225,43 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
 		}
 	}
+
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		//// output infections by age and admin unit
+		sprintf(outname, "%s.age.adunit.xls", OutFile);
+		if (!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		fprintf(dat, "t");
+
+		// colnames
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+		fprintf(dat, "\n");
+
+		// Populate
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			fprintf(dat, "%.10f", c * TSMean[Time].t);
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", c * TSMean[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", c * TSMean[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
+			fprintf(dat, "\n");
+		}
+	}
+
 }
 
 void SaveRandomSeeds(void)
@@ -4530,6 +4622,37 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 		}
 }
 
+void RecordAdminAgeBreakdowns(int t_int)
+{
+	//// **** Infections by age and admin unit (can parallelize later)
+	for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+		{
+			// Record incidence. Need new total minus old total (same as minus old total plus new total).
+			// First subtract old total before reset, collated and updated.
+			TimeSeries[t_int].incInf_age_adunit[AgeGroup][AdUnit] = (double)(-State.cumInf_age_adunit[AgeGroup][AdUnit]);
+
+			// reset totals
+			State.prevInf_age_adunit[AgeGroup][AdUnit] = 0;
+			State.cumInf_age_adunit [AgeGroup][AdUnit] = 0;
+
+			// sum totals
+			for (int Thread = 0; Thread < P.NumThreads; Thread++)
+			{
+				State.prevInf_age_adunit[AgeGroup][AdUnit] += StateT[Thread].prevInf_age_adunit[AgeGroup][AdUnit];
+				State.cumInf_age_adunit [AgeGroup][AdUnit] += StateT[Thread].cumInf_age_adunit [AgeGroup][AdUnit];
+			}
+
+			// record in time series.
+			TimeSeries[t_int].prevInf_age_adunit[AgeGroup][AdUnit] = State.prevInf_age_adunit[AgeGroup][AdUnit];
+			TimeSeries[t_int].cumInf_age_adunit [AgeGroup][AdUnit] = State.cumInf_age_adunit [AgeGroup][AdUnit];
+
+			// Record incidence. Need new total minus old total. Add new total
+			TimeSeries[t_int].incInf_age_adunit[AgeGroup][AdUnit] += (double)(State.cumInf_age_adunit[AgeGroup][AdUnit]);
+		}
+
+}
+
 void RecordSample(double t, int n)
 {
 	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC, cumTG, cumSI, nTG;
@@ -4697,6 +4820,10 @@ void RecordSample(double t, int n)
 	State.cumAPC = cumAPC;
 	State.cumAPA = cumAPA;
 	State.cumAPCS = cumAPCS;
+
+	//// **** Infections by age and admin unit (can parallelize later)
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+		RecordAdminAgeBreakdowns(n);
 
 	if (P.DoSeverity)
 	{
@@ -5269,7 +5396,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (P.PreIntervIdCalTime>0)?((int) (P.PreIntervIdCalTime - P.PreControlClusterIdTime)):0;
+	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
@@ -5303,11 +5430,20 @@ void RecordInfTypes(void)
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
-			for (i = 1 /* skip over `t` */; i < nf; i++)
+			for (std::size_t i = ResultsDoubleOffsetStart /* skip over initial fields */; i < nf; i++)
 			{
 				res_av[i] += res[i];
 				res_var[i] += res[i] * res[i];
 			}
+			if (P.DoAdUnits && P.OutputAdUnitAge)
+				for (std::size_t age = 0; age < NUM_AGE_GROUPS; ++age)
+					for (std::size_t adunit = 0; adunit < P.NumAdunits; ++adunit)
+					{
+						TSMean[n].prevInf_age_adunit[age][adunit] = TimeSeries[n + lc].prevInf_age_adunit[age][adunit];
+						TSMean[n].cumInf_age_adunit [age][adunit] = TimeSeries[n + lc].cumInf_age_adunit [age][adunit];
+						TSMean[n].incInf_age_adunit [age][adunit] = TimeSeries[n + lc].incInf_age_adunit [age][adunit];
+					}
+
 			if (TSMean[n].cumTmax < TimeSeries[n + lc].cumT) TSMean[n].cumTmax = TimeSeries[n + lc].cumT;
 			if (TSMean[n].cumVmax < TimeSeries[n + lc].cumV) TSMean[n].cumVmax = TimeSeries[n + lc].cumV;
 		}

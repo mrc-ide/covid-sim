@@ -81,6 +81,7 @@ MakePreParamList = function(DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, Num
 	PreParamList[["OutputInfType"]] = 0
 	PreParamList[["OutputNonSeverity"]] = 0
 	PreParamList[["OutputNonSummaryResults"]] = 0
+	PreParamList[["OutputAdUnitAge"]] = 0
 	PreParamList[["Output incidence by administrative unit"]] = 0
 	PreParamList[["Output infection tree"]] = 0
 	PreParamList[["Only output non-extinct realisations"]] = 0
