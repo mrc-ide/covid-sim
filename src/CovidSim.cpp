@@ -1692,46 +1692,22 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	//// **** "efficacies": by default, initialize to values read in previously.
 	///// spatial contact rates rates over time (and place too for CI and DCT)
-	//// soc dist
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative spatial contact rates over time given social distancing", P.SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.SD_SpatialEffects_OverTime[ChangeTime] = P.SocDistSpatialEffect; //// by default, initialize to Relative spatial contact rate given social distancing
-	//// enhanced soc dist
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative spatial contact rates over time given enhanced social distancing", P.Enhanced_SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.Enhanced_SD_SpatialEffects_OverTime[ChangeTime] = P.EnhancedSocDistSpatialEffect; //// by default, initialize to Relative spatial contact rate given enhanced social distancing
-	//// case isolation
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Residual contacts after case isolation over time", P.CI_SpatialAndPlaceEffects_OverTime, P.Num_CI_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_SpatialAndPlaceEffects_OverTime[ChangeTime] = P.CaseIsolationEffectiveness;
-	//// household quarantine
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Residual spatial contacts over time after household quarantine", P.HQ_SpatialEffects_OverTime, P.Num_HQ_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_SpatialEffects_OverTime[ChangeTime] = P.HQuarantineSpatialEffect;
-	//// place closure
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative spatial contact rates over time after place closure", P.PC_SpatialEffects_OverTime, P.Num_PC_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_SpatialEffects_OverTime[ChangeTime] = P.PlaceCloseSpatialRelContact;
-	//// digital contact tracing
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Residual contacts after digital contact tracing isolation over time", P.DCT_SpatialAndPlaceEffects_OverTime, P.Num_DCT_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++) P.DCT_SpatialAndPlaceEffects_OverTime[ChangeTime] = P.DCTCaseIsolationEffectiveness;
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given social distancing", P.SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistSpatialEffect);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given enhanced social distancing", P.Enhanced_SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistSpatialEffect);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual contacts after case isolation over time", P.CI_SpatialAndPlaceEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationEffectiveness);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual spatial contacts over time after household quarantine", P.HQ_SpatialEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineSpatialEffect);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time after place closure", P.PC_SpatialEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseSpatialRelContact);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual contacts after digital contact tracing isolation over time", P.DCT_SpatialAndPlaceEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationEffectiveness);
 
 	///// Household contact rates over time
 	if (P.DoHouseholds)
 	{
-		//// soc dist
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative household contact rates over time given social distancing", P.SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.SD_HouseholdEffects_OverTime[ChangeTime] = P.SocDistHouseholdEffect;
-		//// enhanced soc dist
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative household contact rates over time given enhanced social distancing", P.Enhanced_SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.Enhanced_SD_HouseholdEffects_OverTime[ChangeTime] = P.EnhancedSocDistHouseholdEffect;
-		//// case isolation
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Residual household contacts after case isolation over time", P.CI_HouseholdEffects_OverTime, P.Num_CI_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_HouseholdEffects_OverTime[ChangeTime] = P.CaseIsolationHouseEffectiveness;
-		//// household quarantine
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative household contact rates over time after quarantine", P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_HouseholdEffects_OverTime[ChangeTime] = P.HQuarantineHouseEffect;
-		//// place closure
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Relative household contact rates over time after place closure", P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_HouseholdEffects_OverTime[ChangeTime] = P.PlaceCloseHouseholdRelContact;
-		//// digital contact tracing
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Residual household contacts after digital contact tracing isolation over time", P.DCT_HouseholdEffects_OverTime, P.Num_DCT_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++) P.DCT_HouseholdEffects_OverTime[ChangeTime] = P.DCTCaseIsolationHouseEffectiveness;
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time given social distancing", P.SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistHouseholdEffect);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time given enhanced social distancing", P.Enhanced_SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistHouseholdEffect);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual household contacts after case isolation over time", P.CI_HouseholdEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationHouseEffectiveness);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time after quarantine", P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineHouseEffect);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time after place closure", P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseHouseholdRelContact);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual household contacts after digital contact tracing isolation over time", P.DCT_HouseholdEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationHouseEffectiveness);
 	}
 
 	///// place contact rates over time
@@ -1769,48 +1745,26 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 
 	//// ****  compliance
-	//// case isolation
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Proportion of detected cases isolated over time", P.CI_Prop_OverTime, P.Num_CI_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_Prop_OverTime[ChangeTime] = P.CaseIsolationProp;
-	//// household quarantine (individual level)
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Individual level compliance with quarantine over time", P.HQ_Individual_PropComply_OverTime, P.Num_HQ_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_Individual_PropComply_OverTime[ChangeTime] = P.HQuarantinePropIndivCompliant;
-	//// household quarantine (Household level)
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Household level compliance with quarantine over time", P.HQ_Household_PropComply_OverTime, P.Num_HQ_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_Household_PropComply_OverTime[ChangeTime] = P.HQuarantinePropHouseCompliant;
-	//// digital contact tracing
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Proportion of digital contacts who self-isolate over time", P.DCT_Prop_OverTime, P.Num_DCT_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++) P.DCT_Prop_OverTime[ChangeTime] = P.ProportionDigitalContactsIsolate;
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Maximum number of contacts to trace per index case over time", P.DCT_MaxToTrace_OverTime, P.Num_DCT_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++) P.DCT_MaxToTrace_OverTime[ChangeTime] = P.MaxDigitalContactsToTrace;
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Proportion of detected cases isolated over time", P.CI_Prop_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationProp);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Individual level compliance with quarantine over time", P.HQ_Individual_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropIndivCompliant);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Household level compliance with quarantine over time", P.HQ_Household_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropHouseCompliant);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Proportion of digital contacts who self-isolate over time", P.DCT_Prop_OverTime, P.Num_DCT_ChangeTimes, P.ProportionDigitalContactsIsolate);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Maximum number of contacts to trace per index case over time", P.DCT_MaxToTrace_OverTime, P.Num_DCT_ChangeTimes, P.MaxDigitalContactsToTrace);
+
+	//// ****  thresholds
 	if (P.DoPlaces)
 	{
-		//// ****  thresholds
-		//// place closure (global threshold)
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Place closure incidence threshold over time", P.PC_IncThresh_OverTime, P.Num_PC_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_IncThresh_OverTime[ChangeTime] = P.PlaceCloseIncTrig1;
-		//// place closure (fractional global threshold)
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Place closure fractional incidence threshold over time", P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_FracIncThresh_OverTime[ChangeTime] = P.PlaceCloseFracIncTrig;
-		//// place closure (cell incidence threshold)
-		if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Trigger incidence per cell for place closure over time", P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes))
-			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_CellIncThresh_OverTime[ChangeTime] = P.PlaceCloseCellIncThresh1;
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Place closure incidence threshold over time", P.PC_IncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseIncTrig1);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Place closure fractional incidence threshold over time", P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseFracIncTrig);
+		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Trigger incidence per cell for place closure over time", P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseCellIncThresh1);
 		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) if(P.PC_CellIncThresh_OverTime[ChangeTime]<0) P.PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
 	}
-	//// household quarantine
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Household quarantine trigger incidence per cell over time", P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) P.HQ_CellIncThresh_OverTime[ChangeTime] = P.HHQuar_CellIncThresh;
-	//// case isolation
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Case isolation trigger incidence per cell over time", P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++) P.CI_CellIncThresh_OverTime[ChangeTime] = P.CaseIsolation_CellIncThresh;
-	//// soc dists
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Trigger incidence per cell for social distancing over time", P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) P.SD_CellIncThresh_OverTime[ChangeTime] = P.SocDistCellIncThresh;
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Household quarantine trigger incidence per cell over time", P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes, P.HHQuar_CellIncThresh);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Case isolation trigger incidence per cell over time", P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolation_CellIncThresh);
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Trigger incidence per cell for social distancing over time", P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes, P.SocDistCellIncThresh);
 
 	//// **** Durations (later add Case isolation and Household quarantine)
-	// place closure
-	if (!P.VaryEfficaciesOverTime || !params.extract_multiple_no_default("Duration of place closure over time", P.PC_Durs_OverTime, P.Num_PC_ChangeTimes))
-		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) P.PC_Durs_OverTime[ChangeTime] = P.PlaceCloseDurationBase;
+	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Duration of place closure over time", P.PC_Durs_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseDurationBase);
 
 	//// Guards: make unused change values in array equal to final used value
 	if (P.VaryEfficaciesOverTime)

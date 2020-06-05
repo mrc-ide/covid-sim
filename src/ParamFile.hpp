@@ -57,6 +57,9 @@ public:
     bool extract_multiple(std::string const& param, T* output, std::size_t N, T default_value);
 
     template<typename T>
+    bool cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value);
+
+    template<typename T>
     bool extract_multiple_no_default(std::string const& param, T* output, std::size_t N);
 
     /**
