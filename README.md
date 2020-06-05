@@ -61,8 +61,13 @@ From within your build directory do:
 make test
 # If you want more progress indication
 make test ARGS="-V"
+# To parallelise tests add a -jN option for instance:
+make test ARGS="-j6"
+make test ARGS="-j6 -V"
 # or
 ctest -V
+ctest -V -j6
+# etc...
 ```
 
 *IMPORTANT*: The test scripts use test data only are not runs reflective of
@@ -76,7 +81,7 @@ The Python script [run_sample.py](./data/run_sample.py) demonstrates how to
 invoke CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
 
-The directory [report9](./report9) contains files to allow the results tables in the Imperial College 
+The directory [report9](./report9) contains files to allow the results tables in the Imperial College
 `Report 9 - Impact of non-pharmaceutical interventions (NPIs) to reduce COVID-19 mortality and healthcare demand`
 to be reproduced.
 

@@ -45,6 +45,33 @@ ctest -V
 
 May be more reassuring that something is happening.
 
+Testing can be parallelised as follows (replace `N` with how many CPUs you
+want to use at once:
+
+```sh
+make test ARGS="-jN"
+```
+
+or
+
+```sh
+ctest -jN
+```
+
+#### Accepting changes in test results
+
+If the output of `CovidSim` has changed such that the tests start to fail and
+you are happy that the changes in output are acceptable then the make target
+`test-accept` will update the expected test results.
+
+Do something like:
+
+```sh
+make -j6 test-accept
+git add tests/*-input/results-j*.cksum
+git commit -m"Update expected results."
+```
+
 ## Building with Visual Studio project files from Cmake
 
 From the command line inside a git clone, run the following:
