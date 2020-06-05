@@ -116,6 +116,12 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		}
 		else
 			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
+		if (a->infector >= 0) // record generation times and serial intervals
+		{
+			StateT[tn].cumTG += (((int)a->infection_time) - ((int)Hosts[a->infector].infection_time));
+			StateT[tn].cumSI += (((int)a->latent_time) - ((int)Hosts[a->infector].latent_time));
+			StateT[tn].nTG++;
+		}
 
 		//if (P.DoLatent)	a->latent_time = a->infection_time + ChooseFromICDF(P.latent_icdf, P.LatentPeriod, tn);
 		//else			a->latent_time = (unsigned short int) (t * P.TimeStepsPerDay);
@@ -142,10 +148,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		//added this to record event if flag is set to 1 : ggilani - 10/10/2014
 		if (P.DoRecordInfEvents)
 		{
-			if (*nEvents < P.MaxInfEvents)
-			{
-				RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
-			}
+			RecordEvent(t, ai, run, 0, tn); //added int as argument to RecordEvent to record run number: ggilani - 15/10/14
 		}
 		if ((t > 0) && (P.DoOneGen))
 		{
@@ -164,7 +167,6 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 	 * Parameters:
 	 *	t: time of infection event
 	 *	ai: index of infectee
-	 *	nEventsPoint: pointer to number of events
 	 *
 	 * Returns: void
 	 *
@@ -177,42 +179,43 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 
 	//Save information to event
 #pragma omp critical (inf_event)
+	if (nEvents < P.MaxInfEvents)
 	{
-		InfEventLog[*nEvents].run = run;
-		InfEventLog[*nEvents].type = type;
-		InfEventLog[*nEvents].t = t;
-		InfEventLog[*nEvents].infectee_ind = ai;
-		InfEventLog[*nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[*nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
-		InfEventLog[*nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
-		InfEventLog[*nEvents].listpos = Hosts[ai].listpos;
-		InfEventLog[*nEvents].infectee_cell = Hosts[ai].pcell;
-		InfEventLog[*nEvents].thread = tn;
+		InfEventLog[nEvents].run = run;
+		InfEventLog[nEvents].type = type;
+		InfEventLog[nEvents].t = t;
+		InfEventLog[nEvents].infectee_ind = ai;
+		InfEventLog[nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
+		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
+		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
+		InfEventLog[nEvents].listpos = Hosts[ai].listpos;
+		InfEventLog[nEvents].infectee_cell = Hosts[ai].pcell;
+		InfEventLog[nEvents].thread = tn;
 		if (type == 0) //infection event - record time of onset of infector and infector
 		{
-			InfEventLog[*nEvents].infector_ind = bi;
+			InfEventLog[nEvents].infector_ind = bi;
 			if (bi < 0)
 			{
-				InfEventLog[*nEvents].t_infector = -1;
-				InfEventLog[*nEvents].infector_cell = -1;
+				InfEventLog[nEvents].t_infector = -1;
+				InfEventLog[nEvents].infector_cell = -1;
 			}
 			else
 			{
-				InfEventLog[*nEvents].t_infector = (int)(Hosts[bi].infection_time / P.TimeStepsPerDay);
-				InfEventLog[*nEvents].infector_cell = Hosts[bi].pcell;
+				InfEventLog[nEvents].t_infector = (int)(Hosts[bi].infection_time / P.TimeStepsPerDay);
+				InfEventLog[nEvents].infector_cell = Hosts[bi].pcell;
 			}
 		}
 		else if (type == 1) //onset event - record infectee's onset time
 		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].infection_time / P.TimeStepsPerDay);
+			InfEventLog[nEvents].t_infector = (int)(Hosts[ai].infection_time / P.TimeStepsPerDay);
 		}
 		else if ((type == 2) || (type == 3)) //recovery or death event - record infectee's onset time
 		{
-			InfEventLog[*nEvents].t_infector = (int)(Hosts[ai].latent_time / P.TimeStepsPerDay);
+			InfEventLog[nEvents].t_infector = (int)(Hosts[ai].latent_time / P.TimeStepsPerDay);
 		}
 
 		//increment the index of the infection event
-		(*nEvents)++;
+		nEvents++;
 	}
 
 }
@@ -437,9 +440,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 	a = Hosts + ai;
 	if (a->inf == InfStat_Latent)
 	{
-		if (P.InfectiousnessSD == 0)	a->infectiousness = (float)P.AgeInfectiousness[age];
-		else							a->infectiousness = (float)(P.AgeInfectiousness[age] * gen_gamma_mt(P.InfectiousnessGamA, P.InfectiousnessGamR, tn));
-
+		a->infectiousness = (float)P.AgeInfectiousness[age];
+		if (P.InfectiousnessSD > 0) a->infectiousness *= (float) gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn);
 		q = P.ProportionSymptomatic[age]
 			* (HOST_TREATED(ai) ? (1 - P.TreatSympDrop) : 1)
 			* (HOST_VACCED(ai) ? (1 - P.VaccSympDrop) : 1);
@@ -447,7 +449,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if (ranf_mt(tn) < q)
 		{
 			a->inf = InfStat_InfectiousAlmostSymptomatic;
-			a->infectiousness = (float)(-P.SymptInfectiousness * a->infectiousness);
+			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
 			a->inf = InfStat_InfectiousAsymptomaticNotCase;
@@ -549,10 +551,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 	if (!P.AbsenteeismPlaceClosure)
 	{
-		if (P.PlaceCloseRoundHousehold)
-		{
-			if (Mcells[a->mcell].place_trig < USHRT_MAX - 1) Mcells[a->mcell].place_trig++;
-		}
+		if ((P.PlaceCloseRoundHousehold)&& (Mcells[a->mcell].place_trig < USHRT_MAX - 1)) Mcells[a->mcell].place_trig++;
 		if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
@@ -614,12 +613,22 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		}
 	if (P.DoHouseholds)
 	{
-		if ((!P.DoMassVacc) && (t >= P.VaccTimeStart) && (State.cumV < P.VaccMaxCourses))
-			if ((t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
+		if ((!P.DoMassVacc) && (t >= P.VaccTimeStart))
+		{
+			// DoVacc is going to test that `State.cumV < P.VaccMaxCourses` itself before
+			// incrementing State.cumV, but by checking here too we can avoid a lot of
+			// wasted effort
+			bool cumV_OK;
+#pragma omp critical (state_cumV)
+			{
+				cumV_OK = State.cumV < P.VaccMaxCourses;
+			}
+			if (cumV_OK && (t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
 			{
 				j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 				for (j = j1; j < j2; j++) DoVacc(j, ts);
 			}
+		}
 
 		//// Giant compound if statement. If doing delays by admin unit, then window of HQuarantine dependent on admin unit-specific duration. This if statement ensures that this timepoint within window, regardless of how window defined.
 		if ((P.DoInterventionDelaysByAdUnit &&
@@ -801,14 +810,20 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 	if (a->inf == InfStat_InfectiousAlmostSymptomatic) //// if person latent/asymptomatically infected, but infectious
 	{
 		a->inf = InfStat_Case; //// make person symptomatic and infectious (i.e. a case)
-		if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
+		if (HOST_ABSENT(ai))
 		{
+			if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
+				a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
+		}
+		else if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
+		{
+			a->absent_start_time = USHRT_MAX - 1;
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 				{
 					if ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j]))
 					{
-						if (!HOST_ABSENT(ai)) a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
+						a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
 						a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
 						if (P.AbsenteeismPlaceClosure)
 						{
@@ -817,7 +832,6 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 									if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 											DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
 						}
-
 						if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
 							StateT[tn].cumAC++;
 						/* This calculates adult absenteeism from work due to care of sick children. Note, children not at school not counted (really this should
@@ -1082,7 +1096,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
 	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
 
-	int k, ai, j1, j2, l, f, m, f2;
+	int k, ai, j1, j2, l, f, f2;
 	unsigned short trig;
 	unsigned short int t_start, t_stop;
 	unsigned short int t_old, t_new;
@@ -1258,17 +1272,20 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 void DoVacc(int ai, unsigned short int ts)
 {
 	int x, y;
+	bool cumV_OK = false;
 
-	if (State.cumV >= P.VaccMaxCourses)
+	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-	else if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
-		return;
-	else
+#pragma omp critical (state_cumV)
+	if (State.cumV < P.VaccMaxCourses)
+	{
+		cumV_OK = true;
+		State.cumV++;
+	}
+	if (cumV_OK)
 	{
 		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
 
-#pragma omp critical (state_cumV)
-		State.cumV++;
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp critical (state_cumV_daily)
@@ -1296,12 +1313,19 @@ void DoVacc(int ai, unsigned short int ts)
 void DoVaccNoDelay(int ai, unsigned short int ts)
 {
 	int x, y;
+	bool cumVG_OK = false;
 
-	if ((State.cumVG < P.VaccMaxCourses) && (!HOST_TO_BE_VACCED(ai)) && (Hosts[ai].inf >= InfStat_InfectiousAlmostSymptomatic) && (Hosts[ai].inf < InfStat_Dead_WasAsymp))
+	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
+		return;
+#pragma omp critical (state_cumVG)
+	if (State.cumVG < P.VaccMaxCourses)
+	{
+		cumVG_OK = true;
+		State.cumVG++;
+	}
+	if (cumVG_OK)
 	{
 		Hosts[ai].vacc_start_time = ts;
-#pragma omp critical (state_cumVG) //changed to VG
-		State.cumVG++; //changed to VG
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp critical (state_cumV_daily)

@@ -17,7 +17,9 @@ respiratory viruses, such as influenza.
 behaviours, and output file formats will change without notice.
 
 :warning: The model is stochastic. Multiple runs with different seeds should be
-undertaken to see average behaviour.
+undertaken to see average behaviour. This can now be done easily with the `/NR`
+command line parameter. The model code behaves deterministically if run with the
+same number of threads enabled and run with the same random number seends.
 
 :warning: As with any mathematical model, it is easy to misconfigure inputs and
 therefore get meaningless outputs. The Imperial College COVID-19 team only
@@ -36,7 +38,11 @@ to:
 
 ## Building
 
-The model is written in C++ and runs on Windows and Linux-based systems.
+The model is written in C++.
+
+The primary platforms it has been developed and tested on are Windows and Ubuntu Linux.
+
+It should build and run on any other POSIX compliant Unix-like platform (for example macOS, other Linux distributions).  However, no active development occurs on them.
 
 Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
@@ -69,6 +75,10 @@ The directory [data](./data) contains sample data.
 The Python script [run_sample.py](./data/run_sample.py) demonstrates how to
 invoke CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
+
+The directory [report9](./report9) contains files to allow the results tables in the Imperial College 
+`Report 9 - Impact of non-pharmaceutical interventions (NPIs) to reduce COVID-19 mortality and healthcare demand`
+to be reproduced.
 
 ## Documentation
 

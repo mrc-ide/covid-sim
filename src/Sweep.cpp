@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.cwidth)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.cheight));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.in_cells_.height_));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
@@ -326,9 +326,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						int l = Households[si->hh].FirstPerson;
 						int m = l + Households[si->hh].nh;
 						s3 = hbeta * CalcHouseInf(ci, ts);
+
 						f = 0;
 						for (int i3 = l; (i3 < m) && (!f); i3++) //// loop over people in household
-							f = HOST_ABSENT(i3);
+							for (int i2 = 0; (i2 < P.PlaceTypeNum) && (!f); i2++) //// loop over place types
+								if (Hosts[i3].PlaceLinks[i2] >= 0) //// if person in household has any sort of link to place type
+									f = ((PLACE_CLOSED(i2, Hosts[i3].PlaceLinks[i2]))&&(HOST_ABSENT(i3)));
+
 						if (f) { s3 *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person si/ci is more infectious to them, as they spend more time at home.
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
@@ -344,6 +348,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										else
 										{
 											Hosts[i3].infector = ci; //// assign person ci as infector of peron i3
+											//infect_type: first 4 bits store type of infection
+											//				1= household
+											//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
+											//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
+											//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
+											// bits >4 store the generation of infection
+
 											short int infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
 											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
 										}
@@ -401,7 +412,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
 										n = Places[k][l].group_size[i2];
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
-										n = (int)ignbin_mt((long)Places[k][l].group_size[i2], s4_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].group_size[i2], s4_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
 									for (int m = 0; m < n; m++)
 									{
@@ -431,7 +442,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
 
@@ -473,7 +483,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									else if (s3_scaled >= 1)
 										n = Places[k][l].n;
 									else
-										n = (int)ignbin_mt((long)Places[k][l].n, s3_scaled, tn);
+										n = (int)ignbin_mt((int32_t)Places[k][l].n, s3_scaled, tn);
 									if (n > 0) SampleWithoutReplacement(tn, n, Places[k][l].n);
 									for (int m = 0; m < n; m++)
 									{
@@ -503,7 +513,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
-											Cell* ct = Cells + Hosts[i3].pcell;
 											//if doing digital contact tracing, scale down susceptibility here
 											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
 											if (bm)
@@ -548,7 +557,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
 						if (fct) s2 *= P.ScalingFactorSpatialDigitalContacts;
 					}
-					if (HOST_ABSENT(ci)) //// if place is closed then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness _
+					f = 0;
+					if (P.DoPlaces)
+						for (int i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
+							if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
+								f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
+
+					if((f) && (HOST_ABSENT(ci))) //// if place is closed and person is absent then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness
 					{
 						s2 *= P.PlaceCloseSpatialRelContact;
 						/* NumPCD++; */
@@ -673,8 +688,16 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									}
 									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
 										s *= P.MoveRestrEffect;
-									if (!f) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
-										if (HOST_ABSENT(i3)) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+									if ((!f)&& (HOST_ABSENT(i3))) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
+									{
+										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
+											if (Hosts[i3].PlaceLinks[m] >= 0)
+											{
+												f2 = PLACE_CLOSED(m, Hosts[i3].PlaceLinks[m]);
+											}
+										if (f2) { s *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+										f2 = 0;
+									}
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
@@ -736,19 +759,16 @@ void IncubRecoverySweep(double t, int run)
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(P, Places, Hosts, i, j, ht)
+#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
 					for(int tn=0;tn<P.NumThreads;tn++)
 						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
 						{
 							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
 							{
 								int l = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][k].close_start_time > l)
-									Places[j][k].close_start_time = (unsigned short) l;
+								if (Places[j][k].close_start_time > l)  Places[j][k].close_start_time = (unsigned short) l;
 								int b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][k].close_end_time < b)
-									Places[j][k].close_end_time = (unsigned short) b;
+								if (Places[j][k].close_end_time < b)	  Places[j][k].close_end_time = (unsigned short) b;
 								for (int ci = 0; ci < Places[j][k].n; ci++)
 								{
 									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
@@ -760,8 +780,7 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
@@ -1322,19 +1341,19 @@ int TreatSweep(double t)
 					}
 					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
 						int maxx = 0;
-						int i, j, m, l;
-						i = j = m = f2 = 0;
+						int i, m, l;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.TreatByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.TreatAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.TreatByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
@@ -1351,23 +1370,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == 1) { f3 = f2; f2 = 0; }
+									if (j == Up)
+									{
+										f3 = f2;
+										f2 = 0;
+									}
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
 						}
 					}
@@ -1412,18 +1428,18 @@ int TreatSweep(double t)
 					}
 					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.VaccByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.VaccAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.VaccByAdminUnit)
 									{
@@ -1444,23 +1460,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == 1) { f3 = f2; f2 = 0; }
+									if (j == Up)
+									{
+										f3 = f2;
+										f2 = 0;
+									}
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
@@ -1529,7 +1542,6 @@ int TreatSweep(double t)
 
 							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
-								int ad2 = ad / P.PlaceCloseAdminUnitDivisor;
 								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
 								{
 									//if doing intervention delays and durations by admin unit based on global triggers
@@ -1580,18 +1592,18 @@ int TreatSweep(double t)
 
 					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Direction::Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						if ((!P.MoveRestrByAdminUnit) || (ad > 0))
 						{
 							int ad2 = ad / P.MoveRestrAdminUnitDivisor;
 							do
 							{
-								if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+								if (P.is_in_bounds(min))
 								{
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
@@ -1607,23 +1619,16 @@ int TreatSweep(double t)
 										}
 									}
 								}
-								if (j == 0)
-									minx = minx + 1;
-								else if (j == 1)
-									miny = miny - 1;
-								else if (j == 2)
-									minx = minx - 1;
-								else if (j == 3)
-									miny = miny + 1;
+								min += j;
 								m = (m + 1) % l;
 								if (m == 0)
 								{
-									j = (j + 1) % 4;
+									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
 									if (j == 1) { f3 = f2; f2 = 0; }
 								}
-								k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
 						}
 					}
@@ -1714,15 +1719,15 @@ int TreatSweep(double t)
 					}
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
-						int minx = (b / P.nmch);
-						int miny = (b % P.nmch);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						Direction j = Right;
 						int k = b;
-						int i, j, l, m;
-						i = j = m = f2 = 0;
+						int i, l, m;
+						i = m = f2 = 0;
 						l = f3 = 1;
 						do
 						{
-							if ((minx >= 0) && (minx < P.nmcw) && (miny >= 0) && (miny < P.nmch))
+							if (P.is_in_bounds(min))
 								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
@@ -1739,23 +1744,20 @@ int TreatSweep(double t)
 										}
 									}
 								}
-							if (j == 0)
-								minx = minx + 1;
-							else if (j == 1)
-								miny = miny - 1;
-							else if (j == 2)
-								minx = minx - 1;
-							else if (j == 3)
-								miny = miny + 1;
+							min += j;
 							m = (m + 1) % l;
 							if (m == 0)
 							{
-								j = (j + 1) % 4;
+								j = rotate_left(j);
 								i = (i + 1) % 2;
 								if (i == 0) l++;
-								if (j == 1) { f3 = f2; f2 = 0; }
+								if (j == Up)
+								{
+									f3 = f2;
+									f2 = 0;
+								}
 							}
-							k = ((minx + P.nmcw) % P.nmcw) * P.nmch + (miny + P.nmch) % P.nmch;
+							k = P.get_micro_cell_index_from_position(min);
 						} while (f3);
 					}
 

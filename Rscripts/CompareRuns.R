@@ -4,8 +4,6 @@
 #    folder: the relative folder of where to find output files.
 # Will create plots in the "Plots/Comparsons" subfolder of folder
 
-#### Purpose: make plots that Neil outputs in his spreadsheets without having to use spreadsheets. ####
-
 # Requires a set of input runs in a base folder
 # Puts out a set of plots in the /Plots/Comparisons subfolder of the base folder
 # Edit the Parameters section to customize
