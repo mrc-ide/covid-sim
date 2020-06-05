@@ -8,10 +8,10 @@
 #include "MicroCellPosition.hpp"
 
 /** @brief Enumeration of bitmap formats. */
-enum BitmapFormats
+enum struct BitmapFormats
 {
-  BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
-  BF_BMP = 1   // BMP - fall-back
+  PNG,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
+  BMP   // BMP - fall-back
 };
 
 /// Size of spatial domain in various units

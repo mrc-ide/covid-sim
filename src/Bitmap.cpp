@@ -148,7 +148,7 @@ void OutputBitmap(int tp)
 		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
 	}
 
-	if (P.BitmapFormat == BF_PNG)
+	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
@@ -200,7 +200,7 @@ void OutputBitmap(int tp)
 	  fprintf(stderr, "Do not know how to output PNG\n");
 #endif
 	}
-	else if (P.BitmapFormat == BF_BMP) {
+	else if (P.BitmapFormat == BitmapFormats::BMP) {
 	  sprintf(buf, "%s.%05i.bmp", OutF, j);
 	  FILE* dat;
 	  if (!(dat = fopen(buf, "wb"))) {
@@ -276,7 +276,7 @@ void InitBMHead()
 	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
-	if (P.BitmapFormat == BF_PNG)
+	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
 #ifdef _WIN32
 	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, NULL);
@@ -317,7 +317,7 @@ void InitBMHead()
 void Bitmap_Finalise()
 {
 #ifdef _WIN32
-  if (P.BitmapFormat == BF_PNG)
+  if (P.BitmapFormat == BitmapFormats::PNG)
   {
     Gdiplus::GdiplusShutdown(m_gdiplusToken);
   }

@@ -127,9 +127,9 @@ int main(int argc, char* argv[])
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-	P.BitmapFormat = BF_PNG;
+	P.BitmapFormat = BitmapFormats::PNG;
 #else
-	P.BitmapFormat = BF_BMP;
+	P.BitmapFormat = BitmapFormats::BMP;
 #endif
 
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
 				if (strcasecmp(buf, "png") == 0)
 				{
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-				  P.BitmapFormat = BF_PNG;
+				  P.BitmapFormat = BitmapFormats::PNG;
 #else
 				  fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
 				  Perr = 1;
@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
 				}
 				else if (strcasecmp(buf, "bmp") == 0)
 				{
-				  P.BitmapFormat = BF_BMP;
+				  P.BitmapFormat = BitmapFormats::BMP;
 				}
 				else
 				{
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s", OutFileBase);
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
-	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BF_PNG ? "png" : "bmp");
+	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
 	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -3413,7 +3413,7 @@ void SaveResults(void)
 	//	DeleteFile(outname);
 	//	}
 #endif
-	if(P.OutputBitmap >= 1 && P.BitmapFormat == BF_PNG)
+	if(P.OutputBitmap >= 1 && P.BitmapFormat == BitmapFormats::PNG)
 		{
 		// Generate Google Earth .kml file
 		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);
