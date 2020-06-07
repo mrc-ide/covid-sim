@@ -998,23 +998,22 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
 	}
 	t = 1.0;
-	for (int i = m = 0; i < (P.NMC - 1); i++)
+	for (int i = m = 0; i < P.NMC; i++)
 	{
-		s = mcell_dens[i] / maxd / t;
-		if (s > 1.0) s = 1.0;
-		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
-		t -= mcell_dens[i] / maxd;
+	  if (i == P.NMC-1) {
+      Mcells[P.NMC - 1].n = P.PopSize - m;
+	  } else {
+      s = mcell_dens[i] / maxd / t;
+      if (s > 1.0) s = 1.0;
+      m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
+      t -= mcell_dens[i] / maxd;
+		}
+
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
-			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
-			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+      if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+      AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
-	}
-	Mcells[P.NMC - 1].n = P.PopSize - m;
-	if (Mcells[P.NMC - 1].n > 0)
-	{
-		P.NMCP++;
-		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
 	}
 
 	free(mcell_dens);
