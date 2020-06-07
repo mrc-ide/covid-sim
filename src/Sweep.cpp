@@ -742,6 +742,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 			StateT[k].n_queue[j] = 0;
 		}
 	}
+
+	UpdateHostClosure();
 }
 
 void IncubRecoverySweep(double t, int run)
@@ -840,6 +842,7 @@ void IncubRecoverySweep(double t, int run)
 				}
 			}
 		}
+	UpdateHostClosure();
 }
 
 
@@ -1179,6 +1182,8 @@ void DigitalContactTracingSweep(double t)
 			}
 		}
 	}
+
+	UpdateHostClosure();
 }
 
 int TreatSweep(double t)
@@ -1761,7 +1766,10 @@ int TreatSweep(double t)
 						} while (f3);
 					}
 
-			}
+			} // End of bs loop, tn loop, and prgama.
+
+		UpdateHostClosure();
+
 		for (int i = 0; i < P.NumThreads; i++)
 		{
 			State.cumT += StateT[i].cumT;

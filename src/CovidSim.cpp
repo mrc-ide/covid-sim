@@ -2807,7 +2807,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	{
 		for (int j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
 		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
+		StateT[i].host_closure_queue_size = 0;
 	}
+
+	
 	if (DoInitUpdateProbs)
 	{
 		UpdateProbs(0);
@@ -2969,6 +2972,11 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 			}
 		}
 	}
+
+	// Is there a possibility that place closure can happen in the DoInfect calls above?
+	// Not sure - but to play safe...
+	UpdateHostClosure();
+
 	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
 }
 
@@ -3079,6 +3087,7 @@ int RunModel(int run) //added run number as parameter
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
 								} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
+								UpdateHostClosure();
 							}
 						}
 					}

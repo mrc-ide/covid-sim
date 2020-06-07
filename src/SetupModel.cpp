@@ -1454,6 +1454,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (int k = 0; k < P.NumThreads; k++)
 			if (!(StateT[i].inf_queue[k] = (Infection*)malloc(P.InfQueuePeakLength * sizeof(Infection)))) ERR_CRITICAL("Unable to allocate state storage\n");
 		if (!(StateT[i].cell_inf = (float*)malloc((l + 1) * sizeof(float)))) ERR_CRITICAL("Unable to allocate state storage\n");
+		if (!(StateT[i].host_closure_queue = (HostClosure*)malloc(P.InfQueuePeakLength * sizeof(HostClosure)))) ERR_CRITICAL("Unable to allocate state storage\n");
 	}
 
 	//set up queues and storage for digital contact tracing
