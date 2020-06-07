@@ -164,14 +164,15 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	else
 	{
-		P.ncw = P.nch = (int)sqrt((double)P.NC);
-		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
 		P.PopSize = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
+		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
+		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
+		P.ncw = ceil((P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0]) / P.in_cells_.width_);
+    P.nch = ceil((P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1]) / P.in_cells_.height_);
+		P.NC = P.ncw * P.nch;
+		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
 		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
