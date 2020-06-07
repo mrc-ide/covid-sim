@@ -1011,8 +1011,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
-      if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
-      AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+			if (P.DoAdUnits) {
+        if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+        AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+      }
 		}
 	}
 
