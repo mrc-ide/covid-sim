@@ -137,7 +137,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
 		}
 
-		P.in_cells_.height_ = P.in_cells_.width_;
 		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.in_cells_.width_) * P.in_cells_.width_;
 		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.in_cells_.height_) * P.in_cells_.height_;
 		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.in_cells_.width_) * P.in_cells_.width_;
