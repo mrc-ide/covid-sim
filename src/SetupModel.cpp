@@ -46,9 +46,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
-			fread_big(&(P.binary_file_size), sizeof(unsigned int), 1, dat);
-			if (!(BinFileBuf = (void*)malloc(P.binary_file_size * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
-			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.binary_file_size, dat);
+			fread_big(&(P.binary_file_lines_count), sizeof(unsigned int), 1, dat);
+			if (!(BinFileBuf = (void*)malloc(P.binary_file_lines_count * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.binary_file_lines_count, dat);
 			BF = (BinFile*)BinFileBuf;
 			fclose(dat);
 		}
@@ -57,12 +57,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			P.DoBin = 0;
 			// Count the number of lines in the density file
 			rewind(dat);
-			P.binary_file_size = 0;
-			while(fgets(buf, sizeof(buf), dat) != NULL) P.binary_file_size++;
+			P.binary_file_lines_count = 0;
+			while(fgets(buf, sizeof(buf), dat) != NULL) P.binary_file_lines_count++;
 			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
 			// Read each line, and build the binary structure that corresponds to it
 			rewind(dat);
-			if (!(BinFileBuf = (void*)malloc(P.binary_file_size * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+			if (!(BinFileBuf = (void*)malloc(P.binary_file_lines_count * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
 			BF = (BinFile*)BinFileBuf;
 			int index = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL)
@@ -70,7 +70,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				int i2;
 				double x, y;
 				// This shouldn't be able to happen, as we just counted the number of lines:
-				if (index == P.binary_file_size) ERR_CRITICAL("Too many input lines while reading density file\n");
+				if (index == P.binary_file_lines_count) ERR_CRITICAL("Too many input lines while reading density file\n");
 				if (P.DoAdUnits)
 				{
 					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
@@ -99,7 +99,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			}
 			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
 			// This shouldn't be able to happen, as we just counted the number of lines:
-			if (index != P.binary_file_size) ERR_CRITICAL("Too few input lines while reading density file\n");
+			if (index != P.binary_file_lines_count) ERR_CRITICAL("Too few input lines while reading density file\n");
 			fclose(dat);
 		}
 
@@ -111,7 +111,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
 			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
 			s2 = 0;
-			for (rn = 0; rn < P.binary_file_size; rn++)
+			for (rn = 0; rn < P.binary_file_lines_count; rn++)
 			{
 				double x = BF[rn].x;
 				double y = BF[rn].y;
@@ -733,8 +733,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
-		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.binary_file_size);
-		for (rn = rn2 = mr = 0; rn < P.binary_file_size; rn++)
+		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.binary_file_lines_count);
+		for (rn = rn2 = mr = 0; rn < P.binary_file_lines_count; rn++)
 		{
 			int k;
 			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
@@ -808,19 +808,19 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		}
 		//		fclose(dat2);
 		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
-		if ((P.OutputDensFile) && (P.DoBin)) P.binary_file_size = rn2;
+		if ((P.OutputDensFile) && (P.DoBin)) P.binary_file_lines_count = rn2;
 		if (P.DoBin == 0)
 		{
 			if (P.OutputDensFile)
 			{
 				free(BinFileBuf);
 				P.DoBin = 1;
-				P.binary_file_size = 0;
+				P.binary_file_lines_count = 0;
 				for (l = 0; l < P.NMC; l++)
-					if (mcell_adunits[l] >= 0) P.binary_file_size++;
-				if (!(BinFileBuf = (void*)malloc(P.binary_file_size * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
+					if (mcell_adunits[l] >= 0) P.binary_file_lines_count++;
+				if (!(BinFileBuf = (void*)malloc(P.binary_file_lines_count * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
 				BF = (BinFile*)BinFileBuf;
-				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.binary_file_size);
+				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.binary_file_lines_count);
 				rn = 0;
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
@@ -840,9 +840,9 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			if (!(dat2 = fopen(OutDensFile, "wb"))) ERR_CRITICAL("Unable to open output density file\n");
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
-			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.binary_file_size);
-			fwrite_big((void*) & (P.binary_file_size), sizeof(unsigned int), 1, dat2);
-			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.binary_file_size, dat2);
+			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.binary_file_lines_count);
+			fwrite_big((void*) & (P.binary_file_lines_count), sizeof(unsigned int), 1, dat2);
+			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.binary_file_lines_count, dat2);
 			fclose(dat2);
 		}
 		free(BinFileBuf);

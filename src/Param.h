@@ -69,10 +69,11 @@ struct Param
 	int MoveKernelType;
 	int AirportKernelType;
 
-	/// Size of the binary file buffer (unit: bytes).
-	unsigned int binary_file_size;
+	/// Number of lines of the binary file buffer (unit: lines).
+	unsigned int binary_file_lines_count;
 
 	int DoBin;
+
 	/// Should we save snapshots of the run?
 	int save_snapshots;
 	/// Should we load snapshots of the run?
