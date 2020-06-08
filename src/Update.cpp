@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Error.h"
 #include "Update.h"
 #include "Model.h"
 #include "ModelMacros.h"
@@ -1227,6 +1228,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
 									{
 										int index = StateT[tn].host_closure_queue_size;
+										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
 										StateT[tn].host_closure_queue[index].host_index = l;
 										StateT[tn].host_closure_queue[index].start_time = t_start;
 										StateT[tn].host_closure_queue[index].stop_time = t_stop;
@@ -1250,6 +1252,9 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 }
 
 void UpdateHostClosure() {
+    // Single-threaded here, because the same host index might come up in
+	// different threads. (Which is the point of this buffered update...)
+
 	for (int thread_no = 0; thread_no < P.NumThreads; thread_no++) {
 		int count = StateT[thread_no].host_closure_queue_size;
 		for (int host = 0; host < count; host++) {
