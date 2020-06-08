@@ -72,6 +72,8 @@ struct Param
 	/// Number of lines of the binary file buffer (unit: lines).
 	unsigned int binary_file_lines_count;
 
+	/// Should we enable binary output?
+	// TODO(jieyouxu): this really should be a `bool`, but there is a `P.DoBin = -1` assignment in `SetupModel`.
 	int DoBin;
 
 	/// Should we save snapshots of the run?
