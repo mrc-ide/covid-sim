@@ -503,10 +503,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.SampleStep), 1, 1, 0);
 	if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
 	t = ceil(P.SampleStep / P.TimeStep - 1e-6);
-	P.UpdatesPerSample = (int)t;
+	P.time_steps_between_samples = (int)t;
 	P.TimeStep = P.SampleStep / t;
 	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
+	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.time_steps_between_samples, P.TimeStepsPerDay);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.population_size), 1, 1, 0);
@@ -3038,7 +3038,7 @@ int RunModel(int run) //added run number as parameter
 			//Only run to a certain number of infections: ggilani 28/10/14
 			if (P.LimitNumInfections) continueEvents = (State.cumI < P.MaxNumInfections);
 
-			for (j = 0; ((j < P.UpdatesPerSample) && (!InterruptRun) && (continueEvents)); j++)
+			for (j = 0; ((j < P.time_steps_between_samples) && (!InterruptRun) && (continueEvents)); j++)
 			{
 				ts = (unsigned short int) (P.TimeStepsPerDay * t);
 

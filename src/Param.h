@@ -49,7 +49,9 @@ struct Param
 	// TODO(jieyouxu): document and rename this parameter.
 	int NRactNE;
 
-	int UpdatesPerSample; // Number of time steps between samples
+	/// Number of time steps between samples (unit: number of time steps between samples).
+	int time_steps_between_samples;
+
 	int NumSamples; // Total number of samples that will be made
 	int KernelType;
 	int NKR; // Size of kernel lookup table
