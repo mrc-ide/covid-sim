@@ -26,9 +26,14 @@ struct Param
 {
     /// Size of the population (unit: number of people).
 	int population_size;
+
 	/// Number of households (unit: number of households).
 	int households_count;
-	int NumRealisations; /**< Number of Realisations */
+
+	/// Number of realisations (unit: number of realisations).
+	///
+	/// A *realisation* is an observation of the random simulation generated from the same input parameters.
+	int realisations_count;
 	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
