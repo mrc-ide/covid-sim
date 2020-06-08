@@ -69,7 +69,9 @@ struct Param
 	int MoveKernelType;
 	int AirportKernelType;
 
-	unsigned int BinFileLen;
+	/// Size of the binary file buffer (unit: bytes).
+	unsigned int binary_file_size;
+
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
 	int NC; // Number of cells
