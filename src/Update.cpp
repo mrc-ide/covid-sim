@@ -88,8 +88,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
+		x = (Households[a->hh].loc_x - P.initial_infections_.location_[0][0]);
+		y = (Households[a->hh].loc_y - P.initial_infections_.location_[0][1]);
 		q = x * x + y * y;
 		StateT[tn].sumRad2 += q;
 

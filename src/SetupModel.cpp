@@ -192,10 +192,10 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.bminy = (int)(P.in_degrees_.height_ * P.BoundingBox[1] * P.scaley);
 	P.in_microcells_.width_ = P.in_cells_.width_ / ((double)P.NMCL);
 	P.in_microcells_.height_ = P.in_cells_.height_ / ((double)P.NMCL);
-	for (int i = 0; i < P.NumSeedLocations; i++)
+	for (int i = 0; i < P.initial_infections_.num_seed_locations_; i++)
 	{
-		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
-		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
+		P.initial_infections_.location_[i][0] -= P.SpatialBoundingBox[0];
+		P.initial_infections_.location_[i][1] -= P.SpatialBoundingBox[1];
 	}
 	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.in_degrees_.width_, P.in_degrees_.height_);
@@ -1249,33 +1249,33 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	}
 	fprintf(stderr, "Ages/households assigned\n");
 
-	if (!P.DoRandomInitialInfectionLoc)
+	if (!P.initial_infections_.do_random_location_)
 	{
-		int k = (int)(P.LocationInitialInfection[0][0] / P.in_microcells_.width_);
-		l = (int)(P.LocationInitialInfection[0][1] / P.in_microcells_.height_);
+		int k = (int)(P.initial_infections_.location_[0][0] / P.in_microcells_.width_);
+		l = (int)(P.initial_infections_.location_[0][1] / P.in_microcells_.height_);
 		j = k * P.get_number_of_micro_cells_high() + l;
 
 		double rand_r = 0.0; //added these variables so that if initial infection location is empty we can search the 10km neighbourhood to find a suitable cell
 		double rand_theta = 0.0;
 		int counter = 0;
-		if (Mcells[j].n < P.NumInitialInfections[0])
+		if (Mcells[j].n < P.initial_infections_.number_[0])
 		{
-			while (Mcells[j].n < P.NumInitialInfections[0] && counter < 100)
+			while (Mcells[j].n < P.initial_infections_.number_[0] && counter < 100)
 			{
 				rand_r = ranf(); rand_theta = ranf();
 				rand_r = 0.083 * sqrt(rand_r); rand_theta = 2 * PI * rand_theta; //rand_r is multiplied by 0.083 as this is roughly equal to 10km in decimal degrees
-				k = (int)((P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta)) / P.in_microcells_.width_);
-				l = (int)((P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta)) / P.in_microcells_.height_);
+				k = (int)((P.initial_infections_.location_[0][0] + rand_r * cos(rand_theta)) / P.in_microcells_.width_);
+				l = (int)((P.initial_infections_.location_[0][1] + rand_r * sin(rand_theta)) / P.in_microcells_.height_);
 				j = k * P.get_number_of_micro_cells_high() + l;
 				counter++;
 			}
 			if (counter < 100)
 			{
-				P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta); //set LocationInitialInfection to actual one used
-				P.LocationInitialInfection[0][1] = P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta);
+				P.initial_infections_.location_[0][0] = P.initial_infections_.location_[0][0] + rand_r * cos(rand_theta); //set location_ to actual one used
+				P.initial_infections_.location_[0][1] = P.initial_infections_.location_[0][1] + rand_r * sin(rand_theta);
 			}
 		}
-		if (Mcells[j].n < P.NumInitialInfections[0])
+		if (Mcells[j].n < P.initial_infections_.number_[0])
 			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
 	}
 	fprintf(stderr, "Checking cells...\n");
