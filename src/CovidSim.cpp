@@ -4333,7 +4333,7 @@ void LoadSnapshot(void)
 	}
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.population_size) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.population_size, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.households_count) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
@@ -4353,7 +4353,7 @@ void LoadSnapshot(void)
 
 	fread_big((void*)Hosts, sizeof(Person), (size_t)P.population_size, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(Household), (size_t)P.households_count, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, ".");
@@ -4402,7 +4402,7 @@ void SaveSnapshot(void)
 
 	fwrite_big((void*) & (P.population_size), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.households_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NC), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4428,7 +4428,7 @@ void SaveSnapshot(void)
 	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.population_size, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(Household), (size_t)P.households_count, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
 	fprintf(stderr, "## %i\n", i++);
