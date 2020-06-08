@@ -55,7 +55,9 @@ struct Param
 	/// Total number of samples that will be made. (unit: number of samples).
 	int samples_count;
 
+	// TODO(jieyouxu): refactor this into an enum. This is an ideal candidate for a compile-time function lookup table.
 	int KernelType;
+
 	int NKR; // Size of kernel lookup table
 	int NK_HR; // Factor to expand hi-res kernel lookup table by
 	int MoveKernelType;
