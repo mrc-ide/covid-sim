@@ -65,8 +65,10 @@ struct Param
 	/// High-resolution kernel look up table expansion scaling factor.
 	int high_resolution_kernel_lookup_table_expansion_factor;
 
+	// TODO(jieyouxu): refactor these two parameters to use same enum as `KernelType`.
 	int MoveKernelType;
 	int AirportKernelType;
+
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
