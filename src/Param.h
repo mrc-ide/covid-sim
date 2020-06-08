@@ -72,9 +72,11 @@ struct Param
 	/// Size of the binary file buffer (unit: bytes).
 	unsigned int binary_file_size;
 
-	int DoSaveSnapshot;
-	int DoLoadSnapshot;
 	int DoBin;
+	/// Should we save snapshots of the run?
+	int save_snapshots;
+	/// Should we load snapshots of the run?
+	int load_snapshots;
 
 	double clP1, clP2, clP3, clP4, clP5, clP6;
 	double SnapshotLoadTime;

@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 		P.PreControlClusterIdCaseThreshold = 0;
 		P.R0scale = 1.0;
 		P.KernelOffsetScale = P.KernelPowerScale = 1.0; //added this so that kernel parameters are only changed if input from the command line: ggilani - 15/10/2014
-		P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
+		P.save_snapshots = P.load_snapshots  = 0;
 
 		//// scroll through command line arguments, anticipating what they can be using various if statements.
 		for (i = 1; i < argc - 4; i++)
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 			else if (argv[i][1] == 'L' && argv[i][2] == 'S' && argv[i][3] == ':')
 			{
 				sscanf(&argv[i][4], "%s", SnapshotLoadFile);
-				P.DoLoadSnapshot = 1;
+				P.load_snapshots = 1;
 			}
 			else if (argv[i][1] == 'P' && argv[i][2] == 'P' && argv[i][3] == ':')
 			{
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
 					Perr = 1;
 				else
 				{
-					P.DoSaveSnapshot = 1;
+					P.save_snapshots = 1;
 					*sep = ' ';
 					sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
 				}
@@ -416,7 +416,7 @@ int main(int argc, char* argv[])
 
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
-		if (P.DoLoadSnapshot) LoadSnapshot();
+		if (P.load_snapshots) LoadSnapshot();
 		int ModelCalibLoop = 0;
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
@@ -3014,7 +3014,7 @@ int RunModel(int run) //added run number as parameter
 */
 	InterruptRun = 0;
 	lcI = 1;
-	if (P.DoLoadSnapshot)
+	if (P.load_snapshots)
 	{
 		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
 		t = ((double)P.ts_age) * P.TimeStep;
@@ -3100,7 +3100,7 @@ int RunModel(int run) //added run number as parameter
 				}
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
-				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
+				if ((P.save_snapshots) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
 				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
 				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
 				cI = ((double)(State.S)) / ((double)P.population_size);
