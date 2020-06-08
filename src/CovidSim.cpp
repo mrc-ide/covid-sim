@@ -552,10 +552,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.kernel_lookup_table_size);
 	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.NK_HR, 1, 1, 0)) P.NK_HR = P.kernel_lookup_table_size / 1600;
-	if (P.NK_HR < 1 || P.NK_HR >= P.kernel_lookup_table_size)
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.high_resolution_kernel_lookup_table_expansion_factor, 1, 1, 0)) P.high_resolution_kernel_lookup_table_expansion_factor = P.kernel_lookup_table_size / 1600;
+	if (P.high_resolution_kernel_lookup_table_expansion_factor < 1 || P.high_resolution_kernel_lookup_table_expansion_factor >= P.kernel_lookup_table_size)
 	{
-		ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.kernel_lookup_table_size, P.NK_HR);
+		ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.kernel_lookup_table_size, P.high_resolution_kernel_lookup_table_expansion_factor);
 	}
 
 	if (P.DoHouseholds)

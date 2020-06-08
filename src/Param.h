@@ -62,7 +62,9 @@ struct Param
 	// TODO(jieyouxu): determine the units.
 	int kernel_lookup_table_size;
 
-	int NK_HR; // Factor to expand hi-res kernel lookup table by
+	/// High-resolution kernel look up table expansion scaling factor.
+	int high_resolution_kernel_lookup_table_expansion_factor;
+
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;

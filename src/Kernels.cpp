@@ -49,7 +49,7 @@ void InitKernel(double norm)
 	for (int i = 0; i <= P.kernel_lookup_table_size; i++)
 	{
 		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
-		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
+		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.high_resolution_kernel_lookup_table_expansion_factor) / norm;
 	}
 
 #pragma omp parallel for schedule(static,500) default(none) \
@@ -119,7 +119,7 @@ double numKernel(double r2)
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
 
-	double s = t * P.NK_HR;
+	double s = t * P.high_resolution_kernel_lookup_table_expansion_factor;
 	if (s < P.kernel_lookup_table_size)
 	{
 		t = s - floor(s);
