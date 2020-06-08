@@ -40,9 +40,15 @@ struct Param
 	/// A realisation is *non-extinct* if the disease does *not* die out.
 	int non_extinct_realisations_count;
 
+	// TODO(jieyouxu): document and rename this parameter.
 	int NRactual;
+
+	// TODO(jieyouxu): document and rename this parameter.
 	int NRactE;
+
+	// TODO(jieyouxu): document and rename this parameter.
 	int NRactNE;
+
 	int UpdatesPerSample; // Number of time steps between samples
 	int NumSamples; // Total number of samples that will be made
 	int KernelType;
