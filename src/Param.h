@@ -24,7 +24,8 @@ struct DomainSize
 /// Parameters used by the simulation.
 struct Param
 {
-	int PopSize; /**< Population size */
+    /// Size of the population (unit: number of people).
+	int population_size;
 	int NH; // Number of households
 	int NumRealisations; /**< Number of Realisations */
 	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */

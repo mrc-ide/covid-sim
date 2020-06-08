@@ -134,7 +134,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 						if (y >= P.SpatialBoundingBox[3]) P.SpatialBoundingBox[3] = y + 1e-6;
 					}
 			}
-			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
+			if (!P.DoSpecifyPop) P.population_size = (int)s2;
 		}
 
 		P.in_cells_.height_ = P.in_cells_.width_;
@@ -153,7 +153,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
-		fprintf(stderr, "Population size = %i \n", P.PopSize);
+		fprintf(stderr, "Population size = %i \n", P.population_size);
 		if (P.in_degrees_.width_ > 180) {
 			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
 		}
@@ -168,11 +168,11 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.ncw = P.nch = (int)sqrt((double)P.NC);
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
-		s = floor(sqrt((double)P.PopSize));
+		s = floor(sqrt((double)P.population_size));
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
-		P.PopSize = (int)(s * s);
-		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
+		P.population_size = (int)(s * s);
+		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.population_size, s);
 		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
 		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
@@ -318,7 +318,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
-	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
+	for (int i = 0; i < P.population_size; i++) Hosts[i].keyworker = 0;
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	fprintf(stderr, "Initialising kernel...\n");
@@ -333,7 +333,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	{
 		while ((m < P.KeyWorkerPopNum) && (l < 1000))
 		{
-			int i = (int)(((double)P.PopSize) * ranf_mt(0));
+			int i = (int)(((double)P.population_size) * ranf_mt(0));
 			if (Hosts[i].keyworker)
 				l++;
 			else
@@ -365,7 +365,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				for (int i2 = 0; (m < P.KeyWorkerPlaceNum[j]) && (i2 < Places[j][k].n); i2++)
 				{
 					int i = Places[j][k].members[i2];
-					if ((i < 0) || (i >= P.PopSize)) fprintf(stderr, "## %i # ", i);
+					if ((i < 0) || (i >= P.population_size)) fprintf(stderr, "## %i # ", i);
 					if ((Hosts[i].keyworker) || (ranf_mt(0) >= P.KeyWorkerPropInKeyPlaces[j]))
 						l++;
 					else
@@ -444,7 +444,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			P.NDigitalContactUsers = l;
 			P.NDigitalHouseholdUsers = m;
 			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NH);
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.population_size);
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
 		{
@@ -454,7 +454,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				shared(P, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
-				for (int i = tn; i < P.PopSize; i += P.NumThreads)
+				for (int i = tn; i < P.population_size; i += P.NumThreads)
 				{
 					int age = HOST_AGE_GROUP(i);
 					if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
@@ -467,7 +467,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 				}
 			}
 			P.NDigitalContactUsers = l;
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.population_size);
 		}
 	}
 
@@ -494,7 +494,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		shared(P, Households, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.PopSize; i += P.NumThreads)
+		for (int i = tn; i < P.population_size; i += P.NumThreads)
 		{
 			if (P.SusceptibilitySD == 0)
 				Hosts[i].susc = (float)((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(i)]) : 1.0);
@@ -534,8 +534,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
 		}
 	}
-	t2 *= (s3 / ((double)P.PopSize));
-	s /= ((double)P.PopSize);
+	t2 *= (s3 / ((double)P.population_size));
+	s /= ((double)P.population_size);
 	fprintf(stderr, "Household mean size=%lg\nHousehold R0=%lg\n", t, P.R0household = s);
 	t = 0;
 	if (P.DoPlaces)
@@ -544,7 +544,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			{
 #pragma omp parallel for private(d,q,s2,s3,t3,l,m) schedule(static,1000) reduction(+:t) default(none) \
 					shared(P, Hosts, Places, j)
-				for (int i = 0; i < P.PopSize; i++)
+				for (int i = 0; i < P.population_size; i++)
 				{
 					int k = Hosts[i].PlaceLinks[j];
 					if (k >= 0)
@@ -581,22 +581,22 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 						t += (1 - t3 * d) * s3 + (1 - d) * (((double)(Places[j][k].n - 1)) - s3);
 					}
 				}
-				fprintf(stderr, "%lg  ", t / ((double)P.PopSize));
+				fprintf(stderr, "%lg  ", t / ((double)P.population_size));
 			}
 	{
 		double recovery_time_days = 0;
 		double recovery_time_timesteps = 0;
 #pragma omp parallel for schedule(static,500) reduction(+:recovery_time_days,recovery_time_timesteps) default(none) \
 			shared(P, Hosts)
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 		{
 			recovery_time_days += Hosts[i].recovery_or_death_time * P.TimeStep;
 			recovery_time_timesteps += Hosts[i].recovery_or_death_time;
 			Hosts[i].recovery_or_death_time = 0;
 		}
-		t /= ((double)P.PopSize);
-		recovery_time_days /= ((double)P.PopSize);
-		recovery_time_timesteps /= ((double)P.PopSize);
+		t /= ((double)P.population_size);
+		recovery_time_days /= ((double)P.population_size);
+		recovery_time_timesteps /= ((double)P.population_size);
 		fprintf(stderr, "R0 for places = %lg\nR0 for random spatial = %lg\nOverall R0=%lg\n", P.R0places = t, P.R0spatial = P.R0 - s - t, P.R0);
 		fprintf(stderr, "Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
 	}
@@ -623,7 +623,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	DoInitUpdateProbs = 1;
 	for (int i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
-	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
+	for (int i = 0; i < P.population_size; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
 	{
 		for (int i = 0; i < P.NH;i++)
@@ -643,9 +643,9 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	if (P.DoMassVacc)
 	{
-		if (!(State.mvacc_queue = (int*)calloc(P.PopSize, sizeof(int)))) ERR_CRITICAL("Unable to allocate host storage\n");
+		if (!(State.mvacc_queue = (int*)calloc(P.population_size, sizeof(int)))) ERR_CRITICAL("Unable to allocate host storage\n");
 		int queueIndex = 0;
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 		{
 			if ((HOST_AGE_YEAR(i) >= P.VaccPriorityGroupAge[0]) && (HOST_AGE_YEAR(i) <= P.VaccPriorityGroupAge[1]))
 			{
@@ -654,7 +654,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			}
 		}
 		int vaccineCount = queueIndex;
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 		{
 			if ((HOST_AGE_YEAR(i) < P.VaccPriorityGroupAge[0]) || (HOST_AGE_YEAR(i) > P.VaccPriorityGroupAge[1]))
 			{
@@ -993,16 +993,16 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		t = 0;
 		for (int i = 0; i < P.NumAdunits; i++)
 			t += P.PopByAdunit[i][1];
-		int i = P.PopSize;
-		P.PopSize = (int)t;
-		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
+		int i = P.population_size;
+		P.population_size = (int)t;
+		fprintf(stderr, "Population size reset from %i to %i\n", i, P.population_size);
 	}
 	t = 1.0;
 	for (int i = m = 0; i < (P.NMC - 1); i++)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
-		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
+		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.population_size - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
@@ -1010,7 +1010,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
 	}
-	Mcells[P.NMC - 1].n = P.PopSize - m;
+	Mcells[P.NMC - 1].n = P.population_size - m;
 	if (Mcells[P.NMC - 1].n > 0)
 	{
 		P.NMCP++;
@@ -1024,7 +1024,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	t = 0.0;
 
 	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(State.CellMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(State.CellMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	P.NCP = 0;
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
@@ -1052,7 +1052,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
 	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(State.CellSuscMemberArray = (int*)malloc(P.PopSize * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(State.CellSuscMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	int susceptibleAccumulator = 0;
 	i2 = 0;
 	for (j = 0; j < P.NC; j++)
@@ -1065,7 +1065,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
 	i2 = 0;
 
-	if (!(Hosts = (Person*)calloc(P.PopSize, sizeof(Person)))) ERR_CRITICAL("Unable to allocate host storage\n");
+	if (!(Hosts = (Person*)calloc(P.population_size, sizeof(Person)))) ERR_CRITICAL("Unable to allocate host storage\n");
 	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
 	for (int i = 0; i < P.NCP; i++)
 	{
@@ -1171,7 +1171,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (int i = 0; i < P.NumAdunits; i++)
 			for (j = 0; j < NUM_AGE_GROUPS; j++)
 				AgeDistAd[i][j] = 0;
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 		{
 			int k = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
@@ -1218,7 +1218,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 #pragma omp parallel for private(j,k,m,s) schedule(static,1) default(none) \
 			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int i = tn; i < P.PopSize; i += P.NumThreads)
+			for (int i = tn; i < P.population_size; i += P.NumThreads)
 			{
 				m = (P.DoAdunitDemog) ? Mcells[Hosts[i].mcell].adunit : 0;
 				j = HOST_AGE_GROUP(i);
@@ -1239,7 +1239,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		free(AgeDistCorrF);
 		free(AgeDistCorrB);
 	}
-	for (int i = 0; i < P.PopSize; i++)
+	for (int i = 0; i < P.population_size; i++)
 	{
 		if (Hosts[i].age >= NUM_AGE_GROUPS * AGE_GROUP_WIDTH)
 		{
@@ -1279,7 +1279,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
 	}
 	fprintf(stderr, "Checking cells...\n");
-	maxd = ((double)P.PopSize);
+	maxd = ((double)P.population_size);
 	last_i = 0;
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0) last_i = i;
@@ -1364,7 +1364,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (j = 0; j < P.nsp; j++)
 		{
 			t = s = 0;
-			for (int i = 0; i < P.PopSize; i++)
+			for (int i = 0; i < P.population_size; i++)
 				t += PropPlaces[HOST_AGE_YEAR(i)][j];
 			for (int i = 0; i < P.Nplace[j]; i++)
 			{
@@ -1390,7 +1390,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			{
 				t = 0;
 				P.PlaceTypeMaxAgeRead[j2] = 0;
-				for (int i = 0; i < P.PopSize; i++)
+				for (int i = 0; i < P.population_size; i++)
 					t += PropPlaces[HOST_AGE_YEAR(i)][j2];
 				P.Nplace[j2] = (int)ceil(t / P.PlaceTypeMeanSize[j2]);
 				fprintf(stderr_shared, "[%i:%i %g] ", j2, P.Nplace[j2], t);
@@ -1445,7 +1445,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (j = 0; j < P.NC; j++)
 		if (l < Cells[j].n) l = Cells[j].n;
 	if (!(SamplingQueue = (int**)malloc(P.NumThreads * sizeof(int*)))) ERR_CRITICAL("Unable to allocate state storage\n");
-	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
+	P.InfQueuePeakLength = P.population_size / P.NumThreads / INF_QUEUE_SCALE;
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, SamplingQueue, StateT, l)
 	for (int i = 0; i < P.NumThreads; i++)
@@ -1876,7 +1876,7 @@ void AssignPeopleToPlaces()
 		}
 
 		//PropPlaces initialisation is only valid for non-overlapping places.
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 		{
 			for (tp = 0; tp < npt; tp++) //Changed from 'for(tp=0;tp<P.PlaceTypeNum;tp++)' to try and assign -1 early and avoid problems when using less than the default number of placetypes later
 			{
@@ -2331,7 +2331,7 @@ void StratifyPlaces(void)
 		fprintf(stderr, "Initialising groups in places\n");
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, Hosts)
-		for (int i = 0; i < P.PopSize; i++)
+		for (int i = 0; i < P.population_size; i++)
 			for (int j = 0; j < NUM_PLACE_TYPES; j++)
 				Hosts[i].PlaceGroupLinks[j] = 0;
 		for (int j = 0; j < P.PlaceTypeNum; j++)
@@ -2353,7 +2353,7 @@ void StratifyPlaces(void)
 				}
 				else
 				{
-					for (int i = 0; i < P.PopSize; i++)
+					for (int i = 0; i < P.population_size; i++)
 					{
 						if (Hosts[i].PlaceLinks[j] >= 0)
 							Places[j][Hosts[i].PlaceLinks[j]].n++;
@@ -2366,7 +2366,7 @@ void StratifyPlaces(void)
 						}
 						Places[j][i].n = 0;
 					}
-					for (int i = 0; i < P.PopSize; i++)
+					for (int i = 0; i < P.population_size; i++)
 					{
 						int k = Hosts[i].PlaceLinks[j];
 						if (k >= 0)
@@ -2450,11 +2450,11 @@ void StratifyPlaces(void)
 					fprintf(stderr,"Mean group size for place type %i = %lg\n",j,t/s);
 					}
 				t=0;
-				for(i=0;i<P.PopSize;i++)
+				for(i=0;i<P.population_size;i++)
 					for(j=0;j<P.PlaceTypeNum;j++)
 						if(Hosts[i].PlaceLinks[j]>=0)
 							t+=(double) Places[j][Hosts[i].PlaceLinks[j]].group_size[Hosts[i].PlaceGroupLinks[j]];
-				fprintf(stderr,"Overall mean group size = %lg (%lg)\n",t/((double) P.PopSize),t2/s2);
+				fprintf(stderr,"Overall mean group size = %lg (%lg)\n",t/((double) P.population_size),t2/s2);
 		*/
 	}
 }
@@ -2479,17 +2479,17 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	fread_big(&s1, sizeof(int32_t), 1, dat);
 	fread_big(&s2, sizeof(int32_t), 1, dat);
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
-	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
+	if (j != P.population_size) ERR_CRITICAL("Population size does not match saved value\n");
 	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) {
     ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
   }
-	k = (P.PopSize + 999999) / 1000000;
-	for (i = 0; i < P.PopSize; i++)
+	k = (P.population_size + 999999) / 1000000;
+	for (i = 0; i < P.population_size; i++)
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			Hosts[i].PlaceLinks[j] = -1;
 	for (i = i2 = 0; i < k; i++)
 	{
-		l = (i < k - 1) ? 1000000 : (P.PopSize - 1000000 * (k - 1));
+		l = (i < k - 1) ? 1000000 : (P.population_size - 1000000 * (k - 1));
 		fread_big(&netbuf, sizeof(int), npt * l, dat);
 		for (j = 0; j < l; j++)
 		{
@@ -2508,7 +2508,7 @@ void LoadPeopleToPlaces(char* NetworkFile)
 		fprintf(stderr, "%i loaded            \r", i * 1000000 + l);
 	}
 
-	/*	for(i=0;i<P.PopSize;i++)
+	/*	for(i=0;i<P.population_size;i++)
 			{
 			if((i+1)%100000==0) fprintf(stderr,"%i loaded            \r",i+1);
 			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
@@ -2529,10 +2529,10 @@ void SavePeopleToPlaces(char* NetworkFile)
 	if (P.PlaceTypeNum > 0)
 	{
 		fwrite_big(&npt, sizeof(int), 1, dat);
-		fwrite_big(&(P.PopSize), sizeof(int), 1, dat);
+		fwrite_big(&(P.population_size), sizeof(int), 1, dat);
 		fwrite_big(&P.setupSeed1, sizeof(int32_t), 1, dat);
 		fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
-		for (i = 0; i < P.PopSize; i++)
+		for (i = 0; i < P.population_size; i++)
 		{
 			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
 			/*			fwrite_big(&(Hosts[i].spatial_norm),sizeof(float),1,dat);
