@@ -215,17 +215,17 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 
 	SetupPopulation(SchoolFile, RegDemogFile);
 
-	if (!(TimeSeries = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSMeanNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
-	if (!(TSVarNE = (Results*)calloc(P.NumSamples, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TimeSeries = (Results*)calloc(P.samples_count, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSMeanE = (Results*)calloc(P.samples_count, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSVarE = (Results*)calloc(P.samples_count, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSMeanNE = (Results*)calloc(P.samples_count, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
+	if (!(TSVarNE = (Results*)calloc(P.samples_count, sizeof(Results)))) ERR_CRITICAL("Unable to allocate results storage\n");
 	TSMean = TSMeanE; TSVar = TSVarE;
 	///// This loops over index l twice just to reset the pointer TSMean from TSMeanE to TSMeanNE (same for TSVar).
 	int num_in_results = sizeof(Results) / sizeof(double);
 	for (l = 0; l < 2; l++)
 	{
-		for (int i = 0; i < P.NumSamples; i++)
+		for (int i = 0; i < P.samples_count; i++)
 		{
 			double *ts_mean = (double *)&TSMean[i];
 			double *ts_var = (double *)&TSVar[i];
@@ -258,7 +258,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		}
 
 		// initialize TimeSeries age and admin unit breakdowns
-		for (int Time = 0; Time < P.NumSamples; Time++)
+		for (int Time = 0; Time < P.samples_count; Time++)
 		{
 			TimeSeries[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
 			TimeSeries[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();

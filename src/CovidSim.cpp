@@ -441,7 +441,7 @@ int main(int argc, char* argv[])
 		}
 		if (P.OutputNonSummaryResults)
 		{
-			if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
+			if (((!TimeSeries[P.samples_count - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
 			{
 				SaveResults();
 			}
@@ -508,7 +508,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
 	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.time_steps_between_samples, P.TimeStepsPerDay);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
-	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
+	P.samples_count = 1 + (int)ceil(P.SampleTime / P.SampleStep);
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.population_size), 1, 1, 0);
 	if (P.realisations_count == 0)
 		{
@@ -3028,7 +3028,7 @@ int RunModel(int run) //added run number as parameter
 	fs2 = 0;
 	nu = 0;
 
-	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
+	for (ns = 1; ((ns < P.samples_count) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
 		RecordSample(t, ns - 1);
 		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
@@ -3113,7 +3113,7 @@ int RunModel(int run) //added run number as parameter
 			}
 		}
 	}
-	if (!InterruptRun) RecordSample(t, P.NumSamples - 1);
+	if (!InterruptRun) RecordSample(t, P.samples_count - 1);
 	fprintf(stderr, "\nEnd of run\n");
 	t2 = t + P.SampleTime;
 //	if(!InterruptRun)
@@ -3290,7 +3290,7 @@ void SaveResults(void)
 		sprintf(outname, "%s.xls", OutFile);
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10ft%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].S, TimeSeries[i].L, TimeSeries[i].I,
@@ -3311,7 +3311,7 @@ void SaveResults(void)
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name);
 
 		fprintf(dat, "\n");
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10f", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3340,7 +3340,7 @@ void SaveResults(void)
 		}
 		fprintf(dat, "\n");
 		//print actual output
-		for(i=0; i<P.NumSamples; i++)
+		for(i=0; i<P.samples_count; i++)
 		{
 			fprintf(dat, "%.10lf", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3379,7 +3379,7 @@ void SaveResults(void)
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tT%i", i);
 		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 			{
 			fprintf(dat, "%.10f", TimeSeries[i].t);
 			for(j = 0; j < 2; j++)
@@ -3407,7 +3407,7 @@ void SaveResults(void)
 	int d, m, y, dml, f;
 #ifdef _WIN32
 	//if(P.OutputBitmap == 1) CloseAvi(avi);
-	//if((TimeSeries[P.NumSamples - 1].extinct) && (P.OutputOnlyNonExtinct))
+	//if((TimeSeries[P.samples_count - 1].extinct) && (P.OutputOnlyNonExtinct))
 	//	{
 	//	sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
 	//	DeleteFile(outname);
@@ -3426,7 +3426,7 @@ void SaveResults(void)
 		y = 2009;
 		m = 1;
 		d = 1;
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 			{
 			fprintf(dat, "<GroundOverlay>\n<name>Snapshot %i</name>\n", i + 1);
 			fprintf(dat, "<TimeSpan>\n<begin>%i-%02i-%02iT00:00:00Z</begin>\n", y, m, d);
@@ -3466,7 +3466,7 @@ void SaveResults(void)
 		sprintf(outname, "%s.severity.xls", OutFile);
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].Rdenom, TimeSeries[i].meanTG, TimeSeries[i].meanSI, TimeSeries[i].S, TimeSeries[i].I, TimeSeries[i].R, TimeSeries[i].incI,
@@ -3519,7 +3519,7 @@ void SaveResults(void)
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for(i = 0; i < P.NumSamples; i++)
+			for(i = 0; i < P.samples_count; i++)
 			{
 				fprintf(dat, "%.10f", TimeSeries[i].t);
 
@@ -3553,7 +3553,7 @@ void SaveResults(void)
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_SARI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_Critical_adunit[j]);
 
-				if(i != P.NumSamples - 1) fprintf(dat, "\n");
+				if(i != P.samples_count - 1) fprintf(dat, "\n");
 			}
 			fclose(dat);
 		}
@@ -3579,7 +3579,7 @@ void SaveResults(void)
 		fprintf(dat, "\n");
 
 		// Populate
-		for (int Time = 0; Time < P.NumSamples; Time++)
+		for (int Time = 0; Time < P.samples_count; Time++)
 		{
 			fprintf(dat, "%.10f", TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -3615,7 +3615,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		c = 1 / ((double)P.NRactual);
 
 		//// populate table
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10f\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].L, c * TSMean[i].I, c * TSMean[i].R,
@@ -3647,7 +3647,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
 		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tvprClosed_%i", j);
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 			{
 			fprintf(dat, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].incC, c * TSMean[i].incTC, c * TSMean[i].incFC,
@@ -3683,7 +3683,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
 			fprintf(dat, "\tD%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 			{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < NUM_AGE_GROUPS; j++)
@@ -3713,7 +3713,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][0]);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < P.NumAdunits; j++)
@@ -3738,7 +3738,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
 			fprintf(dat, "\n");
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.samples_count; i++)
 			{
 				fprintf(dat, "%.10f", c * TSMean[i].t);
 				for (j = 0; j < P.NumAdunits; j++)
@@ -3770,7 +3770,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		}
 		fprintf(dat, "\n");
 		//print actual output
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%.10lf", c* TSMean[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3800,7 +3800,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		for(i = 0; i < 2; i++) fprintf(dat, "\tvC%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tvT%i", i);
 		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.samples_count; i++)
 			{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < 2; j++)
@@ -3829,7 +3829,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
 		for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\tRage_%i", j);
 		fprintf(dat, "\n");
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.samples_count; i++)
 		{
 			fprintf(dat, "%lf\t%lf\t%lf\t%lf", c * TSMean[i].t, c * TSMean[i].Rdenom, c* TSMean[i].meanTG, c* TSMean[i].meanSI);
 			for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\t%lf", c * TSMean[i].Rtype[j]);
@@ -3919,7 +3919,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		sc3 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
 		sc4 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 		incSARI = incCritical = incCritRecov = 0;
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.samples_count; i++)
 		{
 			if (i > 0)
 			{
@@ -4039,7 +4039,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.samples_count; i++)
 			{
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
 				{
@@ -4161,7 +4161,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.samples_count; i++)
 			{
 				for (j = 0; j < P.NumAdunits; j++)
 				{
@@ -4246,7 +4246,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		fprintf(dat, "\n");
 
 		// Populate
-		for (int Time = 0; Time < P.NumSamples; Time++)
+		for (int Time = 0; Time < P.samples_count; Time++)
 		{
 			fprintf(dat, "%.10f", c * TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -4342,7 +4342,7 @@ void LoadSnapshot(void)
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
-	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
+	P.samples_count = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
 	fprintf(stderr, ".");
 	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
 	fprintf(stderr, ".");
@@ -5297,7 +5297,7 @@ void RecordInfTypes(void)
 	int i, j, k, l, lc, lc2, b, c, n, nf, i2;
 	double* res, * res_av, * res_var, t, s;
 
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.samples_count; n++)
 	{
 		for (i = 0; i < INFECT_TYPE_MASK; i++) TimeSeries[n].Rtype[i] = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++) TimeSeries[n].Rage[i] = 0;
@@ -5378,7 +5378,7 @@ void RecordInfTypes(void)
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;
 				}
 			}
-	/* 	if(!TimeSeries[P.NumSamples-1].extinct) */
+	/* 	if(!TimeSeries[P.samples_count-1].extinct) */
 	{
 		for (i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] += inftype[i];
 		for (i = 0; i < MAX_COUNTRIES; i++)
@@ -5397,7 +5397,7 @@ void RecordInfTypes(void)
 			}
 	}
 	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.samples_count; n++)
 	{
 		TimeSeries[n].t += k;
 		s = 0;
@@ -5410,8 +5410,8 @@ void RecordInfTypes(void)
 	}
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
-	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
-	if (TimeSeries[P.NumSamples - 1].extinct)
+	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.samples_count - 1].extinct, P.samples_count - 1);
+	if (TimeSeries[P.samples_count - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
 	}
@@ -5422,9 +5422,9 @@ void RecordInfTypes(void)
 	lc = -k;
 
 	// This calculates sum and sum of squares of entire TimeSeries array
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.samples_count; n++)
 	{
-		if ((n + lc >= 0) && (n + lc < P.NumSamples))
+		if ((n + lc >= 0) && (n + lc < P.samples_count))
 		{
 			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(n + lc)); }
 			res = (double*)&TimeSeries[n + lc];

@@ -52,7 +52,9 @@ struct Param
 	/// Number of time steps between samples (unit: number of time steps between samples).
 	int time_steps_between_samples;
 
-	int NumSamples; // Total number of samples that will be made
+	/// Total number of samples that will be made. (unit: number of samples).
+	int samples_count;
+
 	int KernelType;
 	int NKR; // Size of kernel lookup table
 	int NK_HR; // Factor to expand hi-res kernel lookup table by
