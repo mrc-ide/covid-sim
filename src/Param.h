@@ -58,7 +58,10 @@ struct Param
 	// TODO(jieyouxu): refactor this into an enum. This is an ideal candidate for a compile-time function lookup table.
 	int KernelType;
 
-	int NKR; // Size of kernel lookup table
+	/// Size of the default-resolution kernel lookup table.
+	// TODO(jieyouxu): determine the units.
+	int kernel_lookup_table_size;
+
 	int NK_HR; // Factor to expand hi-res kernel lookup table by
 	int MoveKernelType;
 	int AirportKernelType;
