@@ -85,8 +85,10 @@ struct Param
 	// TODO(jieyouxu): document and rename these magic variables.
 	double clP1, clP2, clP3, clP4, clP5, clP6;
 
+	// TODO(jieyouxu): document their purpose and units, pending rename.
 	double SnapshotLoadTime;
 	double SnapshotSaveTime;
+
 	int NC; // Number of cells
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
