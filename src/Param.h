@@ -21,10 +21,7 @@ struct DomainSize
 	double height_;
 };
 
-/**
- * @brief Stores the parameters for the simulation.
- *
- */
+/// Parameters used by the simulation.
 struct Param
 {
 	int PopSize; /**< Population size */
