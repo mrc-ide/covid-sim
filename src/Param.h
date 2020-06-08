@@ -18,10 +18,7 @@ enum BitmapFormats
 /// Size of spatial domain in various units
 struct DomainSize
 {
-	/// The width
 	double width_;
-
-	/// The height
 	double height_;
 };
 
