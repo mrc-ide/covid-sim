@@ -2593,7 +2593,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].detected_time = 0;
 			Hosts[k].digitalContactTraced = 0;
 			Hosts[k].inf = InfStat_Susceptible;
-			Hosts[k].infectionState = Hosts[k].stateHandlers[InfStatType_Susceptible];
+			Hosts[k].infectionState = Hosts->stateHandlers[InfStatType_Susceptible];
 			Hosts[k].num_treats = 0;
 			Hosts[k].latent_time = Hosts[k].recovery_or_death_time = 0; //also set hospitalisation time to zero: ggilani 28/10/2014
 			Hosts[k].infector = -1;
@@ -2611,7 +2611,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Hosts[k].Severity_Current = Severity_Asymptomatic;
 				Hosts[k].Severity_Final = Severity_Asymptomatic;
 				Hosts[k].inf = InfStat_Susceptible;
-				Hosts[k].infectionState = Hosts[k].stateHandlers[InfStatType_Susceptible];
+				Hosts[k].infectionState = Hosts->stateHandlers[InfStatType_Susceptible];
 			}
 		}
 
