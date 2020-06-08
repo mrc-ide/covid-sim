@@ -34,7 +34,12 @@ struct Param
 	///
 	/// A *realisation* is an observation of the random simulation generated from the same input parameters.
 	int realisations_count;
-	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
+
+	/// Number of non-extinct realisations (unit: number of *non-extinct* realisations).
+	///
+	/// A realisation is *non-extinct* if the disease does *not* die out.
+	int non_extinct_realisations_count;
+
 	int NRactual;
 	int NRactE;
 	int NRactNE;

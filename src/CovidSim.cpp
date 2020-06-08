@@ -386,7 +386,7 @@ int main(int argc, char* argv[])
 
 
 	P.NRactE = P.NRactNE = 0;
-	for (i = 0; (i < P.realisations_count) && (P.NRactNE < P.NumNonExtinctRealisations) ; i++)
+	for (i = 0; (i < P.realisations_count) && (P.NRactNE < P.non_extinct_realisations_count) ; i++)
 	{
 		if (P.realisations_count > 1)
 		{
@@ -513,10 +513,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.realisations_count == 0)
 		{
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of realisations", "%i", (void*)&(P.realisations_count), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of non-extinct realisations", "%i", (void*)&(P.NumNonExtinctRealisations), 1, 1, 0)) P.NumNonExtinctRealisations = P.realisations_count;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of non-extinct realisations", "%i", (void*)&(P.non_extinct_realisations_count), 1, 1, 0)) P.non_extinct_realisations_count = P.realisations_count;
 		}
 	else
-		P.NumNonExtinctRealisations = P.realisations_count;
+		P.non_extinct_realisations_count = P.realisations_count;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
 	P.NC = -1;
