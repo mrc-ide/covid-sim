@@ -78,10 +78,13 @@ struct Param
 
 	/// Should we save snapshots of the run?
 	int save_snapshots;
+
 	/// Should we load snapshots of the run?
 	int load_snapshots;
 
+	// TODO(jieyouxu): document and rename these magic variables.
 	double clP1, clP2, clP3, clP4, clP5, clP6;
+
 	double SnapshotLoadTime;
 	double SnapshotSaveTime;
 	int NC; // Number of cells
