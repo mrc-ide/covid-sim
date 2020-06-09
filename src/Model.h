@@ -91,7 +91,7 @@ struct ContactEvent
 };
 
 /**
- * @brief Apply place closure effects to household in a clearer way, to avoid *the appearance* of a data race.
+ * @brief Apply place closure effects to household in a thread-safe way.
  *
  */
 struct HostClosure
@@ -121,8 +121,8 @@ struct PopVar
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
 	Infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
 	int n_queue[MAX_NUM_THREADS]; 	// number of infections in inf_queue
-	HostClosure *host_closure_queue;  // When places close, host absenteeism times get set within threaded loop.
-	int host_closure_queue_size; // Number of hosts in a timestep to set min/max absenteeism times for. 
+	HostClosure *host_closure_queue;  // When places close, buffer host index, and closure times here.
+	int host_closure_queue_size; // Number of host closures in host_closure_queue.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
 	float* cell_inf;  //// List of spatial infectiousnesses by person within cell.

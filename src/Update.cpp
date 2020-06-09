@@ -1252,7 +1252,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 }
 
 void UpdateHostClosure() {
-    // Single-threaded here, because the same host index might come up in
+	// Single-threaded here, because the same host index might come up in
 	// different threads. (Which is the point of this buffered update...)
 
 	for (int thread_no = 0; thread_no < P.NumThreads; thread_no++) {

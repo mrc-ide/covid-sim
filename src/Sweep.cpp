@@ -1766,7 +1766,7 @@ int TreatSweep(double t)
 						} while (f3);
 					}
 
-			} // End of bs loop, tn loop, and prgama.
+			} // End of bs loop, tn loop, and pragma.
 
 		UpdateHostClosure();
 
