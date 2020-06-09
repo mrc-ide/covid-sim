@@ -131,7 +131,9 @@ struct Param
 	/// intervals within a year (such as average temperature changes)?
 	int respect_seasonality_variations;
 
-	int DoCorrectAgeDist;
+	/// Should the simulation attempt to correct age distributions?
+	int should_correct_age_distributions;
+
 	int DoPartialImmunity;
 
 	int get_number_of_micro_cells_wide() const;

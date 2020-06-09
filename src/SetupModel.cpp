@@ -1154,7 +1154,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				k += m;
 			}
 		}
-	if (P.DoCorrectAgeDist)
+	if (P.should_correct_age_distributions)
 	{
 		double** AgeDistAd, ** AgeDistCorrF, ** AgeDistCorrB;
 		if (!(AgeDistAd = (double**)malloc(MAX_ADUNITS * sizeof(double*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
