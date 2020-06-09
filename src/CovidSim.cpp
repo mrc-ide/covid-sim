@@ -2718,7 +2718,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, Mcells, McellLookup)
-	for (int l = 0; l < P.NMCP; l++)
+	for (int l = 0; l < P.populated_microcells_count; l++)
 	{
 		int i = (int)(McellLookup[l] - Mcells);
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;

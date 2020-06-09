@@ -1292,7 +1292,7 @@ int TreatSweep(double t)
 #pragma omp parallel for private(f2,f3,f4,r) reduction(+:f) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
+			for (int bs = tn; bs < P.populated_microcells_count; bs += P.NumThreads) //// loop over populated microcells
 			{
 				int b = (int)(McellLookup[bs] - Mcells); //// microcell number
 				int adi = (P.DoAdUnits) ? Mcells[b].adunit : -1;

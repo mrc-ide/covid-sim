@@ -1005,7 +1005,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.population_size - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
-			P.NMCP++;
+			P.populated_microcells_count++;
 			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
@@ -1013,7 +1013,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	Mcells[P.microcells_count - 1].n = P.population_size - m;
 	if (Mcells[P.microcells_count - 1].n > 0)
 	{
-		P.NMCP++;
+		P.populated_microcells_count++;
 		AdUnits[mcell_adunits[P.microcells_count - 1]].n += Mcells[P.microcells_count - 1].n;
 	}
 
@@ -1023,7 +1023,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	free(mcell_adunits);
 	t = 0.0;
 
-	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(McellLookup = (Microcell * *)malloc(P.populated_microcells_count * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 	if (!(State.CellMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	P.populated_cells_count = 0;
 	for (int i = i2 = j2 = 0; i < P.cells_count; i++)
@@ -1049,7 +1049,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of hosts assigned = %i\n", j2);
 	if (!P.DoAdUnits) P.AdunitLevel1Lookup[0] = 0;
 	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.populated_cells_count);
-	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
+	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.populated_microcells_count);
 
 	if (!(CellLookup = (Cell * *)malloc(P.populated_cells_count * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(State.CellSuscMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
@@ -1086,7 +1086,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.households_count = 0;
 	int numberOfPeople = 0;
-	for (j2 = 0; j2 < P.NMCP; j2++)
+	for (j2 = 0; j2 < P.populated_microcells_count; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
 		l = ((j / P.get_number_of_micro_cells_high()) / P.cell_length_microcells) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.cell_length_microcells);
@@ -1124,7 +1124,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
 		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
-		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
+		for (j2 = tn; j2 < P.populated_microcells_count; j2 += P.NumThreads)
 		{
 			j = (int)(McellLookup[j2] - Mcells);
 			x = (double)(j / P.get_number_of_micro_cells_high());
@@ -1517,8 +1517,8 @@ void SetupAirports(void)
 	P.KernelP3 = P.AirportKernelP3;
 	P.KernelP4 = P.AirportKernelP4;
 	InitKernel(1.0);
-	if (!(Airports[0].DestMcells = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(base = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(Airports[0].DestMcells = (IndexList*)calloc(P.populated_microcells_count * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(base = (IndexList*)calloc(P.populated_microcells_count * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
 	for (int i = 0; i < P.microcells_count; i++)
