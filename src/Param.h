@@ -55,6 +55,7 @@ struct Param
 	/// Total number of samples that will be made. (unit: number of samples).
 	int samples_count;
 
+	/// Type of the kernel.
 	// TODO(jieyouxu): refactor this into an enum. This is an ideal candidate for a compile-time function lookup table.
 	int KernelType;
 
