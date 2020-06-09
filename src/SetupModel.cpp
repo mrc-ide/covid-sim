@@ -1025,7 +1025,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 
 	if (!(McellLookup = (Microcell * *)malloc(P.NMCP * sizeof(Microcell*)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 	if (!(State.CellMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	P.NCP = 0;
+	P.populated_cells_count = 0;
 	for (int i = i2 = j2 = 0; i < P.cells_count; i++)
 	{
 		Cells[i].n = 0;
@@ -1044,14 +1044,14 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 					j2 += Mcells[j].n;
 				}
 			}
-		if (Cells[i].n > 0) P.NCP++;
+		if (Cells[i].n > 0) P.populated_cells_count++;
 	}
 	fprintf(stderr, "Number of hosts assigned = %i\n", j2);
 	if (!P.DoAdUnits) P.AdunitLevel1Lookup[0] = 0;
-	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
+	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.populated_cells_count);
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
-	if (!(CellLookup = (Cell * *)malloc(P.NCP * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+	if (!(CellLookup = (Cell * *)malloc(P.populated_cells_count * sizeof(Cell*)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	if (!(State.CellSuscMemberArray = (int*)malloc(P.population_size * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 	int susceptibleAccumulator = 0;
 	i2 = 0;
@@ -1062,19 +1062,19 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			Cells[j].susceptible = State.CellSuscMemberArray + susceptibleAccumulator;
 			susceptibleAccumulator += Cells[j].n;
 		}
-	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
+	if (i2 > P.populated_cells_count) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.populated_cells_count, i2);
 	i2 = 0;
 
 	if (!(Hosts = (Person*)calloc(P.population_size, sizeof(Person)))) ERR_CRITICAL("Unable to allocate host storage\n");
 	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.populated_cells_count; i++)
 	{
 		Cell *c = CellLookup[i];
 		if (c->n > 0)
 		{
 			if (!(c->InvCDF = (int*)malloc(1025 * sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(c->max_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-			if (!(c->cum_trans = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->max_trans = (float*)malloc(P.populated_cells_count * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
+			if (!(c->cum_trans = (float*)malloc(P.populated_cells_count * sizeof(float)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 		}
 	}
 	for (int i = 0; i < P.cells_count; i++)
@@ -1889,7 +1889,7 @@ void AssignPeopleToPlaces()
 			if (tp != P.HotelPlaceType)
 			{
 				cnt = 0;
-				for (a = 0; a < P.NCP; a++)
+				for (a = 0; a < P.populated_cells_count; a++)
 				{
 					Cell *c = CellLookup[a];
 					c->n = 0;
@@ -1913,7 +1913,7 @@ void AssignPeopleToPlaces()
 				}
 				if (!(PeopleArray = (int*)calloc(cnt, sizeof(int)))) ERR_CRITICAL("Unable to allocate cell storage\n");
 				j2 = 0;
-				for (a = 0; a < P.NCP; a++)
+				for (a = 0; a < P.populated_cells_count; a++)
 				{
 					Cell *c = CellLookup[a];
 					for (j = 0; j < c->n; j++)

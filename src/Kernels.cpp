@@ -54,11 +54,11 @@ void InitKernel(double norm)
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, CellLookup)
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.populated_cells_count; i++)
 	{
 		Cell *l = CellLookup[i];
 		l->tot_prob = 0;
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.populated_cells_count; j++)
 		{
 			Cell *m = CellLookup[j];
 			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));

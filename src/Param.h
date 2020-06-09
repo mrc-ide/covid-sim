@@ -103,7 +103,9 @@ struct Param
 	/// `microcells_count` is computed by `cells_count * cell_length_microcells^2`.
 	int cell_length_microcells;
 
-	int NCP; /**< Number of populated cells  */
+	/// Number of populated cells.
+	int populated_cells_count;
+
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 
 	int get_number_of_micro_cells_wide() const;

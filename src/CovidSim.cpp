@@ -4320,11 +4320,11 @@ void LoadSnapshot(void)
 
 	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*)))) ERR_CRITICAL("Unable to allocate temp cell storage\n");
-	if (!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	for (i = 0; i < P.NCP; i++)
+	if (!(Array_InvCDF = (int**)malloc(P.populated_cells_count * sizeof(int*)))) ERR_CRITICAL("Unable to allocate temp cell storage\n");
+	if (!(Array_max_trans = (float**)malloc(P.populated_cells_count * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	if (!(Array_cum_trans = (float**)malloc(P.populated_cells_count * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	if (!(Array_tot_prob = (float*)malloc(P.populated_cells_count * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	for (i = 0; i < P.populated_cells_count; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;
 		Array_max_trans[i] = Cells[i].max_trans;
@@ -4335,7 +4335,7 @@ void LoadSnapshot(void)
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.population_size) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.population_size, i);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.households_count) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.cells_count) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.cells_count);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.populated_cells_count) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
@@ -4378,7 +4378,7 @@ void LoadSnapshot(void)
 		if (Mcells[i].n > 0)
 			Mcells[i].members += CM_offset;
 
-	for (i = 0; i < P.NCP; i++)
+	for (i = 0; i < P.populated_cells_count; i++)
 	{
 		Cells[i].InvCDF = Array_InvCDF[i];
 		Cells[i].max_trans = Array_max_trans[i];
@@ -4406,7 +4406,7 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.cells_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.populated_cells_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4449,7 +4449,7 @@ void UpdateProbs(int DoPlace)
 	{
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, CellLookup)
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.populated_cells_count; j++)
 		{
 			CellLookup[j]->tot_prob = 0;
 			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
@@ -4464,7 +4464,7 @@ void UpdateProbs(int DoPlace)
 	{
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, CellLookup)
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.populated_cells_count; j++)
 		{
 			CellLookup[j]->S0 = CellLookup[j]->S;
 			CellLookup[j]->tot_prob = 0;
@@ -4472,19 +4472,19 @@ void UpdateProbs(int DoPlace)
 	}
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, CellLookup)
-	for (int j = 0; j < P.NCP; j++)
+	for (int j = 0; j < P.populated_cells_count; j++)
 	{
 		int m, k;
 		float t;
 		CellLookup[j]->cum_trans[0] = ((float)(CellLookup[0]->S0)) * CellLookup[j]->max_trans[0];
 		t = ((float)CellLookup[0]->n) * CellLookup[j]->max_trans[0];
-		for (m = 1; m < P.NCP; m++)
+		for (m = 1; m < P.populated_cells_count; m++)
 		{
 				CellLookup[j]->cum_trans[m] = CellLookup[j]->cum_trans[m - 1] + ((float)(CellLookup[m]->S0)) * CellLookup[j]->max_trans[m];
 				t += ((float)CellLookup[m]->n) * CellLookup[j]->max_trans[m];
 		}
-		CellLookup[j]->tot_prob = CellLookup[j]->cum_trans[P.NCP - 1];
-		for (m = 0; m < P.NCP; m++)
+		CellLookup[j]->tot_prob = CellLookup[j]->cum_trans[P.populated_cells_count - 1];
+		for (m = 0; m < P.populated_cells_count; m++)
 			CellLookup[j]->cum_trans[m] /= CellLookup[j]->tot_prob;
 		CellLookup[j]->tot_prob /= t;
 		for (k = m = 0; k <= 1024; k++)
@@ -4678,7 +4678,7 @@ void RecordSample(double t, int n)
 
 #pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
 		shared(P, CellLookup)
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.populated_cells_count; i++)
 	{
 		Cell* ct = CellLookup[i];
 		S += (int)ct->S;
@@ -5473,7 +5473,7 @@ void CalcOriginDestMatrix_adunit()
 		shared(P, Cells, CellLookup, Mcells, StateT)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NCP; i += P.NumThreads)
+		for (int i = tn; i < P.populated_cells_count; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
 			double pop_dens_from[MAX_ADUNITS] = {};
@@ -5497,7 +5497,7 @@ void CalcOriginDestMatrix_adunit()
 				}
 			}
 
-			for (int j = i; j < P.NCP; j++)
+			for (int j = i; j < P.populated_cells_count; j++)
 			{
 				//reset pop density matrix to zero
 				double pop_dens_to[MAX_ADUNITS] = {};
