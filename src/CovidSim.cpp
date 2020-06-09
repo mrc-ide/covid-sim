@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 
-	P.NRactE = P.NRactNE = 0;
+	P.actual_extinct_realisations_count = P.NRactNE = 0;
 	for (i = 0; (i < P.realisations_count) && (P.NRactNE < P.non_extinct_realisations_count) ; i++)
 	{
 		if (P.realisations_count > 1)
@@ -468,14 +468,14 @@ int main(int argc, char* argv[])
 	}
 	sprintf(OutFile, "%s.avNE", OutFileBase);
 	SaveSummaryResults();
-	P.actual_realisations_count = P.NRactE;
+	P.actual_realisations_count = P.actual_extinct_realisations_count;
 	TSMean = TSMeanE; TSVar = TSVarE;
 	sprintf(OutFile, "%s.avE", OutFileBase);
 	//SaveSummaryResults();
 
 	Bitmap_Finalise();
 
-	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
+	fprintf(stderr, "Extinction in %i out of %i runs\n", P.actual_extinct_realisations_count, P.NRactNE + P.actual_extinct_realisations_count);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 	fprintf(stderr, "Model finished\n");
 }
@@ -3603,7 +3603,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	FILE* dat;
 	char outname[1024];
 
-	c = 1 / ((double)(P.NRactE + P.NRactNE));
+	c = 1 / ((double)(P.actual_extinct_realisations_count + P.NRactNE));
 
 	if (P.OutputNonSeverity)
 	{
@@ -3611,7 +3611,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
-			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
+				P.NRactNE, P.actual_extinct_realisations_count, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
 		c = 1 / ((double)P.actual_realisations_count);
 
 		//// populate table
@@ -5413,7 +5413,7 @@ void RecordInfTypes(void)
 	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.samples_count - 1].extinct, P.samples_count - 1);
 	if (TimeSeries[P.samples_count - 1].extinct)
 	{
-		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
+		TSMean = TSMeanE; TSVar = TSVarE; P.actual_extinct_realisations_count++;
 	}
 	else
 	{

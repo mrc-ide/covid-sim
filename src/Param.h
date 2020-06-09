@@ -43,8 +43,8 @@ struct Param
 	/// Actual number of realisations.
 	int actual_realisations_count;
 
-	// TODO(jieyouxu): document and rename this parameter.
-	int NRactE;
+	/// Actual number of extinct realisations.
+	int actual_extinct_realisations_count;
 
 	// TODO(jieyouxu): document and rename this parameter.
 	int NRactNE;

@@ -622,7 +622,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			inf_household_av[i][j] = case_household_av[i][j] = 0;
 	DoInitUpdateProbs = 1;
 	for (int i = 0; i < P.cells_count; i++) Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
-	P.NRactE = P.NRactNE = 0;
+	P.actual_extinct_realisations_count = P.NRactNE = 0;
 	for (int i = 0; i < P.population_size; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
 	{
