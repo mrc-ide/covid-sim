@@ -420,7 +420,7 @@ int main(int argc, char* argv[])
 		int ModelCalibLoop = 0;
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			if ((P.ModelCalibIteration == 10) && (ModelCalibLoop < 3))
+			if ((P.ModelCalibIteration == 16) && (ModelCalibLoop < 3))
 			{
 				thisRunSeed1 = P.nextRunSeed1;
 				thisRunSeed2 = P.nextRunSeed2;
@@ -5157,7 +5157,7 @@ void RecordSample(double t, int n)
 						k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
 						if (k > 0) P.PreControlClusterIdCaseThreshold = k;
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 <2))
 					{
 						if (s > 1)
 						{
@@ -5170,7 +5170,7 @@ void RecordSample(double t, int n)
 							P.PreControlClusterIdHolOffset++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))
 					{
 						P.SeedingScaling /=pow(s, 0.2+0.4*ranf()); // include random number to prevent loops
 					}
