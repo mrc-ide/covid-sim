@@ -42,7 +42,7 @@ void TravelReturnSweep(double t)
 					if (Hosts[i].Travelling == l)
 					{
 						n--;
-						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.PopSize))
+						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.population_size))
 													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else if((k<0)||(k>n))
 													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
@@ -192,7 +192,7 @@ void TravelDepartSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.Nplace[P.HotelPlaceType]; i += P.NumThreads)
 			{
-				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.in_cells_.width_)) * P.nch + ((int)(Places[P.HotelPlaceType][i].loc_y / P.in_cells_.height_));
+				int c = ((int)(Places[P.HotelPlaceType][i].loc_x / P.in_cells_.width_)) * P.cell_grid_height + ((int)(Places[P.HotelPlaceType][i].loc_y / P.in_cells_.height_));
 				int n = (int)ignpoi_mt(nl * Cells[c].tot_prob, tn);
 				if (Places[P.HotelPlaceType][i].n + n > mps)
 				{
@@ -291,7 +291,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	double fp; //// false positive
 	unsigned short int ts;
 
-	if (!P.DoSeasonality)	seasonality = 1.0;
+	if (!P.respect_seasonality_variations) seasonality = 1.0;
 	else					seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
@@ -303,7 +303,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
 		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
-		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
+		for (int b = tn; b < P.populated_cells_count; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
 			Cell* c = CellLookup[b];
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
@@ -782,7 +782,7 @@ void IncubRecoverySweep(double t, int run)
 
 #pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
-		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
+		for (int b = tn; b < P.populated_cells_count; b += P.NumThreads)	//// loop/step over populated cells
 		{
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
@@ -1206,7 +1206,7 @@ int TreatSweep(double t)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
+			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.population_size));
 		else
 			global_trig = State.trigDC;
 	}
@@ -1231,7 +1231,7 @@ int TreatSweep(double t)
 						f = StateT[i].pg_queue[j][k];
 						for (int m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
 						{
-							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.PopSize-1))
+							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.population_size-1))
 															fprintf(stderr,"\n*** npq=%i gn=%i h=%i m=%i j=%i l=%i f=%i s=%i n=%i ***\n",
 																StateT[i].np_queue[j],
 																Places[j][l].n,
@@ -1292,7 +1292,7 @@ int TreatSweep(double t)
 #pragma omp parallel for private(f2,f3,f4,r) reduction(+:f) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
+			for (int bs = tn; bs < P.populated_microcells_count; bs += P.NumThreads) //// loop over populated microcells
 			{
 				int b = (int)(McellLookup[bs] - Mcells); //// microcell number
 				int adi = (P.DoAdUnits) ? Mcells[b].adunit : -1;

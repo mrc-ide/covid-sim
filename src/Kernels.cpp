@@ -46,19 +46,19 @@ void InitKernel(double norm)
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, Kernel, nKernel, nKernelHR, norm)
-	for (int i = 0; i <= P.NKR; i++)
+	for (int i = 0; i <= P.kernel_lookup_table_size; i++)
 	{
 		nKernel[i] = (*Kernel)(((double)i) * P.KernelDelta) / norm;
-		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
+		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.high_resolution_kernel_lookup_table_expansion_factor) / norm;
 	}
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, CellLookup)
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.populated_cells_count; i++)
 	{
 		Cell *l = CellLookup[i];
 		l->tot_prob = 0;
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.populated_cells_count; j++)
 		{
 			Cell *m = CellLookup[j];
 			l->max_trans[j] = (float)numKernel(dist2_cc_min(l, m));
@@ -113,14 +113,14 @@ double PowerExpKernel(double r2)
 double numKernel(double r2)
 {
 	double t = r2 / P.KernelDelta;
-	if (t > P.NKR)
+	if (t > P.kernel_lookup_table_size)
 	{
 		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, P.KernelDelta, t);
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
 
-	double s = t * P.NK_HR;
-	if (s < P.NKR)
+	double s = t * P.high_resolution_kernel_lookup_table_expansion_factor;
+	if (s < P.kernel_lookup_table_size)
 	{
 		t = s - floor(s);
 		t = (1 - t) * nKernelHR[(int)s] + t * nKernelHR[(int)(s + 1)];

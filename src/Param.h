@@ -21,34 +21,122 @@ struct DomainSize
 	double height_;
 };
 
-/**
- * @brief Stores the parameters for the simulation.
- *
- */
+/// Parameters used by the simulation.
 struct Param
 {
-	int PopSize; /**< Population size */
-	int NH; // Number of households
-	int NumRealisations; /**< Number of Realisations */
-	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
-	int NRactual;
-	int NRactE;
-	int NRactNE;
-	int UpdatesPerSample; // Number of time steps between samples
-	int NumSamples; // Total number of samples that will be made
+    /// Size of the population (unit: number of people).
+	int population_size;
+
+	/// Number of households (unit: number of households).
+	int households_count;
+
+	/// Number of realisations (unit: number of realisations).
+	///
+	/// A *realisation* is an observation of the random simulation generated from the same input parameters.
+	int realisations_count;
+
+	/// Number of non-extinct realisations (unit: number of *non-extinct* realisations).
+	///
+	/// A realisation is *non-extinct* if the disease does *not* die out.
+	int non_extinct_realisations_count;
+
+	/// Actual number of realisations.
+	int actual_realisations_count;
+
+	/// Actual number of extinct realisations.
+	int actual_extinct_realisations_count;
+
+	/// Actual number of non-extinct realisations.
+	int actual_non_extinct_realisations_count;
+
+	/// Number of time steps between samples (unit: number of time steps between samples).
+	int time_steps_between_samples;
+
+	/// Total number of samples that will be made. (unit: number of samples).
+	int samples_count;
+
+	/// Type of the kernel.
+	// TODO(jieyouxu): refactor this into an enum. This is an ideal candidate for a compile-time function lookup table.
 	int KernelType;
-	int NKR; // Size of kernel lookup table
-	int NK_HR; // Factor to expand hi-res kernel lookup table by
+
+	/// Size of the default-resolution kernel lookup table.
+	// TODO(jieyouxu): determine the units.
+	int kernel_lookup_table_size;
+
+	/// High-resolution kernel look up table expansion scaling factor.
+	int high_resolution_kernel_lookup_table_expansion_factor;
+
+	// TODO(jieyouxu): refactor these two parameters to use same enum as `KernelType`.
 	int MoveKernelType;
 	int AirportKernelType;
-	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
-	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
-	int NC; // Number of cells
-	int NMC; // Number of microcells
-	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
-	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+
+	/// Number of lines of the binary file buffer (unit: lines).
+	unsigned int binary_file_lines_count;
+
+	/// Should we enable binary output?
+	// TODO(jieyouxu): this really should be a `bool`, but there is a `P.DoBin = -1` assignment in `SetupModel`.
+	int enable_binary_output;
+
+	/// Should we save snapshots of the run?
+	int save_snapshots;
+
+	/// Should we load snapshots of the run?
+	int load_snapshots;
+
+	/// Special tuning parameters which interact with wildcards in the intervention parameters. These parameters are
+	/// used to vary parts of parameters at run-time (e.g. to undertake sensitivity analysis) without needing to
+	/// generate new parameter files.
+	double clP1, clP2, clP3, clP4, clP5, clP6;
+
+	// TODO(jieyouxu): document their purpose and units, pending rename.
+	double snapshot_load_time;
+	double snapshot_save_time;
+
+	/// Number of cells.
+	int cells_count;
+
+	/// Number of microcells. A cell may contain multiple microcells.
+	int microcells_count;
+
+	/// Length of a cell (unit: microcells).
+	///
+	/// Each cell is a square grid of microcells. Let `n` be the number of microcells, then each cell is occupied by
+	/// `n * n` microcells (i.e. the cell is `n` microcells wide, `n` microcells tall).
+	///
+	/// `microcells_count` is computed by `cells_count * cell_length_microcells^2`.
+	int cell_length_microcells;
+
+	/// Number of populated cells.
+	int populated_cells_count;
+
+	/// Number of populated microcells.
+	int populated_microcells_count;
+
+	/// Width of the simulation cell grid (unit: cells).
+	int cell_grid_width;
+
+	/// Height of the simulation cell grid (unit: cells).
+	int cell_grid_height;
+
+	/// Number of different types of schools.
+	int school_types_count;
+
+	/// Should the simulation use the Universal Transverse Mercator (UTM) coordinate system, which assigns coordinates
+	/// to locations on the surface of Earth?
+	///
+	/// See <https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system>.
+	int use_utm_coordinate_system;
+
+	/// Should the simulation take into account seasonality, where some variations occur at predictable, regular
+	/// intervals within a year (such as average temperature changes)?
+	int respect_seasonality_variations;
+
+	/// Should the simulation attempt to correct age distributions?
+	int should_correct_age_distributions;
+
+	/// Should the simulation take into account the possible existence of partial immunity within a population, that
+	/// some people may be naturally immune to a virus?
+	int respect_partial_immunity;
 
 	int get_number_of_micro_cells_wide() const;
 	int get_number_of_micro_cells_high() const;
