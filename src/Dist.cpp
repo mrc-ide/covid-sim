@@ -63,12 +63,12 @@ double dist2_cc(Cell* a, Cell* b)
 	l = (int)(a - Cells);
 	m = (int)(b - Cells);
 	if (P.DoUTM_coords)
-		return dist2UTM(P.in_cells_.width_ * fabs((double)(l / P.nch)), P.in_cells_.height_ * fabs((double)(l % P.nch)),
-			P.in_cells_.width_ * fabs((double)(m / P.nch)), P.in_cells_.height_ * fabs((double)(m % P.nch)));
+		return dist2UTM(P.in_cells_.width_ * fabs((double)(l / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(l % P.cell_grid_height)),
+			P.in_cells_.width_ * fabs((double)(m / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(m % P.cell_grid_height)));
 	else
 	{
-		x = P.in_cells_.width_ * fabs((double)(l / P.nch - m / P.nch));
-		y = P.in_cells_.height_ * fabs((double)(l % P.nch - m % P.nch));
+		x = P.in_cells_.width_ * fabs((double)(l / P.cell_grid_height - m / P.cell_grid_height));
+		y = P.in_cells_.height_ * fabs((double)(l % P.cell_grid_height - m % P.cell_grid_height));
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;
@@ -87,59 +87,59 @@ double dist2_cc_min(Cell* a, Cell* b)
 	i = l; j = m;
 	if (P.DoUTM_coords)
 	{
-		if (P.in_cells_.width_ * ((double)abs(m / P.nch - l / P.nch)) > PI)
+		if (P.in_cells_.width_ * ((double)abs(m / P.cell_grid_height - l / P.cell_grid_height)) > PI)
 		{
-			if (m / P.nch > l / P.nch)
-				j += P.nch;
-			else if (m / P.nch < l / P.nch)
-				i += P.nch;
+			if (m / P.cell_grid_height > l / P.cell_grid_height)
+				j += P.cell_grid_height;
+			else if (m / P.cell_grid_height < l / P.cell_grid_height)
+				i += P.cell_grid_height;
 		}
 		else
 		{
-			if (m / P.nch > l / P.nch)
-				i += P.nch;
-			else if (m / P.nch < l / P.nch)
-				j += P.nch;
+			if (m / P.cell_grid_height > l / P.cell_grid_height)
+				i += P.cell_grid_height;
+			else if (m / P.cell_grid_height < l / P.cell_grid_height)
+				j += P.cell_grid_height;
 		}
-		if (m % P.nch > l % P.nch)
+		if (m % P.cell_grid_height > l % P.cell_grid_height)
 			i++;
-		else if (m % P.nch < l % P.nch)
+		else if (m % P.cell_grid_height < l % P.cell_grid_height)
 			j++;
-		return dist2UTM(P.in_cells_.width_ * fabs((double)(i / P.nch)), P.in_cells_.height_ * fabs((double)(i % P.nch)),
-			P.in_cells_.width_ * fabs((double)(j / P.nch)), P.in_cells_.height_ * fabs((double)(j % P.nch)));
+		return dist2UTM(P.in_cells_.width_ * fabs((double)(i / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(i % P.cell_grid_height)),
+			P.in_cells_.width_ * fabs((double)(j / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(j % P.cell_grid_height)));
 	}
 	else
 	{
-		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width_ * ((double)abs(m / P.nch - l / P.nch)) > P.in_degrees_.width_ * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_cells_.width_ * ((double)abs(m / P.cell_grid_height - l / P.cell_grid_height)) > P.in_degrees_.width_ * 0.5))
 		{
-			if (m / P.nch > l / P.nch)
-				j += P.nch;
-			else if (m / P.nch < l / P.nch)
-				i += P.nch;
+			if (m / P.cell_grid_height > l / P.cell_grid_height)
+				j += P.cell_grid_height;
+			else if (m / P.cell_grid_height < l / P.cell_grid_height)
+				i += P.cell_grid_height;
 		}
 		else
 		{
-			if (m / P.nch > l / P.nch)
-				i += P.nch;
-			else if (m / P.nch < l / P.nch)
-				j += P.nch;
+			if (m / P.cell_grid_height > l / P.cell_grid_height)
+				i += P.cell_grid_height;
+			else if (m / P.cell_grid_height < l / P.cell_grid_height)
+				j += P.cell_grid_height;
 		}
-		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height_ * ((double)abs(m % P.nch - l % P.nch)) > P.in_degrees_.height_ * 0.5))
+		if ((P.DoPeriodicBoundaries) && (P.in_degrees_.height_ * ((double)abs(m % P.cell_grid_height - l % P.cell_grid_height)) > P.in_degrees_.height_ * 0.5))
 		{
-			if (m % P.nch > l % P.nch)
+			if (m % P.cell_grid_height > l % P.cell_grid_height)
 				j++;
-			else if (m % P.nch < l % P.nch)
+			else if (m % P.cell_grid_height < l % P.cell_grid_height)
 				i++;
 		}
 		else
 		{
-			if (m % P.nch > l % P.nch)
+			if (m % P.cell_grid_height > l % P.cell_grid_height)
 				i++;
-			else if (m % P.nch < l % P.nch)
+			else if (m % P.cell_grid_height < l % P.cell_grid_height)
 				j++;
 		}
-		x = P.in_cells_.width_ * fabs((double)(i / P.nch - j / P.nch));
-		y = P.in_cells_.height_ * fabs((double)(i % P.nch - j % P.nch));
+		x = P.in_cells_.width_ * fabs((double)(i / P.cell_grid_height - j / P.cell_grid_height));
+		y = P.in_cells_.height_ * fabs((double)(i % P.cell_grid_height - j % P.cell_grid_height));
 		if (P.DoPeriodicBoundaries)
 		{
 			if (x > P.in_degrees_.width_ * 0.5) x = P.in_degrees_.width_ - x;

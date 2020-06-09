@@ -4336,8 +4336,8 @@ void LoadSnapshot(void)
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.households_count) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.cells_count) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.cells_count);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.populated_cells_count) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.cell_grid_width) ERR_CRITICAL("Incorrect cell_grid_width in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.cell_grid_height) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
@@ -4408,9 +4408,9 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.populated_cells_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.cell_grid_width), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.cell_grid_height), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5480,7 +5480,7 @@ void CalcOriginDestMatrix_adunit()
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
-			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.cell_length_microcells;
+			ptrdiff_t cl_from_mcl = (cl_from / P.cell_grid_height) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_from % P.cell_grid_height) * P.cell_length_microcells;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
 			for (int k = 0; k < P.cell_length_microcells; k++)
@@ -5504,7 +5504,7 @@ void CalcOriginDestMatrix_adunit()
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
-				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.cell_length_microcells;
+				ptrdiff_t cl_to_mcl = (cl_to / P.cell_grid_height) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_to % P.cell_grid_height) * P.cell_length_microcells;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				double total_flow;

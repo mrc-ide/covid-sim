@@ -109,8 +109,12 @@ struct Param
 	/// Number of populated microcells.
 	int populated_microcells_count;
 
-	int ncw;
-	int nch;
+	/// Width of the simulation cell grid (unit: cells).
+	int cell_grid_width;
+
+	/// Height of the simulation cell grid (unit: cells).
+	int cell_grid_height;
+
 	int nsp;
 
 	int DoUTM_coords;

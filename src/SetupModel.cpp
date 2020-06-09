@@ -144,15 +144,15 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.in_cells_.height_) * P.in_cells_.height_;
 		P.in_degrees_.width_ = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
 		P.in_degrees_.height_ = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
-		P.ncw = 4 * ((int)ceil(P.in_degrees_.width_ / P.in_cells_.width_ / 4));
-		P.nch = 4 * ((int)ceil(P.in_degrees_.height_ / P.in_cells_.height_ / 4));
-		P.in_degrees_.width_ = ((double)P.ncw) * P.in_cells_.width_;
-		P.in_degrees_.height_ = ((double)P.nch) * P.in_cells_.height_;
+		P.cell_grid_width = 4 * ((int)ceil(P.in_degrees_.width_ / P.in_cells_.width_ / 4));
+		P.cell_grid_height = 4 * ((int)ceil(P.in_degrees_.height_ / P.in_cells_.height_ / 4));
+		P.in_degrees_.width_ = ((double)P.cell_grid_width) * P.in_cells_.width_;
+		P.in_degrees_.height_ = ((double)P.cell_grid_height) * P.in_cells_.height_;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width_;
 		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height_;
-		P.cells_count = P.ncw * P.nch;
+		P.cells_count = P.cell_grid_width * P.cell_grid_height;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.cells_count, P.ncw, P.nch);
+		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.cells_count, P.cell_grid_width, P.cell_grid_height);
 		fprintf(stderr, "Population size = %i \n", P.population_size);
 		if (P.in_degrees_.width_ > 180) {
 			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
@@ -165,17 +165,17 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	}
 	else
 	{
-		P.ncw = P.nch = (int)sqrt((double)P.cells_count);
-		P.cells_count = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.cells_count, P.ncw);
+		P.cell_grid_width = P.cell_grid_height = (int)sqrt((double)P.cells_count);
+		P.cells_count = P.cell_grid_width * P.cell_grid_height;
+		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.cells_count, P.cell_grid_width);
 		s = floor(sqrt((double)P.population_size));
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
 		P.population_size = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.population_size, s);
 		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
-		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
-		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
+		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.cell_grid_width);
+		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.cell_grid_height);
 	}
 	P.microcells_count = P.cell_length_microcells * P.cell_length_microcells * P.cells_count;
 	fprintf(stderr, "Number of microcells = %i\n", P.microcells_count);
@@ -684,12 +684,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		fprintf(stderr, "Configured mass vaccination queue.\n");
 	}
 	PeakHeightSum = PeakHeightSS = PeakTimeSum = PeakTimeSS = 0;
-	int i = (P.ncw / 2) * P.nch + P.nch / 2;
-	int j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
+	int i = (P.cell_grid_width / 2) * P.cell_grid_height + P.cell_grid_height / 2;
+	int j = (P.cell_grid_width / 2 + 2) * P.cell_grid_height + P.cell_grid_height / 2;
 	fprintf(stderr, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
-	j = (P.ncw / 2) * P.nch + P.nch / 2 + 2;
+	j = (P.cell_grid_width / 2) * P.cell_grid_height + P.cell_grid_height / 2 + 2;
 	fprintf(stderr, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
-	j = (P.ncw / 2 + 2) * P.nch + P.nch / 2 + 2;
+	j = (P.cell_grid_width / 2 + 2) * P.cell_grid_height + P.cell_grid_height / 2 + 2;
 	fprintf(stderr, "UTM dist diag=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
 
 	//if(P.OutputBitmap)
@@ -1029,7 +1029,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (int i = i2 = j2 = 0; i < P.cells_count; i++)
 	{
 		Cells[i].n = 0;
-		int k = (i / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (i % P.nch) * P.cell_length_microcells;
+		int k = (i / P.cell_grid_height) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (i % P.cell_grid_height) * P.cell_length_microcells;
 		Cells[i].members = State.CellMemberArray + j2;
 		for (l = 0; l < P.cell_length_microcells; l++)
 			for (m = 0; m < P.cell_length_microcells; m++)
@@ -1089,7 +1089,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (j2 = 0; j2 < P.populated_microcells_count; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
-		l = ((j / P.get_number_of_micro_cells_high()) / P.cell_length_microcells) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.cell_length_microcells);
+		l = ((j / P.get_number_of_micro_cells_high()) / P.cell_length_microcells) * P.cell_grid_height + ((j % P.get_number_of_micro_cells_high()) / P.cell_length_microcells);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
@@ -1340,7 +1340,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			Places[j][P.Nplace[j]].loc_y = (float)(y - P.SpatialBoundingBox[1]);
 			if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) && (y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
 			{
-				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc_x / P.in_cells_.width_)) + ((int)(Places[j][P.Nplace[j]].loc_y / P.in_cells_.height_));
+				int i = P.cell_grid_height * ((int)(Places[j][P.Nplace[j]].loc_x / P.in_cells_.width_)) + ((int)(Places[j][P.Nplace[j]].loc_y / P.in_cells_.height_));
 				if (Cells[i].n == 0) mr++;
 				Places[j][P.Nplace[j]].n = m;
 				i = (int)(Places[j][P.Nplace[j]].loc_x / P.in_microcells_.width_);
@@ -1979,45 +1979,45 @@ void AssignPeopleToPlaces()
 						if (Places[tp][i].treat_end_time > 0)
 						{
 							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							k = j * P.cell_grid_height + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
 							Cells[k].I += (int)Places[tp][i].treat_end_time;
 						}
 					for (k = 0; k < P.cells_count; k++)
 					{
-						int i = k % P.nch;
-						j = k / P.nch;
+						int i = k % P.cell_grid_height;
+						j = k / P.cell_grid_height;
 						f2 = Cells[k].I; f3 = Cells[k].S;
 						if ((i > 0) && (j > 0))
 						{
-							f2 += Cells[(j - 1) * P.nch + (i - 1)].I; f3 += Cells[(j - 1) * P.nch + (i - 1)].S;
+							f2 += Cells[(j - 1) * P.cell_grid_height + (i - 1)].I; f3 += Cells[(j - 1) * P.cell_grid_height + (i - 1)].S;
 						}
 						if (i > 0)
 						{
-							f2 += Cells[j * P.nch + (i - 1)].I; f3 += Cells[j * P.nch + (i - 1)].S;
+							f2 += Cells[j * P.cell_grid_height + (i - 1)].I; f3 += Cells[j * P.cell_grid_height + (i - 1)].S;
 						}
-						if ((i > 0) && (j < P.ncw - 1))
+						if ((i > 0) && (j < P.cell_grid_width - 1))
 						{
-							f2 += Cells[(j + 1) * P.nch + (i - 1)].I; f3 += Cells[(j + 1) * P.nch + (i - 1)].S;
+							f2 += Cells[(j + 1) * P.cell_grid_height + (i - 1)].I; f3 += Cells[(j + 1) * P.cell_grid_height + (i - 1)].S;
 						}
 						if (j > 0)
 						{
-							f2 += Cells[(j - 1) * P.nch + i].I; f3 += Cells[(j - 1) * P.nch + i].S;
+							f2 += Cells[(j - 1) * P.cell_grid_height + i].I; f3 += Cells[(j - 1) * P.cell_grid_height + i].S;
 						}
-						if (j < P.ncw - 1)
+						if (j < P.cell_grid_width - 1)
 						{
-							f2 += Cells[(j + 1) * P.nch + i].I; f3 += Cells[(j + 1) * P.nch + i].S;
+							f2 += Cells[(j + 1) * P.cell_grid_height + i].I; f3 += Cells[(j + 1) * P.cell_grid_height + i].S;
 						}
-						if ((i < P.nch - 1) && (j > 0))
+						if ((i < P.cell_grid_height - 1) && (j > 0))
 						{
-							f2 += Cells[(j - 1) * P.nch + (i + 1)].I; f3 += Cells[(j - 1) * P.nch + (i + 1)].S;
+							f2 += Cells[(j - 1) * P.cell_grid_height + (i + 1)].I; f3 += Cells[(j - 1) * P.cell_grid_height + (i + 1)].S;
 						}
-						if (i < P.nch - 1)
+						if (i < P.cell_grid_height - 1)
 						{
-							f2 += Cells[j * P.nch + (i + 1)].I; f3 += Cells[j * P.nch + (i + 1)].S;
+							f2 += Cells[j * P.cell_grid_height + (i + 1)].I; f3 += Cells[j * P.cell_grid_height + (i + 1)].S;
 						}
-						if ((i < P.nch - 1) && (j < P.ncw - 1))
+						if ((i < P.cell_grid_height - 1) && (j < P.cell_grid_width - 1))
 						{
-							f2 += Cells[(j + 1) * P.nch + (i + 1)].I; f3 += Cells[(j + 1) * P.nch + (i + 1)].S;
+							f2 += Cells[(j + 1) * P.cell_grid_height + (i + 1)].I; f3 += Cells[(j + 1) * P.cell_grid_height + (i + 1)].S;
 						}
 						Cells[k].L = f3; Cells[k].R = f2;
 					}
@@ -2033,7 +2033,7 @@ void AssignPeopleToPlaces()
 						if (Places[tp][i].treat_end_time > 0)
 						{
 							j = (int)(Places[tp][i].loc_x / P.in_cells_.width_);
-							k = j * P.nch + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
+							k = j * P.cell_grid_height + ((int)(Places[tp][i].loc_y / P.in_cells_.height_));
 							if ((Cells[k].L > 0) && (Cells[k].R > 0))
 							{
 								s = ((double)Cells[k].L) / ((double)Cells[k].R);
@@ -2070,7 +2070,7 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.cells_count; i++) Cells[i].S = 0;
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.nch * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.cell_grid_height * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
 						Cells[i].S += (int)Places[tp][j].treat_end_time;
 					}
 					for (int i = 0; i < P.cells_count; i++)
@@ -2084,7 +2084,7 @@ void AssignPeopleToPlaces()
 					}
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
-						int i = P.nch * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
+						int i = P.cell_grid_height * ((int)(Places[tp][j].loc_x / P.in_cells_.width_)) + ((int)(Places[tp][j].loc_y / P.in_cells_.height_));
 						k = (int)Places[tp][j].treat_end_time;
 						for (j2 = 0; j2 < k; j2++)
 						{
