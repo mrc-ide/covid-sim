@@ -118,7 +118,8 @@ struct Param
 	/// Height of the simulation cell grid (unit: cells).
 	int cell_grid_height;
 
-	int nsp;
+	/// Number of different types of schools.
+	int school_types_count;
 
 	int DoUTM_coords;
 	int DoSeasonality;

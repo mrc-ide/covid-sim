@@ -1314,15 +1314,15 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		else
 			free(State.InvAgeDist[0]);
 		free(State.InvAgeDist);
-	*/	P.nsp = 0;
+	*/	P.school_types_count = 0;
 	if (P.DoPlaces)
 		if (!(Places = (Place * *)malloc(P.PlaceTypeNum * sizeof(Place*)))) ERR_CRITICAL("Unable to allocate place storage\n");
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
 		if (!(dat = fopen(SchoolFile, "rb"))) ERR_CRITICAL("Unable to open school file\n");
-		fscanf(dat, "%i", &P.nsp);
-		for (j = 0; j < P.nsp; j++)
+		fscanf(dat, "%i", &P.school_types_count);
+		for (j = 0; j < P.school_types_count; j++)
 		{
 			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
 			if (!(Places[j] = (Place*)calloc(m, sizeof(Place)))) ERR_CRITICAL("Unable to allocate place storage\n");
@@ -1355,13 +1355,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		fclose(dat);
 		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
 		for (int i = 0; i < P.microcells_count; i++)
-			for (j = 0; j < P.nsp; j++)
+			for (j = 0; j < P.school_types_count; j++)
 				if (Mcells[i].np[j] > 0)
 				{
 					if (!(Mcells[i].places[j] = (int*)malloc(Mcells[i].np[j] * sizeof(int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 					Mcells[i].np[j] = 0;
 				}
-		for (j = 0; j < P.nsp; j++)
+		for (j = 0; j < P.school_types_count; j++)
 		{
 			t = s = 0;
 			for (int i = 0; i < P.population_size; i++)
@@ -1386,7 +1386,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
 			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
+			for (j2 = P.school_types_count + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
 				t = 0;
 				P.PlaceTypeMaxAgeRead[j2] = 0;
@@ -1931,7 +1931,7 @@ void AssignPeopleToPlaces()
 					PeopleArray[index2] = tmp;
 				}
 				m = 0;
-				if (tp < P.nsp)
+				if (tp < P.school_types_count)
 				{
 					for (int i = 0; i < P.Nplace[tp]; i++)
 					{
@@ -1971,7 +1971,7 @@ void AssignPeopleToPlaces()
 						Places[tp][i].n = 0;
 					}
 				}
-				if (tp < P.nsp)
+				if (tp < P.school_types_count)
 				{
 					t = ((double)m) / ((double)P.Nplace[tp]);
 					fprintf(stderr, "Adjusting place weights by cell (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
@@ -2050,7 +2050,7 @@ void AssignPeopleToPlaces()
 					s = ((double)Places[tp][i].treat_end_time) * 43 / 40 - 1;
 					m += (int)(Places[tp][i].treat_end_time = (unsigned short)(1.0 + ignpoi(s)));
 				}
-				if (tp < P.nsp)
+				if (tp < P.school_types_count)
 					s = ((double)cnt) * 1.075;
 				else
 					s = ((double)cnt) * 1.125;
@@ -2138,7 +2138,7 @@ void AssignPeopleToPlaces()
 											t = dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y,
 												Places[tp][Mcells[ic].places[tp][cnt]].loc_x, Places[tp][Mcells[ic].places[tp][cnt]].loc_y);
 											s = numKernel(t);
-											if (tp < P.nsp)
+											if (tp < P.school_types_count)
 											{
 												t = ((double)Places[tp][Mcells[ic].places[tp][cnt]].treat_end_time);
 												if (HOST_AGE_YEAR(i) < P.PlaceTypeMaxAgeRead[tp])
@@ -2211,7 +2211,7 @@ void AssignPeopleToPlaces()
 									{
 										Hosts[i].PlaceLinks[tp] = NearestPlaces[tn][i2];
 										ca++;
-										if (tp < P.nsp)
+										if (tp < P.school_types_count)
 											Places[tp][Hosts[i].PlaceLinks[tp]].treat_end_time--;
 									}
 									if (!f) Hosts[i].PlaceLinks[tp] = -1;
