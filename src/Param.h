@@ -95,7 +95,14 @@ struct Param
 	/// Number of microcells. A cell may contain multiple microcells.
 	int microcells_count;
 
-	int NMCL; // Number of microcells wide/high a cell is; i.e. microcells_count = NC * NMCL * NMCL
+	/// Length of a cell (unit: microcells).
+	///
+	/// Each cell is a square grid of microcells. Let `n` be the number of microcells, then each cell is occupied by
+	/// `n * n` microcells (i.e. the cell is `n` microcells wide, `n` microcells tall).
+	///
+	/// `microcells_count` is computed by `cells_count * cell_length_microcells^2`.
+	int cell_length_microcells;
+
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 

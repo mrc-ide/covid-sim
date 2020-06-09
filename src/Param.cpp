@@ -1,11 +1,11 @@
 #include "Param.h"
 
 int Param::get_number_of_micro_cells_wide() const {
-	return this->ncw * this->NMCL;
+	return this->ncw * this->cell_length_microcells;
 }
 
 int Param::get_number_of_micro_cells_high() const {
-	return this->nch * this->NMCL;
+	return this->nch * this->cell_length_microcells;
 }
 
 MicroCellPosition Param::get_micro_cell_position_from_cell_index(int cell_index) const {

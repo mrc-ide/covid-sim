@@ -520,7 +520,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
 	P.cells_count = -1;
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.NMCL), 1, 1, 0);
+	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.cell_length_microcells), 1, 1, 0);
 	//added parameter to reset seeds after every run
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*) & (P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
 	if (P.ResetSeeds)
@@ -5480,12 +5480,12 @@ void CalcOriginDestMatrix_adunit()
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
-			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.cell_length_microcells;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
-			for (int k = 0; k < P.NMCL; k++)
+			for (int k = 0; k < P.cell_length_microcells; k++)
 			{
-				for (int l = 0; l < P.NMCL; l++)
+				for (int l = 0; l < P.cell_length_microcells; l++)
 				{
 					//get index of microcell
 					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.get_number_of_micro_cells_high();
@@ -5504,7 +5504,7 @@ void CalcOriginDestMatrix_adunit()
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
-				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.cell_length_microcells;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				double total_flow;
@@ -5518,9 +5518,9 @@ void CalcOriginDestMatrix_adunit()
 				}
 
 				//loop over microcells within destination cell
-				for (int m = 0; m < P.NMCL; m++)
+				for (int m = 0; m < P.cell_length_microcells; m++)
 				{
-					for (int p = 0; p < P.NMCL; p++)
+					for (int p = 0; p < P.cell_length_microcells; p++)
 					{
 						//get index of microcell
 						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.get_number_of_micro_cells_high();

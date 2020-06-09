@@ -177,7 +177,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
 	}
-	P.microcells_count = P.NMCL * P.NMCL * P.cells_count;
+	P.microcells_count = P.cell_length_microcells * P.cell_length_microcells * P.cells_count;
 	fprintf(stderr, "Number of microcells = %i\n", P.microcells_count);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
@@ -190,8 +190,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.bwidth, P.bheight);
 	P.bminx = (int)(P.in_degrees_.width_ * P.BoundingBox[0] * P.scalex);
 	P.bminy = (int)(P.in_degrees_.height_ * P.BoundingBox[1] * P.scaley);
-	P.in_microcells_.width_ = P.in_cells_.width_ / ((double)P.NMCL);
-	P.in_microcells_.height_ = P.in_cells_.height_ / ((double)P.NMCL);
+	P.in_microcells_.width_ = P.in_cells_.width_ / ((double)P.cell_length_microcells);
+	P.in_microcells_.height_ = P.in_cells_.height_ / ((double)P.cell_length_microcells);
 	for (int i = 0; i < P.NumSeedLocations; i++)
 	{
 		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
@@ -1029,10 +1029,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (int i = i2 = j2 = 0; i < P.cells_count; i++)
 	{
 		Cells[i].n = 0;
-		int k = (i / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (i % P.nch) * P.NMCL;
+		int k = (i / P.nch) * P.cell_length_microcells * P.get_number_of_micro_cells_high() + (i % P.nch) * P.cell_length_microcells;
 		Cells[i].members = State.CellMemberArray + j2;
-		for (l = 0; l < P.NMCL; l++)
-			for (m = 0; m < P.NMCL; m++)
+		for (l = 0; l < P.cell_length_microcells; l++)
+			for (m = 0; m < P.cell_length_microcells; m++)
 			{
 				j = k + m + l * P.get_number_of_micro_cells_high();
 				if (Mcells[j].n > 0)
@@ -1089,7 +1089,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	for (j2 = 0; j2 < P.NMCP; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
-		l = ((j / P.get_number_of_micro_cells_high()) / P.NMCL) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.NMCL);
+		l = ((j / P.get_number_of_micro_cells_high()) / P.cell_length_microcells) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.cell_length_microcells);
 		ad = ((P.DoAdunitDemog) && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
