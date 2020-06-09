@@ -92,8 +92,10 @@ struct Param
 	/// Number of cells.
 	int cells_count;
 
-	int NMC; // Number of microcells
-	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
+	/// Number of microcells. A cell may contain multiple microcells.
+	int microcells_count;
+
+	int NMCL; // Number of microcells wide/high a cell is; i.e. microcells_count = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 

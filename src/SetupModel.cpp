@@ -177,8 +177,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
 		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
 	}
-	P.NMC = P.NMCL * P.NMCL * P.cells_count;
-	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
+	P.microcells_count = P.NMCL * P.NMCL * P.cells_count;
+	fprintf(stderr, "Number of microcells = %i\n", P.microcells_count);
 	P.scalex = P.BitmapScale;
 	P.scaley = P.BitmapAspectScale * P.BitmapScale;
 	P.bwidth = (int)(P.in_degrees_.width_ * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scalex);
@@ -713,13 +713,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	int *mcell_adunits, *mcell_num, *mcell_country;
 
 	if (!(Cells = (Cell*)calloc(P.cells_count, sizeof(Cell)))) ERR_CRITICAL("Unable to allocate cell storage\n");
-	if (!(Mcells = (Microcell*)calloc(P.NMC, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_num = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_dens = (double*)malloc(P.NMC * sizeof(double)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_country = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
-	if (!(mcell_adunits = (int*)malloc(P.NMC * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(Mcells = (Microcell*)calloc(P.microcells_count, sizeof(Microcell)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_num = (int*)malloc(P.microcells_count * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_dens = (double*)malloc(P.microcells_count * sizeof(double)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_country = (int*)malloc(P.microcells_count * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
+	if (!(mcell_adunits = (int*)malloc(P.microcells_count * sizeof(int)))) ERR_CRITICAL("Unable to allocate microcell storage\n");
 
-	for (j = 0; j < P.NMC; j++)
+	for (j = 0; j < P.microcells_count; j++)
 	{
 		Mcells[j].n = 0;
 		mcell_adunits[j] = -1;
@@ -783,7 +783,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width_ + 0.1);
 				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height_ + 0.1);
 				l = j * P.get_number_of_micro_cells_high() + k;
-				if (l < P.NMC)
+				if (l < P.microcells_count)
 				{
 					mr++;
 					mcell_dens[l] += t;
@@ -816,13 +816,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				free(BinFileBuf);
 				P.DoBin = 1;
 				P.binary_file_lines_count = 0;
-				for (l = 0; l < P.NMC; l++)
+				for (l = 0; l < P.microcells_count; l++)
 					if (mcell_adunits[l] >= 0) P.binary_file_lines_count++;
 				if (!(BinFileBuf = (void*)malloc(P.binary_file_lines_count * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
 				BF = (BinFile*)BinFileBuf;
 				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.binary_file_lines_count);
 				rn = 0;
-				for (l = 0; l < P.NMC; l++)
+				for (l = 0; l < P.microcells_count; l++)
 					if (mcell_adunits[l] >= 0)
 					{
 						BF[rn].x = (double)(P.in_microcells_.width_ * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[0]; //x
@@ -848,7 +848,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		free(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
 		maxd = 0;
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.microcells_count; i++)
 		{
 			if (mcell_num[i] > 0)
 			{
@@ -866,12 +866,12 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	}
 	else
 	{
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.microcells_count; i++)
 		{
 			mcell_dens[i] = 1.0;
 			Mcells[i].country = 1;
 		}
-		maxd = ((double)P.NMC);
+		maxd = ((double)P.microcells_count);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
 	if ((P.DoAdUnits) && (P.DoAdunitDemog))
@@ -981,7 +981,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (int i = 0; i < P.NumAdunits; i++)
 			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
 		maxd = 0;
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.microcells_count; i++)
 		{
 			if (mcell_num[i] > 0)
             {
@@ -998,7 +998,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Population size reset from %i to %i\n", i, P.population_size);
 	}
 	t = 1.0;
-	for (int i = m = 0; i < (P.NMC - 1); i++)
+	for (int i = m = 0; i < (P.microcells_count - 1); i++)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
@@ -1010,11 +1010,11 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
 	}
-	Mcells[P.NMC - 1].n = P.population_size - m;
-	if (Mcells[P.NMC - 1].n > 0)
+	Mcells[P.microcells_count - 1].n = P.population_size - m;
+	if (Mcells[P.microcells_count - 1].n > 0)
 	{
 		P.NMCP++;
-		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
+		AdUnits[mcell_adunits[P.microcells_count - 1]].n += Mcells[P.microcells_count - 1].n;
 	}
 
 	free(mcell_dens);
@@ -1281,7 +1281,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Checking cells...\n");
 	maxd = ((double)P.population_size);
 	last_i = 0;
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.microcells_count; i++)
 		if (Mcells[i].n > 0) last_i = i;
 	fprintf(stderr, "Allocating place/age groups...\n");
 	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
@@ -1329,7 +1329,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			for (int i = 0; i < m; i++)
 				if (!(Places[j][i].AvailByAge = (unsigned short int*) malloc(P.PlaceTypeMaxAgeRead[j] * sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate place storage\n");
 			P.Nplace[j] = 0;
-			for (int i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
+			for (int i = 0; i < P.microcells_count; i++) Mcells[i].np[j] = 0;
 		}
 		mr = 0;
 		while (!feof(dat))
@@ -1354,7 +1354,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		}
 		fclose(dat);
 		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.microcells_count; i++)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
 				{
@@ -1397,7 +1397,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				if (!(Places[j2] = (Place*)calloc(P.Nplace[j2], sizeof(Place)))) ERR_CRITICAL("Unable to allocate place storage\n");
 				t = 1.0;
 				int k;
-				for (int i = m = k = 0; i < P.NMC; i++)
+				for (int i = m = k = 0; i < P.microcells_count; i++)
 				{
 					s = ((double) Mcells[i].n) / maxd / t;
 					if (s > 1.0) s = 1.0;
@@ -1436,7 +1436,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 						PropPlaces[k][l] = 1.0;
 				}
 /*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-			for (i =0; i < P.NMC; i++)
+			for (i =0; i < P.microcells_count; i++)
 				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
 					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
 */		fprintf(stderr, "Places assigned\n");
@@ -1521,7 +1521,7 @@ void SetupAirports(void)
 	if (!(base = (IndexList*)calloc(P.NMCP * NNA, sizeof(IndexList)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.microcells_count; i++)
 		if (Mcells[i].n > 0)
 		{
 			Mcells[i].AirportList = cur;
@@ -1531,7 +1531,7 @@ void SetupAirports(void)
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(k,l,x,y,t,tmin) schedule(static,10000) default(none) \
 		shared(P, Airports, Mcells, stderr_shared)
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.microcells_count; i++)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
@@ -1576,7 +1576,7 @@ void SetupAirports(void)
 	}
 #pragma omp parallel for private(k,l,t,tmin) schedule(static,10000) default(none) \
 		shared(P, Airports, Mcells, stderr_shared)
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.microcells_count; i++)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
