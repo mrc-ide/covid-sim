@@ -89,7 +89,9 @@ struct Param
 	double snapshot_load_time;
 	double snapshot_save_time;
 
-	int NC; // Number of cells
+	/// Number of cells.
+	int cells_count;
+
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */

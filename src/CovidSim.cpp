@@ -519,7 +519,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.non_extinct_realisations_count = P.realisations_count;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-	P.NC = -1;
+	P.cells_count = -1;
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.NMCL), 1, 1, 0);
 	//added parameter to reset seeds after every run
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*) & (P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
@@ -2666,7 +2666,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NC; i+=P.NumThreads)
+		for (int i = tn; i < P.cells_count; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
@@ -4334,7 +4334,7 @@ void LoadSnapshot(void)
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.population_size) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.population_size, i);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.households_count) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
+	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.cells_count) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.cells_count);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
@@ -4355,7 +4355,7 @@ void LoadSnapshot(void)
 	fprintf(stderr, ".");
 	fread_big((void*)Households, sizeof(Household), (size_t)P.households_count, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(Cell), (size_t)P.cells_count, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
@@ -4363,7 +4363,7 @@ void LoadSnapshot(void)
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.population_size, dat);
 	fprintf(stderr, ".");
-	for (i = 0; i < P.NC; i++)
+	for (i = 0; i < P.cells_count; i++)
 	{
 		if (Cells[i].n > 0)
 		{
@@ -4404,7 +4404,7 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.households_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NC), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.cells_count), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4430,7 +4430,7 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Households, sizeof(Household), (size_t)P.households_count, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.cells_count, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5311,7 +5311,7 @@ void RecordInfTypes(void)
 	for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		for (j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household[i][j] = case_household[i][j] = 0;
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.cells_count; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 				Hosts[Cells[b].members[c]].listpos = 0;
@@ -5367,7 +5367,7 @@ void RecordInfTypes(void)
 			}
 		}
 	}
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.cells_count; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 			{
