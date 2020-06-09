@@ -460,7 +460,7 @@ int main(int argc, char* argv[])
 		SaveOriginDestMatrix();
 	}
 
-	P.NRactual = P.NRactNE;
+	P.actual_realisations_count = P.NRactNE;
 	TSMean = TSMeanNE; TSVar = TSVarNE;
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
 	{
@@ -468,7 +468,7 @@ int main(int argc, char* argv[])
 	}
 	sprintf(OutFile, "%s.avNE", OutFileBase);
 	SaveSummaryResults();
-	P.NRactual = P.NRactE;
+	P.actual_realisations_count = P.NRactE;
 	TSMean = TSMeanE; TSVar = TSVarE;
 	sprintf(OutFile, "%s.avE", OutFileBase);
 	//SaveSummaryResults();
@@ -3612,7 +3612,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
 			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
-		c = 1 / ((double)P.NRactual);
+		c = 1 / ((double)P.actual_realisations_count);
 
 		//// populate table
 		for(i = 0; i < P.samples_count; i++)
