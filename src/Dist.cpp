@@ -41,7 +41,7 @@ double dist2(Person* a, Person* b)
 {
 	double x, y;
 
-	if (P.DoUTM_coords)
+	if (P.use_utm_coordinate_system)
 		return dist2UTM(Households[a->hh].loc_x, Households[a->hh].loc_y, Households[b->hh].loc_x, Households[b->hh].loc_y);
 	else
 	{
@@ -62,7 +62,7 @@ double dist2_cc(Cell* a, Cell* b)
 
 	l = (int)(a - Cells);
 	m = (int)(b - Cells);
-	if (P.DoUTM_coords)
+	if (P.use_utm_coordinate_system)
 		return dist2UTM(P.in_cells_.width_ * fabs((double)(l / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(l % P.cell_grid_height)),
 			P.in_cells_.width_ * fabs((double)(m / P.cell_grid_height)), P.in_cells_.height_ * fabs((double)(m % P.cell_grid_height)));
 	else
@@ -85,7 +85,7 @@ double dist2_cc_min(Cell* a, Cell* b)
 	l = (int)(a - Cells);
 	m = (int)(b - Cells);
 	i = l; j = m;
-	if (P.DoUTM_coords)
+	if (P.use_utm_coordinate_system)
 	{
 		if (P.in_cells_.width_ * ((double)abs(m / P.cell_grid_height - l / P.cell_grid_height)) > PI)
 		{
@@ -155,7 +155,7 @@ double dist2_mm(Microcell* a, Microcell* b)
 
 	l = (int)(a - Mcells);
 	m = (int)(b - Mcells);
-	if (P.DoUTM_coords)
+	if (P.use_utm_coordinate_system)
 		return dist2UTM(P.in_microcells_.width_ * fabs((double)(l / P.get_number_of_micro_cells_high())), P.in_microcells_.height_ * fabs((double)(l % P.get_number_of_micro_cells_high())),
 			P.in_microcells_.width_ * fabs((double)(m / P.get_number_of_micro_cells_high())), P.in_microcells_.height_ * fabs((double)(m % P.get_number_of_micro_cells_high())));
 	else
@@ -175,7 +175,7 @@ double dist2_raw(double ax, double ay, double bx, double by)
 {
 	double x, y;
 
-	if (P.DoUTM_coords)
+	if (P.use_utm_coordinate_system)
 		return dist2UTM(ax, ay, bx, by);
 	else
 	{

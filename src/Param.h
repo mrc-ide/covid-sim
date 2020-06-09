@@ -121,7 +121,12 @@ struct Param
 	/// Number of different types of schools.
 	int school_types_count;
 
-	int DoUTM_coords;
+	/// Should the simulation use the Universal Transverse Mercator (UTM) coordinate system, which assigns coordinates
+	/// to locations on the surface of Earth?
+	///
+	/// See <https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system>.
+	int use_utm_coordinate_system;
+
 	int DoSeasonality;
 	int DoCorrectAgeDist;
 	int DoPartialImmunity;
