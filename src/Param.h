@@ -109,6 +109,15 @@ struct Param
 	/// Number of populated microcells.
 	int populated_microcells_count;
 
+	int ncw;
+	int nch;
+	int nsp;
+
+	int DoUTM_coords;
+	int DoSeasonality;
+	int DoCorrectAgeDist;
+	int DoPartialImmunity;
+
 	int get_number_of_micro_cells_wide() const;
 	int get_number_of_micro_cells_high() const;
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
