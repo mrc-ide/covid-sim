@@ -83,7 +83,9 @@ struct Param
 	/// Should we load snapshots of the run?
 	int load_snapshots;
 
-	// TODO(jieyouxu): document and rename these magic variables.
+	/// Special tuning parameters which interact with wildcards in the intervention parameters. These parameters are
+	/// used to vary parts of parameters at run-time (e.g. to undertake sensitivity analysis) without needing to
+	/// generate new parameter files.
 	double clP1, clP2, clP3, clP4, clP5, clP6;
 
 	// TODO(jieyouxu): document their purpose and units, pending rename.
