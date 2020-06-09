@@ -385,13 +385,13 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 
-	P.actual_extinct_realisations_count = P.NRactNE = 0;
-	for (i = 0; (i < P.realisations_count) && (P.NRactNE < P.non_extinct_realisations_count) ; i++)
+	P.actual_extinct_realisations_count = P.actual_non_extinct_realisations_count = 0;
+	for (i = 0; (i < P.realisations_count) && (P.actual_non_extinct_realisations_count < P.non_extinct_realisations_count) ; i++)
 	{
 		if (P.realisations_count > 1)
 		{
 			sprintf(OutFile, "%s.%i", OutFileBase, i);
-			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.realisations_count, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.realisations_count, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.actual_non_extinct_realisations_count);
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 		P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
@@ -460,7 +460,7 @@ int main(int argc, char* argv[])
 		SaveOriginDestMatrix();
 	}
 
-	P.actual_realisations_count = P.NRactNE;
+	P.actual_realisations_count = P.actual_non_extinct_realisations_count;
 	TSMean = TSMeanNE; TSVar = TSVarNE;
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
 	{
@@ -475,7 +475,7 @@ int main(int argc, char* argv[])
 
 	Bitmap_Finalise();
 
-	fprintf(stderr, "Extinction in %i out of %i runs\n", P.actual_extinct_realisations_count, P.NRactNE + P.actual_extinct_realisations_count);
+	fprintf(stderr, "Extinction in %i out of %i runs\n", P.actual_extinct_realisations_count, P.actual_non_extinct_realisations_count + P.actual_extinct_realisations_count);
 	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 	fprintf(stderr, "Model finished\n");
 }
@@ -3603,7 +3603,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 	FILE* dat;
 	char outname[1024];
 
-	c = 1 / ((double)(P.actual_extinct_realisations_count + P.NRactNE));
+	c = 1 / ((double)(P.actual_extinct_realisations_count + P.actual_non_extinct_realisations_count));
 
 	if (P.OutputNonSeverity)
 	{
@@ -3611,7 +3611,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
-				P.NRactNE, P.actual_extinct_realisations_count, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
+				P.actual_non_extinct_realisations_count, P.actual_extinct_realisations_count, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
 		c = 1 / ((double)P.actual_realisations_count);
 
 		//// populate table
@@ -5417,7 +5417,7 @@ void RecordInfTypes(void)
 	}
 	else
 	{
-		TSMean = TSMeanNE; TSVar = TSVarNE; P.NRactNE++;
+		TSMean = TSMeanNE; TSVar = TSVarNE; P.actual_non_extinct_realisations_count++;
 	}
 	lc = -k;
 

@@ -46,8 +46,8 @@ struct Param
 	/// Actual number of extinct realisations.
 	int actual_extinct_realisations_count;
 
-	// TODO(jieyouxu): document and rename this parameter.
-	int NRactNE;
+	/// Actual number of non-extinct realisations.
+	int actual_non_extinct_realisations_count;
 
 	/// Number of time steps between samples (unit: number of time steps between samples).
 	int time_steps_between_samples;
