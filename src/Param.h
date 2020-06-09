@@ -74,7 +74,7 @@ struct Param
 
 	/// Should we enable binary output?
 	// TODO(jieyouxu): this really should be a `bool`, but there is a `P.DoBin = -1` assignment in `SetupModel`.
-	int DoBin;
+	int enable_binary_output;
 
 	/// Should we save snapshots of the run?
 	int save_snapshots;

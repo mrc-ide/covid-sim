@@ -36,7 +36,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
-	P.DoBin = -1;
+	P.enable_binary_output = -1;
 	if (P.DoHeteroDensity)
 	{
 		fprintf(stderr, "Scanning population density file\n");
@@ -45,7 +45,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
-			P.DoBin = 1;
+			P.enable_binary_output = 1;
 			fread_big(&(P.binary_file_lines_count), sizeof(unsigned int), 1, dat);
 			if (!(BinFileBuf = (void*)malloc(P.binary_file_lines_count * sizeof(BinFile)))) ERR_CRITICAL("Unable to allocate binary file buffer\n");
 			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.binary_file_lines_count, dat);
@@ -54,7 +54,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		}
 		else
 		{
-			P.DoBin = 0;
+			P.enable_binary_output = 0;
 			// Count the number of lines in the density file
 			rewind(dat);
 			P.binary_file_lines_count = 0;
@@ -798,7 +798,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 					}
 					else
 						mcell_adunits[l] = 0;
-					if ((P.OutputDensFile) && (P.DoBin) && (mcell_adunits[l] >= 0))
+					if ((P.OutputDensFile) && (P.enable_binary_output) && (mcell_adunits[l] >= 0))
 					{
 						if (rn2 < rn) BF[rn2] = rec;
 						rn2++;
@@ -808,13 +808,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		}
 		//		fclose(dat2);
 		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
-		if ((P.OutputDensFile) && (P.DoBin)) P.binary_file_lines_count = rn2;
-		if (P.DoBin == 0)
+		if ((P.OutputDensFile) && (P.enable_binary_output)) P.binary_file_lines_count = rn2;
+		if (P.enable_binary_output == 0)
 		{
 			if (P.OutputDensFile)
 			{
 				free(BinFileBuf);
-				P.DoBin = 1;
+				P.enable_binary_output = 1;
 				P.binary_file_lines_count = 0;
 				for (l = 0; l < P.microcells_count; l++)
 					if (mcell_adunits[l] >= 0) P.binary_file_lines_count++;
