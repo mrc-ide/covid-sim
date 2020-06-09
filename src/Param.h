@@ -134,7 +134,9 @@ struct Param
 	/// Should the simulation attempt to correct age distributions?
 	int should_correct_age_distributions;
 
-	int DoPartialImmunity;
+	/// Should the simulation take into account the possible existence of partial immunity within a population, that
+	/// some people may be naturally immune to a virus?
+	int respect_partial_immunity;
 
 	int get_number_of_micro_cells_wide() const;
 	int get_number_of_micro_cells_high() const;

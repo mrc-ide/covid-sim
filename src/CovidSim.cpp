@@ -683,8 +683,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	else
 	{
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity acts as partial immunity", "%i", (void*)&(P.DoPartialImmunity), 1, 1, 0)) P.DoPartialImmunity = 1;
-		if ((P.DoHouseholds)&&(!P.DoPartialImmunity))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity acts as partial immunity", "%i", (void*)&(P.respect_partial_immunity), 1, 1, 0)) P.respect_partial_immunity = 1;
+		if ((P.DoHouseholds)&&(!P.respect_partial_immunity))
 		{
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity applied to all household members", "%i", (void*) & (P.DoWholeHouseholdImmunity), 1, 1, 0)) P.DoWholeHouseholdImmunity = 0;
 		}
@@ -2649,7 +2649,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].index_case_dct = 0;
 			Hosts[k].ProbAbsent =(float) ranf_mt(tn);
 			Hosts[k].ProbCare = (float) ranf_mt(tn);
-			Hosts[k].susc = (float)((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(k)]) : 1.0);
+			Hosts[k].susc = (float)((P.respect_partial_immunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(k)]) : 1.0);
 			if(P.SusceptibilitySD > 0) Hosts[k].susc *= (float) gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn);
 			if (P.DoSeverity)
 			{
@@ -2683,7 +2683,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				for (int l = 0; l < MAX_INTERVENTION_TYPES; l++) Cells[i].CurInterv[l] = -1;
 
 				// Next loop needs to count down for DoImmune host list reordering to work
-				if(!P.DoPartialImmunity)
+				if(!P.respect_partial_immunity)
 					for (int j = Cells[i].n - 1; j >= 0; j--)
 					{
 						int k = Cells[i].members[j];
