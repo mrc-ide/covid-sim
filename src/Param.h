@@ -127,7 +127,10 @@ struct Param
 	/// See <https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system>.
 	int use_utm_coordinate_system;
 
-	int DoSeasonality;
+	/// Should the simulation take into account seasonality, where some variations occur at predictable, regular
+	/// intervals within a year (such as average temperature changes)?
+	int respect_seasonality_variations;
+
 	int DoCorrectAgeDist;
 	int DoPartialImmunity;
 

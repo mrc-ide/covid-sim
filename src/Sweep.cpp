@@ -291,7 +291,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	double fp; //// false positive
 	unsigned short int ts;
 
-	if (!P.DoSeasonality)	seasonality = 1.0;
+	if (!P.respect_seasonality_variations) seasonality = 1.0;
 	else					seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
 
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);

@@ -931,13 +931,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Daily seasonality coefficients", "%lf", (void*)P.Seasonality, DAYS_PER_YEAR, 1, 0))
 	{
-		P.DoSeasonality = 0;
+		P.respect_seasonality_variations = 0;
 		for (i = 0; i < DAYS_PER_YEAR; i++)
 			P.Seasonality[i] = 1;
 	}
 	else
 	{
-		P.DoSeasonality = 1;
+		P.respect_seasonality_variations = 1;
 		s = 0;
 		for (i = 0; i < DAYS_PER_YEAR; i++)
 			s += P.Seasonality[i];
