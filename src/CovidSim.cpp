@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 				{
 					P.save_snapshots = 1;
 					*sep = ' ';
-					sscanf(buf, "%lf %s", &(P.SnapshotSaveTime), SnapshotSaveFile);
+					sscanf(buf, "%lf %s", &(P.snapshot_save_time), SnapshotSaveFile);
 				}
 			}
 			else if (argv[i][1] == 'B' && argv[i][2] == 'M' && argv[i][3] == ':')
@@ -3016,7 +3016,7 @@ int RunModel(int run) //added run number as parameter
 	lcI = 1;
 	if (P.load_snapshots)
 	{
-		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
+		P.ts_age = (int)(P.snapshot_load_time * P.TimeStepsPerDay);
 		t = ((double)P.ts_age) * P.TimeStep;
 	}
 	else
@@ -3100,7 +3100,7 @@ int RunModel(int run) //added run number as parameter
 				}
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
-				if ((P.save_snapshots) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
+				if ((P.save_snapshots) && (t <= P.snapshot_save_time) && (t + P.TimeStep > P.snapshot_save_time)) SaveSnapshot();
 				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
 				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
 				cI = ((double)(State.S)) / ((double)P.population_size);
@@ -4341,8 +4341,8 @@ void LoadSnapshot(void)
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
-	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
-	P.samples_count = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
+	fread_big((void*) & (P.snapshot_load_time), sizeof(double), 1, dat);
+	P.samples_count = 1 + (int)ceil((P.SampleTime - P.snapshot_load_time) / P.SampleStep);
 	fprintf(stderr, ".");
 	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
 	fprintf(stderr, ".");
@@ -4418,7 +4418,7 @@ void SaveSnapshot(void)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.TimeStep), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
+	fwrite_big((void*) & (P.snapshot_save_time), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);

@@ -86,8 +86,8 @@ struct Param
 	double clP1, clP2, clP3, clP4, clP5, clP6;
 
 	// TODO(jieyouxu): document their purpose and units, pending rename.
-	double SnapshotLoadTime;
-	double SnapshotSaveTime;
+	double snapshot_load_time;
+	double snapshot_save_time;
 
 	int NC; // Number of cells
 	int NMC; // Number of microcells
