@@ -2973,10 +2973,6 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		}
 	}
 
-	// Is there a possibility that place closure can happen in the DoInfect calls above?
-	// Not sure - but to play safe...
-	UpdateHostClosure();
-
 	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
 }
 
@@ -3087,7 +3083,6 @@ int RunModel(int run) //added run number as parameter
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
 								} while ((abs(Hosts[l].inf) == InfStat_Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
-								UpdateHostClosure();
 							}
 						}
 					}
@@ -3106,7 +3101,9 @@ int RunModel(int run) //added run number as parameter
 						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) { if ((ir == 0) && (((int)t) > P.DurImportTimeProfile)) fs = 0; }
 					}
 					if (P.DoAirports) TravelReturnSweep(t);
+					UpdateHostClosure();
 				}
+
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
 				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();

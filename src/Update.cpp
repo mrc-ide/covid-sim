@@ -1252,21 +1252,31 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 }
 
 void UpdateHostClosure() {
-	// Single-threaded here, because the same host index might come up in
-	// different threads. (Which is the point of this buffered update...)
+	int omp_thread_no = 0;
 
-	for (int thread_no = 0; thread_no < P.NumThreads; thread_no++) {
-		int count = StateT[thread_no].host_closure_queue_size;
-		for (int host = 0; host < count; host++) {
-			int host_index = StateT[thread_no].host_closure_queue[host].host_index;
-			unsigned short t_start = StateT[thread_no].host_closure_queue[host].start_time;
-			unsigned short t_stop = StateT[thread_no].host_closure_queue[host].stop_time;
-
-			if (Hosts[host_index].absent_start_time > t_start) Hosts[host_index].absent_start_time = t_start;
-			if (Hosts[host_index].absent_stop_time < t_stop) Hosts[host_index].absent_stop_time = t_stop;
+#pragma omp parallel for private(omp_thread_no) default(none) schedule(static, 1)
+	for (omp_thread_no = 0; omp_thread_no < P.NumThreads; omp_thread_no++)
+	{
+		for (int hcq_thread_no = 0; hcq_thread_no < P.NumThreads; hcq_thread_no++)
+		{
+			for (int host = 0; host < StateT[hcq_thread_no].host_closure_queue_size; host++)
+			{
+				int host_index = StateT[hcq_thread_no].host_closure_queue[host].host_index;
+				if (host_index % P.NumThreads == omp_thread_no)
+				{
+					unsigned short t_start = StateT[hcq_thread_no].host_closure_queue[host].start_time;
+					unsigned short t_stop = StateT[hcq_thread_no].host_closure_queue[host].stop_time;
+					if (Hosts[host_index].absent_start_time > t_start) Hosts[host_index].absent_start_time = t_start;
+					if (Hosts[host_index].absent_stop_time < t_stop) Hosts[host_index].absent_stop_time = t_stop;
+				}
+			}
 		}
-		StateT[thread_no].host_closure_queue_size = 0;
 	}
+
+	// Implicit barrier happens at end of #pragma omp parallel, so it's now safe to reset queue sizes
+
+	for (int thread_no = 0; thread_no < P.NumThreads; thread_no++)
+		StateT[thread_no].host_closure_queue_size = 0;
 }
 
 void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
