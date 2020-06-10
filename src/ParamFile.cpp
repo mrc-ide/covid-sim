@@ -263,7 +263,7 @@ void ParamReader::parse_param_file(std::string const& param_file)
         // check if this line is a parameter
         if (param_line.front() == '[' && param_line.back() == ']') {
             // remove the brackets
-            param_line.erase(param_line.cbegin());
+            param_line.erase(param_line.begin());
             param_line.pop_back();
             // try to read the value of this parameter into a string
             std::string value_line;
