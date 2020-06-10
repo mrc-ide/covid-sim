@@ -2809,8 +2809,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
 		StateT[i].host_closure_queue_size = 0;
 	}
-
-	
 	if (DoInitUpdateProbs)
 	{
 		UpdateProbs(0);
@@ -2972,7 +2970,6 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 			}
 		}
 	}
-
 	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
 }
 
@@ -3103,7 +3100,6 @@ int RunModel(int run) //added run number as parameter
 					if (P.DoAirports) TravelReturnSweep(t);
 					UpdateHostClosure();
 				}
-
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
 				if ((P.DoSaveSnapshot) && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
