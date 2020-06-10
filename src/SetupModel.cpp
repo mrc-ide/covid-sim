@@ -2482,8 +2482,8 @@ void LoadPeopleToPlaces(char* NetworkFile)
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
 	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
 	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2)) {
-    ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
-  }
+		ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
+	}
 	k = (P.PopSize + 999999) / 1000000;
 	for (i = 0; i < P.PopSize; i++)
 		for (j = 0; j < P.PlaceTypeNum; j++)
