@@ -198,6 +198,7 @@ void ParamReader::extract_string_matrix_or_exit(std::string const& param, std::v
     {
         // iterate over every token in each row and add it in a vector
         line_stream.str(line);
+        line_stream.clear();
         std::vector<std::string> new_row;
         for (auto i = 0; i < num_cols; i++)
         {
