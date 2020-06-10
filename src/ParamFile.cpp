@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <locale>
 #include <sstream>
 #include <string>
 
@@ -266,10 +267,22 @@ void ParamReader::parse_param_file(std::string const& param_file)
             param_line.pop_back();
             // try to read the value of this parameter into a string
             std::string value_line;
-            if (!std::getline(param_stream, value_line)) {
-                std::cerr << "Error reading value for parameter: " << param_line << std::endl;
-                break;
+            std::string tmp_line;
+            while (std::getline(param_stream, tmp_line))
+            {
+                trim(tmp_line);
+                if (tmp_line.empty() || !(std::isalnum(tmp_line[0]) || tmp_line[0] == '-'))
+                    break;
+                if (!value_line.empty())
+                    value_line.push_back('\n');
+                value_line.append(tmp_line);
             }
+            if (value_line.empty())
+            {
+                std::cerr << "ERROR: Value is missing for parameter: " << param_line << std::endl;
+                continue;
+            }
+
             // store the parameter name and value for later use by ReadParams()
             auto it = m_param_value_map.find(param_line);
             if (it != m_param_value_map.cend())
