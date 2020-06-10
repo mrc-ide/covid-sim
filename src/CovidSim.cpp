@@ -519,7 +519,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.NumNonExtinctRealisations = P.NumRealisations;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-	P.NC = -1;
+	if (P.DoHeteroDensity) {
+	  P.NC = -1;
+	} else {
+	  GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of cells wide", "%i", (void*) & (P.ncw), 1, 1, 0);
+	  GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of cells high", "%i", (void*) & (P.nch), 1, 1, 0);
+	  P.NC = P.ncw * P.nch;
+	}
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.NMCL), 1, 1, 0);
 	//added parameter to reset seeds after every run
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*) & (P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;

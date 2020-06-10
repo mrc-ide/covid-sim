@@ -150,33 +150,26 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width_;
 		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height_;
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
-		fprintf(stderr, "Population size = %i \n", P.PopSize);
-		if (P.in_degrees_.width_ > 180) {
-			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
-		}
-		if (P.in_degrees_.height_ > 90) {
-			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
-		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
 	}
 	else
 	{
-		s = floor(sqrt((double)P.PopSize));
-		P.PopSize = (int)(s * s);
-		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
-		P.ncw = ceil((P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0]) / P.in_cells_.width_);
-    P.nch = ceil((P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1]) / P.in_cells_.height_);
-		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
-		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
-		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
-		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
+		P.SpatialBoundingBox[2] = P.in_degrees_.width_ = P.ncw * P.in_cells_.width_;
+		P.SpatialBoundingBox[3] = P.in_degrees_.height_ = P.nch * P.in_cells_.height_;
 	}
+
+  fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
+  fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
+  fprintf(stderr, "Population size = %i \n", P.PopSize);
+  if (P.in_degrees_.width_ > 180) {
+    fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+  }
+  if (P.in_degrees_.height_ > 90) {
+    fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+  }
+
 	P.NMC = P.NMCL * P.NMCL * P.NC;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
