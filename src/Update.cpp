@@ -1254,7 +1254,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 void UpdateHostClosure() {
 	int omp_thread_no = 0;
 
-#pragma omp parallel for private(omp_thread_no) default(none) schedule(static, 1)
+#pragma omp parallel for private(omp_thread_no) shared(P, StateT, Hosts) default(none) schedule(static, 1)
 	for (omp_thread_no = 0; omp_thread_no < P.NumThreads; omp_thread_no++)
 	{
 		for (int hcq_thread_no = 0; hcq_thread_no < P.NumThreads; hcq_thread_no++)
