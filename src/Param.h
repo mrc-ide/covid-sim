@@ -244,7 +244,7 @@ struct Param
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
-	double PreControlClusterIdTime, DateTriggerReached_CalTime, HolidaysStartDay_SimTime, Interventions_StartDate_CalTime,PreIntervTime,SeedingScaling;
+	double DateTriggerReached_SimTime, DateTriggerReached_CalTime, HolidaysStartDay_SimTime, Interventions_StartDate_CalTime,PreIntervTime,SeedingScaling;
 	int CaseOrDeathThresholdBeforeAlert, CaseOrDeathThresholdBeforeAlert_Fixed, TriggerAlertOnDeaths, WindowToEvaluateTriggerAlert, DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold,StopCalibration,ModelCalibIteration;
 	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
