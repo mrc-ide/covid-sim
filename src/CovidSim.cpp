@@ -395,7 +395,7 @@ int main(int argc, char* argv[])
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
-		P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+		P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
 		P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 		///// Set and save seeds
 		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
 				setall(&P.nextRunSeed1, &P.nextRunSeed2);
 				P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 				P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
-				P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+				P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
 				P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 				ModelCalibLoop++;
 			}
@@ -1318,7 +1318,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	else
 		P.PreIntervIdCalTime = P.PreControlClusterIdCalTime;
-	P.PreControlClusterIdCaseThreshold2 = P.CaseOrDeathThresholdBeforeAlert;
+	P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
 
