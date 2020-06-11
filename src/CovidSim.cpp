@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 
 		///// Set parameter defaults - read them in after
 		P.PlaceCloseIndepThresh = P.LoadSaveNetwork = P.DoHeteroDensity = P.DoPeriodicBoundaries = P.DoSchoolFile = P.DoAdunitDemog = P.OutputDensFile = P.MaxNumThreads = P.DoInterventionFile = 0;
-		P.PreControlClusterIdCaseThreshold = 0;
+		P.CaseOrDeathThresholdBeforeAlert = 0;
 		P.R0scale = 1.0;
 		P.KernelOffsetScale = P.KernelPowerScale = 1.0; //added this so that kernel parameters are only changed if input from the command line: ggilani - 15/10/2014
 		P.DoSaveSnapshot = P.DoLoadSnapshot  = 0;
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'T' && argv[i][2] == ':')
 			{
-				sscanf(&argv[i][3], "%i", &P.PreControlClusterIdCaseThreshold);
+				sscanf(&argv[i][3], "%i", &P.CaseOrDeathThresholdBeforeAlert);
 			}
 			else if (argv[i][1] == 'C' && argv[i][2] == ':')
 			{
@@ -395,7 +395,7 @@ int main(int argc, char* argv[])
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 		P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
-		P.PreControlClusterIdCaseThreshold = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+		P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
 		P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 		///// Set and save seeds
 		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
 				setall(&P.nextRunSeed1, &P.nextRunSeed2);
 				P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 				P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
-				P.PreControlClusterIdCaseThreshold = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
+				P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
 				P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 				ModelCalibLoop++;
 			}
@@ -1296,12 +1296,12 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.PreControlClusterIdUseDeaths), 1, 1, 0)) P.PreControlClusterIdUseDeaths = 0;
 	if (P.PreControlClusterIdUseDeaths)
 	{
-		if (P.PreControlClusterIdCaseThreshold == 0)
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
+		if (P.CaseOrDeathThresholdBeforeAlert == 0)
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
-	else if (P.PreControlClusterIdCaseThreshold == 0)
+	else if (P.CaseOrDeathThresholdBeforeAlert == 0)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.PreControlClusterIdCaseThreshold), 1, 1, 0)) P.PreControlClusterIdCaseThreshold = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Alert trigger starts after interventions", "%i", (void*)&(P.DoAlertTriggerAfterInterv), 1, 1, 0)) P.DoAlertTriggerAfterInterv = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.PreControlClusterIdCalTime), 1, 1, 0)) P.PreControlClusterIdCalTime = -1;
@@ -1312,13 +1312,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			P.DoAlertTriggerAfterInterv = 0;
 		else
 		{
-			P.AlertTriggerAfterIntervThreshold = P.PreControlClusterIdCaseThreshold;
-			P.PreControlClusterIdCaseThreshold = 1000;
+			P.AlertTriggerAfterIntervThreshold = P.CaseOrDeathThresholdBeforeAlert;
+			P.CaseOrDeathThresholdBeforeAlert = 1000;
 		}
 	}
 	else
 		P.PreIntervIdCalTime = P.PreControlClusterIdCalTime;
-	P.PreControlClusterIdCaseThreshold2 = P.PreControlClusterIdCaseThreshold;
+	P.PreControlClusterIdCaseThreshold2 = P.CaseOrDeathThresholdBeforeAlert;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
 
@@ -2490,7 +2490,7 @@ void ReadAirTravel(char* AirTravelFile)
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
 	int nim;
-	int nsi[MAX_NUM_SEED_LOCATIONS];
+	int NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
 	{
@@ -2825,8 +2825,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
-	for (int i = 0; i < P.NumSeedLocations; i++) nsi[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
-	SeedInfection(0, nsi, 0, run);
+	for (int i = 0; i < P.NumSeedLocations; i++) NumSeedingInfections_byLocation[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
+	SeedInfection(0, NumSeedingInfections_byLocation, 0, run);
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
 
@@ -2851,9 +2851,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	fprintf(stderr, "Finished InitModel.\n");
 }
 
-void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to pass it to event log
+void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int run) //adding run number to pass it to event log
 {
-	/* *nsi is an array of the number of seeding infections by location. During runtime, usually just a single int (given by a poisson distribution)*/
+	/* *NumSeedingInfections_byLocation is an array of the number of seeding infections by location. During runtime, usually just a single int (given by a poisson distribution)*/
 	/*rf set to 0 when initializing model, otherwise set to 1 during runtime. */
 
 	int i /*seed location index*/;
@@ -2872,7 +2872,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
 			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 			{
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
 				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
@@ -2905,10 +2905,10 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
 					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
-				} while ((Mcells[j].n < nsi[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
+				} while ((Mcells[j].n < NumSeedingInfections_byLocation[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+				for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 				{
 					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 					if (Hosts[l].inf == InfStat_Susceptible)
@@ -2936,7 +2936,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 		else
 		{
 			m = 0;
-			for (k = 0; (k < nsi[i]) && (m < 10000); k++)
+			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 			{
 				do
 				{
@@ -2975,7 +2975,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 int RunModel(int run) //added run number as parameter
 {
-	int j, k, l, fs, fs2, ni, nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int j, k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
 	double t, cI, lcI, t2;
 	unsigned short int ts;
@@ -2995,7 +2995,7 @@ int RunModel(int run) //added run number as parameter
 				k++;
 				for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
 					fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-				if (!fs) ni++;
+				if (!fs) NumSeedingInfections++;
 			}
 			else
 			{
@@ -3010,7 +3010,7 @@ int RunModel(int run) //added run number as parameter
 		else
 			fs2++;
 	}
-	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
 */
 	InterruptRun = 0;
 	lcI = 1;
@@ -3063,15 +3063,15 @@ int RunModel(int run) //added run number as parameter
 					else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
 					if (ir > 0) //// if infection import rate > 0, seed some infections
 					{
-						for (k = ni = 0; k < P.NumSeedLocations; k++) ni += (nsi[k] = (int)ignpoi(P.TimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
-						if (ni > 0)		SeedInfection(t, nsi, 1, run);
+						for (k = NumSeedingInfections = 0; k < P.NumSeedLocations; k++) NumSeedingInfections += (NumSeedingInfections_byLocation[k] = (int)ignpoi(P.TimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
+						if (NumSeedingInfections > 0)		SeedInfection(t, NumSeedingInfections_byLocation, 1, run);
 					}
 					if (P.FalsePositivePerCapitaIncidence > 0)
 					{
-						ni = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
-						if (ni > 0)
+						NumSeedingInfections = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
+						if (NumSeedingInfections > 0)
 						{
-							for (k = 0; k < ni; k++)
+							for (k = 0; k < NumSeedingInfections; k++)
 							{
 								do
 								{
@@ -3131,7 +3131,7 @@ int RunModel(int run) //added run number as parameter
 	{
 		fprintf(stderr, "Checking consistency of final state...\n");
 		int i, i2, k2;
-		for (i = j = k = ni = fs2 = i2 = 0; i < P.PopSize; i++)
+		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
 		{
 			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
 			if (Hosts[i].inf == 0) j++;
@@ -3142,7 +3142,7 @@ int RunModel(int run) //added run number as parameter
 					k++;
 					for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
 						fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-					if (!fs) ni++;
+					if (!fs) NumSeedingInfections++;
 				}
 				else
 				{
@@ -3157,7 +3157,7 @@ int RunModel(int run) //added run number as parameter
 			else
 				fs2++;
 		}
-		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, ni, fs2, i2, k2);
+		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
 	}
 */
 	if(!InterruptRun) RecordInfTypes();
@@ -5120,8 +5120,8 @@ void RecordSample(double t, int n)
 		trigAlert = trigAlertCases;
 	}
 
-	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertCases >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
+	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) || ((P.DoAlertTriggerAfterInterv) &&
+		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
@@ -5147,13 +5147,13 @@ void RecordSample(double t, int n)
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (thr < 0.05) thr = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
-					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
 					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
 						P.StopCalibration = 1;
 					else if (P.ModelCalibIteration == 0)
 					{
-						k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
-						if (k > 0) P.PreControlClusterIdCaseThreshold = k;
+						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / s);
+						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0))
 					{
@@ -5173,7 +5173,7 @@ void RecordSample(double t, int n)
 						P.SeedingScaling /=pow(s, 0.2+0.4*ranf()); // include random number to prevent loops
 					}
 					P.ModelCalibIteration++;
-					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
+					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 					if(P.StopCalibration)
 						fprintf(stderr, "Calibration ended.\n");
 					else
