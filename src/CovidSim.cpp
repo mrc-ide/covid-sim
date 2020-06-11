@@ -4659,7 +4659,7 @@ void RecordSample(double t, int n)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC, trigAlert, trigAlertCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts;
 	double s,thr;
@@ -5109,8 +5109,8 @@ void RecordSample(double t, int n)
 		}
 	}
 
-	trigAlertC = State.cumDC;
-	if (n >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
+	trigAlertCases = State.cumDC;
+	if (n >= P.PreControlClusterIdDuration) trigAlertCases -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
 
 	if (P.PreControlClusterIdUseDeaths)
 	{
@@ -5119,11 +5119,11 @@ void RecordSample(double t, int n)
 	}
 	else
 	{
-		trigAlert = trigAlertC;
+		trigAlert = trigAlertCases;
 	}
 
 	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
+		(((trigAlertCases >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
@@ -5133,7 +5133,7 @@ void RecordSample(double t, int n)
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
 					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
-//					fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
+//					fprintf(stderr, "@@## trigAlertCases=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertCases, P.PreControlClusterIdHolOffset);
 				}
 			}
 			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
@@ -5149,7 +5149,7 @@ void RecordSample(double t, int n)
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (thr < 0.05) thr = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
-					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
+					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
 					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
 						P.StopCalibration = 1;
 					else if (P.ModelCalibIteration == 0)
