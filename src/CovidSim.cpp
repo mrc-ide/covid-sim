@@ -5109,7 +5109,7 @@ void RecordSample(double t, int n)
 	trigAlertCases = State.cumDC;
 	if (n >= P.WindowToEvaluateTriggerAlert) trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
 
-	if (P.TriggerAlertOnDeaths)
+	if (P.TriggerAlertOnDeaths)  //// if using deaths as trigger (as opposed to detected cases)
 	{
 		trigAlert = (int)TimeSeries[n].D;
 		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
@@ -5122,11 +5122,11 @@ void RecordSample(double t, int n)
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
-			if (P.DateTriggerReached_SimTime == 0)
+			if (P.DateTriggerReached_SimTime == 0) // i.e. if this is first time that calibration has been called for this realisation.
 			{
-				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t;
+				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now (i.e. simulation time that trigger was reached)
 				if (P.DateTriggerReached_CalTime >= 0)
-					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime;
+					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between DateTriggerReached_SimTime and day of year interventions start.
 			}
 			if ((P.DateTriggerReached_CalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
 			{
@@ -5142,39 +5142,36 @@ void RecordSample(double t, int n)
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
-					if((P.ModelCalibIteration >=2)&& ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
+					if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
 						P.StopCalibration = 1;
 					else if (P.ModelCalibIteration == 0)
 					{
+						// rescale threshold
 						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations, adjust timings
 					{
-						if (RatioPredictedObserved > 1)
+						if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
 						{
 							P.Epidemic_StartDate_CalTime--;
 							P.HolidaysStartDay_SimTime--;
 						}
-						else if (RatioPredictedObserved < 1)
+						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
 						{
 							P.Epidemic_StartDate_CalTime++;
 							P.HolidaysStartDay_SimTime++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))  // on odd iterations, adjust seeding.
 						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
-					if(P.StopCalibration)
-						fprintf(stderr, "Calibration ended.\n");
-					else
-						InterruptRun = 1;
+
+					if(P.StopCalibration)	fprintf(stderr, "Calibration ended.\n");
+					else					InterruptRun = 1;
 				}
-				else
-				{
-					P.StopCalibration = 1;
-				}
+				else	P.StopCalibration = 1;
 			}
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
