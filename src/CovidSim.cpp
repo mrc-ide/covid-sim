@@ -1293,8 +1293,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of sampling intervals over which cumulative incidence measured for global trigger", "%i", (void*) & (P.TriggersSamplingInterval), 1, 1, 0)) P.TriggersSamplingInterval = 10000000;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected for treatment", "%lf", (void*) & (P.PostAlertControlPropCasesId), 1, 1, 0)) P.PostAlertControlPropCasesId = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected before outbreak alert", "%lf", (void*) & (P.PreAlertControlPropCasesId), 1, 1, 0)) P.PreAlertControlPropCasesId = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.PreControlClusterIdUseDeaths), 1, 1, 0)) P.PreControlClusterIdUseDeaths = 0;
-	if (P.PreControlClusterIdUseDeaths)
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.TriggerAlertOnDeaths), 1, 1, 0)) P.TriggerAlertOnDeaths = 0;
+	if (P.TriggerAlertOnDeaths)
 	{
 		if (P.CaseOrDeathThresholdBeforeAlert == 0)
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
@@ -5110,7 +5110,7 @@ void RecordSample(double t, int n)
 	trigAlertCases = State.cumDC;
 	if (n >= P.PreControlClusterIdDuration) trigAlertCases -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
 
-	if (P.PreControlClusterIdUseDeaths)
+	if (P.TriggerAlertOnDeaths)
 	{
 		trigAlert = (int)TimeSeries[n].D;
 		if (n >= P.PreControlClusterIdDuration) trigAlert -= (int) TimeSeries[n - P.PreControlClusterIdDuration].D;
