@@ -836,13 +836,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 				params.extract("Scaling factor for input file to convert to daily traffic", P.AirportTrafficScale, 1.0);
 				params.extract("Proportion of hotel attendees who are local", P.HotelPropLocal, 0.0);
-				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of air journeys", "%lf", (void*)&(P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
+				if (!params.extract_multiple_no_default("Distribution of duration of air journeys", P.JourneyDurationDistrib, MAX_TRAVEL_TIME))
 				{
 					P.JourneyDurationDistrib[0] = 1;
 					for (i = 0; i < MAX_TRAVEL_TIME; i++)
 						P.JourneyDurationDistrib[i] = 0;
 				}
-				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of local journeys", "%lf", (void*)&(P.LocalJourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
+				if (!params.extract_multiple_no_default("Distribution of duration of local journeys", P.LocalJourneyDurationDistrib, MAX_TRAVEL_TIME))
 				{
 					P.LocalJourneyDurationDistrib[0] = 1;
 					for (i = 0; i < MAX_TRAVEL_TIME; i++)
@@ -1011,7 +1011,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	else
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf.get_values(), CDF_RES + 1, 1, 0))
+		if (!params.extract_multiple_no_default("Infectious period inverse CDF", P.infectious_icdf.get_values(), CDF_RES + 1))
 		{
 			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
