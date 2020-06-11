@@ -420,7 +420,7 @@ int main(int argc, char* argv[])
 		int ModelCalibLoop = 0;
 		while (RunModel(i))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			if ((P.ModelCalibIteration == 16) && (ModelCalibLoop < 3))
+			if ((P.ModelCalibIteration == 14) && (ModelCalibLoop < 3))
 			{
 				thisRunSeed1 = P.nextRunSeed1;
 				thisRunSeed2 = P.nextRunSeed2;
@@ -1001,6 +1001,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in susceptibility", "%lf", (void*)&(P.SusceptibilitySD), 1, 1, 0)) P.SusceptibilitySD = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in infectiousness", "%lf", (void*) & (P.InfectiousnessSD), 1, 1, 0)) P.InfectiousnessSD = 0;
 	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k of individual variation in infectiousness", "%lf", (void*)& s, 1, 1, 0)) P.InfectiousnessSD = 1.0 / sqrt(s);
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k does not apply in households", "%i", (void*)&P.NoInfectiousnessSDinHH, 1, 1, 0)) P.NoInfectiousnessSDinHH = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model time varying infectiousness", "%i", (void*) & (P.DoInfectiousnessProfile), 1, 1, 0)) P.DoInfectiousnessProfile = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power of scaling of spatial R0 with density", "%lf", (void*) & (P.R0DensityScalePower), 1, 1, 0)) P.R0DensityScalePower = 0;
 	if (P.DoInfectiousnessProfile)
@@ -5172,7 +5173,7 @@ void RecordSample(double t, int n)
 					}
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))
 					{
-						P.SeedingScaling /=pow(s, 0.2+0.4*ranf()); // include random number to prevent loops
+						P.SeedingScaling /=pow(s, 0.2+0.3*ranf()); // include random number to prevent loops
 					}
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
