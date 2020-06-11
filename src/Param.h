@@ -244,7 +244,26 @@ struct Param
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
-	double DateTriggerReached_SimTime, DateTriggerReached_CalTime, HolidaysStartDay_SimTime, Interventions_StartDate_CalTime,Epidemic_StartDate_CalTime,SeedingScaling;
+
+	/**< CALIBRATION PARAMETERS
+		Params below govern how epidemic is calibrated.
+		Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
+		Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
+		Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+		Simulation time day 0 (i.e. t = 0 in runtime) is recorded as Epidemic_StartDate_CalTime.
+		Variables with _CalTime suffix refer to calendar time (relative to Calendar time Day 0). Variables with _SimTime suffix refer to simulation time.
+		Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
+		Calibration parameters specified in pre-parameter file.
+	*/
+
+	double DateTriggerReached_SimTime;		// Day of simulation that trigger is reached. 	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double DateTriggerReached_CalTime;		// Day of year trigger is reached (where trigger refers to either cumulative deaths or cumulative ICU admissions, absolute or per-capita etc.)
+	double HolidaysStartDay_SimTime;		// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
+	
+	double Interventions_StartDate_CalTime;	// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
+	double Epidemic_StartDate_CalTime;		// First day of epidemic relative to Calendar time Day 0.	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double SeedingScaling;					// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+
 	int CaseOrDeathThresholdBeforeAlert, CaseOrDeathThresholdBeforeAlert_Fixed, TriggerAlertOnDeaths, WindowToEvaluateTriggerAlert, DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold,StopCalibration,ModelCalibIteration;
 	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
