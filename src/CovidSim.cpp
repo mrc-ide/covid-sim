@@ -4660,7 +4660,6 @@ void RecordSample(double t, int n)
 	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases, trigAlert, trigAlertCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts;
-	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
@@ -5115,11 +5114,9 @@ void RecordSample(double t, int n)
 		trigAlert = (int)TimeSeries[n].D;
 		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
 	}
-	else
-	{
-		trigAlert = trigAlertCases;
-	}
+	else	trigAlert = trigAlertCases;
 
+	double RatioPredictedObserved, DesiredAccuracy; // calibration variables.
 	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) || ((P.DoAlertTriggerAfterInterv) &&
 		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.Epidemic_StartDate_CalTime) && (P.ModelCalibIteration >= 2)))))
 	{
@@ -5129,10 +5126,7 @@ void RecordSample(double t, int n)
 			{
 				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t;
 				if (P.DateTriggerReached_CalTime >= 0)
-				{
 					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime;
-//					fprintf(stderr, "@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
-				}
 			}
 			if ((P.DateTriggerReached_CalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
 			{
@@ -5141,37 +5135,35 @@ void RecordSample(double t, int n)
 			}
 			if ((P.DoAlertTriggerAfterInterv) && (t == P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime))
 			{
-				if ((trigAlert > 0)&&(P.ModelCalibIteration<20))
+				if ((trigAlert > 0) && (P.ModelCalibIteration < 20))
 				{
-					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
-					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
-					if (thr < 0.05) thr = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,s);
+					RatioPredictedObserved = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
+					DesiredAccuracy = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
+					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
-					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
+					if((P.ModelCalibIteration >=2)&& ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
 						P.StopCalibration = 1;
 					else if (P.ModelCalibIteration == 0)
 					{
-						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / s);
+						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0))
 					{
-						if (s > 1)
+						if (RatioPredictedObserved > 1)
 						{
 							P.Epidemic_StartDate_CalTime--;
 							P.HolidaysStartDay_SimTime--;
 						}
-						else if (s < 1)
+						else if (RatioPredictedObserved < 1)
 						{
 							P.Epidemic_StartDate_CalTime++;
 							P.HolidaysStartDay_SimTime++;
 						}
 					}
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))
-					{
-						P.SeedingScaling /=pow(s, 0.2+0.4*ranf()); // include random number to prevent loops
-					}
+						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 					if(P.StopCalibration)
