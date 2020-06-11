@@ -597,7 +597,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					for (i = 0; i < P.NumAdunits; i++)
 					{
 						auto it = std::find_if(AdunitNames.cbegin(), AdunitNames.cend(),
-												[&AdunitListNames, i](auto const& vec) { return (vec[2].compare(AdunitListNames[i]) == 0);});
+												[&AdunitListNames, i](std::vector<std::string> const& vec) { return (vec[2].compare(AdunitListNames[i]) == 0);});
 						if (it != AdunitNames.cend())
 						{
 							auto const& AdunitName = *it;
