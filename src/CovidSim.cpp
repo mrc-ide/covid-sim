@@ -1320,7 +1320,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.Interventions_StartDate_CalTime = P.DateTriggerReached_CalTime;
 	P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.WindowToEvaluateTriggerAlert), 1, 1, 0)) P.WindowToEvaluateTriggerAlert = 1000;
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only use confirmed cases to trigger alert", "%i", (void*) & (P.DoEarlyCaseDiagnosis), 1, 1, 0)) P.DoEarlyCaseDiagnosis = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
@@ -5108,12 +5108,12 @@ void RecordSample(double t, int n)
 	}
 
 	trigAlertCases = State.cumDC;
-	if (n >= P.PreControlClusterIdDuration) trigAlertCases -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
+	if (n >= P.WindowToEvaluateTriggerAlert) trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
 
 	if (P.TriggerAlertOnDeaths)
 	{
 		trigAlert = (int)TimeSeries[n].D;
-		if (n >= P.PreControlClusterIdDuration) trigAlert -= (int) TimeSeries[n - P.PreControlClusterIdDuration].D;
+		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
 	}
 	else
 	{
