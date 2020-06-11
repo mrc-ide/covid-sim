@@ -1206,9 +1206,9 @@ int TreatSweep(double t)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
+			global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else
-			global_trig = State.trigDC;
+			global_trig = State.trigDetectedCases;
 	}
 	else
 		global_trig = 0;

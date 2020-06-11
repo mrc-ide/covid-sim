@@ -2510,7 +2510,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	ns = 0;
 	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
-	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDC = State.DCT = State.cumDCT
+	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDetectedCases = State.DCT = State.cumDCT
 		= State.cumTG = State.cumSI = State.nTG = State.cumHQ = State.cumAC = State.cumAH = State.cumAA = State.cumACS = State.cumAPC = State.cumAPA = State.cumAPCS = 0;
 	State.cumT = State.cumUT = State.cumTP = State.cumV = State.sumRad2 = State.maxRad2 = State.cumV_daily = State.cumVG = 0; //added State.cumVG
 	State.mvacc_cum = 0;
@@ -4501,9 +4501,9 @@ int ChooseTriggerVariableAndValue(int AdUnit)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			VariableAndValue = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
+			VariableAndValue = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else
-			VariableAndValue = State.trigDC;
+			VariableAndValue = State.trigDetectedCases;
 	}
 	else if (P.DoAdminTriggers) VariableAndValue = State.trigDC_adunit[AdUnit];
 	else VariableAndValue = INT_MAX; //// i.e. if not doing triggering (at either admin or global level) then set value to be arbitrarily large so that it will surpass any trigger threshold. Probably other ways around this if anybody wants to correct?
@@ -4659,7 +4659,7 @@ void RecordSample(double t, int n)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC, trigAlert, trigAlertCases;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases, trigAlert, trigAlertCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts;
 	double s,thr;
@@ -4786,15 +4786,15 @@ void RecordSample(double t, int n)
 	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
-		trigDC = cumCritical;
-		if (n >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumCritical;
+		trigDetectedCases = cumCritical;
+		if (n >= P.TriggersSamplingInterval) trigDetectedCases -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumCritical;
 	}
 	else
 	{
-		trigDC = cumDC;
-		if (n >= P.TriggersSamplingInterval) trigDC -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumDC;
+		trigDetectedCases = cumDC;
+		if (n >= P.TriggersSamplingInterval) trigDetectedCases -= (int)TimeSeries[n - P.TriggersSamplingInterval].cumDC;
 	}
-	State.trigDC = trigDC;
+	State.trigDetectedCases = trigDetectedCases;
 
 	//// update State with new totals from threads.
 	State.S = S;
