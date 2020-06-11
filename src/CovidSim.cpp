@@ -5121,13 +5121,13 @@ void RecordSample(double t, int n)
 	}
 
 	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
+		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.Epidemic_StartDate_CalTime) && (P.ModelCalibIteration >= 2)))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
 			if (P.DateTriggerReached_SimTime == 0)
 			{
-				P.PreIntervTime = P.DateTriggerReached_SimTime = t;
+				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t;
 				if (P.DateTriggerReached_CalTime >= 0)
 				{
 					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime;
@@ -5159,12 +5159,12 @@ void RecordSample(double t, int n)
 					{
 						if (s > 1)
 						{
-							P.PreIntervTime--;
+							P.Epidemic_StartDate_CalTime--;
 							P.HolidaysStartDay_SimTime--;
 						}
 						else if (s < 1)
 						{
-							P.PreIntervTime++;
+							P.Epidemic_StartDate_CalTime++;
 							P.HolidaysStartDay_SimTime++;
 						}
 					}
@@ -5188,7 +5188,7 @@ void RecordSample(double t, int n)
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
 
 		if (P.VaryEfficaciesOverTime)
-			UpdateEfficaciesAndComplianceProportions(t - P.PreIntervTime);
+			UpdateEfficaciesAndComplianceProportions(t - P.Epidemic_StartDate_CalTime);
 
 // changed to a define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
 #define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X>=1e10) X=Y;
