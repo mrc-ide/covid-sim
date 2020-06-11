@@ -2975,7 +2975,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 
 int RunModel(int run) //added run number as parameter
 {
-	int j, k, l, fs, fs2, nu, ni, nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int j, k, l, fs, fs2, ni, nsi[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
 	double t, cI, lcI, t2;
 	unsigned short int ts;
@@ -3026,7 +3026,6 @@ int RunModel(int run) //added run number as parameter
 	}
 	fs = 1;
 	fs2 = 0;
-	nu = 0;
 
 	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
@@ -3089,7 +3088,6 @@ int RunModel(int run) //added run number as parameter
 
 					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
 
-					nu++;
 					fs2 = ((P.DoDeath) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));
 					///// TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
 					if (!TreatSweep(t))
