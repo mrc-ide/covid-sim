@@ -1307,8 +1307,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.DateTriggerReached_CalTime), 1, 1, 0)) P.DateTriggerReached_CalTime = -1;
 	if (P.DoAlertTriggerAfterInterv)
 	{
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year interventions start", "%lf", (void*)&(P.PreIntervIdCalTime), 1, 1, 0);
-		if (P.DateTriggerReached_CalTime <= P.PreIntervIdCalTime)
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Day of year interventions start", "%lf", (void*)&(P.Interventions_StartDate_CalTime), 1, 1, 0);
+		if (P.DateTriggerReached_CalTime <= P.Interventions_StartDate_CalTime)
 			P.DoAlertTriggerAfterInterv = 0;
 		else
 		{
@@ -1317,7 +1317,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 	}
 	else
-		P.PreIntervIdCalTime = P.DateTriggerReached_CalTime;
+		P.Interventions_StartDate_CalTime = P.DateTriggerReached_CalTime;
 	P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
 	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.PreControlClusterIdDuration), 1, 1, 0)) P.PreControlClusterIdDuration = 1000;
@@ -5130,7 +5130,7 @@ void RecordSample(double t, int n)
 				P.PreIntervTime = P.PreControlClusterIdTime = t;
 				if (P.DateTriggerReached_CalTime >= 0)
 				{
-					P.HolidaysStartDay_SimTime = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
+					P.HolidaysStartDay_SimTime = P.PreControlClusterIdTime - P.Interventions_StartDate_CalTime;
 //					fprintf(stderr, "@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
 				}
 			}
@@ -5139,14 +5139,14 @@ void RecordSample(double t, int n)
 				P.StopCalibration = 1;
 				InterruptRun = 1;
 			}
-			if ((P.DoAlertTriggerAfterInterv) && (t == P.PreControlClusterIdTime + P.DateTriggerReached_CalTime - P.PreIntervIdCalTime))
+			if ((P.DoAlertTriggerAfterInterv) && (t == P.PreControlClusterIdTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime))
 			{
 				if ((trigAlert > 0)&&(P.ModelCalibIteration<20))
 				{
 					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (thr < 0.05) thr = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.DateTriggerReached_CalTime - P.PreIntervIdCalTime, P.HolidaysStartDay_SimTime,s);
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
 					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
 						P.StopCalibration = 1;
@@ -5394,7 +5394,7 @@ void RecordInfTypes(void)
 				case_household_av[i][j] += case_household[i][j];
 			}
 	}
-	k = (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
+	k = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.PreControlClusterIdTime)) : 0;
 	for (n = 0; n < P.NumSamples; n++)
 	{
 		TimeSeries[n].t += k;
