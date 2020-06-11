@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations,((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
-		P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
+		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
 		P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
 		P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 		///// Set and save seeds
@@ -426,7 +426,7 @@ int main(int argc, char* argv[])
 				thisRunSeed2 = P.nextRunSeed2;
 				setall(&P.nextRunSeed1, &P.nextRunSeed2);
 				P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
-				P.PreControlClusterIdHolOffset = 0; // needed for calibration to work for multiple realisations
+				P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
 				P.CaseOrDeathThresholdBeforeAlert = P.PreControlClusterIdCaseThreshold2; // needed for calibration to work for multiple realisations
 				P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
 				ModelCalibLoop++;
@@ -5130,8 +5130,8 @@ void RecordSample(double t, int n)
 				P.PreIntervTime = P.PreControlClusterIdTime = t;
 				if (P.PreControlClusterIdCalTime >= 0)
 				{
-					P.PreControlClusterIdHolOffset = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
-//					fprintf(stderr, "@@## trigAlertCases=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertCases, P.PreControlClusterIdHolOffset);
+					P.HolidaysStartDay_SimTime = P.PreControlClusterIdTime - P.PreIntervIdCalTime;
+//					fprintf(stderr, "@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
 				}
 			}
 			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
@@ -5146,7 +5146,7 @@ void RecordSample(double t, int n)
 					s = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					thr = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (thr < 0.05) thr = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.HolidaysStartDay_SimTime,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
 					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
 						P.StopCalibration = 1;
@@ -5160,12 +5160,12 @@ void RecordSample(double t, int n)
 						if (s > 1)
 						{
 							P.PreIntervTime--;
-							P.PreControlClusterIdHolOffset--;
+							P.HolidaysStartDay_SimTime--;
 						}
 						else if (s < 1)
 						{
 							P.PreIntervTime++;
-							P.PreControlClusterIdHolOffset++;
+							P.HolidaysStartDay_SimTime++;
 						}
 					}
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))

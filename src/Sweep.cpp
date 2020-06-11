@@ -753,7 +753,7 @@ void IncubRecoverySweep(double t, int run)
 	if (P.DoPlaces)
 		for (int i = 0; i < P.NumHolidays; i++)
 		{
-			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
 			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
