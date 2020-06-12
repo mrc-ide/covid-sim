@@ -152,12 +152,12 @@ double dist2_mm(Microcell* a, Microcell* b)
 	l = (int)(a - Mcells);
 	m = (int)(b - Mcells);
 	if (P.DoUTM_coords)
-		return dist2UTM(P.in_microcells_.width * fabs((double)(l / P.get_number_of_micro_cells_high())), P.in_microcells_.height * fabs((double)(l % P.get_number_of_micro_cells_high())),
-			P.in_microcells_.width * fabs((double)(m / P.get_number_of_micro_cells_high())), P.in_microcells_.height * fabs((double)(m % P.get_number_of_micro_cells_high())));
+		return dist2UTM(P.in_microcells_.width * fabs((double)(l / P.total_microcells_high_)), P.in_microcells_.height * fabs((double)(l % P.total_microcells_high_)),
+			P.in_microcells_.width * fabs((double)(m / P.total_microcells_high_)), P.in_microcells_.height * fabs((double)(m % P.total_microcells_high_)));
 	else
 	{
-		x = P.in_microcells_.width * fabs((double)(l / P.get_number_of_micro_cells_high() - m / P.get_number_of_micro_cells_high()));
-		y = P.in_microcells_.height * fabs((double)(l % P.get_number_of_micro_cells_high() - m % P.get_number_of_micro_cells_high()));
+		x = P.in_microcells_.width * fabs((double)(l / P.total_microcells_high_ - m / P.total_microcells_high_));
+		y = P.in_microcells_.height * fabs((double)(l % P.total_microcells_high_ - m % P.total_microcells_high_));
 		return periodic_xy(x, y);
 	}
 }
