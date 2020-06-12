@@ -149,9 +149,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_degrees_.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
 		P.in_degrees_.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
 		P.ncw = 4 * ((int)ceil(P.in_degrees_.width / P.in_cells_.width / 4));
-		P.total_microcells_wide_ = P.ncw * P.NMCL;
 		P.nch = 4 * ((int)ceil(P.in_degrees_.height / P.in_cells_.height / 4));
-		P.total_microcells_high_ = P.nch * P.NMCL;
 		P.in_degrees_.width = ((double)P.ncw) * P.in_cells_.width;
 		P.in_degrees_.height = ((double)P.nch) * P.in_cells_.height;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width;
@@ -172,8 +170,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	else
 	{
 		P.ncw = P.nch = (int)sqrt((double)P.NC);
-		P.total_microcells_wide_ = P.ncw * P.NMCL;
-		P.total_microcells_high_ = P.nch * P.NMCL;
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
@@ -186,6 +182,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
 	}
 	P.NMC = P.NMCL * P.NMCL * P.NC;
+	P.total_microcells_wide_ = P.ncw * P.NMCL;
+	P.total_microcells_high_ = P.nch * P.NMCL;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scale.x = P.BitmapScale;
 	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
