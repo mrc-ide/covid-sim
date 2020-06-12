@@ -753,7 +753,7 @@ void IncubRecoverySweep(double t, int run)
 	if (P.DoPlaces)
 		for (int i = 0; i < P.NumHolidays; i++)
 		{
-			ht = P.HolidayStartTime[i] + P.PreControlClusterIdHolOffset;
+			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
 			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
@@ -1206,9 +1206,9 @@ int TreatSweep(double t)
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
-			global_trig = (int)floor(((double)State.trigDC) * P.GlobalIncThreshPop / ((double)P.PopSize));
+			global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else
-			global_trig = State.trigDC;
+			global_trig = State.trigDetectedCases;
 	}
 	else
 		global_trig = 0;
