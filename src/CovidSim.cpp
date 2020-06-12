@@ -203,30 +203,10 @@ int main(int argc, char* argv[])
 			{
 				sscanf(&argv[i][4], "%lf", &P.KernelOffsetScale);
 			}
-			else if (argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '1' && argv[i][5] == ':') // generic command line specified param - matched to #1 in param file
+			else if (argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] >= '0' && argv[i][4] <= '9' && argv[i][5] == ':') // generic command line specified param - matched to #N in param file
 			{
-				sscanf(&argv[i][6], "%lf", &P.clP1);
+				sscanf(&argv[i][6], "%lf", &P.clP[(int) (argv[i][4]-'0')]);
 			}
-			else if (argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '2' && argv[i][5] == ':') // generic command line specified param - matched to #2 in param file
-			{
-				sscanf(&argv[i][6], "%lf", &P.clP2);
-			}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '3' && argv[i][5] == ':') // generic command line specified param - matched to #3 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP3);
-				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '4' && argv[i][5] == ':') // generic command line specified param - matched to #4 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP4);
-				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '5' && argv[i][5] == ':') // generic command line specified param - matched to #5 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP5);
-				}
-			else if(argv[i][1] == 'C' && argv[i][2] == 'L' && argv[i][3] == 'P' && argv[i][4] == '6' && argv[i][5] == ':') // generic command line specified param - matched to #6 in param file
-				{
-				sscanf(&argv[i][6], "%lf", &P.clP6);
-				}
 			else if (argv[i][1] == 'A' && argv[i][2] == 'P' && argv[i][3] == ':')
 			{
 				GotAP = 1;
@@ -958,6 +938,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.DoAllInitialInfectioninSameLoc), 1, 1, 0)) P.DoAllInitialInfectioninSameLoc=0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Day of year of start of seeding", "%lf", (void*)&(P.InitialInfectionCalTime), 1, 1, 0)) P.InitialInfectionCalTime = -1;
 	if (P.DoAdUnits)
 	{
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.NumSeedLocations > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumSeedLocations, 1, 0))
@@ -5123,12 +5104,17 @@ void RecordSample(double t, int n)
 		trigAlert = trigAlertC;
 	}
 
-	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) || ((t>=P.PreIntervTime) && (P.ModelCalibIteration >= 2)))))
+	if (P.InitialInfectionCalTime > 0)
+	{
+		P.PreControlClusterIdHolOffset = -P.InitialInfectionCalTime;
+		P.PreControlClusterIdTime = P.PreIntervTime = P.PreIntervIdCalTime - P.InitialInfectionCalTime;
+	}
+	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.PreControlClusterIdCaseThreshold)) ||
+		((P.DoAlertTriggerAfterInterv) && (((trigAlertC >= P.PreControlClusterIdCaseThreshold)&&(P.ModelCalibIteration<2)) ||((t>=P.PreIntervTime) && ((P.ModelCalibIteration >= 2)||(P.InitialInfectionCalTime>0) )))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
-			if (P.PreControlClusterIdTime == 0)
+			if ((P.PreControlClusterIdTime == 0)&&(P.InitialInfectionCalTime <=0))
 			{
 				P.PreIntervTime = P.PreControlClusterIdTime = t;
 				if (P.PreControlClusterIdCalTime >= 0)
@@ -5137,7 +5123,7 @@ void RecordSample(double t, int n)
 //					fprintf(stderr, "@@## trigAlertC=%i P.PreControlClusterIdHolOffset=%lg \n",trigAlertC, P.PreControlClusterIdHolOffset);
 				}
 			}
-			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
+			if ((P.PreControlClusterIdCalTime >= 0)&& (!P.DoAlertTriggerAfterInterv) && (P.InitialInfectionCalTime <= 0))
 			{
 				P.StopCalibration = 1;
 				InterruptRun = 1;
@@ -5151,29 +5137,43 @@ void RecordSample(double t, int n)
 					if (thr < 0.05) thr = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.PreControlClusterIdTime + P.PreControlClusterIdCalTime - P.PreIntervIdCalTime, P.PreControlClusterIdHolOffset,s);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertC, P.AlertTriggerAfterIntervThreshold, P.PreControlClusterIdCaseThreshold);
-					if((P.ModelCalibIteration >=2)&& ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
-						P.StopCalibration = 1;
-					else if (P.ModelCalibIteration == 0)
+					if (P.InitialInfectionCalTime > 0)
 					{
-						k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
-						if (k > 0) P.PreControlClusterIdCaseThreshold = k;
+						if ((P.ModelCalibIteration >= 2) && ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
+							P.StopCalibration = 1;
+						else if (P.ModelCalibIteration == 1)
+							P.SeedingScaling /= pow(s, 0.6);
+						else if (P.ModelCalibIteration == 2)
+							P.SeedingScaling /= pow(s, 0.5);
+						else if (P.ModelCalibIteration > 2)
+							P.SeedingScaling /= pow(s, 0.3 + 0.2 * ranf()); // include random number to prevent loops
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 <2))
+					else
 					{
-						if (s > 1)
+						if ((P.ModelCalibIteration >= 2) && ((((s - 1.0) <= thr) && (s >= 1)) || (((1.0 - s) <= thr) && (s < 1))))
+							P.StopCalibration = 1;
+						else if (P.ModelCalibIteration == 0)
 						{
-							P.PreIntervTime--;
-							P.PreControlClusterIdHolOffset--;
+							k = (int)(((double)P.PreControlClusterIdCaseThreshold) / s);
+							if (k > 0) P.PreControlClusterIdCaseThreshold = k;
 						}
-						else if (s < 1)
+						else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 < 2))
 						{
-							P.PreIntervTime++;
-							P.PreControlClusterIdHolOffset++;
+							if (s > 1)
+							{
+								P.PreIntervTime--;
+								P.PreControlClusterIdHolOffset--;
+							}
+							else if (s < 1)
+							{
+								P.PreIntervTime++;
+								P.PreControlClusterIdHolOffset++;
+							}
 						}
-					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))
-					{
-						P.SeedingScaling /=pow(s, 0.2+0.3*ranf()); // include random number to prevent loops
+						else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))
+						{
+							P.SeedingScaling /= pow(s, 0.2 + 0.3 * ranf()); // include random number to prevent loops
+						}
 					}
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.PreControlClusterIdCaseThreshold, P.SeedingScaling);
@@ -5666,66 +5666,16 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			if (NumItem == 1)
 			{
 				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-				if ((match[0] == '#') && (match[1] == '1'))
+				if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 				{
 					FindFlag++;
 					if (n == 1)
-						* ((double*)ItemPtr) = P.clP1;
+						* ((double*)ItemPtr) = P.clP[(int) (match[1]-'0')];
 					else if (n == 2)
-						* ((int*)ItemPtr) = (int)P.clP1;
+						* ((int*)ItemPtr) = (int)P.clP[(int)(match[1] - '0')];
 					else if (n == 3)
 						sscanf(match, "%s", (char*)ItemPtr);
 				}
-				else if ((match[0] == '#') && (match[1] == '2'))
-				{
-					FindFlag++;
-					if (n == 1)
-						* ((double*)ItemPtr) = P.clP2;
-					else if (n == 2)
-						* ((int*)ItemPtr) = (int)P.clP2;
-					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-				}
-				else if((match[0] == '#') && (match[1] == '3'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP3;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP3;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '4'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP4;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP4;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '5'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP5;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP5;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '6'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP6;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP6;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
 					FindFlag++;
@@ -5742,7 +5692,17 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+					{
+						FindFlag++;
+						if (n == 1)
+							*(((double*)ItemPtr) + CurPos + Offset) = P.clP[(int)(match[1] - '0')];
+						else if (n == 2)
+							*(((int*)ItemPtr) + CurPos + Offset) = (int)P.clP[(int)(match[1] - '0')];
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
@@ -5764,11 +5724,21 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 				for (i = 0; i < NumItem2; i++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset); //changed from [j+Offset]+i+Offset to +j+Offset+i, as ItemPtr isn't an array - 01/10: changed it back
+							*(((double**)ItemPtr)[j + Offset] + i + Offset) = P.clP[(int)(match[1] - '0')];
+						else if (n == 2)
+							*(((int**)ItemPtr)[j + Offset] + i + Offset) = (int)P.clP[(int)(match[1] - '0')];
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if((match[0] != '[') && (!feof(dat)))
+					{
+						FindFlag++;
+						if (n == 1)
+							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset); 
 						else
 							sscanf(match, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
 					}
@@ -5778,8 +5748,8 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 						j = NumItem;
 					}
 				}
-				//Offset=Offset+(NumItem2-1); //added this line to get the correct offset in address position when incrementing j
-			} //added these braces
+				
+			} 
 		}
 	}
 	//	fprintf(stderr,"%s\n",SItemName);
