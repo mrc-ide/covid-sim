@@ -4585,19 +4585,18 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 //						for (int PlaceNum = ThreadNum; PlaceNum < P.Nplace[PlaceType]; PlaceNum += P.NumThreads)
 //							DoPlaceOpen(PlaceType, PlaceNum, ts, ThreadNum);
 
-				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];				//// spatial
-				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];				//// household
+				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];					//// spatial
+				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];					//// household
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				{
-					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType];	//// place
+					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType];			//// place
 					P.PlaceClosePropAttending[PlaceType] = P.PC_PropAttending_OverTime[ChangeTime][PlaceType];	//// place
 				}
 
-				P.PlaceCloseIncTrig				= P.PC_IncThresh_OverTime		[ChangeTime];				//// global incidence threshold
-				P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[ChangeTime];				//// fractional incidence threshold
-				P.PlaceCloseCellIncThresh		= P.PC_CellIncThresh_OverTime	[ChangeTime];				//// cell incidence threshold
-				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime];							//// duration of place closure
-
+				P.PlaceCloseIncTrig				= P.PC_IncThresh_OverTime		[ChangeTime];					//// global incidence threshold
+				P.PlaceCloseFracIncTrig			= P.PC_FracIncThresh_OverTime	[ChangeTime];					//// fractional incidence threshold
+				P.PlaceCloseCellIncThresh		= P.PC_CellIncThresh_OverTime	[ChangeTime];					//// cell incidence threshold
+				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime];					//// duration of place closure
 
 				//// reset place close time start - has been set to 9e9 in event of no triggers. m
 				if(P.PlaceCloseTimeStart<1e10) P.PlaceCloseTimeStart = t;
@@ -4648,7 +4647,25 @@ void RecordAdminAgeBreakdowns(int t_int)
 			// Record incidence. Need new total minus old total. Add new total
 			TimeSeries[t_int].incInf_age_adunit[AgeGroup][AdUnit] += (double)(State.cumInf_age_adunit[AgeGroup][AdUnit]);
 		}
+}
 
+void RecordQuarNotInfected(int n, unsigned short int ts)
+{
+	int QuarNotInfected = 0, QuarNotSymptomatic = 0;
+#pragma omp parallel for schedule(static,1) reduction(+:QuarNotInfected, QuarNotSymptomatic)
+	for (int thread_no = 0; thread_no < P.NumThreads; thread_no++)
+		for (int Person = thread_no; Person < P.PopSize; Person += P.NumThreads)
+			if (HOST_QUARANTINED(Person))
+			{
+				if (Hosts[Person].inf == InfStat_Susceptible || abs(Hosts[Person].inf) == InfStat_Recovered) QuarNotInfected++;
+				if (Hosts[Person].inf > 0) QuarNotSymptomatic++;
+			}
+
+	TimeSeries[n].prevQuarNotInfected		= (double) QuarNotInfected;
+	TimeSeries[n].prevQuarNotSymptomatic	= (double) QuarNotSymptomatic;
+
+	if (n == 50) printf("prevQuarNotInfected %lf\t"		, TimeSeries[n].prevQuarNotInfected		);
+	if (n == 50) printf("prevQuarNotSymptomatic %lf\n"	, TimeSeries[n].prevQuarNotSymptomatic	);
 }
 
 void RecordSample(double t, int n)
@@ -4822,8 +4839,11 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
+	RecordQuarNotInfected(n, ts); 
+
 	if (P.DoSeverity)
 	{
+
 		//// Record incidence. (Must be done with old State totals)
 		TimeSeries[n].incMild			= (double)(cumMild				- State.cumMild				);
 		TimeSeries[n].incILI			= (double)(cumILI				- State.cumILI				);
