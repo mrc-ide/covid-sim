@@ -709,13 +709,13 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	FILE* dat = NULL, *dat2;
 	BinFile rec;
 	double *mcell_dens;
-	int *mcell_adunits, *mcell_num, *mcell_country;
+	int *mcell_adunits, *mcell_num;
 
 	Cells = (Cell*)Memory::xcalloc(P.NC, sizeof(Cell));
 	Mcells = (Microcell*)Memory::xcalloc(P.NMC, sizeof(Microcell));
 	mcell_num = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 	mcell_dens = (double*)Memory::xcalloc(P.NMC, sizeof(double));
-	mcell_country = (int*)Memory::xcalloc(P.NMC, sizeof(int));
+	mcell_country.reserve(P.NMC);
 	mcell_adunits = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 
 	for (j = 0; j < P.NMC; j++)
@@ -1018,7 +1018,6 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 	Memory::xfree(mcell_dens);
 	Memory::xfree(mcell_num);
-	Memory::xfree(mcell_country);
 	Memory::xfree(mcell_adunits);
 	t = 0.0;
 
@@ -2120,12 +2119,13 @@ void AssignPeopleToPlaces()
 						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
+							const uint16_t host_country = Mcells[Hosts[i].mcell].country;
 							while (((k < nn) || (l < 4)) && (l < P.get_number_of_micro_cells_wide()))
 							{
 								if (P.is_in_bounds(mc_position))
 								{
 									ic = P.get_micro_cell_index_from_position(mc_position);
-									if (Mcells[ic].country == Mcells[Hosts[i].mcell].country)
+									if (mcell_country[ic] == host_country)
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{

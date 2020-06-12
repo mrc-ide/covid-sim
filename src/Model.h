@@ -1,7 +1,9 @@
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
+#include <cstdint>
 #include <cstddef>
+#include <vector>
 
 #include "Country.h"
 #include "Constants.h"
@@ -295,6 +297,7 @@ extern Household* Households;
 extern PopVar State, StateT[MAX_NUM_THREADS];
 extern Cell* Cells, ** CellLookup;
 extern Microcell* Mcells, ** McellLookup;
+extern std::vector<uint16_t> mcell_country;
 extern Place** Places;
 extern AdminUnit AdUnits[MAX_ADUNITS];
 

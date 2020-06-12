@@ -4,9 +4,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstdlib>
 #include <cerrno>
 #include <cstddef>
+#include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -82,6 +83,7 @@ PopVar State, StateT[MAX_NUM_THREADS];
 Cell* Cells; // Cells[i] is the i'th cell
 Cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
 Microcell* Mcells, ** McellLookup;
+std::vector<uint16_t> mcell_country;
 Place** Places;
 AdminUnit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
