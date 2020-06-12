@@ -48,8 +48,8 @@ struct Param
 	int total_microcells_wide_, total_microcells_high_;
 
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
-	int get_micro_cell_index_from_position(MicroCellPosition position) const;
-	bool is_in_bounds(MicroCellPosition position) const;
+	int get_micro_cell_index_from_position(MicroCellPosition const& position) const;
+	bool is_in_bounds(MicroCellPosition const& position) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
 	int DoAdunitOutput, DoAdunitBoundaryOutput, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
