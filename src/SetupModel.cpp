@@ -318,8 +318,12 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
-	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
-	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
+
+	if ((P.CareHomePlaceType >= 0) && (P.CareHomeResidentMinimumAge < 1000))  // label care home residents as they don't have household contacts
+	{
+		for (int i = 0; i < P.PopSize; i++)
+			Hosts[i].care_home_resident = ((Hosts[i].PlaceLinks[P.CareHomePlaceType] >= 0) && (Hosts[i].age >= P.CareHomeResidentMinimumAge)) ? 1 : 0;
+	}
 
 	fprintf(stderr, "Initialising kernel...\n");
 	P.KernelShape = P.MoveKernelShape;
@@ -329,6 +333,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.KernelType = P.MoveKernelType;
 	InitKernel(1.0);
 
+	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
+	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 	if (P.DoPlaces)
 	{
 		while ((m < P.KeyWorkerPopNum) && (l < 1000))

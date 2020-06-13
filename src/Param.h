@@ -113,7 +113,8 @@ struct Param
 	double SusceptibilitySD,InfectiousnessSD, R0DensityScalePower;
 	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
-	double PlaceMembershipOtherContactScaling[NUM_PLACE_TYPES][NUM_AGE_GROUPS];
+	int CareHomePlaceType, CareHomeResidentMinimumAge;
+	double CareHomeResidentHouseholdScaling,CareHomeResidentSpatialScaling;
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];

@@ -15,6 +15,7 @@ double CalcHouseInf(int j, unsigned short int ts)
 		*	((Hosts[j].digitalContactTraced==1) ? P.DCTCaseIsolationHouseEffectiveness : 1.0)
 		*	((HOST_QUARANTINED(j) && (Hosts[j].digitalContactTraced != 1) && (!(HOST_ISOLATED(j))))? P.HQuarantineHouseEffect : 1.0)
 		*	P.HouseholdDenomLookup[Households[Hosts[j].hh].nhr - 1]
+		*   ((Hosts[j].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0)
 		*   (HOST_TREATED(j) ? P.TreatInfDrop : 1.0)
 		*   (HOST_VACCED(j) ? P.VaccInfDrop : 1.0)
 		*   ((P.NoInfectiousnessSDinHH)? ((Hosts[j].infectiousness < 0) ? P.SymptInfectiousness : 1.0) :fabs(Hosts[j].infectiousness))  // removed call to CalcPersonInf to allow infectiousness to be const in hh
@@ -36,6 +37,7 @@ double CalcSpatialInf(int j, unsigned short int ts)
 		*	((Hosts[j].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
 		*   ((HOST_QUARANTINED(j) && (Hosts[j].digitalContactTraced != 1) && (!(HOST_ISOLATED(j)))) ? P.HQuarantineSpatialEffect : 1.0)
 		*	((Hosts[j].inf == InfStat_Case) ? P.SymptSpatialContactRate : 1.0)
+		*   ((Hosts[j].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0)
 		*	P.RelativeSpatialContact[HOST_AGE_GROUP(j)]
 		*	CalcPersonInf(j, ts); 		/*	*Hosts[j].spatial_norm */
 }
@@ -54,19 +56,21 @@ double CalcHouseSusc(int ai, unsigned short int ts, int infector, int tn)
 {
 	return CalcPersonSusc(ai, ts, infector, tn)
 		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistHouseholdEffectCurrent : P.SocDistHouseholdEffectCurrent) : 1.0)
-		* (Hosts[ai].digitalContactTraced==1 ? P.DCTCaseIsolationHouseEffectiveness : 1.0);
+		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationHouseEffectiveness : 1.0)
+		* ((Hosts[ai].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 }
 double CalcPlaceSusc(int ai, int k, unsigned short int ts, int infector, int tn)
 {
 	return		((HOST_QUARANTINED(ai) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantinePlaceEffect[k] : 1.0)
 		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0)
-		*	(Hosts[ai].digitalContactTraced==1 ? P.DCTCaseIsolationEffectiveness : 1.0);
+		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0);
 }
 double CalcSpatialSusc(int ai, unsigned short int ts, int infector, int tn)
 {
 	return	 ((HOST_QUARANTINED(ai) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantineSpatialEffect : 1.0)
 		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0)
-		*	(Hosts[ai].digitalContactTraced==1 ? P.DCTCaseIsolationEffectiveness : 1.0);
+		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
+		* ((Hosts[ai].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0);
 }
 double CalcPersonSusc(int ai, unsigned short int ts, int infector, int tn)
 {
