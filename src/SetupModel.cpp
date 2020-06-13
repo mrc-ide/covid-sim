@@ -1,7 +1,7 @@
-#include <limits.h>
+#include <climits>
 #include <stdio.h>
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
 #include <math.h>
 #include "BinIO.h"
 #include "Error.h"
