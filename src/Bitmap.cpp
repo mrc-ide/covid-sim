@@ -1,7 +1,7 @@
 #include <cerrno>
-#include <stdio.h>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <math.h>
 
 #include "BinIO.h"
