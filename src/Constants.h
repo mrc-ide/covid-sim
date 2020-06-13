@@ -81,6 +81,9 @@ const int MAX_TRAVEL_TIME = 14;
 
 const int MAX_INFECTIOUS_STEPS = 2550;
 
+const int MAX_NUM_THREADS = 96;
+const int CACHE_LINE_SIZE = 64;
+
 // define maximum number of contacts
 const int MAX_CONTACTS = 500;
 

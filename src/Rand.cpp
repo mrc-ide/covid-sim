@@ -2,7 +2,6 @@
 #include <cmath>
 #include <algorithm>
 #include "Rand.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 #include "Error.h"
 #ifdef _OPENMP

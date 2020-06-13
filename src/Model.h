@@ -4,7 +4,6 @@
 #include <cstddef>
 
 #include "Country.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
 

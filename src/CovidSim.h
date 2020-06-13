@@ -12,12 +12,11 @@
   #endif
 #endif
 
-#include "MachineDefines.h"
-
 #include <climits>
+#include <cstdio>
 #include <cstdlib>
 #include <cstddef>
-#include <cstdio>
+
 #include <math.h>
 #include <cstring>
 #include <csignal>
