@@ -114,7 +114,7 @@ struct Param
 	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	int CareHomePlaceType, CareHomeResidentMinimumAge;
-	double CareHomeResidentHouseholdScaling,CareHomeResidentSpatialScaling;
+	double CareHomeResidentHouseholdScaling,CareHomeResidentSpatialScaling, CareHomeResidentGroupScaling, CareHomeRelProbHosp, CareHomePropResidents;
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];
