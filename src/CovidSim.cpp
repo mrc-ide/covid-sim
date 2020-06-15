@@ -906,10 +906,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMax, P.PlaceTypeNum, 1, 0))
 			for (i = 0; i < NUM_PLACE_TYPES; i++)
 				P.PlaceTypeSizeMax[i] = 1e20;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMin, P.PlaceTypeNum, 1, 0))
+			for (i = 0; i < NUM_PLACE_TYPES; i++)
+				P.PlaceTypeSizeMin[i] = 1.0;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel type for place types", "%i", (void*)P.PlaceTypeKernelType, P.PlaceTypeNum, 1, 0))
 			for (i = 0; i < NUM_PLACE_TYPES; i++)
 				P.PlaceTypeKernelType[i] = P.MoveKernelType;
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0); //changed from P.PlaceTypeNum,P.PlaceTypeNum,0);
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0))
+		{
+			for (i = 0; i < NUM_PLACE_TYPES; i++)
+				for (j = 0; j < NUM_PLACE_TYPES; j++)
+					P.PlaceExclusivityMatrix[i* NUM_PLACE_TYPES+j] = (i == j) ? 1 : 0;
+		}
 /* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
 
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Proportion of between group place links", "%lf", (void*)P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum, 1, 0);
