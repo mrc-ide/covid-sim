@@ -369,7 +369,7 @@ MakeParamList = function(
 		PlaceCloseSpatialRelContact 		= 1.25, 
 		PropPlacesRemainingOpen_byPlaceType	= c(0, 0, 0.25, 1), 
 		PlaceClosePropAttending = c(0.05, 0.05, 0.05, 0.05), ### Partial closure: for places that are closed, what proportion of their members do attend? Set to zero if no partiall admittance. 
-		PlaceCloseIncTrig = 0, PlaceCloseFracIncTrig = 0, PlaceCloseCellIncThresh = 0,
+		PlaceCloseIncTrig = 0, PlaceCloseFracIncTrig = 0, PlaceCloseCellIncThresh = 0, PlaceCloseCellIncStopThresh = 0,
 		
 		#### Note: numbers here must match Num_PC_ChangeTimes; any times listed in PC_ChangeTimes that are before PlaceCloseTimeStartBase and after PlaceCloseDurationBase / PlaceCloseDuration_byAdUnit are irrelevant.
 		Num_PC_ChangeTimes = 1,	PC_ChangeTimes = c(PlaceCloseTimeStartBase, rep(1000000, Num_PC_ChangeTimes - 1))		, ### by default, initialize first time to non-variable time start, then all other times to be arbitrarily large. 
@@ -393,7 +393,7 @@ MakeParamList = function(
 		SocDistDelay_byAdUnit 		= rep(0, NumAdUnits),
 		SocDistDuration_byAdUnit 	= rep(SocDistDuration, NumAdUnits),
 		
-		SocDistCellIncThresh = 0, 
+		SocDistCellIncThresh = 0, SocDistCellIncStopThresh = 0,
 		
 		SocDistPlaceEffect 		= c(1, 1, 0.5, 0.5)	, EnhancedSocDistPlaceEffect 		= c(0.25, 0.25, 0.25, 0.25), 
 		SocDistHouseholdEffect 	= 1.25				, EnhancedSocDistHouseholdEffect 	= 1, 
@@ -511,6 +511,7 @@ MakeParamList = function(
 	ParamList[["Place closure incidence threshold"]] 			= PlaceCloseIncTrig 			## needs to be 0 for global triggers
 	ParamList[["Place closure fractional incidence threshold"]] = PlaceCloseFracIncTrig			## needs to be 0 for global triggers or if abs incidence threshold used
 	ParamList[["Trigger incidence per cell for place closure"]] = PlaceCloseCellIncThresh 		## change this for global too ###
+	ParamList[["Trigger incidence per cell for end of place closure"]] = PlaceCloseCellIncStopThresh 		## change this for global too ###
 	
 	ParamList[["Number of change times for levels of place closure"]] 							= Num_PC_ChangeTimes
 	ParamList[["Change times for levels of place closure"]] 									= PC_ChangeTimes #### Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant.
@@ -532,6 +533,7 @@ MakeParamList = function(
 	ParamList[["Duration of social distancing by admin unit"]] 	= SocDistDuration_byAdUnit
 	
 	ParamList[["Trigger incidence per cell for social distancing"]] 					= SocDistCellIncThresh
+	ParamList[["Trigger incidence per cell for end of social distancing"]] 			= SocDistCellIncStopThresh
 	
 	ParamList[["Relative place contact rate given social distancing by place type"]] 			= SocDistPlaceEffect
 	ParamList[["Relative household contact rate given social distancing"]] 						= SocDistHouseholdEffect
