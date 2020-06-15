@@ -16,6 +16,13 @@ void RecordEvent(double, int, int, int, int); //added int as argument to InfectS
 unsigned short int ChooseFromICDF(double *, double, int);
 Severity ChooseFinalDiseaseSeverity(int, int);
 
+// state transition helpers
+void SusceptibleToRecovered(int cellIndex);
+void SusceptibleToLatent(int cellIndex);
+void LatentToInfectious(int cellIndex);
+void InfectiousToRecovered(int cellIndex);
+void InfectiousToDeath(int cellIndex);
+
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
@@ -28,7 +35,9 @@ void DoImmune(int ai)
 	{
 		c = a->pcell;
 		a->inf = InfStat_ImmuneAtStart;
-		Cells[c].S--;
+
+		SusceptibleToRecovered(c);
+
 		if (a->listpos < Cells[c].S)
 		{
 			Cells[c].susceptible[a->listpos] = Cells[c].susceptible[Cells[c].S];
@@ -49,9 +58,8 @@ void DoImmune(int ai)
 			Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I] = ai;
 			a->listpos = Cells[c].S + Cells[c].L + Cells[c].I;
 		}
-		Cells[c].latent--;
-		Cells[c].infected--;
-		Cells[c].R++;
+		
+
 		if (P.OutputBitmap)
 		{
 			x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
@@ -95,9 +103,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 
 		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
 		{
-			Cells[a->pcell].S--;
-			Cells[a->pcell].L++;			//// number of latently infected people increases by one.
-			Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
+			SusceptibleToLatent(a->pcell);
+
 			if (a->listpos < Cells[a->pcell].S)
 			{
 				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
@@ -528,9 +535,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		}
 
 		//// update pointers
-		Cells[a->pcell].L--;		//// one fewer person latently infected.
-		Cells[a->pcell].infected--; //// first infected person is now one index earlier in array.
-		Cells[a->pcell].I++;		//// one more infectious person.
+		
+
+		LatentToInfectious(a->pcell);
+
 		if (Cells[a->pcell].L > 0)
 		{
 			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
@@ -919,8 +927,7 @@ void DoRecover(int ai, int tn, int run)
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
 	{
 		i = a->listpos;
-		Cells[a->pcell].I--; //// one less infectious person
-		Cells[a->pcell].R++; //// one more recovered person
+		InfectiousToRecovered(a->pcell);
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
@@ -965,8 +972,7 @@ void DoDeath(int ai, int tn, int run)
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
 		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
-		Cells[a->pcell].D++;
-		Cells[a->pcell].I--;
+		InfectiousToDeath(a->pcell);
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
@@ -1394,3 +1400,40 @@ unsigned short int ChooseFromICDF(double *ICDF, double Mean, int tn)
 
 	return Value;
 }
+
+void SusceptibleToRecovered(int cellIndex)
+{
+	Cells[cellIndex].S--;
+	Cells[cellIndex].R++;
+	Cells[cellIndex].latent--;
+	Cells[cellIndex].infected--;
+}
+
+void SusceptibleToLatent(int cellIndex)
+{
+	Cells[cellIndex].S--; 
+	Cells[cellIndex].L++;			//// number of latently infected people increases by one.
+	Cells[cellIndex].latent--;		//// pointer to latent in that cell decreased.
+}
+
+
+void LatentToInfectious(int cellIndex)
+{
+	Cells[cellIndex].L--;		//// one fewer person latently infected.
+	Cells[cellIndex].I++;		//// one more infectious person.
+	Cells[cellIndex].infected--; //// first infected person is now one index earlier in array.
+}
+
+void InfectiousToRecovered(int cellIndex)
+{
+	Cells[cellIndex].I--; //// one less infectious person
+	Cells[cellIndex].R++; //// one more recovered person
+}
+
+
+void InfectiousToDeath(int cellIndex)
+{
+	Cells[cellIndex].I--; //// one less infectious person
+	Cells[cellIndex].D++; //// one more dead person
+}
+
