@@ -14,7 +14,7 @@ void DoPlaceOpen(int, int, unsigned short int, int);
 void DoTreatCase(int, unsigned short int, int);
 void DoProph(int, unsigned short int, int);
 void DoProphNoDelay(int, unsigned short int, int, int);
-int DoVacc(int, unsigned short int);
+void DoVacc(int, unsigned short int);
 void DoVaccNoDelay(int, unsigned short int);
 //SEVERITY ANALYSIS
 void DoMild(int, int);

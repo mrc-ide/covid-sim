@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include "BinIO.h"
 
 size_t fwrite_big(void *buffer,size_t size,size_t count, FILE *stream)

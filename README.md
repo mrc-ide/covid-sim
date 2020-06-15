@@ -27,6 +27,12 @@ endorses outputs it has itself generated.
 
 ## Status
 
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Build%20&%20Publish%20Docker/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Doxygen%20Action/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20different%20Linux%20distributions/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20macOS/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20Windows/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+
 This model is in active development and subject to significant code changes
 to:
 
@@ -38,7 +44,11 @@ to:
 
 ## Building
 
-The model is written in C++ and runs on Windows and Linux-based systems.
+The model is written in C++.
+
+The primary platforms it has been developed and tested on are Windows and Ubuntu Linux.
+
+It should build and run on any other POSIX compliant Unix-like platform (for example macOS, other Linux distributions).  However, no active development occurs on them.
 
 Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).

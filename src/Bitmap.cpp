@@ -1,8 +1,8 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
 
 #include "BinIO.h"
 #include "Bitmap.h"
@@ -316,10 +316,10 @@ void InitBMHead()
 
 void Bitmap_Finalise()
 {
+#ifdef _WIN32
   if (P.BitmapFormat == BF_PNG)
   {
-#ifdef _WIN32
     Gdiplus::GdiplusShutdown(m_gdiplusToken);
-#endif
   }
+#endif
 }
