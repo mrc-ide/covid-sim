@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <cstddef>
 
-#include <math.h>
+#include <cmath>
 #include <cstring>
 #include <csignal>
 #include <ctime>

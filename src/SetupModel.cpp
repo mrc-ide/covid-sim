@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include <math.h>
+#include <cmath>
 
 #include "BinIO.h"
 #include "Error.h"

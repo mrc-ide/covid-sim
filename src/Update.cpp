@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstdio>
 
@@ -840,7 +840,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++)
 									if ((place_type != P.HotelPlaceType) && (a->PlaceLinks[place_type] >= 0))
 										DoPlaceClose(place_type, a->PlaceLinks[place_type], ts, tn, 0);
-								
+
 								j = P.PlaceTypeNum;
 							}
 						}
