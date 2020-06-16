@@ -138,7 +138,6 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
 		}
 
-		P.in_cells_.height_ = P.in_cells_.width_;
 		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.in_cells_.width_) * P.in_cells_.width_;
 		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.in_cells_.height_) * P.in_cells_.height_;
 		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.in_cells_.width_) * P.in_cells_.width_;
@@ -152,32 +151,26 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width_;
 		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height_;
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
-		fprintf(stderr, "Population size = %i \n", P.PopSize);
-		if (P.in_degrees_.width_ > 180) {
-			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
-		}
-		if (P.in_degrees_.height_ > 90) {
-			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
-		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
 	}
 	else
 	{
-		P.ncw = P.nch = (int)sqrt((double)P.NC);
-		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
-		s = floor(sqrt((double)P.PopSize));
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
-		P.PopSize = (int)(s * s);
-		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
-		P.in_degrees_.width_ = P.in_degrees_.height_ = s;
-		P.in_cells_.width_ = P.in_degrees_.width_ / ((double)P.ncw);
-		P.in_cells_.height_ = P.in_degrees_.height_ / ((double)P.nch);
+		P.SpatialBoundingBox[2] = P.in_degrees_.width_ = P.ncw * P.in_cells_.width_;
+		P.SpatialBoundingBox[3] = P.in_degrees_.height_ = P.nch * P.in_cells_.height_;
 	}
+
+  fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
+  fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
+  fprintf(stderr, "Population size = %i \n", P.PopSize);
+  if (P.in_degrees_.width_ > 180) {
+    fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+  }
+  if (P.in_degrees_.height_ > 90) {
+    fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+  }
+
 	P.NMC = P.NMCL * P.NMCL * P.NC;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scalex = P.BitmapScale;
@@ -999,23 +992,24 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
 	}
 	t = 1.0;
-	for (int i = m = 0; i < (P.NMC - 1); i++)
+	for (int i = m = 0; i < P.NMC; i++)
 	{
-		s = mcell_dens[i] / maxd / t;
-		if (s > 1.0) s = 1.0;
-		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
-		t -= mcell_dens[i] / maxd;
+	  if (i == P.NMC-1) {
+      Mcells[P.NMC - 1].n = P.PopSize - m;
+	  } else {
+      s = mcell_dens[i] / maxd / t;
+      if (s > 1.0) s = 1.0;
+      m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
+      t -= mcell_dens[i] / maxd;
+		}
+
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
-			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
-			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+			if (P.DoAdUnits) {
+        if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+        AdUnits[mcell_adunits[i]].n += Mcells[i].n;
+      }
 		}
-	}
-	Mcells[P.NMC - 1].n = P.PopSize - m;
-	if (Mcells[P.NMC - 1].n > 0)
-	{
-		P.NMCP++;
-		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
 	}
 
 	free(mcell_dens);

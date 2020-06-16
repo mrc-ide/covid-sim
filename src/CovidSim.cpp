@@ -519,7 +519,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.NumNonExtinctRealisations = P.NumRealisations;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-	P.NC = -1;
+	if (P.DoHeteroDensity) {
+	  P.NC = -1;
+	} else {
+	  GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of cells wide", "%i", (void*) & (P.ncw), 1, 1, 0);
+	  GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of cells high", "%i", (void*) & (P.nch), 1, 1, 0);
+	  P.NC = P.ncw * P.nch;
+	}
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.NMCL), 1, 1, 0);
 	//added parameter to reset seeds after every run
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*) & (P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
@@ -1266,6 +1272,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width_), 1, 1, 0)) P.in_cells_.width_ = 1.0 / 120.0;
+  P.in_cells_.height_ = P.in_cells_.width_;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*) & (P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*) & (P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
