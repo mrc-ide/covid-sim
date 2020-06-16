@@ -116,7 +116,6 @@
     <ClInclude Include="src\Error.h" />
     <ClInclude Include="src\InfStat.h" />
     <ClInclude Include="src\Kernels.h" />
-    <ClInclude Include="src\MachineDefines.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelMacros.h" />
     <ClInclude Include="src\Param.h" />

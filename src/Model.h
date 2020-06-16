@@ -4,7 +4,6 @@
 #include <cstddef>
 
 #include "Country.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
 
@@ -59,8 +58,8 @@ struct Household
 {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
 	unsigned short int nhr;
+	float loc_x, loc_y;
 };
 
 /*
@@ -97,7 +96,7 @@ struct ContactEvent
  */
 struct PopVar
 {
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC, cumTG, cumSI, nTG;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDetectedCases, cumTG, cumSI, nTG;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
 	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
@@ -202,6 +201,7 @@ struct Results
 	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
+	double prevQuarNotInfected, prevQuarNotSymptomatic; // Which people are under quarantine but not themselves infected/sypmtomatic?
 
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)
