@@ -5,6 +5,8 @@
 #include "Dist.h"
 #include "Param.h"
 
+#include "Model.h"
+
 // To speed up calculation of kernel values we provide a couple of lookup
 // tables.
 //
