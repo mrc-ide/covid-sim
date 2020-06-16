@@ -12,6 +12,7 @@ out/
 build/
 build-*/
 build_*/
+cmake-build-debug/
 .project
 *.vcxproj.user
 tests/*-output/

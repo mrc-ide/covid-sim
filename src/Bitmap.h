@@ -1,7 +1,7 @@
 #ifndef COVIDSIM_BITMAP_H_INCLUDED_
 #define COVIDSIM_BITMAP_H_INCLUDED_
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef UNIX
 #define DIRECTORY_SEPARATOR "/"

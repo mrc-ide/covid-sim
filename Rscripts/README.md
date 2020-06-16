@@ -27,6 +27,12 @@ or
 Rscript Rscripts/PlotsSpatial.R
 ```
 
+If you have generated data with the `./run_sample.py`, inside the data folder, you can type
+
+```shell
+Rscript Rscripts/PlotRuns.R data
+```
+
 More generally, the syntax is:
 
 ```shell

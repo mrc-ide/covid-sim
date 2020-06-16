@@ -6,8 +6,12 @@ for Global Infectious Disease Analysis hosted at Imperial College, London.
 CovidSim models the transmission dynamics and severity of COVID-19 infections
 throughout a spatially and socially structured population over time.  It enables
 modelling of how intervention policies and healthcare provision affect the
-spread of COVID-19. With parameter changes, it can be used to model other
-respiratory viruses, such as influenza.
+spread of COVID-19.  It is used to inform health policy by making quantitative 
+forecasts of (for example) cases, deaths and hospitalisations, and how these will 
+vary depending on which specific interventions, such as social distancing, are enacted.
+
+With parameter changes, it can be used to model other respiratory viruses, 
+such as influenza.
 
 ## IMPORTANT NOTES
 
@@ -17,13 +21,21 @@ respiratory viruses, such as influenza.
 behaviours, and output file formats will change without notice.
 
 :warning: The model is stochastic. Multiple runs with different seeds should be
-undertaken to see average behaviour.
+undertaken to see average behaviour. This can now be done easily with the `/NR`
+command line parameter. The model code behaves deterministically if run with the
+same number of threads enabled and run with the same random number seends.
 
 :warning: As with any mathematical model, it is easy to misconfigure inputs and
 therefore get meaningless outputs. The Imperial College COVID-19 team only
 endorses outputs it has itself generated.
 
 ## Status
+
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Build%20&%20Publish%20Docker/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/Doxygen%20Action/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20different%20Linux%20distributions/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20macOS/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
+[![Action Status](https://github.com/mrc-ide/covid-sim/workflows/CI%20for%20Windows/badge.svg)](https://github.com/mrc-ide/covid-sim/actions)
 
 This model is in active development and subject to significant code changes
 to:
@@ -36,7 +48,11 @@ to:
 
 ## Building
 
-The model is written in C++ and runs on Windows and Linux-based systems.
+The model is written in C++.
+
+The primary platforms it has been developed and tested on are Windows and Ubuntu Linux.
+
+It should build and run on any other POSIX compliant Unix-like platform (for example macOS, other Linux distributions).  However, no active development occurs on them.
 
 Running the model for the whole of the UK requires approximately 20GB of RAM.
 Other regions will require different amounts of memory (some up to 256GB).
@@ -69,6 +85,10 @@ The directory [data](./data) contains sample data.
 The Python script [run_sample.py](./data/run_sample.py) demonstrates how to
 invoke CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
+
+The directory [report9](./report9) contains files to allow the results tables in the Imperial College 
+`Report 9 - Impact of non-pharmaceutical interventions (NPIs) to reduce COVID-19 mortality and healthcare demand`
+to be reproduced.
 
 ## Documentation
 

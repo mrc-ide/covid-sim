@@ -1,16 +1,19 @@
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 #include <algorithm>
 #include "Rand.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 #include "Error.h"
+
 #ifdef _OPENMP
 #include <omp.h>
+#define OMP_GET_THREAD_NUM omp_get_thread_num()
+#else
+#define OMP_GET_THREAD_NUM 0
 #endif
 
 /* RANDLIB static variables */
-long* Xcg1, *Xcg2;
+int32_t* Xcg1, *Xcg2;
 int **SamplingQueue = nullptr;
 
 ///////////// ********* ///////////// ********* ///////////// ********* ///////////// ********* ///////////// ********* ///////////// *********
@@ -19,41 +22,22 @@ int **SamplingQueue = nullptr;
 
 double ranf(void)
 {
-	long k, s1, s2, z;
-	unsigned int curntg;
-
-#ifdef _OPENMP
-	curntg = CACHE_LINE_SIZE * omp_get_thread_num();
-#else
-	curntg = 0;
-#endif
-	s1 = Xcg1[curntg];
-	s2 = Xcg2[curntg];
-	k = s1 / 53668L;
-	s1 = Xa1 * (s1 - k * 53668L) - k * 12211;
-	if (s1 < 0) s1 += Xm1;
-	k = s2 / 52774L;
-	s2 = Xa2 * (s2 - k * 52774L) - k * 3791;
-	if (s2 < 0) s2 += Xm2;
-	Xcg1[curntg] = s1;
-	Xcg2[curntg] = s2;
-	z = s1 - s2;
-	if (z < 1) z += (Xm1 - 1);
-	return ((double)z) / Xm1;
+	return ranf_mt(OMP_GET_THREAD_NUM);
 }
+
 double ranf_mt(int tn)
 {
-	long k, s1, s2, z;
+	int32_t k, s1, s2, z;
 	int curntg;
 
 	curntg = CACHE_LINE_SIZE * tn;
 	s1 = Xcg1[curntg];
 	s2 = Xcg2[curntg];
-	k = s1 / 53668L;
-	s1 = Xa1 * (s1 - k * 53668L) - k * 12211;
+	k = s1 / 53668;
+	s1 = Xa1 * (s1 - k * 53668) - k * 12211;
 	if (s1 < 0) s1 += Xm1;
-	k = s2 / 52774L;
-	s2 = Xa2 * (s2 - k * 52774L) - k * 3791;
+	k = s2 / 52774;
+	s2 = Xa2 * (s2 - k * 52774) - k * 3791;
 	if (s2 < 0) s2 += Xm2;
 	Xcg1[curntg] = s1;
 	Xcg2[curntg] = s2;
@@ -62,10 +46,10 @@ double ranf_mt(int tn)
 	return ((double)z) / Xm1;
 }
 
-void setall(long *pseed1, long *pseed2)
+void setall(int32_t *pseed1, int32_t *pseed2)
 /*
 **********************************************************************
-	 void setall(long iseed1,long iseed2)
+	 void setall(int32_t iseed1,int32_t iseed2)
 			   SET ALL random number generators
 	 Sets the initial seed of generator 1 to ISEED1 and ISEED2. The
 	 initial seeds of the other generators are set accordingly, and
@@ -84,8 +68,8 @@ void setall(long *pseed1, long *pseed2)
 {
 	int g;
 
-	long iseed1 = *pseed1;
-	long iseed2 = *pseed2;
+	int32_t iseed1 = *pseed1;
+	int32_t iseed2 = *pseed2;
 
 	for (g = 0; g < MAX_NUM_THREADS; g++) {
 		*(Xcg1 + g * CACHE_LINE_SIZE) = iseed1 = mltmod(Xa1vw, iseed1, Xm1);
@@ -95,10 +79,11 @@ void setall(long *pseed1, long *pseed2)
 	*pseed1 = iseed1;
 	*pseed2 = iseed2;
 }
-long mltmod(long a, long s, long m)
+
+int32_t mltmod(int32_t a, int32_t s, int32_t m)
 /*
 **********************************************************************
-	 long mltmod(long a,long s,long m)
+	 int32_t mltmod(int32_t a, int32_t s, int32_t m)
 					Returns (a * s) MOD m
 	 This is a transcription from Pascal to C++ of routine
 	 MULtMod_Decompos from the paper
@@ -109,15 +94,15 @@ long mltmod(long a, long s, long m)
 **********************************************************************
 */
 {
-	const long h = 32768;
-	long a0, a1, k, p, q, qh, rh;
+	const int32_t h = 32768;
+	int32_t a0, a1, k, p, q, qh, rh;
 	/*
 		 H = 2**((b-2)/2) where b = 32 because we are using a 32 bit
 		  machine. On a different machine recompute H
 	*/
 	if (a <= 0 || a >= m || s <= 0 || s >= m) {
 		fputs(" a, m, s out of order in mltmod - ABORT!\n", stderr);
-		fprintf(stderr, " a = %12ld s = %12ld m = %12ld\n", a, s, m);
+		fprintf(stderr, " a = %12d s = %12d m = %12d\n", a, s, m);
 		fputs(" mltmod requires: 0 < a < m; 0 < s < m\n", stderr);
 		exit(1);
 	}
@@ -172,506 +157,20 @@ long mltmod(long a, long s, long m)
 	return p;
 }
 
-long ignbin(long n, double pp)
+int32_t ignbin(int32_t n, double pp)
 {
-	/*
-**********************************************************************
-	 long ignbin(long n,double pp)
-					GENerate BINomial random deviate
-							  Function
-	 Generates a single random deviate from a binomial
-	 distribution whose number of trials is N and whose
-	 probability of an event in each trial is P.
-							  Arguments
-	 n  --> The number of trials in the binomial distribution
-			from which a random deviate is to be generated.
-		JJV (N >= 0)
-	 pp --> The probability of an event in each trial of the
-			binomial distribution from which a random deviate
-			is to be generated.
-		JJV (0.0 <= PP <= 1.0)
-	 ignbin <-- A random deviate yielding the number of events
-				from N independent trials, each of which has
-				a probability of event P.
-							  Method
-	 This is algorithm BTPE from:
-		 Kachitvichyanukul, V. and Schmeiser, B. W.
-		 Binomial Random Variate Generation.
-		 Communications of the ACM, 31, 2
-		 (February, 1988) 216.
-**********************************************************************
-	 SUBROUTINE BTPEC(N,PP,ISEED,JX)
-	 BINOMIAL RANDOM VARIATE GENERATOR
-	 MEAN .LT. 30 -- INVERSE CDF
-	   MEAN .GE. 30 -- ALGORITHM BTPE:  ACCEPTANCE-REJECTION VIA
-	   FOUR REGION COMPOSITION.  THE FOUR REGIONS ARE A TRIANGLE
-	   (SYMMETRIC IN THE CENTER), A PAIR OF PARALLELOGRAMS (ABOVE
-	   THE TRIANGLE), AND EXPONENTIAL LEFT AND RIGHT TAILS.
-	 BTPE REFERS TO BINOMIAL-TRIANGLE-PARALLELOGRAM-EXPONENTIAL.
-	 BTPEC REFERS TO BTPE AND "COMBINED."  THUS BTPE IS THE
-	   RESEARCH AND BTPEC IS THE IMPLEMENTATION OF A COMPLETE
-	   USABLE ALGORITHM.
-	 REFERENCE:  VORATAS KACHITVICHYANUKUL AND BRUCE SCHMEISER,
-	   "BINOMIAL RANDOM VARIATE GENERATION,"
-	   COMMUNICATIONS OF THE ACM, FORTHCOMING
-	 WRITTEN:  SEPTEMBER 1980.
-	   LAST REVISED:  MAY 1985, JULY 1987
-	 REQUIRED SUBPROGRAM:  RAND() -- A UNIFORM (0,1) RANDOM NUMBER
-						   GENERATOR
-	 ARGUMENTS
-	   N : NUMBER OF BERNOULLI TRIALS            (INPUT)
-	   PP : PROBABILITY OF SUCCESS IN EACH TRIAL (INPUT)
-	   ISEED:  RANDOM NUMBER SEED                (INPUT AND OUTPUT)
-	   JX:  RANDOMLY GENERATED OBSERVATION       (OUTPUT)
-	 VARIABLES
-	   PSAVE: VALUE OF PP FROM THE LAST CALL TO BTPEC
-	   NSAVE: VALUE OF N FROM THE LAST CALL TO BTPEC
-	   XNP:  VALUE OF THE MEAN FROM THE LAST CALL TO BTPEC
-	   P: PROBABILITY USED IN THE GENERATION PHASE OF BTPEC
-	   FFM: TEMPORARY VARIABLE EQUAL TO XNP + P
-	   M:  INTEGER VALUE OF THE CURRENT MODE
-	   FM:  FLOATING POINT VALUE OF THE CURRENT MODE
-	   XNPQ: TEMPORARY VARIABLE USED IN SETUP AND SQUEEZING STEPS
-	   P1:  AREA OF THE TRIANGLE
-	   C:  HEIGHT OF THE PARALLELOGRAMS
-	   XM:  CENTER OF THE TRIANGLE
-	   XL:  LEFT END OF THE TRIANGLE
-	   XR:  RIGHT END OF THE TRIANGLE
-	   AL:  TEMPORARY VARIABLE
-	   XLL:  RATE FOR THE LEFT EXPONENTIAL TAIL
-	   XLR:  RATE FOR THE RIGHT EXPONENTIAL TAIL
-	   P2:  AREA OF THE PARALLELOGRAMS
-	   P3:  AREA OF THE LEFT EXPONENTIAL TAIL
-	   P4:  AREA OF THE RIGHT EXPONENTIAL TAIL
-	   U:  A U(0,P4) RANDOM VARIATE USED FIRST TO SELECT ONE OF THE
-		   FOUR REGIONS AND THEN CONDITIONALLY TO GENERATE A VALUE
-		   FROM THE REGION
-	   V:  A U(0,1) RANDOM NUMBER USED TO GENERATE THE RANDOM VALUE
-		   (REGION 1) OR TRANSFORMED INTO THE VARIATE TO ACCEPT OR
-		   REJECT THE CANDIDATE VALUE
-	   IX:  INTEGER CANDIDATE VALUE
-	   X:  PRELIMINARY CONTINUOUS CANDIDATE VALUE IN REGION 2 LOGIC
-		   AND A FLOATING POINT IX IN THE ACCEPT/REJECT LOGIC
-	   K:  ABSOLUTE VALUE OF (IX-M)
-	   F:  THE HEIGHT OF THE SCALED DENSITY FUNCTION USED IN THE
-		   ACCEPT/REJECT DECISION WHEN BOTH M AND IX ARE SMALL
-		   ALSO USED IN THE INVERSE TRANSFORMATION
-	   R: THE RATIO P/Q
-	   G: CONSTANT USED IN CALCULATION OF PROBABILITY
-	   MP:  MODE PLUS ONE, THE LOWER INDEX FOR EXPLICIT CALCULATION
-			OF F WHEN IX IS GREATER THAN M
-	   IX1:  CANDIDATE VALUE PLUS ONE, THE LOWER INDEX FOR EXPLICIT
-			 CALCULATION OF F WHEN IX IS LESS THAN M
-	   I:  INDEX FOR EXPLICIT CALCULATION OF F FOR BTPE
-	   AMAXP: MAXIMUM ERROR OF THE LOGARITHM OF NORMAL BOUND
-	   YNORM: LOGARITHM OF NORMAL BOUND
-	   ALV:  NATURAL LOGARITHM OF THE ACCEPT/REJECT VARIATE V
-	   X1,F1,Z,W,Z2,X2,F2, AND W2 ARE TEMPORARY VARIABLES TO BE
-	   USED IN THE FINAL ACCEPT/REJECT TEST
-	   QN: PROBABILITY OF NO SUCCESS IN N TRIALS
-	 REMARK
-	   IX AND JX COULD LOGICALLY BE THE SAME VARIABLE, WHICH WOULD
-	   SAVE A MEMORY POSITION AND A LINE OF CODE.  HOWEVER, SOME
-	   COMPILERS (E.G.,CDC MNF) OPTIMIZE BETTER WHEN THE ARGUMENTS
-	   ARE NOT INVOLVED.
-	 ISEED NEEDS TO BE DOUBLE PRECISION IF THE IMSL ROUTINE
-	 GGUBFS IS USED TO GENERATE UNIFORM RANDOM NUMBER, OTHERWISE
-	 TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
-**********************************************************************
-*****DETERMINE APPROPRIATE ALGORITHM AND WHETHER SETUP IS NECESSARY
-*/
-/* JJV changed initial values to ridiculous values */
-	double psave = -1.0E37;
-	long nsave = -214748365;
-	long ignbin, i, ix, ix1, k, m, mp, T1;
-	double al, alv, amaxp, c, f, f1, f2, ffm, fm, g, p, p1, p2, p3, p4, q, qn, r, u, v, w, w2, x, x1,
-		x2, xl, xll, xlr, xm, xnp, xnpq, xr, ynorm, z, z2;
-
-	/*
-	*****SETUP, PERFORM ONLY WHEN PARAMETERS CHANGE
-	JJV added checks to ensure 0.0 <= PP <= 1.0
-	*/
-	if (pp < 0.0F) ERR_CRITICAL("PP < 0.0 in IGNBIN");
-	if (pp > 1.0F) ERR_CRITICAL("PP > 1.0 in IGNBIN");
-	psave = pp;
-	p = std::min(psave, 1.0 - psave);
-	q = 1.0 - p;
-
-	/*
-	JJV added check to ensure N >= 0
-	*/
-	if (n < 0L) ERR_CRITICAL("N < 0 in IGNBIN");
-	xnp = n * p;
-	nsave = n;
-	if (xnp < 30.0) goto S140;
-	ffm = xnp + p;
-	m = (long)ffm;
-	fm = m;
-	xnpq = xnp * q;
-	p1 = (long)(2.195 * sqrt(xnpq) - 4.6 * q) + 0.5;
-	xm = fm + 0.5;
-	xl = xm - p1;
-	xr = xm + p1;
-	c = 0.134 + 20.5 / (15.3 + fm);
-	al = (ffm - xl) / (ffm - xl * p);
-	xll = al * (1.0 + 0.5 * al);
-	al = (xr - ffm) / (xr * q);
-	xlr = al * (1.0 + 0.5 * al);
-	p2 = p1 * (1.0 + c + c);
-	p3 = p2 + c / xll;
-	p4 = p3 + c / xlr;
-S30:
-	/*
-	*****GENERATE VARIATE
-	*/
-	u = ranf() * p4;
-	v = ranf();
-	/*
-		 TRIANGULAR REGION
-	*/
-	if (u > p1) goto S40;
-	ix = (long)(xm - p1 * v + u);
-	goto S170;
-S40:
-	/*
-		 PARALLELOGRAM REGION
-	*/
-	if (u > p2) goto S50;
-	x = xl + (u - p1) / c;
-	v = v * c + 1.0 - std::abs(xm - x) / p1;
-	if (v > 1.0 || v <= 0.0) goto S30;
-	ix = (long)x;
-	goto S70;
-S50:
-	/*
-		 LEFT TAIL
-	*/
-	if (u > p3) goto S60;
-	ix = (long)(xl + log(v) / xll);
-	if (ix < 0) goto S30;
-	v *= ((u - p2) * xll);
-	goto S70;
-S60:
-	/*
-		 RIGHT TAIL
-	*/
-	ix = (long)(xr - log(v) / xlr);
-	if (ix > n) goto S30;
-	v *= ((u - p3) * xlr);
-S70:
-	/*
-	*****DETERMINE APPROPRIATE WAY TO PERFORM ACCEPT/REJECT TEST
-	*/
-	k = std::abs(ix - m);
-	if (k > 20 && k < xnpq / 2 - 1) goto S130;
-	/*
-		 EXPLICIT EVALUATION
-	*/
-	f = 1.0;
-	r = p / q;
-	g = (n + 1) * r;
-	T1 = m - ix;
-	if (T1 < 0) goto S80;
-	else if (T1 == 0) goto S120;
-	else  goto S100;
-S80:
-	mp = m + 1;
-	for (i = mp; i <= ix; i++) f *= (g / i - r);
-	goto S120;
-S100:
-	ix1 = ix + 1;
-	for (i = ix1; i <= m; i++) f /= (g / i - r);
-S120:
-	if (v <= f) goto S170;
-	goto S30;
-S130:
-	/*
-		 SQUEEZING USING UPPER AND LOWER BOUNDS ON ALOG(F(X))
-	*/
-	amaxp = k / xnpq * ((k * (k / 3.0 + 0.625) + 0.1666666666666) / xnpq + 0.5);
-	ynorm = -(k * k / (2.0 * xnpq));
-	alv = log(v);
-	if (alv < ynorm - amaxp) goto S170;
-	if (alv > ynorm + amaxp) goto S30;
-	/*
-		 STIRLING'S FORMULA TO MACHINE ACCURACY FOR
-		 THE FINAL ACCEPTANCE/REJECTION TEST
-	*/
-	x1 = ix + 1.0;
-	f1 = fm + 1.0;
-	z = n + 1.0 - fm;
-	w = n - ix + 1.0;
-	z2 = z * z;
-	x2 = x1 * x1;
-	f2 = f1 * f1;
-	w2 = w * w;
-	if (alv <= xm * log(f1 / x1) + (n - m + 0.5) * log(z / w) + (ix - m) * log(w * p / (x1 * q)) + (13860.0 -
-		(462.0 - (132.0 - (99.0 - 140.0 / f2) / f2) / f2) / f2) / f1 / 166320.0 + (13860.0 - (462.0 -
-		(132.0 - (99.0 - 140.0 / z2) / z2) / z2) / z2) / z / 166320.0 + (13860.0 - (462.0 - (132.0 -
-			(99.0 - 140.0 / x2) / x2) / x2) / x2) / x1 / 166320.0 + (13860.0 - (462.0 - (132.0 - (99.0
-				- 140.0 / w2) / w2) / w2) / w2) / w / 166320.0) goto S170;
-	goto S30;
-S140:
-	/*
-		 INVERSE CDF LOGIC FOR MEAN LESS THAN 30
-	*/
-	qn = pow(q, (double)n);
-	r = p / q;
-	g = r * (n + 1);
-S150:
-	ix = 0;
-	f = qn;
-	u = ranf();
-S160:
-	if (u < f) goto S170;
-	if (ix > 110) goto S150;
-	u -= f;
-	ix += 1;
-	f *= (g / ix - r);
-	goto S160;
-S170:
-	if (psave > 0.5) ix = n - ix;
-	ignbin = ix;
-	return ignbin;
+	return ignbin_mt(n, pp, OMP_GET_THREAD_NUM);
 }
-long ignpoi(double mu)
+
+int32_t ignpoi(double mu)
+{
+	return ignpoi_mt(mu, OMP_GET_THREAD_NUM);
+}
+
+int32_t ignpoi_mt(double mu, int tn)
 /*
 **********************************************************************
-	 long ignpoi(double mu)
-					GENerate POIsson random deviate
-							  Function
-	 Generates a single random deviate from a Poisson
-	 distribution with mean MU.
-							  Arguments
-	 mu --> The mean of the Poisson distribution from which
-			a random deviate is to be generated.
-		(mu >= 0.0)
-	 ignpoi <-- The random deviate.
-							  Method
-	 Renames KPOIS from TOMS as slightly modified by BWB to use RANF
-	 instead of SUNIF.
-	 For details see:
-			   Ahrens, J.H. and Dieter, U.
-			   Computer Generation of Poisson Deviates
-			   From Modified Normal Distributions.
-			   ACM Trans. Math. Software, 8, 2
-			   (June 1982),163-179
-**********************************************************************
-**********************************************************************
-
-
-	 P O I S S O N  DISTRIBUTION
-
-
-**********************************************************************
-**********************************************************************
-
-	 FOR DETAILS SEE:
-
-			   AHRENS, J.H. AND DIETER, U.
-			   COMPUTER GENERATION OF POISSON DEVIATES
-			   FROM MODIFIED NORMAL DISTRIBUTIONS.
-			   ACM TRANS. MATH. SOFTWARE, 8,2 (JUNE 1982), 163 - 179.
-
-	 (SLIGHTLY MODIFIED VERSION OF THE PROGRAM IN THE ABOVE ARTICLE)
-
-**********************************************************************
-	  INTEGER FUNCTION IGNPOI(IR,MU)
-	 INPUT:  IR=CURRENT STATE OF BASIC RANDOM NUMBER GENERATOR
-			 MU=MEAN MU OF THE POISSON DISTRIBUTION
-	 OUTPUT: IGNPOI=SAMPLE FROM THE POISSON-(MU)-DISTRIBUTION
-	 MUPREV=PREVIOUS MU, MUOLD=MU AT LAST EXECUTION OF STEP P OR B.
-	 TABLES: COEFFICIENTS A0-A7 FOR STEP F. FACTORIALS FACT
-	 COEFFICIENTS A(K) - FOR PX = FK*V*V*SUM(A(K)*V**K)-DEL
-	 SEPARATION OF CASES A AND B
-*/
-{
-	extern double fsign(double num, double sign);
-	static double a0 = -0.5;
-	static double a1 = 0.3333333;
-	static double a2 = -0.2500068;
-	static double a3 = 0.2000118;
-	static double a4 = -0.1661269;
-	static double a5 = 0.1421878;
-	static double a6 = -0.1384794;
-	static double a7 = 0.125006;
-	/* JJV changed the initial values of MUPREV and MUOLD */
-	static double fact[10] = {
-		1.0,1.0,2.0,6.0,24.0,120.0,720.0,5040.0,40320.0,362880.0
-	};
-	/* JJV added ll to the list, for Case A */
-	long ignpoi, j, k, kflag, l, ll, m;
-	double b1, b2, c, c0, c1, c2, c3, d, del, difmuk, e, fk, fx, fy, g, omega, p, p0, px, py, q, s, t, u, v, x, xx, pp[35];
-
-	if (mu < 10.0) goto S120;
-	/*
-		 C A S E  A. (RECALCULATION OF S,D,LL IF MU HAS CHANGED)
-		 JJV changed l in Case A to ll
-	*/
-	s = sqrt(mu);
-	d = 6.0 * mu * mu;
-	/*
-				 THE POISSON PROBABILITIES PK EXCEED THE DISCRETE NORMAL
-				 PROBABILITIES FK WHENEVER K >= M(MU). LL=IFIX(MU-1.1484)
-				 IS AN UPPER BOUND TO M(MU) FOR ALL MU >= 10 .
-	*/
-	ll = (long)(mu - 1.1484);
-
-	/*
-		 STEP N. NORMAL SAMPLE - SNORM(IR) FOR STANDARD NORMAL DEVIATE
-	*/
-	g = mu + s * snorm();
-	if (g < 0.0) goto S20;
-	ignpoi = (long)(g);
-	/*
-		 STEP I. IMMEDIATE ACCEPTANCE IF IGNPOI IS LARGE ENOUGH
-	*/
-	if (ignpoi >= ll) return ignpoi;
-	/*
-		 STEP S. SQUEEZE ACCEPTANCE - SUNIF(IR) FOR (0,1)-SAMPLE U
-	*/
-	fk = (double)ignpoi;
-	difmuk = mu - fk;
-	u = ranf();
-	if (d * u >= difmuk * difmuk * difmuk) return ignpoi;
-S20:
-	/*
-		 STEP P. PREPARATIONS FOR STEPS Q AND H.
-				 (RECALCULATIONS OF PARAMETERS IF NECESSARY)
-				 .3989423=(2*PI)**(-.5)  .416667E-1=1./24.  .1428571=1./7.
-				 THE QUANTITIES B1, B2, C3, C2, C1, C0 ARE FOR THE HERMITE
-				 APPROXIMATIONS TO THE DISCRETE NORMAL PROBABILITIES FK.
-				 C=.1069/MU GUARANTEES MAJORIZATION BY THE 'HAT'-FUNCTION.
-	*/
-	omega = 0.3989423 / s;
-	b1 = 4.166667E-2 / mu;
-	b2 = 0.3 * b1 * b1;
-	c3 = 0.1428571 * b1 * b2;
-	c2 = b2 - 15.0 * c3;
-	c1 = b1 - 6.0 * b2 + 45.0 * c3;
-	c0 = 1.0 - b1 + 3.0 * b2 - 15.0 * c3;
-	c = 0.1069 / mu;
-
-	if (g < 0.0) goto S50;
-	/*
-				 'SUBROUTINE' F IS CALLED (KFLAG=0 FOR CORRECT RETURN)
-	*/
-	kflag = 0;
-	goto S70;
-S40:
-	/*
-		 STEP Q. QUOTIENT ACCEPTANCE (RARE CASE)
-	*/
-	if (fy - u * fy <= py * exp(px - fx)) return ignpoi;
-S50:
-	/*
-		 STEP E. EXPONENTIAL SAMPLE - SEXPO(IR) FOR STANDARD EXPONENTIAL
-				 DEVIATE E AND SAMPLE T FROM THE LAPLACE 'HAT'
-				 (IF T <= -.6744 THEN PK < FK FOR ALL MU >= 10.)
-	*/
-	e = sexpo();
-	u = ranf();
-	u += (u - 1.0);
-	t = 1.8 + fsign(e, u);
-	if (t <= -0.6744) goto S50;
-	ignpoi = (long)(mu + s * t);
-	fk = (double)ignpoi;
-	difmuk = mu - fk;
-	/*
-				 'SUBROUTINE' F IS CALLED (KFLAG=1 FOR CORRECT RETURN)
-	*/
-	kflag = 1;
-	goto S70;
-S60:
-	/*
-		 STEP H. HAT ACCEPTANCE (E IS REPEATED ON REJECTION)
-	*/
-	if (c * fabs(u) > py * exp(px + e) - fy * exp(fx + e)) goto S50;
-	return ignpoi;
-S70:
-	/*
-		 STEP F. 'SUBROUTINE' F. CALCULATION OF PX,PY,FX,FY.
-				 CASE IGNPOI .LT. 10 USES FACTORIALS FROM TABLE FACT
-	*/
-	if (ignpoi >= 10) goto S80;
-	px = -mu;
-	py = pow(mu, (double)ignpoi) / *(fact + ignpoi);
-	goto S110;
-S80:
-	/*
-				 CASE IGNPOI .GE. 10 USES POLYNOMIAL APPROXIMATION
-				 A0-A7 FOR ACCURACY WHEN ADVISABLE
-				 .8333333E-1=1./12.  .3989423=(2*PI)**(-.5)
-	*/
-	del = 8.333333E-2 / fk;
-	del -= (4.8 * del * del * del);
-	v = difmuk / fk;
-	if (fabs(v) <= 0.25) goto S90;
-	px = fk * log(1.0 + v) - difmuk - del;
-	goto S100;
-S90:
-	px = fk * v * v * (((((((a7 * v + a6) * v + a5) * v + a4) * v + a3) * v + a2) * v + a1) * v + a0) - del;
-S100:
-	py = 0.3989423 / sqrt(fk);
-S110:
-	x = (0.5 - difmuk) / s;
-	xx = x * x;
-	fx = -0.5 * xx;
-	fy = omega * (((c3 * xx + c2) * xx + c1) * xx + c0);
-	if (kflag <= 0) goto S40;
-	goto S60;
-S120:
-	/*
-		 C A S E  B. (START NEW TABLE AND CALCULATE P0 IF NECESSARY)
-		 JJV changed MUPREV assignment to initial value
-	*/
-	m = std::max(1L, (long)(mu));
-	l = 0;
-	p = exp(-mu);
-	q = p0 = p;
-S130:
-	/*
-		 STEP U. UNIFORM SAMPLE FOR INVERSION METHOD
-	*/
-	u = ranf();
-	ignpoi = 0;
-	if (u <= p0) return ignpoi;
-	/*
-		 STEP T. TABLE COMPARISON UNTIL THE END PP(L) OF THE
-				 PP-TABLE OF CUMULATIVE POISSON PROBABILITIES
-				 (0.458=PP(9) FOR MU=10)
-	*/
-	if (l == 0) goto S150;
-	j = 1;
-	if (u > 0.458) j = std::min(l, m);
-	for (k = j; k <= l; k++) {
-		if (u <= *(pp + k - 1)) goto S180;
-	}
-	if (l == 35) goto S130;
-S150:
-	/*
-		 STEP C. CREATION OF NEW POISSON PROBABILITIES P
-				 AND THEIR CUMULATIVES Q=PP(K)
-	*/
-	l += 1;
-	for (k = l; k <= 35; k++) {
-		p = p * mu / (double)k;
-		q += p;
-		*(pp + k - 1) = q;
-		if (u <= q) goto S170;
-	}
-	l = 35;
-	goto S130;
-S170:
-	l = k;
-S180:
-	ignpoi = k;
-	return ignpoi;
-}
-long ignpoi_mt(double mu, int tn)
-/*
-**********************************************************************
-long ignpoi_mt(double mu)
+int32_t ignpoi_mt(double mu)
 GENerate POIsson random deviate
 Function
 Generates a single random deviate from a Poisson
@@ -734,7 +233,7 @@ SEPARATION OF CASES A AND B
 		1.0,1.0,2.0,6.0,24.0,120.0,720.0,5040.0,40320.0,362880.0
 	};
 	/* JJV added ll to the list, for Case A */
-	long ignpoi_mt, j, k, kflag, l, ll, m;
+	int32_t ignpoi_mt, j, k, kflag, l, ll, m;
 	double b1, b2, c, c0, c1, c2, c3, d, del, difmuk, e, fk, fx, fy, g, omega, p, p0, px, py, q, s, t, u, v, x, xx, pp[35];
 
 	if (mu < 10.0) goto S120;
@@ -749,14 +248,14 @@ SEPARATION OF CASES A AND B
 	PROBABILITIES FK WHENEVER K >= M(MU). LL=IFIX(MU-1.1484)
 	IS AN UPPER BOUND TO M(MU) FOR ALL MU >= 10 .
 	*/
-	ll = (long)(mu - 1.1484);
+	ll = (int32_t)(mu - 1.1484);
 
 	/*
 	STEP N. NORMAL SAMPLE - SNORM(IR) FOR STANDARD NORMAL DEVIATE
 	*/
 	g = mu + s * snorm_mt(tn);
 	if (g < 0.0) goto S20;
-	ignpoi_mt = (long)(g);
+	ignpoi_mt = (int32_t)(g);
 	/*
 	STEP I. IMMEDIATE ACCEPTANCE IF IGNPOI IS LARGE ENOUGH
 	*/
@@ -808,7 +307,7 @@ S50:
 	u += (u - 1.0);
 	t = 1.8 + fsign(e, u);
 	if (t <= -0.6744) goto S50;
-	ignpoi_mt = (long)(mu + s * t);
+	ignpoi_mt = (int32_t)(mu + s * t);
 	fk = (double)ignpoi_mt;
 	difmuk = mu - fk;
 	/*
@@ -859,7 +358,7 @@ S120:
 	C A S E  B. (START NEW TABLE AND CALCULATE P0 IF NECESSARY)
 	JJV changed MUPREV assignment to initial value
 	*/
-	m = std::max(1L, (long)(mu));
+	m = std::max(INT32_C(1), (int32_t)(mu));
 	l = 0;
 	p = exp(-mu);
 	q = p0 = p;
@@ -902,11 +401,11 @@ S180:
 	ignpoi_mt = k;
 	return ignpoi_mt;
 }
-long ignbin_mt(long n, double pp, int tn)
+int32_t ignbin_mt(int32_t n, double pp, int tn)
 {
 	/*
 **********************************************************************
-long ignbin_mt(long n,double pp)
+int32_t ignbin_mt(int32_t n,double pp)
 GENerate BINomial random deviate
 Function
 Generates a single random deviate from a binomial
@@ -1012,8 +511,8 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 */
 /* JJV changed initial values to ridiculous values */
 	double psave = -1.0E37;
-	long nsave = -214748365;
-	long ignbin_mt, i, ix, ix1, k, m, mp, T1;
+	int32_t nsave = -214748365;
+	int32_t ignbin_mt, i, ix, ix1, k, m, mp, T1;
 	double al, alv, amaxp, c, f, f1, f2, ffm, fm, g, p, p1, p2, p3, p4, q, qn, r, u, v, w, w2, x, x1,
 		x2, xl, xll, xlr, xm, xnp, xnpq, xr, ynorm, z, z2;
 
@@ -1035,10 +534,10 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	nsave = n;
 	if (xnp < 30.0) goto S140;
 	ffm = xnp + p;
-	m = (long)ffm;
+	m = (int32_t)ffm;
 	fm = m;
 	xnpq = xnp * q;
-	p1 = (long)(2.195 * sqrt(xnpq) - 4.6 * q) + 0.5;
+	p1 = (int32_t)(2.195 * sqrt(xnpq) - 4.6 * q) + 0.5;
 	xm = fm + 0.5;
 	xl = xm - p1;
 	xr = xm + p1;
@@ -1060,7 +559,7 @@ S30:
 	TRIANGULAR REGION
 	*/
 	if (u > p1) goto S40;
-	ix = (long)(xm - p1 * v + u);
+	ix = (int32_t)(xm - p1 * v + u);
 	goto S170;
 S40:
 	/*
@@ -1070,14 +569,14 @@ S40:
 	x = xl + (u - p1) / c;
 	v = v * c + 1.0 - std::abs(xm - x) / p1;
 	if (v > 1.0 || v <= 0.0) goto S30;
-	ix = (long)x;
+	ix = (int32_t)x;
 	goto S70;
 S50:
 	/*
 	LEFT TAIL
 	*/
 	if (u > p3) goto S60;
-	ix = (long)(xl + log(v) / xll);
+	ix = (int32_t)(xl + log(v) / xll);
 	if (ix < 0) goto S30;
 	v *= ((u - p2) * xll);
 	goto S70;
@@ -1085,7 +584,7 @@ S60:
 	/*
 	RIGHT TAIL
 	*/
-	ix = (long)(xr - log(v) / xlr);
+	ix = (int32_t)(xr - log(v) / xlr);
 	if (ix > n) goto S30;
 	v *= ((u - p3) * xlr);
 S70:
@@ -1164,70 +663,12 @@ S170:
 	ignbin_mt = ix;
 	return ignbin_mt;
 }
+
 double sexpo(void)
-/*
-**********************************************************************
-
-
-	 (STANDARD-)  E X P O N E N T I A L   DISTRIBUTION
-
-
-**********************************************************************
-**********************************************************************
-
-	 FOR DETAILS SEE:
-
-			   AHRENS, J.H. AND DIETER, U.
-			   COMPUTER METHODS FOR SAMPLING FROM THE
-			   EXPONENTIAL AND NORMAL DISTRIBUTIONS.
-			   COMM. ACM, 15,10 (OCT. 1972), 873 - 882.
-
-	 ALL STATEMENT NUMBERS CORRESPOND TO THE STEPS OF ALGORITHM
-	 'SA' IN THE ABOVE PAPER (SLIGHTLY MODIFIED IMPLEMENTATION)
-
-	 Modified by Barry W. Brown, Feb 3, 1988 to use RANF instead of
-	 SUNIF.  The argument IR thus goes away.
-
-**********************************************************************
-	 Q(N) = SUM(ALOG(2.0)**K/K!)    K=1,..,N ,      THE HIGHEST N
-	 (HERE 8) IS DETERMINED BY Q(N)=1.0 WITHIN STANDARD PRECISION
-*/
 {
-	static double q[8] = {
-		0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,
-		.9999999
-	};
-	long i;
-	double sexpo, a, u, ustar, umin;
-
-	a = 0.0;
-	u = ranf();
-	goto S30;
-S20:
-	a += q[0];
-S30:
-	u += u;
-	/*
-	 * JJV changed the following to reflect the true algorithm and prevent
-	 * JJV unpredictable behavior if U is initially 0.5.
-	 *  if(u <= 1.0) goto S20;
-	 */
-	if (u < 1.0) goto S20;
-	u -= 1.0;
-	if (u > q[0]) goto S60;
-	sexpo = a + u;
-	return sexpo;
-S60:
-	i = 1;
-	ustar = ranf();
-	umin = ustar;
-S70:
-	ustar = ranf();
-	if (ustar < umin) umin = ustar;
-	i += 1;
-	if (u > q[i - 1]) goto S70;
-	return  a + umin * q[0];
+	return sexpo_mt(OMP_GET_THREAD_NUM);
 }
+
 double sexpo_mt(int tn)
 /*
 **********************************************************************
@@ -1257,11 +698,10 @@ Q(N) = SUM(ALOG(2.0)**K/K!)    K=1,..,N ,      THE HIGHEST N
 (HERE 8) IS DETERMINED BY Q(N)=1.0 WITHIN STANDARD PRECISION
 */
 {
-	double q[8] = {
-		0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,
-			.9999999
-	};
-	long i;
+//	return -log(1 - ranf_mt(tn));  // a much simpler exponential generator!
+
+	double q[8] = {0.6931472,0.9333737,0.9888778,0.9984959,0.9998293,0.9999833,0.9999986,0.99999999999999989};
+	int32_t i;
 	double sexpo_mt, a, u, ustar, umin;
 
 	a = 0.0;
@@ -1271,11 +711,7 @@ S20:
 	a += q[0];
 S30:
 	u += u;
-	/*
-	* JJV changed the following to reflect the true algorithm and prevent
-	* JJV unpredictable behavior if U is initially 0.5.
-	*  if(u <= 1.0) goto S20;
-	*/
+
 	if (u < 1.0) goto S20;
 	u -= 1.0;
 	if (u > q[0]) goto S60;
@@ -1291,7 +727,9 @@ S70:
 	i += 1;
 	if (u > q[i - 1]) goto S70;
 	return  a + umin * q[0];
+
 }
+
 double snorm(void)
 /*
 **********************************************************************
@@ -1348,14 +786,14 @@ double snorm(void)
 		5.654656E-2,5.95313E-2,6.308489E-2,6.737503E-2,7.264544E-2,7.926471E-2,
 		8.781922E-2,9.930398E-2,0.11556,0.1404344,0.1836142,0.2790016,0.7010474
 	};
-	long i; //made this non-static: ggilani 27/11/14
+	int32_t i; //made this non-static: ggilani 27/11/14
 	double snorm, u, s, ustar, aa, w, y, tt; //made this non-static: ggilani 27/11/14
 	u = ranf();
 	s = 0.0;
 	if (u > 0.5) s = 1.0;
 	u += (u - s);
 	u = 32.0 * u;
-	i = (long)(u);
+	i = (int32_t)(u);
 	if (i == 32) i = 31;
 	if (i == 0) goto S100;
 	/*
@@ -1475,14 +913,14 @@ H(K) ARE ACCORDING TO THE ABOVEMENTIONED ARTICLE
 			5.654656E-2,5.95313E-2,6.308489E-2,6.737503E-2,7.264544E-2,7.926471E-2,
 			8.781922E-2,9.930398E-2,0.11556,0.1404344,0.1836142,0.2790016,0.7010474
 	};
-	long i;
+	int32_t i;
 	double snorm_mt, u, s, ustar, aa, w, y, tt;
 	u = ranf_mt(tn);
 	s = 0.0;
 	if (u > 0.5) s = 1.0;
 	u += (u - s);
 	u = 32.0 * u;
-	i = (long)(u);
+	i = (int32_t)(u);
 	if (i == 32) i = 31;
 	if (i == 0) goto S100;
 	/*
@@ -1581,6 +1019,7 @@ double gen_norm_mt(double mu, double sd, int tn)
 	//return x
 	return x * sd + mu;
 }
+
 /*function gen_gamma_mt
  * purpose: my own implementation of sampling from a gamma distribution, using Marsaglia-Tsang method, but for multi-threading
  *
@@ -1608,7 +1047,7 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 			z = gen_norm_mt(0, 1, tn);
 			v = 1 + z * c;
 			v = v * v * v;
-		} while ((z <= (-1.0 / c)) && (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
+		} while ((z <= (-1.0 / c)) || (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
 		//if beta is equal to 1, there is no scale. If beta is not equal to one, return scaled value
 		if (beta != 1)
 		{
@@ -1632,7 +1071,7 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 			z = gen_norm_mt(0, 1, tn);
 			v = 1 + z * c;
 			v = v * v * v;
-		} while ((z <= (-1.0 / c)) && (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
+		} while ((z <= (-1.0 / c)) || (log(u) >= (0.5 * z * z + d - d * v + d * log(v))));
 		//if beta is equal to 1, there is no scale. If beta is not equal to one, return scaled value
 		if (beta != 1)
 		{
@@ -1662,12 +1101,14 @@ double gen_gamma_mt(double beta, double alpha, int tn)
 double gen_lognormal(double mu, double sigma)
 {
 	double randnorm, location, scale;
+	double s = 1 + ((sigma * sigma) / (mu * mu));
 
 	randnorm = snorm();
-	location = log(mu / sqrt(1 + ((sigma * sigma) / (mu * mu))));
-	scale = sqrt(log(1 + ((sigma * sigma) / (mu * mu))));
+	location = log(mu / sqrt(s));
+	scale = sqrt(log(s));
 	return exp(location + scale * randnorm);
 }
+
 void SampleWithoutReplacement(int tn, int k, int n)
 {
 	/* Based on algorithm SG of http://portal.acm.org/citation.cfm?id=214402

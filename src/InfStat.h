@@ -1,8 +1,14 @@
 #ifndef COVIDSIM_INFSTAT_H_INCLUDED_
 #define COVIDSIM_INFSTAT_H_INCLUDED_
 
-//// Infection Status definitions / labels (generally positive value indicates asymptomatic infection, negative value indicates symptomatic infection).
-enum InfStat {
+//// Infection Status definitions / labels (generally positive value indicates asymptomatic infection, 
+//// negative value indicates symptomatic infection).
+
+enum InfStat {	
+  
+//// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" / 
+//// "Quarantined not symptomatic" calculation: relies on value below being negative for symptomatic people.
+
 	//// Susceptible
 	InfStat_Susceptible = 0,
 	//// E or L (neither infectious nor symptomatic).
