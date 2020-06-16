@@ -126,6 +126,13 @@
     <ClInclude Include="src\Update.h" />
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
+    <ClInclude Include="src\Geometry\BoundingBox.h" />
+    <ClInclude Include="src\Geometry\Size.h" />
+    <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="src\Models\Cell.h" />
+    <ClInclude Include="src\Models\Household.h" />
+    <ClInclude Include="src\Models\Microcell.h" />
+    <ClInclude Include="src\Models\Person.h" />
     <ClInclude Include="src\InverseCdf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

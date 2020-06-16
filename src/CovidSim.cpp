@@ -127,9 +127,9 @@ int main(int argc, char* argv[])
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-	P.BitmapFormat = BF_PNG;
+	P.BitmapFormat = BitmapFormats::PNG;
 #else
-	P.BitmapFormat = BF_BMP;
+	P.BitmapFormat = BitmapFormats::BMP;
 #endif
 
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
 				if (strcasecmp(buf, "png") == 0)
 				{
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-				  P.BitmapFormat = BF_PNG;
+				  P.BitmapFormat = BitmapFormats::PNG;
 #else
 				  fprintf(stderr, "PNG Bitmaps not supported - please build with Image Magic or WIN32 support\n");
 				  Perr = 1;
@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
 				}
 				else if (strcasecmp(buf, "bmp") == 0)
 				{
-				  P.BitmapFormat = BF_BMP;
+				  P.BitmapFormat = BitmapFormats::BMP;
 				}
 				else
 				{
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 	sprintf(OutFile, "%s", OutFileBase);
 
 	fprintf(stderr, "Param=%s\nOut=%s\nDens=%s\n", ParamFile, OutFile, DensityFile);
-	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BF_PNG ? "png" : "bmp");
+	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
 	if (Perr) ERR_CRITICAL_FMT("Syntax:\n%s /P:ParamFile /O:OutputFile [/AP:AirTravelFile] [/s:SchoolFile] [/D:DensityFile] [/L:NetworkFileToLoad | /S:NetworkFileToSave] [/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n", argv[0]);
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -1206,7 +1206,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width_), 1, 1, 0)) P.in_cells_.width_ = 1.0 / 120.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*) & (P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*) & (P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
@@ -2301,21 +2301,20 @@ void ReadAirTravel(char* AirTravelFile)
 	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
-		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc_x), &(Airports[i].loc_y), &traf) != 3) {
+		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc_x < P.SpatialBoundingBox[0]) || (Airports[i].loc_x >= P.SpatialBoundingBox[2])
-			|| (Airports[i].loc_y < P.SpatialBoundingBox[1]) || (Airports[i].loc_y >= P.SpatialBoundingBox[3]))
+		if ((Airports[i].loc.x < P.SpatialBoundingBox[0]) || (Airports[i].loc.x >= P.SpatialBoundingBox[2])
+			|| (Airports[i].loc.y < P.SpatialBoundingBox[1]) || (Airports[i].loc.y >= P.SpatialBoundingBox[3]))
 		{
-			Airports[i].loc_x = Airports[i].loc_y = -1;
+			Airports[i].loc.x = Airports[i].loc.y = -1;
 			Airports[i].total_traffic = 0;
 		}
 		else
 		{
-			//fprintf(stderr,"(%f\t%f) ",Airports[i].loc_x,Airports[i].loc_y);
-			Airports[i].loc_x -= (float)P.SpatialBoundingBox[0];
-			Airports[i].loc_y -= (float)P.SpatialBoundingBox[1];
+			Airports[i].loc.x -= (float)P.SpatialBoundingBox[0];
+			Airports[i].loc.y -= (float)P.SpatialBoundingBox[1];
 			Airports[i].total_traffic = (float)traf;
 		}
 		t = 0;
@@ -2413,7 +2412,7 @@ void ReadAirTravel(char* AirTravelFile)
 			for (j = 0; j < Airports[i].num_connected; j++)
 			{
 				k = (int)Airports[i].conn_airports[j];
-				traf = floor(sqrt(dist2_raw(Airports[i].loc_x, Airports[i].loc_y, Airports[k].loc_x, Airports[k].loc_y)) / OUTPUT_DIST_SCALE);
+				traf = floor(sqrt(dist2_raw(Airports[i].loc.x, Airports[i].loc.y, Airports[k].loc.x, Airports[k].loc.y)) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
@@ -2809,8 +2808,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width_);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height_);
+			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width);
+			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height);
 			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
 			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
@@ -2823,8 +2822,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 						}
 						Hosts[l].infector = -2;
 						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
@@ -2856,8 +2855,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					{
 						if (CalcPersonSusc(l, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 							DoInfect(l, t, 0, run);
 							m = 0;
@@ -2892,8 +2891,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
+						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
+						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
 						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 						DoInfect(l, t, 0, run);
 						m = 0;
@@ -3140,7 +3139,7 @@ void SaveDistribs(void)
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
 						k = Hosts[i].PlaceLinks[j];
-						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc_x, Households[Hosts[i].hh].loc_y, Places[j][k].loc_x, Places[j][k].loc_y)) / OUTPUT_DIST_SCALE;
+						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y, Places[j][k].loc.x, Places[j][k].loc.y)) / OUTPUT_DIST_SCALE;
 						k = (int)s;
 						if (k < MAX_DIST) PlaceDistDistrib[j][k]++;
 					}
@@ -3352,7 +3351,7 @@ void SaveResults(void)
 	//	DeleteFile(outname);
 	//	}
 #endif
-	if(P.OutputBitmap >= 1 && P.BitmapFormat == BF_PNG)
+	if(P.OutputBitmap >= 1 && P.BitmapFormat == BitmapFormats::PNG)
 		{
 		// Generate Google Earth .kml file
 		sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.ge.kml", OutFile, OutFile); //sprintf(outname,"%s.ge" DIRECTORY_SEPARATOR "%s.kml",OutFileBase,OutFile);
