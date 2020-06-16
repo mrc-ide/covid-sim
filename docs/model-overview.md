@@ -58,11 +58,14 @@ according to both spatial distance and population densities.
 
 ## Further information
 
-For more information on the model and associated interventions, please visit:
+For more information on the model and associated interventions, please see
+the following papers:
 
-- <https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf>
-- <https://www.nature.com/articles/nature04795>
-- <https://www.nature.com/articles/nature04017>
-- <https://www.pnas.org/content/105/12/4639.short>
+ - [Ferguson, Neil, et al. "Report 9: Impact of non-pharmaceutical interventions (NPIs) to reduce COVID19 mortality and healthcare demand." (2020).](https://www.imperial.ac.uk/media/imperial-college/medicine/sph/ide/gida-fellowships/Imperial-College-COVID19-NPI-modelling-16-03-2020.pdf)
+ - [Ferguson, Neil M., et al. "Strategies for mitigating an influenza pandemic." Nature 442.7101 (2006): 448-452.](https://www.nature.com/articles/nature04795)
+ - [Ferguson, Neil M., et al. "Strategies for containing an emerging influenza pandemic in Southeast Asia." Nature 437.7056 (2005): 209-214.](https://www.nature.com/articles/nature04017)
+     - [Supplementary information for above](https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf) - this document provides details of the calibration and spatial modelling
+ - [Halloran, M. Elizabeth, et al. "Modeling targeted layered containment of an influenza pandemic in the United States." Proceedings of the National Academy of Sciences 105.12 (2008): 4639-4644.](https://www.pnas.org/content/105/12/4639.short)
+
 
 Please note that some of the above may require a subscription.
