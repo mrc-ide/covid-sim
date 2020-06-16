@@ -2121,7 +2121,7 @@ void AssignPeopleToPlaces()
 						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							const uint16_t host_country = Mcells[Hosts[i].mcell].country;
+							auto const host_country = Mcells[Hosts[i].mcell].country;
 							while (((k < nn) || (l < 4)) && (l < P.total_microcells_wide_))
 							{
 								if (P.is_in_bounds(mc_position))
@@ -2129,18 +2129,22 @@ void AssignPeopleToPlaces()
 									ic = P.get_micro_cell_index_from_position(mc_position);
 									if (mcell_country[ic] == host_country)
 									{
-										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
+										auto const& cur_cell = Mcells[ic];
+										auto const place_type_count = cur_cell.np[tp]; 
+										for (cnt = 0; cnt < place_type_count; cnt++)
 										{
-											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+											auto const place_idx = cur_cell.places[tp][cnt];
+											if (place_idx >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+											auto const& cur_place = Places[tp][place_idx];
 											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
-												Places[tp][Mcells[ic].places[tp][cnt]].loc.x, Places[tp][Mcells[ic].places[tp][cnt]].loc.y);
+												cur_place.loc.x, cur_place.loc.y);
 											s = P.KernelLookup.num(t);
 											if (tp < P.nsp)
 											{
-												t = ((double)Places[tp][Mcells[ic].places[tp][cnt]].treat_end_time);
+												t = ((double)cur_place.treat_end_time);
 												if (HOST_AGE_YEAR(i) < P.PlaceTypeMaxAgeRead[tp])
 												{
-													if ((t > 0) && (Places[tp][Mcells[ic].places[tp][cnt]].AvailByAge[HOST_AGE_YEAR(i)] > 0))
+													if ((t > 0) && (cur_place.AvailByAge[HOST_AGE_YEAR(i)] > 0))
 														s *= t;
 													else
 														s = 0;
@@ -2155,7 +2159,7 @@ void AssignPeopleToPlaces()
 											{
 												if (k < nn)
 												{
-													NearestPlaces[tn][k] = Mcells[ic].places[tp][cnt];
+													NearestPlaces[tn][k] = place_idx;
 													NearestPlacesProb[tn][k] = s;
 													k++;
 												}
@@ -2171,7 +2175,7 @@ void AssignPeopleToPlaces()
 													if (s > t)
 													{
 														NearestPlacesProb[tn][j2] = s;
-														NearestPlaces[tn][j2] = Mcells[ic].places[tp][cnt];
+														NearestPlaces[tn][j2] = place_idx;
 													}
 												}
 											}
