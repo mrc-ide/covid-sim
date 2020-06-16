@@ -56,7 +56,7 @@ void DoImmune(int ai)
 		if (P.OutputBitmap)
 		{
 			Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			if (P.b.contains(pixel))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -141,7 +141,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
-				if ((ix >= 0) && (ix < P.b.width) && (iy >= 0) && (iy < P.b.height))
+				if (P.b.contains(pixel))
 				{
 					unsigned j = iy * bmh->width + ix;
 					if (j < bmh->imagesize)
@@ -942,7 +942,7 @@ void DoRecover(int ai, int tn, int run)
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
-				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+				if (P.b.contains(pixel))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -992,7 +992,7 @@ void DoDeath(int ai, int tn, int run)
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
-				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+				if (P.b.contains(pixel))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1027,7 +1027,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.OutputBitmap)
 			{
 				Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
-				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+				if (P.b.contains(pixel))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1058,7 +1058,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		if (P.OutputBitmap)
 		{
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			if (P.b.contains(pixel))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1086,7 +1086,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		if (P.OutputBitmap)
 		{
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			if (P.b.contains(pixel))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1304,7 +1304,7 @@ void DoVacc(int ai, unsigned short int ts)
 		if (P.OutputBitmap)
 		{
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			if (P.b.contains(pixel))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1342,7 +1342,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		if (P.OutputBitmap)
 		{
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			if (P.b.contains(pixel))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
