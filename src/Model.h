@@ -1,9 +1,11 @@
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
+#include <cstddef>
+
 #include "Country.h"
-#include "MachineDefines.h"
 #include "Constants.h"
+#include "InfStat.h"
 
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
@@ -11,7 +13,8 @@
 
 #pragma pack(push, 2)
 
-typedef struct PERSON {
+struct Person
+{
 	int pcell;			// place cell, Cells[person->pcell] holds this person
 	int mcell;			// microcell, Mcells[person->mcell] holds this person
 	int hh;				// Household[person->hh] holds this person
@@ -30,10 +33,11 @@ typedef struct PERSON {
 	unsigned char age;
 	unsigned char quar_comply;		// can be 0, 1, or 2
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	signed char Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
+	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
-	short int inf, infect_type;		// INFECT_TYPE_MASK
+	short int infect_type;		// INFECT_TYPE_MASK
+	InfStat inf;
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
@@ -48,14 +52,15 @@ typedef struct PERSON {
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
-} person;
+};
 
-typedef struct HOUSEHOLD {
+struct Household
+{
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
 	unsigned short int nhr;
-} household;
+	float loc_x, loc_y;
+};
 
 /*
 In the main InfectSweep loop, we cannot safely set
@@ -64,11 +69,12 @@ threads might be trying to set the values differently. We therefore
 make a queue of `infection`s in `inf_queue` containing the information
 we need, so that we can set the values after the main loop has finished.
 */
-typedef struct INFECTION {
+struct Infection
+{
 	int infector;
 	int infectee;
 	short int infect_type;
-} infection;
+};
 
 /**
  * @brief Contact event used for tracking contact tracing events
@@ -76,22 +82,23 @@ typedef struct INFECTION {
  * Currently stores: contact and index case (both ints) and contact time (unsigned short int)
  * Thanks to igfoo
  */
-typedef struct CONTACTEVENT {
+struct ContactEvent
+{
 	int contact;
 	int index;
 	unsigned short int contact_time;
-} contactevent;
+};
 
 /**
  * @brief The global state of the model.
  *
  * TODO: Detailed explanation.
  */
-typedef struct POPVAR {
-
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC;
+struct PopVar
+{
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDetectedCases, cumTG, cumSI, nTG;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
-	int CT, cumCT, CC, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
+	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
 	int cumHQ, cumAC, cumAA, cumAH, cumACS, cumAPC, cumAPA, cumAPCS;
 	//// age specific versions of above variables. e.g. cumI is cumulative infections. cumIa is cumulative infections by age group.
@@ -100,7 +107,7 @@ typedef struct POPVAR {
 	int cumCT_adunit[MAX_ADUNITS], cumCC_adunit[MAX_ADUNITS], trigDC_adunit[MAX_ADUNITS]; //added cumulative CT per admin unit: ggilani 15/06/17
 	int cumDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added cumulative and overall digital contact tracing per adunit: ggilani 11/03/20
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
-	infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
+	Infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
 	int n_queue[MAX_NUM_THREADS]; 	// number of infections in inf_queue
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
@@ -109,9 +116,8 @@ typedef struct POPVAR {
 	int* CellMemberArray, *CellSuscMemberArray;
 	int** InvAgeDist;
 	int* mvacc_queue;
-	int dum[CACHE_LINE_SIZE];
 	int nct_queue[MAX_ADUNITS]; // queue for contact tracing: ggilani 12/06/17
-	contactevent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
+	ContactEvent* dct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 14/04/20
 	int ndct_queue[MAX_ADUNITS]; //queues for digital contact tracing: ggilani 10/03/20
 	int contact_dist[MAX_CONTACTS+1]; //added this to store contact distribution: ggilani 13/04/20
 	double* origin_dest[MAX_ADUNITS]; //added intermediate storage for calculation of origin-destination matrix: ggilani 02/02/15
@@ -121,19 +127,26 @@ typedef struct POPVAR {
 	int Mild_adunit[MAX_ADUNITS], ILI_adunit[MAX_ADUNITS], SARI_adunit[MAX_ADUNITS], Critical_adunit[MAX_ADUNITS], CritRecov_adunit[MAX_ADUNITS];
 	/// cum incidence quantities. (+ by admin unit)
 	int cumMild_adunit[MAX_ADUNITS], cumILI_adunit[MAX_ADUNITS], cumSARI_adunit[MAX_ADUNITS], cumCritical_adunit[MAX_ADUNITS], cumCritRecov_adunit[MAX_ADUNITS];
+	int Mild_age[NUM_AGE_GROUPS], ILI_age[NUM_AGE_GROUPS], SARI_age[NUM_AGE_GROUPS], Critical_age[NUM_AGE_GROUPS], CritRecov_age[NUM_AGE_GROUPS];
+	/// cum incidence quantities. (+ by age group)
+	int cumMild_age[NUM_AGE_GROUPS], cumILI_age[NUM_AGE_GROUPS], cumSARI_age[NUM_AGE_GROUPS], cumCritical_age[NUM_AGE_GROUPS], cumCritRecov_age[NUM_AGE_GROUPS];
 
 	int cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];
+
+	int ** prevInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+
 
 	//// above quantities need to be amended in following parts of code:
-	//// i) InitModel (set to zero); Done
+	//// i) InitModel (set to zero);
 	//// ii) RecordSample: (collate from threads);
 	//// iii) RecordSample: add to incidence / Timeseries).
 	//// iv) SaveResults
 	//// v) SaveSummaryResults
-	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
+	///// And various parts of Update.cpp where variables need must be incremented, decremented.
 
-} popvar;
+};
 
 /**
  * @brief Recorded time-series variables (typically populated from the `POPVAR` state)
@@ -144,11 +157,17 @@ typedef struct POPVAR {
  * NOTE: This struct must contain only doubles (and arrays of doubles) for the TSMean
  * 	     averaging code to work.
  */
-typedef struct RESULTS {
+struct Results
+{
+	// Initial values should not be touched by mean/var calculation
+	double t;
+	double ** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
-	double t, S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC ;
-	double incH; //added incidence of hospitalisation: ggilani 28/10/14
-	double CT, incCT, CC, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
+	// The following values must all be doubles or inline arrays of doubles
+	// The first variable must be S.  If that changes change the definition of
+	// ResultsDoubleOffsetStart below.
+	double S, L, I, R, D, incC, incTC, incFC, incI, incR, incD, incDC, meanTG, meanSI ;
+	double CT, incCT, incCC, DCT, incDCT; //added total numbers being contact traced and incidence of contact tracing: ggilani 15/06/17, and for digital contact tracing: ggilani 11/03/20
 	double incC_country[MAX_COUNTRIES]; //added incidence of cases
 	double cumT, cumUT, cumTP, cumV, cumTmax, cumVmax, cumDC, extinct, cumVG; //added cumVG
 	double incHQ, incAC, incAH, incAA, incACS, incAPC, incAPA, incAPCS;
@@ -175,6 +194,15 @@ typedef struct RESULTS {
 	double incDeath_ILI_adunit[MAX_ADUNITS], incDeath_SARI_adunit[MAX_ADUNITS], incDeath_Critical_adunit[MAX_ADUNITS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
+	/////// Severity States by age group
+	double Mild_age[NUM_AGE_GROUPS], ILI_age[NUM_AGE_GROUPS], SARI_age[NUM_AGE_GROUPS], Critical_age[NUM_AGE_GROUPS], CritRecov_age[NUM_AGE_GROUPS];				// Prevalence by admin unit
+	double incMild_age[NUM_AGE_GROUPS], incILI_age[NUM_AGE_GROUPS], incSARI_age[NUM_AGE_GROUPS], incCritical_age[NUM_AGE_GROUPS], incCritRecov_age[NUM_AGE_GROUPS];	// incidence by admin unit
+	double cumMild_age[NUM_AGE_GROUPS], cumILI_age[NUM_AGE_GROUPS], cumSARI_age[NUM_AGE_GROUPS], cumCritical_age[NUM_AGE_GROUPS], cumCritRecov_age[NUM_AGE_GROUPS]; // cumulative incidence by admin unit
+	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
+	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
+
+	double prevQuarNotInfected, prevQuarNotSymptomatic; // Which people are under quarantine but not themselves infected/sypmtomatic?
+
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)
 
@@ -184,7 +212,10 @@ typedef struct RESULTS {
 	//// iii) SaveResults and SaveSummary results.
 	///// need to update these quantities in InitModel (DONE), Record Sample (DONE) (and of course places where you need to increment, decrement).
 
-} results;
+};
+
+// The offset (in number of doubles) of the first double field in Results.
+const std::size_t ResultsDoubleOffsetStart = offsetof(Results, S) / sizeof(double);
 
 /**
  * Supports producing individual infection events from the simulation (and is not used that
@@ -192,10 +223,11 @@ typedef struct RESULTS {
  *
  * Added Events struct to allow us to log and write out infection events: ggilani 10/10/14
  */
-typedef struct EVENTS {
+struct Events
+{
 	double infectee_x, infectee_y, t, t_infector;
 	int run, infectee_ind, infector_ind, type, infectee_adunit, listpos, infectee_cell, infector_cell, thread;
-} events;
+};
 
 /*
   HQ - quarantined households
@@ -217,10 +249,11 @@ typedef struct EVENTS {
 /**
  * @brief Used for computing spatial interactions more efficiently.
  */
-typedef struct INDEXLIST {
+struct IndexList
+{
 	int id;
 	float prob;
-} indexlist;
+};
 
 /**
  * @brief Airport state.
@@ -228,13 +261,14 @@ typedef struct INDEXLIST {
  * Not used for COVID-19 right now. Might be more relevant for USA and
  * other countries that have lots of internal flights. Slows the simulation.
  */
-typedef struct AIRPORT {
+struct Airport
+{
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
-	unsigned short int country, adunit, num_connected, control, *conn_airports;
+	unsigned short int num_connected, *conn_airports;
 	float total_traffic, loc_x, loc_y;
 	float* prop_traffic;
-	indexlist* DestMcells, *DestPlaces;
-} airport;
+	IndexList* DestMcells, *DestPlaces;
+};
 
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
@@ -243,7 +277,8 @@ typedef struct AIRPORT {
  * members (people), places (schools, universities, workplaces etc.), road networks, links to
  * airports etc.
  */
-typedef struct MICROCELL {
+struct Microcell
+{
 	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
@@ -259,8 +294,8 @@ typedef struct MICROCELL {
 	unsigned short int treat, vacc, treat_trig, vacc_trig;
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
-	indexlist* AirportList;
-} microcell;
+	IndexList* AirportList;
+};
 
 /**
  * @brief Holds microcells.
@@ -269,13 +304,14 @@ typedef struct MICROCELL {
  * is vaccinated, treated etc.) Also contains data for the spatial gravity model for social
  * interactions (probability distributions).
 */
-typedef struct CELL {
+struct Cell
+{
 	int n, S, L, I, R, D, cumTC, S0, tot_treat, tot_vacc;
 	int* members, *susceptible, *latent, *infected; //// pointers to people in cell. e.g. *susceptible identifies where the final susceptible member of cel is.
 	int* InvCDF;
 	float tot_prob, *cum_trans, *max_trans;
 	short int CurInterv[MAX_INTERVENTION_TYPES];
-} cell;
+};
 
 /**
  * @brief Represents an institution that people may belong to.
@@ -287,7 +323,8 @@ typedef struct CELL {
  * Places can have different groups (to model differential interaction strengths between groups
  * in the same place).
  */
-typedef struct PLACE {
+struct Place
+{
 	int n, mcell;
 	unsigned short int ng, treat, control_trig, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
@@ -296,27 +333,29 @@ typedef struct PLACE {
 	float loc_x, loc_y;
 	float ProbClose;
 	int* group_start, *group_size, *members;
-} place;
+};
 
 /**
  * @brief Deprecated intervention mechanism.
  *
  * Not currently being used, but may be reinstated.
  */
-typedef struct INTERVENTION {
-	int InterventionType, DoAUThresh, NoStartAfterMin;
+struct Intervention
+{
+	int InterventionType, DoAUThresh, NoStartAfterMin,dummy; //dummy for 8 byte alignment
 	double StartTime, StopTime, MinDuration, RepeatInterval, TimeOffset;
 	double StartThresholdHigh, StartThresholdLow, StopThreshold, Level, LevelCellVar, LevelAUVar, LevelCountryVar, ControlParam, LevelClustering;
 	unsigned int MaxRounds, MaxResource;
-} intervention;
+};
 
 /**
  * @brief A political entity that administers a geographical area.
  */
-typedef struct ADMINUNIT {
+struct AdminUnit
+{
 	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15
-	intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
-	char cnt_name[100], ad_name[200];
+	Intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
+	char cnt_name[96], ad_name[200];
 	int NP, place_close_trig;
 	double CaseIsolationTimeStart, HQuarantineTimeStart, DigitalContactTracingTimeStart;
 	double SocialDistanceTimeStart, PlaceCloseTimeStart; //added these to admin unit in the hope of getting specific start times for Italy: ggilani 16/03/20
@@ -325,26 +364,26 @@ typedef struct ADMINUNIT {
 	double SocialDistanceDuration, HQuarantineDuration, CaseIsolationPolicyDuration, PlaceCloseDuration, DCTDuration;
 	int* dct, ndct; //arrays for admin unit based digital contact tracing: ggilani 10/03/20
 	double* origin_dest; //storage for origin-destination matrix between admin units: ggilani 28/01/15
-} adminunit;
+};
 
 #pragma pack(pop)
 
-extern person* Hosts;
-extern household* Households;
-extern popvar State, StateT[MAX_NUM_THREADS];
-extern cell* Cells, ** CellLookup;
-extern microcell* Mcells, ** McellLookup;
-extern place** Places;
-extern adminunit AdUnits[MAX_ADUNITS];
+extern Person* Hosts;
+extern Household* Households;
+extern PopVar State, StateT[MAX_NUM_THREADS];
+extern Cell* Cells, ** CellLookup;
+extern Microcell* Mcells, ** McellLookup;
+extern Place** Places;
+extern AdminUnit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-extern results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 
-extern airport* Airports;
-extern events* InfEventLog;
-extern int* nEvents;
+extern Airport* Airports;
+extern Events* InfEventLog;
+extern int nEvents;
 
 
 extern double inftype[INFECT_TYPE_MASK], inftype_av[INFECT_TYPE_MASK], infcountry[MAX_COUNTRIES], infcountry_av[MAX_COUNTRIES], infcountry_num[MAX_COUNTRIES];

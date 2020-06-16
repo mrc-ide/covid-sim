@@ -62,7 +62,6 @@
 [Trigger incidence per cell for place closure]
 0
 *** ^^^ change this for global too ***
->>>>>>> origin/master
 
 [Number of change times for levels of place closure]
 4

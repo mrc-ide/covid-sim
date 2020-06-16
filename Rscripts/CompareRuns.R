@@ -1,10 +1,8 @@
 #!/usr/bin/env Rscript
 # This script creates plots to compare different scenarios.
-# Command line arguments: 
+# Command line arguments:
 #    folder: the relative folder of where to find output files.
 # Will create plots in the "Plots/Comparsons" subfolder of folder
-
-#### Purpose: make plots that Neil outputs in his spreadsheets without having to use spreadsheets. ####
 
 # Requires a set of input runs in a base folder
 # Puts out a set of plots in the /Plots/Comparisons subfolder of the base folder
@@ -73,15 +71,15 @@ stopifnot(dir.exists(CompPlotDir))
 #### Hardcoded values about the simulation API ####
 
 # variables put out in the severity file
-SeverityVariables <- c("incI", "incMild", "incILI", "incSARI", "incCritical", "incDeath", 
+SeverityVariables <- c("incI", "incMild", "incILI", "incSARI", "incCritical", "incDeath",
 		"cumMild", "cumILI", "cumSARI", "cumCritical", "cumDeath")
-# severity output from c labelled as incidence of death, but it's actually cumulative deaths. correct here for now but will later fix in c code. 
+# severity output from c labelled as incidence of death, but it's actually cumulative deaths. correct here for now but will later fix in c code.
 CORRECT_INC_DEATH <- TRUE #
 # filenames to look for
 Pattern 			    <- ".avNE.severity.xls"
 
 # where do we find the info we want?
-Suffix <- ".avNE.severity.xls" 
+Suffix <- ".avNE.severity.xls"
 
 #### Define processing functions ####
 
@@ -90,33 +88,33 @@ CalcPlotWindow <- function(EpiCurves, Threshold = 0, PlotFromTo = NULL) {
   # set default
   MinTime <- 1
   MaxTime <- dim(EpiCurves)[1]
-  PlotWindow <- MinTime:MaxTime	
+  PlotWindow <- MinTime:MaxTime
   if (is.null(PlotFromTo)) {
     if (Threshold > 0) {
       MinTime <- 1
       MaxTime <- dim(EpiCurves)[1]
-      for (timestep in 1:dim(EpiCurves)[1]) if (any(EpiCurves[timestep, ] > Threshold)) {	MinTime = timestep; break } 
-      for (timestep in dim(EpiCurves)[1]:1) if (any(EpiCurves[timestep, ] > Threshold)) {	MaxTime = timestep; break } 
+      for (timestep in 1:dim(EpiCurves)[1]) if (any(EpiCurves[timestep, ] > Threshold)) {	MinTime = timestep; break }
+      for (timestep in dim(EpiCurves)[1]:1) if (any(EpiCurves[timestep, ] > Threshold)) {	MaxTime = timestep; break }
       if ((MaxTime - MinTime) <= 0)  ## reset in weird cases where exactly one time step is left. Breaks everything. Think of proper solution later.
       {
         MinTime <- 1
         MaxTime <- dim(EpiCurves)[1];
       }
-      PlotWindow <- MinTime:MaxTime		
+      PlotWindow <- MinTime:MaxTime
     }
   } else {
     PlotWindow <- as.numeric(as.Date(PlotFromTo[1]) - Day_0):as.numeric(as.Date(PlotFromTo[2]) - Day_0)
   }
-  
+
   return(PlotWindow)
 }
 
 #### Define Plotting Functions ####
 
-CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonName = "AllRuns", Names, 
+CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonName = "AllRuns", Names,
                              Threshold = 0, PlotFromTo = NULL, YLAB = SeverityVariable, LWD = 4, LegendPosition = "topright"){
   if (!is.null(PlotFromTo) && length(PlotFromTo) != 2) stop("PlotFromTo must be of length 2")
-  
+
   Index 	<- 1
   Flag    <- TRUE
   cat(paste0(SeverityVariable, "\n"))
@@ -127,27 +125,27 @@ CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonNam
     if (Flag) {
       EpiCurves	<- matrix(nrow = dim(Results)[1], ncol = length(Filenames))
       Flag <- FALSE
-    }	
+    }
     EpiCurves[, Index]  <- Results[, SeverityVariable]
   }
-  
+
   Cols 		    	<- bpy.colors(length(Filenames))
   Dates 			<- Day_0 + 0:(dim(Results)[1]-1)
   PlotWindow		<- CalcPlotWindow(EpiCurves, Threshold = Threshold, PlotFromTo = PlotFromTo)
   EpiCurves 		<- EpiCurves[PlotWindow,]
   Dates 		  	<- Dates[PlotWindow	]
-  
+
   maxY <- max(EpiCurves)
   plot(Dates, EpiCurves[,1],
        xaxt = "n", xlab = "",
        main = ComparisonName,
-       col = Cols[1], type = "l", lwd = LWD, 
-       ylab = YLAB, 
+       col = Cols[1], type = "l", lwd = LWD,
+       ylab = YLAB,
        ylim = c(0, maxY))
   for (Index in 2:length(Filenames))
     lines(Dates, EpiCurves[,Index], col = Cols[Index]	, lwd = LWD)
   axis.Date(1, at = seq(min(Dates), max(Dates), by = "months"), format = "%b", las = 2)
-  
+
   legend (LegendPosition, legend = Names, col = Cols, lty = 1, pch = NA, lwd = LWD, cex = 1)
 }
 
@@ -156,7 +154,7 @@ CompareEpiCurves <- function(Filenames, SeverityVariable = "incI", ComparisonNam
 
 GetVerboseScenarioName_Single 	= function(AbbreiviatedScenarioName) {
   VerboseScenario <- ""
-  
+
   if (length(grep("NoInt"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "NoIntervention_"	)
   if (length(grep("MG"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "MassGatherings_"	)
   if (length(grep("PC"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "PlaceClosure_"		)
@@ -166,10 +164,10 @@ GetVerboseScenarioName_Single 	= function(AbbreiviatedScenarioName) {
     if (length(grep("SDO"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "SocialDistOlder_"	) else
       if (length(grep("SD"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "SocialDist_"		)
       if (length(grep("SC"	, AbbreiviatedScenarioName)) > 0) VerboseScenario = paste0(VerboseScenario, "SchoolClosure_"	)
-      
+
       ### Chop off final "_"
-      
-      while (substr(VerboseScenario, nchar(VerboseScenario), nchar(VerboseScenario)) == "_") 
+
+      while (substr(VerboseScenario, nchar(VerboseScenario), nchar(VerboseScenario)) == "_")
         VerboseScenario = substr(VerboseScenario, 1, nchar(VerboseScenario) - 1)
       return(VerboseScenario)
 }
@@ -181,9 +179,9 @@ GetVerboseScenarioName_Many 	= function(AbbreiviatedScenarioNames) {
 
 #### ==== Get list of scenarios / filenames to compare ####
 
-## this should give every model run in folder (but will be too much info on one plot). 
+## this should give every model run in folder (but will be too much info on one plot).
 FilesToCheck 	    	<- list.files(path = InFolder, pattern = Pattern)
-PossibleScenarios 		<- sub(Pattern, "", FilesToCheck) 
+PossibleScenarios 		<- sub(Pattern, "", FilesToCheck)
 
 if (0 == length(Scenarios)) {
   # take all possible files
@@ -206,10 +204,10 @@ GetVerboseVariableString 	= function(InfVariableString)
 }
 GetIncPrevOrCumIncString 	= function(InfVariableString)
 {
-	if (length(grep("inc", InfVariableString)) > 0) 
-		IncPrevOrCumIncString = "Incidence" 				else 
-	if (length(grep("cum", InfVariableString)) > 0) 
-		IncPrevOrCumIncString = "Cumulative Incidence" 		else 
+	if (length(grep("inc", InfVariableString)) > 0)
+		IncPrevOrCumIncString = "Incidence" 				else
+	if (length(grep("cum", InfVariableString)) > 0)
+		IncPrevOrCumIncString = "Cumulative Incidence" 		else
 		IncPrevOrCumIncString = "Prevalence"
 	return(IncPrevOrCumIncString)
 }
@@ -221,7 +219,7 @@ for (SeverityVariable in SeverityVariables)
 	ComparisonName 			<- paste(InfVariableStringLong, IncPrevOrCumIncString, "by model run")
 	OutFileName <- file.path(CompPlotDir, paste0(InfVariableStringLong, "_", IncPrevOrCumIncString, ".png"))
 	png(file = OutFileName, res = PNG_res, units = "in", width = 7, height = 7)
-	CompareEpiCurves(Filenames, SeverityVariable, ComparisonName, 
+	CompareEpiCurves(Filenames, SeverityVariable, ComparisonName,
 			Names = Scenarios, Threshold = 1, YLAB = SeverityVariable, LWD = 6)
 	invisible(dev.off())
 }

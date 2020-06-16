@@ -1,28 +1,30 @@
 #ifndef COVIDSIM_RAND_H_INCLUDED_
 #define COVIDSIM_RAND_H_INCLUDED_
 
+#include <inttypes.h>
+
 /* ranf defines */
-#define Xm1 2147483563
-#define Xm2 2147483399
-#define Xa1 40014
-#define Xa2 40692
-#define Xa1vw 2082007225
-#define Xa2vw 784306273
+const int32_t Xm1 = 2147483563;
+const int32_t Xm2 = 2147483399;
+const int32_t Xa1 = 40014;
+const int32_t Xa2 = 40692;
+const int32_t Xa1vw = 2082007225;
+const int32_t Xa2vw = 784306273;
 
 /* RANDLIB global variables */
 extern int **SamplingQueue;
-extern long* Xcg1, *Xcg2;
+extern int32_t* Xcg1, *Xcg2;
 /* RANDLIB functions */
-long ignbin(long, double);
-long ignpoi(double);
-long ignbin_mt(long, double, int);
-long ignpoi_mt(double, int);
+int32_t ignbin(int32_t, double);
+int32_t ignpoi(double);
+int32_t ignbin_mt(int32_t, double, int);
+int32_t ignpoi_mt(double, int);
 double ranf(void);
 double ranf_mt(int);
-void setall(long *, long *);
+void setall(int32_t *, int32_t *);
 double sexpo_mt(int);
 double sexpo(void);
-long mltmod(long, long, long);
+int32_t mltmod(int32_t, int32_t, int32_t);
 double snorm(void);
 double snorm_mt(int);
 double fsign(double, double);

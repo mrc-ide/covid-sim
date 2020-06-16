@@ -93,7 +93,6 @@ cmd = [
         "--popfile", os.path.join(wpop_file_gz)
 ]
 
-if len(sys.argv) > 1 and sys.argv[1] == '--accept':
-    cmd.append("--accept")
+cmd.extend(sys.argv[1:])
 print("Command line: " + " ".join(cmd))
 process = subprocess.run(cmd, check=True)
