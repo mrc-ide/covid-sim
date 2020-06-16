@@ -58,7 +58,7 @@ void DoImmune(int ai)
 			Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
 			if (P.b.contains(pixel))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pixel.y * bmh->width + pixel.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -143,7 +143,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
 				if (P.b.contains(pixel))
 				{
-					unsigned j = iy * bmh->width + ix;
+					unsigned j = pixel.y * bmh->width + pixel.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -944,7 +944,7 @@ void DoRecover(int ai, int tn, int run)
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
 				if (P.b.contains(pixel))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pixel.y * bmh->width + pixel.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -994,7 +994,7 @@ void DoDeath(int ai, int tn, int run)
 				Vector2<int> pixel(Households[a->hh].loc * P.scale - P.bmin);
 				if (P.b.contains(pixel))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pixel.y * bmh->width + pixel.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -1029,7 +1029,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 				Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
 				if (P.b.contains(pixel))
 				{
-					unsigned j = y * bmh->width + x;
+					unsigned j = pixel.y * bmh->width + pixel.x;
 					if (j < bmh->imagesize)
 					{
 #pragma omp atomic
@@ -1060,7 +1060,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
 			if (P.b.contains(pixel))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pixel.y * bmh->width + pixel.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1088,7 +1088,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
 			if (P.b.contains(pixel))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pixel.y * bmh->width + pixel.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1306,7 +1306,7 @@ void DoVacc(int ai, unsigned short int ts)
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
 			if (P.b.contains(pixel))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pixel.y * bmh->width + pixel.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
@@ -1344,7 +1344,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 			Vector2<int> pixel(Households[Hosts[ai].hh].loc * P.scale - P.bmin);
 			if (P.b.contains(pixel))
 			{
-				unsigned j = y * bmh->width + x;
+				unsigned j = pixel.y * bmh->width + pixel.x;
 				if (j < bmh->imagesize)
 				{
 #pragma omp atomic
