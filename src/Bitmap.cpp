@@ -1,8 +1,8 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
 
 #include "BinIO.h"
 #include "Bitmap.h"
