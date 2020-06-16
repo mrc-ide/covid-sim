@@ -90,45 +90,10 @@ void ParamReader::extract_or_exit(std::string const& param, T& output)
 }
 
 template<typename T>
-bool ParamReader::extract_multiple(std::string const& param, T* output, std::size_t N, T default_value)
-{
-    if (!exists(param))
-    {
-        std::cerr << "Using default value: " << default_value << std::endl;
-        std::fill_n(output, N, default_value);
-        return false;
-    }
-
-    std::istringstream iss(m_param_value_map[param]);
-    for (auto i = 0; i < N; i++)
-    {
-        if (!raw_extract(iss, output[i]))
-        {
-            std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for "
-                      << param << ".\nUsing default value: " << default_value << std::endl;
-            std::fill_n(output, N, default_value);
-            return false;
-        }
-    }
-    return true;
-}
-
-template<typename T>
-bool ParamReader::cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value)
-{
-    if (conditional)
-        return extract_multiple(param, output, N, default_value);
-    std::fill_n(output, N, default_value);
-    return true;
-}
-
-template<typename T>
 bool ParamReader::extract_multiple_no_default(std::string const& param, T* output, std::size_t N)
 {
     if (!exists(param))
-    {
         return false;
-    }
 
     std::istringstream iss(m_param_value_map[param]);
     for (auto i = 0; i < N; i++)
@@ -146,18 +111,29 @@ bool ParamReader::extract_multiple_no_default(std::string const& param, T* outpu
 template<typename T>
 void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, std::size_t N)
 {
-    if (!exists(param))
+    if (extract_multiple_no_default(param, output, N) == false)
         std::exit(1);
+}
 
-    std::istringstream iss(m_param_value_map[param]);
-    for (auto i = 0; i < N; i++)
+template<typename T>
+bool ParamReader::extract_multiple(std::string const& param, T* output, std::size_t N, T default_value)
+{
+    if (extract_multiple_no_default(param, output, N) == false)
     {
-        if (!raw_extract(iss, output[i]))
-        {
-            std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for " << param << std::endl;
-            std::exit(1);
-        }
+        std::cerr << "Using default value: " << default_value << std::endl;
+        std::fill_n(output, N, default_value);
+        return false;
     }
+    return true;
+}
+
+template<typename T>
+bool ParamReader::cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value)
+{
+    if (conditional)
+        return extract_multiple(param, output, N, default_value);
+    std::fill_n(output, N, default_value);
+    return true;
 }
 
 bool ParamReader::extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N)
@@ -175,7 +151,7 @@ bool ParamReader::extract_multiple_strings_no_default(std::string const& param, 
             std::cerr << "ERROR: Only got " << i << " out of " << N << " parameters for " << param << std::endl;
             return false;
         }
-        output.emplace_back(token);
+        output.push_back(std::move(token));
     }
     return true;
 }
@@ -269,15 +245,18 @@ void ParamReader::parse_param_file(std::string const& param_file)
             // try to read the value of this parameter into a string
             std::string value_line;
             std::string tmp_line;
+            // read every line after the parameter name until there's no more or a break
             while (std::getline(param_stream, tmp_line))
             {
                 trim(tmp_line);
+                // break if the next line is empty or doesn't start with a letter, number, or '-' character
                 if (tmp_line.empty() || !(std::isalnum(tmp_line[0]) || tmp_line[0] == '-'))
                     break;
                 if (!value_line.empty())
                     value_line.push_back('\n');
                 value_line.append(tmp_line);
             }
+            // if there is no value found for the parameter, print an error and continue
             if (value_line.empty())
             {
                 std::cerr << "ERROR: Value is missing for parameter: " << param_line << std::endl;

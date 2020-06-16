@@ -25,56 +25,59 @@ public:
      * Each parameter-value pair can be extracted out by one of the extract_*()
      * functions by passing a storage variable of the type expected.
      *
-     * Note: The parameter file names passed into this function can be empty.
+     * @note: The parameter file names passed into this function can be empty.
      */
     ParamReader(std::string const& param_file, std::string const& preparam_file, std::string const& admin_file);
 
     /**
-     * Extract a single parameter value or assign the default to `output`.
-     *
-     * @note: The parameter value is checked using the numeric limits of the
-     *        output variable's type.
+     * Extract a single numeric value or assign the default to `output`.
      */
     template<typename T>
     bool extract(std::string const& param, T& output, T default_value);
 
     /**
-     * Extract and assign a single parameter value to `output` or exit the program.
-     *
-     * @note: The parameter value is checked using the numeric limits of the
-     *        output variable's type.
+     * Extract and assign a single numeric value to `output` or exit the program.
      */
     template<typename T>
     void extract_or_exit(std::string const& param, T& output);
 
     /**
-     * Extract multiple parameter values or assign the default to `N` values in `output`.
-     *
-     * @note: The parameter values are checked using the numeric limits of the
-     *        output variable's type.
+     * Extract multiple numeric values to `N` numbers in `output`, return false otherwise. 
      */
-    template<typename T>
-    bool extract_multiple(std::string const& param, T* output, std::size_t N, T default_value);
-
-    template<typename T>
-    bool cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value);
-
     template<typename T>
     bool extract_multiple_no_default(std::string const& param, T* output, std::size_t N);
 
     /**
-     * Extract and assign multiple parameter values to `N` values in `output` or exit the program.
-     *
-     * @note: The parameter values are checked using the numeric limits of the
-     *        output variable's type.
+     * Extract and assign multiple numeric values to `N` numbers in `output` or exit the program.
      */
     template<typename T>
     void extract_multiple_or_exit(std::string const& param, T* output, std::size_t N);
 
+    /**
+     * Extract multiple numeric values or assign the default to `N` numbers in `output`.
+     */
+    template<typename T>
+    bool extract_multiple(std::string const& param, T* output, std::size_t N, T default_value);
+
+    /**
+     * Conditionally extract multiple numeric values or assign the default to `N` numbers in `output`.
+     */
+    template<typename T>
+    bool cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value);
+
+    /**
+     * Extract exactly `N` strings into `output`, return false otherwise. 
+     */
     bool extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N);
 
+    /**
+     * Extract exactly `N` strings and add them to `output` or exit the program. 
+     */
     void extract_multiple_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N);
 
+    /**
+     * Extract a matrix of strings with `num_cols` columns per row and add them to `output` or exit the program. 
+     */
     void extract_string_matrix_or_exit(std::string const& param, std::vector<std::vector<std::string>>& output, std::size_t num_cols);
 
 private:
