@@ -5180,7 +5180,7 @@ void RecordInfTypes(void)
 			{
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
-				infcountry[Mcells[Hosts[i].mcell].country]++;
+				infcountry[mcell_country[Hosts[i].mcell]]++;
 				if (abs(Hosts[i].inf) < InfStat_Recovered)
 					l = -1;
 				else if (l >= 0)

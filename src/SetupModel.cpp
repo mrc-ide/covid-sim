@@ -854,7 +854,6 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			if (mcell_num[i] > 0)
 			{
 				mcell_dens[i] /= ((double)mcell_num[i]);
-				Mcells[i].country = (unsigned short)mcell_country[i];
 				if (P.DoAdUnits)
 					Mcells[i].adunit = mcell_adunits[i];
 				else
@@ -870,8 +869,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for (int i = 0; i < P.NMC; i++)
 		{
 			mcell_dens[i] = 1.0;
-			Mcells[i].country = 1;
 		}
+		std::fill_n(&mcell_country[0], P.NMC, 1);
 		maxd = ((double)P.NMC);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
@@ -1384,7 +1383,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 		FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
-			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr_shared)
+			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, mcell_country, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
@@ -1419,7 +1418,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 							Places[j2][k].loc.y = (float)yh;
 							Places[j2][k].n = 0;
 							Places[j2][k].mcell = i;
-							Places[j2][k].country = Mcells[i].country;
+							Places[j2][k].country = mcell_country[i];
 							Mcells[i].places[j2][j] = k;
 							k++;
 						}
@@ -2121,7 +2120,7 @@ void AssignPeopleToPlaces()
 						Direction m2 = Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
-							auto const host_country = Mcells[Hosts[i].mcell].country;
+							auto const host_country = mcell_country[Hosts[i].mcell];
 							while (((k < nn) || (l < 4)) && (l < P.total_microcells_wide_))
 							{
 								if (P.is_in_bounds(mc_position))

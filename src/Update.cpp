@@ -847,7 +847,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 		if (HOST_TREATED(ai)) Cells[Hosts[ai].pcell].cumTC++;
 		StateT[tn].cumC++;
 		StateT[tn].cumCa[age]++;
-		StateT[tn].cumC_country[Mcells[Hosts[ai].mcell].country]++; //add to cumulative count of cases in that country: ggilani - 12/11/14
+		StateT[tn].cumC_country[mcell_country[Hosts[ai].mcell]]++; //add to cumulative count of cases in that country: ggilani - 12/11/14
 		StateT[tn].cumC_keyworker[a->keyworker]++;
 
 
