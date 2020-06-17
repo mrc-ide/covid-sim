@@ -8,6 +8,10 @@ source_group(covidsim\\main FILES ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 # CovidSim target
 add_executable(CovidSim ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 target_include_directories(CovidSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_subdirectory(Geometry)
+add_subdirectory(Models)
+
 if(USE_OPENMP)
   target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
 endif()

@@ -15,6 +15,13 @@ void RecordEvent(double, int, int, int, int); //added int as argument to InfectS
 
 Severity ChooseFinalDiseaseSeverity(int, int);
 
+// state transition helpers
+void SusceptibleToRecovered(int cellIndex);
+void SusceptibleToLatent(int cellIndex);
+void LatentToInfectious(int cellIndex);
+void InfectiousToRecovered(int cellIndex);
+void InfectiousToDeath(int cellIndex);
+
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
@@ -27,7 +34,9 @@ void DoImmune(int ai)
 	{
 		c = a->pcell;
 		a->inf = InfStat_ImmuneAtStart;
-		Cells[c].S--;
+
+		SusceptibleToRecovered(c);
+
 		if (a->listpos < Cells[c].S)
 		{
 			Cells[c].susceptible[a->listpos] = Cells[c].susceptible[Cells[c].S];
@@ -48,14 +57,13 @@ void DoImmune(int ai)
 			Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I] = ai;
 			a->listpos = Cells[c].S + Cells[c].L + Cells[c].I;
 		}
-		Cells[c].latent--;
-		Cells[c].infected--;
-		Cells[c].R++;
+		
+
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[a->hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[a->hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -87,16 +95,15 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc_x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc_y - P.LocationInitialInfection[0][1]);
+		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0][0]);
+		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0][1]);
 		q = x * x + y * y;
 		StateT[tn].sumRad2 += q;
 
 		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
 		{
-			Cells[a->pcell].S--;
-			Cells[a->pcell].L++;			//// number of latently infected people increases by one.
-			Cells[a->pcell].latent--;		//// pointer to latent in that cell decreased.
+			SusceptibleToLatent(a->pcell);
+
 			if (a->listpos < Cells[a->pcell].S)
 			{
 				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
@@ -139,9 +146,9 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				int ix = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				int iy = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((ix >= 0) && (ix < P.bwidth) && (iy >= 0) && (iy < P.bheight))
+				int ix = ((int)(Households[a->hh].loc.x * P.scale.x)) - P.bmin.x;
+				int iy = ((int)(Households[a->hh].loc.y * P.scale.y)) - P.bmin.y;
+				if ((ix >= 0) && (ix < P.b.width) && (iy >= 0) && (iy < P.b.height))
 				{
 					unsigned j = iy * bmh->width + ix;
 					if (j < bmh->imagesize)
@@ -193,8 +200,8 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 		InfEventLog[nEvents].t = t;
 		InfEventLog[nEvents].infectee_ind = ai;
 		InfEventLog[nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc_x + P.SpatialBoundingBox[0];
-		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc_y + P.SpatialBoundingBox[1];
+		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc.x + P.SpatialBoundingBox[0];
+		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc.y + P.SpatialBoundingBox[1];
 		InfEventLog[nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[nEvents].thread = tn;
@@ -527,9 +534,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		}
 
 		//// update pointers
-		Cells[a->pcell].L--;		//// one fewer person latently infected.
-		Cells[a->pcell].infected--; //// first infected person is now one index earlier in array.
-		Cells[a->pcell].I++;		//// one more infectious person.
+		
+
+		LatentToInfectious(a->pcell);
+
 		if (Cells[a->pcell].L > 0)
 		{
 			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
@@ -923,8 +931,7 @@ void DoRecover(int ai, int tn, int run)
 	if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case)
 	{
 		i = a->listpos;
-		Cells[a->pcell].I--; //// one less infectious person
-		Cells[a->pcell].R++; //// one more recovered person
+		InfectiousToRecovered(a->pcell);
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
@@ -941,9 +948,9 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				x = ((int)(Households[a->hh].loc.x * P.scale.x)) - P.bmin.x;
+				y = ((int)(Households[a->hh].loc.y * P.scale.y)) - P.bmin.y;
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -969,8 +976,7 @@ void DoDeath(int ai, int tn, int run)
 	if ((a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case))
 	{
 		a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
-		Cells[a->pcell].D++;
-		Cells[a->pcell].I--;
+		InfectiousToDeath(a->pcell);
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
@@ -992,9 +998,9 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				x = ((int)(Households[a->hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[a->hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				x = ((int)(Households[a->hh].loc.x * P.scale.x)) - P.bmin.x;
+				y = ((int)(Households[a->hh].loc.y * P.scale.y)) - P.bmin.y;
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1030,9 +1036,9 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-				y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-				if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+				x = ((int)(Households[Hosts[ai].hh].loc.x * P.scale.x)) - P.bmin.x;
+				y = ((int)(Households[Hosts[ai].hh].loc.y * P.scale.y)) - P.bmin.y;
+				if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 				{
 					unsigned j = y * bmh->width + x;
 					if (j < bmh->imagesize)
@@ -1063,9 +1069,9 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1094,9 +1100,9 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1314,9 +1320,9 @@ void DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1354,9 +1360,9 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			x = ((int)(Households[Hosts[ai].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[ai].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[Hosts[ai].hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[Hosts[ai].hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				unsigned j = y * bmh->width + x;
 				if (j < bmh->imagesize)
@@ -1384,3 +1390,40 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	else DiseaseSeverity = Severity_Mild;
 	return DiseaseSeverity;
 }
+
+void SusceptibleToRecovered(int cellIndex)
+{
+	Cells[cellIndex].S--;
+	Cells[cellIndex].R++;
+	Cells[cellIndex].latent--;
+	Cells[cellIndex].infected--;
+}
+
+void SusceptibleToLatent(int cellIndex)
+{
+	Cells[cellIndex].S--; 
+	Cells[cellIndex].L++;			//// number of latently infected people increases by one.
+	Cells[cellIndex].latent--;		//// pointer to latent in that cell decreased.
+}
+
+
+void LatentToInfectious(int cellIndex)
+{
+	Cells[cellIndex].L--;		//// one fewer person latently infected.
+	Cells[cellIndex].I++;		//// one more infectious person.
+	Cells[cellIndex].infected--; //// first infected person is now one index earlier in array.
+}
+
+void InfectiousToRecovered(int cellIndex)
+{
+	Cells[cellIndex].I--; //// one less infectious person
+	Cells[cellIndex].R++; //// one more recovered person
+}
+
+
+void InfectiousToDeath(int cellIndex)
+{
+	Cells[cellIndex].I--; //// one less infectious person
+	Cells[cellIndex].D++; //// one more dead person
+}
+
