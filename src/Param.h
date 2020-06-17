@@ -42,8 +42,10 @@ struct Param
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
-	double SnapshotSaveTime, SnapshotLoadTime, clP[10];
+	int DoBin, DoSaveSnapshot, DoLoadSnapshot,FitIter;
+	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
+	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
+	void *clP_ptr[100][MAX_CLP_COPIES];
 	int NC; // Number of cells
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
@@ -70,9 +72,10 @@ struct Param
 	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection;
 	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
 	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
-	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis, DoInterventionFile;
+	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoInterventionFile;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
+	int FixLocalBeta;
 	int32_t setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
 	int32_t runSeed1, runSeed2; // RNG seeds from the command line, used to initialise the RNG for running the model
 	int32_t nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
@@ -111,7 +114,7 @@ struct Param
 	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
 	double SusceptibilitySD,InfectiousnessSD, R0DensityScalePower;
-	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
+	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	int CareHomePlaceType, CareHomeResidentMinimumAge;
 	double CareHomeResidentHouseholdScaling,CareHomeResidentSpatialScaling, CareHomeResidentGroupScaling, CareHomeRelProbHosp, CareHomePropResidents;
@@ -248,7 +251,8 @@ struct Param
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
 	double PreControlClusterIdTime, PreControlClusterIdCalTime, PreControlClusterIdHolOffset, PreIntervIdCalTime,PreIntervTime,SeedingScaling;
-	int PreControlClusterIdCaseThreshold, PreControlClusterIdCaseThreshold2, PreControlClusterIdUseDeaths, PreControlClusterIdDuration, DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold,StopCalibration,ModelCalibIteration;
+	int PreControlClusterIdCaseThresholdBase, PreControlClusterIdCaseThreshold, PreControlClusterIdCaseThreshold2, PreControlClusterIdUseDeaths, PreControlClusterIdDuration;
+	int DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold, StopCalibration, ModelCalibIteration,DoNoCalibration;
 	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
 	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, TriggersSamplingInterval, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];

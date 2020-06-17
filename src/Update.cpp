@@ -460,8 +460,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
+		{
 			a->inf = InfStat_InfectiousAsymptomaticNotCase;
-
+			a->infectiousness *= (float) P.AsymptInfectiousness;
+		}
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
@@ -482,7 +484,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			if ((a->care_home_resident) && ((a->Severity_Final == Severity_Critical) || (a->Severity_Final == Severity_SARI))&&(ranf_mt(tn)>P.CareHomeRelProbHosp))
 			{
 				// care home residents who weren't hospitalised but would otherwise have needed critical care will all die
-				if (a->Severity_Final == Severity_Critical)	a->to_die = 1;
+				//if (a->Severity_Final == Severity_Critical)	a->to_die = 1;
+				a->to_die = 1;
 				// change final severity to ILI (meaning not hospitalised), but leave to_die flag
 				a->Severity_Final = Severity_ILI;
 			}
@@ -835,7 +838,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 				{
-					if ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j]))
+					if ((!Hosts[ai].care_home_resident) && ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j])))
 					{
 						a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
 						a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
@@ -910,7 +913,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
-		if ((!P.DoEarlyCaseDiagnosis) || (State.cumDC >= P.PreControlClusterIdCaseThreshold)) StateT[tn].cumDC++;
+		if (State.cumDC >= P.PreControlClusterIdCaseThreshold) StateT[tn].cumDC++;
 		DoDetectedCase(ai, t, ts, tn);
 	}
 	StateT[tn].cumFC++;

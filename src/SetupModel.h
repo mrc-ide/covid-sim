@@ -2,6 +2,9 @@
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
 void SetupModel(char*, char*, char*, char*);
+int ReadFitIter(char*);
+void ResetTimeSeries(void);
+void InitTransmissionCoeffs(void);
 void SetupPopulation(char*, char*);
 void SetupAirports(void);
 void AssignHouseholdAges(int, int, int);

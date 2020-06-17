@@ -18,7 +18,7 @@ double CalcHouseInf(int j, unsigned short int ts)
 		*   ((Hosts[j].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0)
 		*   (HOST_TREATED(j) ? P.TreatInfDrop : 1.0)
 		*   (HOST_VACCED(j) ? P.VaccInfDrop : 1.0)
-		*   ((P.NoInfectiousnessSDinHH)? ((Hosts[j].infectiousness < 0) ? P.SymptInfectiousness : 1.0) :fabs(Hosts[j].infectiousness))  // removed call to CalcPersonInf to allow infectiousness to be const in hh
+		*   ((P.NoInfectiousnessSDinHH)? ((Hosts[j].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness):fabs(Hosts[j].infectiousness))  // removed call to CalcPersonInf to allow infectiousness to be const in hh
 		*   P.infectiousness[ts - Hosts[j].latent_time - 1];
 }
 
@@ -27,7 +27,7 @@ double CalcPlaceInf(int j, int k, unsigned short int ts)
 	return	((HOST_ISOLATED(j) && (Hosts[j].digitalContactTraced != 1)) ? P.CaseIsolationEffectiveness : 1.0)
 		*	((Hosts[j].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
 		*	((HOST_QUARANTINED(j) && (!Hosts[j].care_home_resident) && (Hosts[j].digitalContactTraced != 1) && (!(HOST_ISOLATED(j)))) ? P.HQuarantinePlaceEffect[k] : 1.0)
-		*	((Hosts[j].inf == InfStat_Case) ? P.SymptPlaceTypeContactRate[k] : 1.0)
+		*	(((Hosts[j].inf == InfStat_Case) && (!Hosts[j].care_home_resident)) ? P.SymptPlaceTypeContactRate[k] : 1.0)
 		*	P.PlaceTypeTrans[k] / P.PlaceTypeGroupSizeParam1[k] * CalcPersonInf(j, ts);
 }
 

@@ -137,7 +137,7 @@ struct PopVar
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];
 
-	int ** prevInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	int prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 
 	//// above quantities need to be amended in following parts of code:
@@ -163,7 +163,7 @@ struct Results
 {
 	// Initial values should not be touched by mean/var calculation
 	double t;
-	double ** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 	// The following values must all be doubles or inline arrays of doubles
 	// The first variable must be S.  If that changes change the definition of
