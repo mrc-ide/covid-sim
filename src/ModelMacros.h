@@ -1,7 +1,7 @@
 #ifndef COVIDSIM_MODELMACROS_H_INCLUDED_
 #define COVIDSIM_MODELMACROS_H_INCLUDED_
 
-#include <limits.h>
+#include <climits>
 
 #define HOST_TREATED(x) ((Hosts[x].treat_stop_time > ts) && (Hosts[x].treat_start_time <= ts))
 #define HOST_TO_BE_TREATED(x) (Hosts[x].treat_stop_time > ts)

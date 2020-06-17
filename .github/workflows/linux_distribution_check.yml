@@ -35,11 +35,23 @@ jobs:
     - uses: actions/checkout@v1
     - name: install dependencies
       run: ./ci/install_dependencies.sh
-    - name: build
+    - name: download cmake
+      run: |
+        wget https://cmake.org/files/v3.17/cmake-3.17.2-Linux-x86_64.tar.gz
+        tar xf cmake-3.17.2-Linux-x86_64.tar.gz
+        export PATH=$(pwd)/cmake-3.17.2-Linux-x86_64/bin:${PATH}
+    - name: build bionic
+      run: |
+        mkdir build && cd build
+        ../cmake-3.17.2-Linux-x86_64/bin/cmake ..
+        make
+      if: matrix.container_image == 'ubuntu:bionic'
+    - name: build others
       run: |
         mkdir build && cd build
         cmake ..
         make
+      if: matrix.container_image != 'ubuntu:bionic'
     - name: regression tests
       run: |
         make -Cbuild test ARGS="-V -j2"
