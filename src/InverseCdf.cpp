@@ -13,9 +13,9 @@ void InverseCdf::set_defaults(double start_value)
 
 void InverseCdf::apply_exponent()
 {
-	for (int i = 0; i <= CDF_RES; i++)
+	for (int quantile = 0; quantile <= CDF_RES; quantile++)
 	{
-		cdf_values_[i] = exp(-cdf_values_[i]);
+		cdf_values_[quantile] = exp(-cdf_values_[quantile]);
 	}
 }
 
