@@ -293,6 +293,7 @@ struct AdminUnit
 #pragma pack(pop)
 
 extern Person* Hosts;
+extern std::vector<PersonQuarantine> HostsQuarantine;
 extern Household* Households;
 extern PopVar State, StateT[MAX_NUM_THREADS];
 extern Cell* Cells, ** CellLookup;

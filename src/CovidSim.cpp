@@ -78,6 +78,7 @@ int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
 Param P;
 Person* Hosts;
+std::vector<PersonQuarantine> HostsQuarantine;
 Household* Households;
 PopVar State, StateT[MAX_NUM_THREADS];
 Cell* Cells; // Cells[i] is the i'th cell
@@ -2481,9 +2482,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].absent_start_time = USHRT_MAX - 1;
 			Hosts[k].absent_stop_time = 0;
 			if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-			Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
+			Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
 			Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-			Hosts[k].quar_comply = 2;
 			Hosts[k].to_die = 0;
 			Hosts[k].Travelling = 0;
 			Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15

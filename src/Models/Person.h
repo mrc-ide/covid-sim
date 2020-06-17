@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <limits>
+
 #include "../Country.h"
 #include "../InfStat.h"
 
@@ -21,7 +24,6 @@ struct Person
 
 	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
 	unsigned char age;
-	unsigned char quar_comply;		// can be 0, 1, or 2
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
 	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
@@ -31,7 +33,7 @@ struct Person
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
 	unsigned short int absent_start_time, absent_stop_time;
-	unsigned short int quar_start_time, isolation_start_time;
+	unsigned short int isolation_start_time;
 	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease.
 	unsigned short int recovery_or_death_time;	// set in DoIncub function
 	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
@@ -42,4 +44,12 @@ struct Person
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
+};
+
+struct PersonQuarantine
+{
+	uint8_t  comply;		// can be 0, 1, 2
+	uint16_t start_time;	// timestep quarantine is started
+
+	PersonQuarantine() : comply(2), start_time(std::numeric_limits<uint16_t>::max()-1) {}
 };
