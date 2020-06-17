@@ -2615,8 +2615,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
 				Hosts[k].Critical_time = USHRT_MAX - 1;
 				Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
-				Hosts[k].Severity_Current = Severity_Asymptomatic;
-				Hosts[k].Severity_Final = Severity_Asymptomatic;
+				Hosts[k].Severity_Current = Severity::Asymptomatic;
+				Hosts[k].Severity_Final = Severity::Asymptomatic;
 				Hosts[k].inf = InfStat_Susceptible;
 			}
 		}
@@ -4796,7 +4796,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{

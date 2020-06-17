@@ -1,12 +1,12 @@
 #ifndef COVIDSIM_INFSTAT_H_INCLUDED_
 #define COVIDSIM_INFSTAT_H_INCLUDED_
 
-//// Infection Status definitions / labels (generally positive value indicates asymptomatic infection, 
+//// Infection Status definitions / labels (generally positive value indicates asymptomatic infection,
 //// negative value indicates symptomatic infection).
 
-enum InfStat {	
-  
-//// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" / 
+enum InfStat {
+
+//// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" /
 //// "Quarantined not symptomatic" calculation: relies on value below being negative for symptomatic people.
 
 	//// Susceptible
@@ -36,19 +36,19 @@ enum InfStat {
 };
 
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
-enum Severity {
+enum struct Severity {
 	//// Flag value.
-	Severity_Asymptomatic = -1,
-	Severity_Mild = 0,
-	Severity_ILI = 1,
-	Severity_SARI = 2,
-	Severity_Critical = 3,
+	Asymptomatic,
+	Mild,
+	ILI,
+	SARI,
+	Critical,
 	//// Recovering from Critical (not recovered yet).
-	Severity_RecoveringFromCritical = 4,
+	RecoveringFromCritical,
 	//// label to avoid double counting. Not sure you need.
-	Severity_Dead = 5,
+	Dead,
 	//// label to avoid double counting. Not sure you need.
-	Severity_Recovered = 6
+	Recovered
 };
 
 #endif // COVIDSIM_INFSTAT_H_INCLUDED_
