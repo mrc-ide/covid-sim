@@ -718,7 +718,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	Mcells = (Microcell*)Memory::xcalloc(P.NMC, sizeof(Microcell));
 	mcell_num = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 	mcell_dens = (double*)Memory::xcalloc(P.NMC, sizeof(double));
-	mcell_country = std::vector<uint16_t>(P.NMC, 0);
+	mcell_country = std::vector<uint16_t>(P.NMC, 1);
 	mcell_adunits = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 
 	for (j = 0; j < P.NMC; j++)
@@ -871,7 +871,6 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		{
 			mcell_dens[i] = 1.0;
 		}
-		std::fill_n(&mcell_country[0], P.NMC, 1);
 		maxd = ((double)P.NMC);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
