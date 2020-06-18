@@ -25,9 +25,8 @@ void InfectiousToRecovered(int cellIndex);
 void InfectiousToDeath(int cellIndex);
 
 // if the dest cell state == src cell state, use this
-void UpdateCell(int* cellPeople, int destIndex, int srcIndex);
-
-void UpdateCell(int* cellPeople, int* srcCellPeople, int destIndex, int srcIndex);
+void UpdateCell(int* cellPeople, int index, int srcIndex);
+void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
 
 void DoImmune(int ai)
 {
@@ -1472,20 +1471,20 @@ void InfectiousToDeath(int cellIndex)
 }
 
 void UpdateCell(int* cellPeople,
-	int destIndex,
+	int index,
 	int srcIndex)
 {
-	UpdateCell(cellPeople, cellPeople, destIndex, srcIndex);
+	UpdateCell(cellPeople, cellPeople, index, srcIndex);
 }
 
 void UpdateCell(int* cellPeople,
 	int* srcCellPeople,
-	int destIndex,
+	int index,
 	int srcIndex)
 {
-	cellPeople[destIndex] = srcCellPeople[srcIndex];
+	cellPeople[index] = srcCellPeople[srcIndex];
 
 	// update the listpos
-	Hosts[cellPeople[destIndex]].listpos = destIndex;
+	Hosts[cellPeople[index]].listpos = index;
 }
 
