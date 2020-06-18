@@ -1,13 +1,15 @@
 #ifndef COVIDSIM_INFSTAT_H_INCLUDED_
 #define COVIDSIM_INFSTAT_H_INCLUDED_
 
-//// Infection Status definitions / labels (generally positive value indicates asymptomatic infection,
-//// negative value indicates symptomatic infection).
+//// Infection Status definitions / labels (generally positive value indicates asymptomatic
+/// infection, / negative value indicates symptomatic infection).
 
-enum InfStat {
+enum InfStat
+{
 
-//// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" /
-//// "Quarantined not symptomatic" calculation: relies on value below being negative for symptomatic people.
+	//// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" /
+	//// "Quarantined not symptomatic" calculation: relies on value below being negative for
+	/// symptomatic people.
 
 	//// Susceptible
 	InfStat_Susceptible = 0,
@@ -25,7 +27,8 @@ enum InfStat {
 	InfStat_RecoveredFromSymp = -3,
 	//// InfStat_Recovered (will use this for abs() values) so code reads correctly
 	InfStat_Recovered = 3,
-	//// Immune at start of epidemic - used to model partially immune population. Distinct from recovered, who recovered during runtime. Doesn't take negative values.
+	//// Immune at start of epidemic - used to model partially immune population. Distinct from
+	/// recovered, who recovered during runtime. Doesn't take negative values.
 	InfStat_ImmuneAtStart = 4,
 	//// Dead was asymptomatic
 	InfStat_Dead_WasAsymp = 5,
@@ -36,7 +39,8 @@ enum InfStat {
 };
 
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
-enum Severity {
+enum Severity
+{
 	//// Flag value.
 	Severity_Asymptomatic = -1,
 	Severity_Mild = 0,

@@ -13,7 +13,7 @@ const int32_t Xa2vw = 784306273;
 
 /* RANDLIB global variables */
 extern int **SamplingQueue;
-extern int32_t* Xcg1, *Xcg2;
+extern int32_t *Xcg1, *Xcg2;
 /* RANDLIB functions */
 int32_t ignbin(int32_t, double);
 int32_t ignpoi(double);
@@ -28,10 +28,10 @@ int32_t mltmod(int32_t, int32_t, int32_t);
 double snorm(void);
 double snorm_mt(int);
 double fsign(double, double);
-//added some new beta, gamma generating functions: ggilani 27/11/14
+// added some new beta, gamma generating functions: ggilani 27/11/14
 double gen_norm_mt(double, double, int);
 double gen_gamma_mt(double, double, int);
-//added some new lognormal sampling functions: ggilani 09/02/17
+// added some new lognormal sampling functions: ggilani 09/02/17
 double gen_lognormal(double, double);
 void SampleWithoutReplacement(int, int, int);
 

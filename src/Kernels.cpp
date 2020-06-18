@@ -1,9 +1,9 @@
+#include "Kernels.h"
+#include "Dist.h"
+#include "Error.h"
+#include "Param.h"
 #include <cmath>
 #include <iostream>
-#include "Kernels.h"
-#include "Error.h"
-#include "Dist.h"
-#include "Param.h"
 
 #include "Model.h"
 
@@ -27,7 +27,7 @@ double *nKernel, *nKernelHR;
 
 void InitKernel(double norm)
 {
-	double(*Kernel)(double);
+	double (*Kernel)(double);
 
 	if (P.KernelType == 1)
 		Kernel = ExpKernel;
@@ -46,7 +46,7 @@ void InitKernel(double norm)
 	else
 		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", P.KernelType);
 
-#pragma omp parallel for schedule(static,500) default(none) \
+#pragma omp parallel for schedule(static, 500) default(none)                                       \
 		shared(P, Kernel, nKernel, nKernelHR, norm)
 	for (int i = 0; i <= P.NKR; i++)
 	{
@@ -54,8 +54,7 @@ void InitKernel(double norm)
 		nKernelHR[i] = (*Kernel)(((double)i) * P.KernelDelta / P.NK_HR) / norm;
 	}
 
-#pragma omp parallel for schedule(static,500) default(none) \
-		shared(P, CellLookup)
+#pragma omp parallel for schedule(static, 500) default(none) shared(P, CellLookup)
 	for (int i = 0; i < P.NCP; i++)
 	{
 		Cell *l = CellLookup[i];
@@ -69,8 +68,9 @@ void InitKernel(double norm)
 	}
 }
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-//// **** KERNEL DEFINITIONS
+//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+/////// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** / **** KERNEL
+/// DEFINITIONS
 
 double ExpKernel(double r2)
 {
@@ -92,7 +92,9 @@ double PowerKernelB(double r2)
 double PowerKernelUS(double r2)
 {
 	double t = log(sqrt(r2) / P.KernelScale + 1);
-	return (t < -690) ? 0 : (exp(-P.KernelShape * t) + P.KernelP3 * exp(-P.KernelP4 * t)) / (1 + P.KernelP3);
+	return (t < -690)
+						 ? 0
+						 : (exp(-P.KernelShape * t) + P.KernelP3 * exp(-P.KernelP4 * t)) / (1 + P.KernelP3);
 }
 
 double GaussianKernel(double r2)

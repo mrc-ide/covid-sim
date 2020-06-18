@@ -13,9 +13,9 @@
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0400
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <vfw.h>
 #include <gdiplus.h>
+#include <vfw.h>
+#include <windows.h>
 #endif
 #ifdef IMAGE_MAGICK
 #include "Magick++.h"
@@ -39,7 +39,7 @@ struct BitmapHeader
 };
 
 extern int32_t *bmPopulation, *bmInfected, *bmRecovered, *bmTreated;
-extern BitmapHeader* bmh;
+extern BitmapHeader *bmh;
 
 void CaptureBitmap();
 void OutputBitmap(int);
