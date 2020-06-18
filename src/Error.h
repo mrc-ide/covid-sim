@@ -7,10 +7,10 @@
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void ErrorCritical(const char* msg, const char* file, int line, ...)
+		void ErrorCritical(const char *msg, const char *file, int line, ...)
 #ifdef __GNUC__
-  __attribute__ ((noreturn)) __attribute__ ((format (printf, 1, 4)))
+				__attribute__((noreturn)) __attribute__((format(printf, 1, 4)))
 #endif
-;
+				;
 
 #endif // COVIDSIM_ERROR_H_INCLUDED_

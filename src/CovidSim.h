@@ -7,22 +7,22 @@
 // not found. The following should include the lib file only on Clang.
 
 #ifdef _WIN32
-  #ifdef __clang__
+#ifdef __clang__
 #pragma comment(lib, "libomp.lib")
-  #endif
+#endif
 #endif
 
 #include <climits>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <cstddef>
 
 #include <cmath>
-#include <cstring>
 #include <csignal>
+#include <cstring>
 #include <ctime>
 
-#include "Country.h"
 #include "Constants.h"
+#include "Country.h"
 
 #endif // COVIDSIM_COVIDSIM_H_INCLUDED_

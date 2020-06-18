@@ -1,14 +1,14 @@
 #ifndef COVIDSIM_SETUPMODEL_H_INCLUDED_
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
-void SetupModel(char*, char*, char*, char*);
-void SetupPopulation(char*, char*);
+void SetupModel(char *, char *, char *, char *);
+void SetupPopulation(char *, char *);
 void SetupAirports(void);
 void AssignHouseholdAges(int, int, int);
 void AssignPeopleToPlaces(void);
 void StratifyPlaces(void);
-void LoadPeopleToPlaces(char*);
-void SavePeopleToPlaces(char*);
+void LoadPeopleToPlaces(char *);
+void SavePeopleToPlaces(char *);
 void SaveAgeDistrib(void);
 void UpdateProbs(int);
 
@@ -22,6 +22,6 @@ struct BinFile
 	int cnt, ad;
 };
 
-extern char OutFile[1024],OutDensFile[1024];
+extern char OutFile[1024], OutDensFile[1024];
 
 #endif // COVIDSIM_SETUPMODEL_H_INCLUDED_
