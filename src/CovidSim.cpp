@@ -582,8 +582,9 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.DoAdUnits)
 	{
 		char** AdunitNames, * AdunitNamesBuf;
-		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*))) ||
+			!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char))))
+			ERR_CRITICAL("Unable to allocate temp storage\n");
 
 		for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 		{
@@ -2066,16 +2067,12 @@ void ReadInterventions(char* IntFile)
 
 	fprintf(stderr, "Reading intervention file.\n");
 	if (!(dat = fopen(IntFile, "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
-	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
-	if(fscanf(dat, "<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
+	if(fscanf(dat, "%*[^<]") != 0 ||
+		fscanf(dat, "<%[^>]", txt) != 1 ||
+		fscanf(dat, "%*[^<]<%[^>]", txt) != 1)
+		// needs to be separate line because start of file
+    ERR_CRITICAL("fscanf failed in ReadInterventions\n");
 	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ERR_CRITICAL("Intervention file not XML.\n");
-	if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
 	if (strcmp(txt, "InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level.\n");
 	ni = 0;
 	while (!feof(dat))
@@ -2089,8 +2086,9 @@ void ReadInterventions(char* IntFile)
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
                 ERR_CRITICAL("fscanf failed in ReadInterventions\n");
             }
-			if (strcmp(txt, "parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (strcmp(txt, "parameters") != 0 ||
+				!GetXMLNode(dat, "Type", "parameters", txt, 1))
+				ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			if (strcmp(txt, "Treatment") == 0)
 				CurInterv.InterventionType = 0;
 			else if (strcmp(txt, "Vaccination") == 0)
@@ -2316,8 +2314,9 @@ void ReadAirTravel(char* AirTravelFile)
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
-	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float))) ||
+		!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport))))
+		ERR_CRITICAL("Unable to allocate airport storage\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
@@ -2347,8 +2346,9 @@ void ReadAirTravel(char* AirTravelFile)
 		Airports[i].num_connected = k;
 		if (Airports[i].num_connected > 0)
 		{
-			if (!(Airports[i].prop_traffic = (float*)calloc(Airports[i].num_connected, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-			if (!(Airports[i].conn_airports = (unsigned short int*) calloc(Airports[i].num_connected, sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+			if (!(Airports[i].prop_traffic = (float*)calloc(Airports[i].num_connected, sizeof(float))) ||
+				!(Airports[i].conn_airports = (unsigned short int*) calloc(Airports[i].num_connected, sizeof(unsigned short int))))
+				ERR_CRITICAL("Unable to allocate airport storage\n");
 			for (j = k = 0; j < P.Nairports; j++)
 				if (buf[j] > 0)
 				{
@@ -3941,12 +3941,13 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))) ||
+				!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))) ||
+				!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))) ||
+				!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))) ||
+				!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))) ||
+				!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double))))
+				ERR_CRITICAL("Unable to allocate temp storage\n");
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4063,12 +4064,13 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double))) ||
+				!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double))) ||
+				!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double))) ||
+				!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double))) ||
+				!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double))) ||
+				!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double))))
+				ERR_CRITICAL("Unable to allocate temp storage\n");
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4278,10 +4280,11 @@ void LoadSnapshot(void)
 
 	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*)))) ERR_CRITICAL("Unable to allocate temp cell storage\n");
-	if (!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*))) ||
+		!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*))) ||
+		!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*))) ||
+		!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float))))
+		ERR_CRITICAL("Unable to temp allocate cell storage\n");
 	for (i = 0; i < P.NCP; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;
@@ -4796,7 +4799,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{
