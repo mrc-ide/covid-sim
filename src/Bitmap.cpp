@@ -286,11 +286,10 @@ void InitBMHead()
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);
 #ifdef _WIN32
-	if (!(CreateDirectory(buf, NULL)))
+	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else
-	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
+	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #endif
-		 fprintf(stderr, "Unable to create directory %s\n", buf);
 }
 
 void Bitmap_Finalise()
