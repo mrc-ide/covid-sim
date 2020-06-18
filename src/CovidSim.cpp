@@ -4,6 +4,7 @@
 
 #include <cerrno>
 #include <cstddef>
+#include <stdio.h>
 
 #include "BinIO.h"
 #include "Bitmap.h"

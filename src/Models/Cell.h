@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Country.h"
+
 /**
  * @brief Holds microcells.
  *
