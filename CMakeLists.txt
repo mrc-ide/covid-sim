@@ -59,6 +59,7 @@ if(WIN32 AND USE_WIN32_BMP)
   message(WARNING "To enable testing invoke with `cmake -DUSE_WIN32_BMP=NO`")
 else()
 enable_testing()
+add_subdirectory(unit_tests)
 add_subdirectory(tests)
 endif()
 
