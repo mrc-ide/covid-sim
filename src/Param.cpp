@@ -22,7 +22,5 @@ bool Param::is_in_bounds(MicroCellPosition position) const {
 }
 
 int Param::get_micro_cell_index_from_position(MicroCellPosition position) const {
-	int x = (position.x + this->get_number_of_micro_cells_wide()) % this->get_number_of_micro_cells_wide();
-	int y = (position.y + this->get_number_of_micro_cells_high()) % this->get_number_of_micro_cells_high();
-	return x * this->get_number_of_micro_cells_high() + y;
+	return position.x * this->get_number_of_micro_cells_high() + position.y;
 }
