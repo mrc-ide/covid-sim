@@ -26,4 +26,5 @@ indent_size = 2
 # C++ source
 [*.c,*.cpp,*.h]
 indent_style = tab
-indent_size = 2
+indent_size = tab
+tab_width = 2
