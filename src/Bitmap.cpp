@@ -112,7 +112,7 @@ void OutputBitmap(int tp)
 {
 	char buf[3000], OutF[3000];
 	int j = 0;
-	static int cn1 = 0, cn2 = 0, cn3 = 0, cn4 = 0;
+	static int cn[4] = {0, 0, 0, 0};
 
 	char *OutBaseName = strrchr(OutFile, '/');
 	char *OutBaseName2 = strrchr(OutFile, '\\');
@@ -123,27 +123,10 @@ void OutputBitmap(int tp)
 		OutBaseName = OutFile;
 	}
 
-	switch (tp) {
-		case 0:
-			j = cn1;
-			cn1++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
-			break;
-		case 1:
-			j = cn2;
-			cn2++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Mean.%s", OutFile, OutBaseName);
-			break;
-		case 2:
-			j = cn3;
-			cn3++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Min.%s", OutFile, OutBaseName);
-			break;
-		case 3:
-			j = cn4;
-			cn4++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
-			break;
+	for (auto &i : cn) {
+		j = i;
+		i++;
+		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
 	}
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
@@ -177,7 +160,7 @@ void OutputBitmap(int tp)
 	  //This transfers HBITMAP to GDI+ Bitmap object
 	  Bitmap* gdip_bmp = Bitmap::FromHBITMAP(bmpdib, NULL);
 	  //Now change White in palette (first entry) to be transparent
-	  if ((cn1 == 1) && (tp == 0))
+	  if ((cn[0] == 1) && (tp == 0))
 	  {
 		  static UINT palsize;
 		  static ColorPalette* palette;
@@ -303,10 +286,11 @@ void InitBMHead()
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);
 #ifdef _WIN32
-	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(CreateDirectory(buf, NULL)))
 #else
-	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
 #endif
+		 fprintf(stderr, "Unable to create directory %s\n", buf);
 }
 
 void Bitmap_Finalise()
