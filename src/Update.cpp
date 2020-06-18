@@ -9,7 +9,6 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 #include "Rand.h"
-#include <cassert>
 
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
@@ -45,28 +44,16 @@ void DoImmune(int ai)
 
 		if (a->listpos < Cells[c].S)
 		{
-			//Cells[c].susceptible[a->listpos] = Cells[c].susceptible[Cells[c].S];
-			//Hosts[Cells[c].susceptible[a->listpos]].listpos = a->listpos;
 			UpdateCell(Cells[c].susceptible, a->listpos, Cells[c].S);
-			assert(Cells[c].susceptible[a->listpos] == Cells[c].susceptible[Cells[c].S]);
-			assert(Hosts[Cells[c].susceptible[a->listpos]].listpos == a->listpos);
 		}
 		if (Cells[c].L > 0)
 		{
-			//Cells[c].susceptible[Cells[c].S] = Cells[c].susceptible[Cells[c].S + Cells[c].L];
-			//Hosts[Cells[c].susceptible[Cells[c].S]].listpos = Cells[c].S;
 			UpdateCell(Cells[c].susceptible, Cells[c].S, Cells[c].S + Cells[c].L);
-			assert(Cells[c].susceptible[Cells[c].S] == Cells[c].susceptible[Cells[c].S + Cells[c].L]);
-			assert(Hosts[Cells[c].susceptible[Cells[c].S]].listpos == Cells[c].S);
-
 		}
+
 		if (Cells[c].I > 0)
 		{
-/*			Cells[c].susceptible[Cells[c].S + Cells[c].L] = Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I];
-			Hosts[Cells[c].susceptible[Cells[c].S + Cells[c].L]].listpos = Cells[c].S + Cells[c].L;
-	*/		UpdateCell(Cells[c].susceptible, Cells[c].S + Cells[c].L, Cells[c].S + Cells[c].L + Cells[c].I);
-			assert(Cells[c].susceptible[Cells[c].S + Cells[c].L] == Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I]);
-			assert(Hosts[Cells[c].susceptible[Cells[c].S + Cells[c].L]].listpos == Cells[c].S + Cells[c].L);
+			UpdateCell(Cells[c].susceptible, Cells[c].S + Cells[c].L, Cells[c].S + Cells[c].L + Cells[c].I);
 
 		}
 
@@ -124,11 +111,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 
 			if (a->listpos < Cells[a->pcell].S)
 			{
-//				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
-	//			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
 				UpdateCell(Cells[a->pcell].susceptible, a->listpos, Cells[a->pcell].S);
-				assert(Cells[a->pcell].susceptible[a->listpos] == Cells[a->pcell].susceptible[Cells[a->pcell].S]);
-				assert(Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos == a->listpos);
 
 				a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
 				Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
@@ -562,11 +545,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (Cells[a->pcell].L > 0)
 		{
-			//Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
-			///Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
 			UpdateCell(Cells[a->pcell].susceptible, Cells[a->pcell].latent, a->listpos, Cells[a->pcell].L);
-			assert(Cells[a->pcell].susceptible[a->listpos] == Cells[a->pcell].latent[Cells[a->pcell].L]); //// reset pointers.
-			assert(Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos == a->listpos);
 
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L; //// change person a's listpos, which will now refer to their position among infectious people, not latent.
 			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array. Pointer was moved back one so now that memory address refers to person ai. Alternative would be to move everyone back one which would take longer.
@@ -956,12 +935,7 @@ void DoRecover(int ai, int tn, int run)
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-//			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
-	//		Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
 			UpdateCell(Cells[a->pcell].susceptible, i, j);
-			assert(Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j]);
-			assert(Hosts[Cells[a->pcell].susceptible[i]].listpos == i);
-
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
@@ -1005,12 +979,7 @@ void DoDeath(int ai, int tn, int run)
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-//			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].infected[Cells[a->pcell].I];
-	//		Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = i;
 			UpdateCell(Cells[a->pcell].susceptible, Cells[a->pcell].infected, a->listpos, Cells[a->pcell].I);
-			assert(Cells[a->pcell].susceptible[a->listpos] == Cells[a->pcell].infected[Cells[a->pcell].I]);
-			assert(Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos == i);
-
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 			Cells[a->pcell].susceptible[a->listpos] = ai;
 		}
