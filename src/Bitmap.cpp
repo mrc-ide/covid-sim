@@ -265,13 +265,10 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
+	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
+		!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
+		!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
+		!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
 #ifdef _WIN32
