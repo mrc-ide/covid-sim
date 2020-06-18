@@ -9,11 +9,7 @@
 
 double sinx[361], cosx[361], asin2sqx[1001];
 
-//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-/////// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** / **** DISTANCE
-/// FUNCTIONS (return distance-squared, which is input for every Kernel function) / **** //// ****
-/////// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** ////
-///**** //// **** //// **** //// **** //// **** //// **** //// ****
+//// **** DISTANC FUNCTIONS (return distance-squared, which is input for every Kernel function)
 
 double periodic_xy(double x, double y)
 {

@@ -303,9 +303,9 @@ void InfectSweep(double t,
 	///(and therefore number of new infections to) i) their house; ii) their place(s); iii) other
 	/// spatial cells. / Each force of infection includes infectiousness and susceptibility
 	/// components. / Infectiousness is (broadly) a function of 1 person (their age, treatment status,
-	///places, no. people in their household etc.) / Susceptibility is (broadly) a function of 2
-	/// people (a person's susceptibility TO ANOTHER PERSON / potential infector) / After loop 1a) over
-	/// infectious people, spatial infections are doled out.
+	/// places, no. people in their household etc.) / Susceptibility is (broadly) a function of 2
+	/// people (a person's susceptibility TO ANOTHER PERSON / potential infector) / After loop 1a)
+	/// over infectious people, spatial infections are doled out.
 
 	int n; //// number of people you could potentially infect in your place group, then number of
 				 /// potential spatial infections doled out by cell on other cells.
@@ -462,9 +462,9 @@ void InfectSweep(double t,
 											//				1= household
 											//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based
 											// transmission 				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 =
-											// between-class/work-group place based transmission 				2*NUM_PLACE_TYPES+2
-											// = "spatial" transmission (spatially local random mixing)
-											// bits >4 store the generation of infection
+											// between-class/work-group place based transmission 2*NUM_PLACE_TYPES+2 =
+											// "spatial" transmission (spatially local random mixing) bits >4 store the
+											// generation of infection
 
 											short int infect_type =
 													1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
@@ -1820,9 +1820,7 @@ int TreatSweep(double t)
 				/// microcells that are within this admin unit (and around this microcell) to be treated,
 				/// using the flags set to avoid duplication.
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** TREATMENT / **** ////
-				///**** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** TREATMENT
 
 				if ((Mcells[b].treat == 2) && (ts >= Mcells[b].treat_end_time))
 				{
@@ -1911,9 +1909,7 @@ int TreatSweep(double t)
 					}
 				}
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** VACCINATION / ****
-				/////// **** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** VACCINATION
 
 				//// vaccinates proportion VaccProp of people in microcell (or at least adds them to
 				/// geovacc_queue).
@@ -2010,9 +2006,7 @@ int TreatSweep(double t)
 					}
 				}
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** PLACE CLOSURE / ****
-				/////// **** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** PLACE CLOSURE
 
 				///// note that here f2 bool asks whether trigger lower than stop threshold. A few blocks
 				/// down meaning changes to almost the opposite: asking whether trigger has exceeded
@@ -2124,9 +2118,7 @@ int TreatSweep(double t)
 					}
 				}
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** MOVEMENT RESTRICTIONS
 
 				if ((Mcells[b].moverest == 2) && (ts >= Mcells[b].move_end_time))
 				{
@@ -2207,9 +2199,7 @@ int TreatSweep(double t)
 					}
 				}
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** SOCIAL DISTANCING /
-				///**** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** SOCIAL DISTANCING
 
 				if (P.DoGlobalTriggers)
 					f2 = (global_trig < P.SocDistCellIncStopThresh);
@@ -2295,9 +2285,7 @@ int TreatSweep(double t)
 						}
 				}
 
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-				/////// **** //// **** //// **** / **** //// **** //// **** //// **** KEY-WORKER PROPHYLAXIS
-				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+				//// **** KEY-WORKER PROPHYLAXIS
 
 				if ((Mcells[b].keyworkerproph == 2) && (ts >= Mcells[b].keyworkerproph_end_time))
 				{

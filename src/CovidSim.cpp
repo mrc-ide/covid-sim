@@ -69,12 +69,8 @@ int GetInputParameter3(FILE *, const char *, const char *, void *, int, int, int
 
 void SetICDF(double *icdf, double startValue);
 
-///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// *****
-//////// ***** ///// ***** ///// ***** ///// ***** /////
-///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in
-/// CovidSim.h file and some containers) - memory allocated later.
-///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// *****
-//////// ***** ///// ***** ///// ***** ///// ***** /////
+//// **** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers)
+//// **** -  memory allocated later.
 
 Param P;
 Person *Hosts;
@@ -374,10 +370,7 @@ int main(int argc, char *argv[])
 										 "[/R:R0scaling] SetupSeed1 SetupSeed2 RunSeed1 RunSeed2\n",
 										 argv[0]);
 
-		//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** ////
-		///**** //// **** //// **** //// **** //// **** / **** SET UP OMP / THREADS / **** //// ****
-		/////// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-		/////// **** //// **** //// ****
+		//// **** SET UP OMP / THREADS
 
 #ifdef _OPENMP
 	P.NumThreads = omp_get_max_threads();
@@ -406,10 +399,7 @@ int main(int argc, char *argv[])
 		sprintf(PreParamFile, ".." DIRECTORY_SEPARATOR "Pre_%s", ParamFile);
 	}
 
-	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** ////
-	///**** //// **** //// **** //// **** //// **** / **** READ IN PARAMETERS, DATA ETC. / **** ////
-	///**** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-	/////// **** //// **** //// ****
+	//// **** READ IN PARAMETERS, DATA ETC.
 
 	P.NumRealisations = GotNR;
 	ReadParams(ParamFile, PreParamFile);
@@ -425,10 +415,7 @@ int main(int argc, char *argv[])
 		ReadAirTravel(AirTravelFile);
 	}
 
-	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** ////
-	///**** //// **** //// **** //// **** //// **** / **** INITIALIZE / **** //// **** //// **** ////
-	///**** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-	/////// ****
+	//// **** INITIALIZE
 
 	///// initialize model (for all realisations).
 	SetupModel(DensityFile, NetworkFile, SchoolFile, RegDemogFile);
@@ -443,10 +430,7 @@ int main(int argc, char *argv[])
 
 	// print out number of calls to random number generator
 
-	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** ////
-	///**** //// **** //// **** //// **** //// **** / **** RUN MODEL / **** //// **** //// **** ////
-	///**** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-	/////// ****
+	//// **** RUN MODEL
 
 	P.NRactE = P.NRactNE = 0;
 	for (i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
@@ -2237,11 +2221,7 @@ void ReadParams(char *ParamFile, char *PreParamFile)
 		}
 	}
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
-	///// **** DIGITAL CONTACT TRACING
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
+	//// **** DIGITAL CONTACT TRACING
 
 	// New code for digital contact tracing - ggilani: 09/03/20
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include digital contact tracing", "%i",
@@ -2400,11 +2380,7 @@ void ReadParams(char *ParamFile, char *PreParamFile)
 		P.ScalingFactorPlaceDigitalContacts = 1;
 	}
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
-	///// **** PLACE CLOSURE
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
+	//// **** PLACE CLOSURE
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat,
 													"Trigger incidence per cell for place closure", "%i",
@@ -2538,11 +2514,7 @@ void ReadParams(char *ParamFile, char *PreParamFile)
 		P.PlaceCloseByAdminUnit = 0;
 	}
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
-	///// **** SOCIAL DISTANCING
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
+	//// **** SOCIAL DISTANCING
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat,
 													"Trigger incidence per cell for social distancing", "%i",
@@ -2668,11 +2640,7 @@ void ReadParams(char *ParamFile, char *PreParamFile)
 													(void *)&(P.AirportCloseDuration), 1, 1, 0))
 		P.AirportCloseDuration = USHRT_MAX / P.TimeStepsPerDay;
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
-	///// **** HOUSEHOLD QUARANTINE
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
+	//// **** HOUSEHOLD QUARANTINE
 
 	if (P.DoHouseholds)
 	{
@@ -2748,11 +2716,7 @@ void ReadParams(char *ParamFile, char *PreParamFile)
 			P.CaseIsolationHouseEffectiveness = P.CaseIsolationEffectiveness;
 	}
 
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
-	///// **** VARIABLE EFFICACIES OVER TIME
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	//////// **** ///// **** ///// ****
+	//// **** VARIABLE EFFICACIES OVER TIME
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Vary efficacies over time", "%i",
 													(void *)&(P.VaryEfficaciesOverTime), 1, 1, 0))
@@ -5104,7 +5068,7 @@ void SaveResults(void)
 				ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
-			/////// ****** /////// ****** /////// ****** COLNAMES
+			//// **** COLNAMES
 			//// prevalence
 			for (i = 0; i < P.NumAdunits; i++)
 				fprintf(dat, "\tMild_%s", AdUnits[i].ad_name);
@@ -5161,7 +5125,7 @@ void SaveResults(void)
 
 			fprintf(dat, "\n");
 
-			/////// ****** /////// ****** /////// ****** Populate table.
+			//// **** Populate table.
 			for (i = 0; i < P.NumSamples; i++)
 			{
 				fprintf(dat, "%.10f", TimeSeries[i].t);
@@ -5785,7 +5749,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
-			/////// ****** /////// ****** /////// ****** COLNAMES
+			//// **** COLNAMES
 			//// prevalance
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				fprintf(dat, "\tMild_%i", i);
@@ -5854,7 +5818,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 			fprintf(dat, "\n");
 
-			/////// ****** /////// ****** /////// ****** Populate table.
+			//// **** Populate table.
 			for (i = 0; i < P.NumSamples; i++)
 			{
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
@@ -5990,7 +5954,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				ERR_CRITICAL("Unable to open output file\n");
 			fprintf(dat, "t");
 
-			/////// ****** /////// ****** /////// ****** COLNAMES
+			//// **** COLNAMES
 			//// prevalance
 			for (i = 0; i < P.NumAdunits; i++)
 				fprintf(dat, "\tMild_%s", AdUnits[i].ad_name);
@@ -6059,7 +6023,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 
 			fprintf(dat, "\n");
 
-			/////// ****** /////// ****** /////// ****** Populate table.
+			//// **** Populate table.
 			for (i = 0; i < P.NumSamples; i++)
 			{
 				for (j = 0; j < P.NumAdunits; j++)
