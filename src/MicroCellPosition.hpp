@@ -1,8 +1,7 @@
 #pragma once
 
-#include <stdexcept>
-
 #include "Direction.hpp"
+#include "Error.h"
 
 struct MicroCellPosition
 {
@@ -16,7 +15,7 @@ struct MicroCellPosition
 			case Up: this->y -= 1; break;
 			case Left: this->x -= 1; break;
 			case Down: this->y += 1; break;
-			default: throw std::out_of_range("direction");
+			default: ERR_CRITICAL("Unknown direction");
 		}
 		return *this;
 	}
