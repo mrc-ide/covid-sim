@@ -26,4 +26,4 @@ jobs:
       run: |
         pwd
         ls -l
-        make -Cbuild test ARGS="-V"
+        make -Cbuild test ARGS="-V -j2"
