@@ -957,8 +957,12 @@ void DoRecover(int ai, int tn, int run)
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
-			Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+//			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
+	//		Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+			UpdateCell(Cells[a->pcell].susceptible, i, j);
+			assert(Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j]);
+			assert(Hosts[Cells[a->pcell].susceptible[i]].listpos == i);
+
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
@@ -1002,8 +1006,12 @@ void DoDeath(int ai, int tn, int run)
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].infected[Cells[a->pcell].I];
-			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = i;
+//			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].infected[Cells[a->pcell].I];
+	//		Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = i;
+			UpdateCell(Cells[a->pcell].susceptible, Cells[a->pcell].infected, a->listpos, Cells[a->pcell].I);
+			assert(Cells[a->pcell].susceptible[a->listpos] == Cells[a->pcell].infected[Cells[a->pcell].I]);
+			assert(Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos == i);
+
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 			Cells[a->pcell].susceptible[a->listpos] = ai;
 		}
