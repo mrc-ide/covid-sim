@@ -64,7 +64,7 @@ namespace CovidSim
     ///
     /// lookup_ is a table of lookups. lookup_[0] is the kernel
     /// value at a distance of 0, and lookup_.back() is the kernel value at the
-    /// largest possible distance (diagonal across the bounding box).
+    /// largest possible distance.
     ///
     /// hi_res_ is a higher-resolution table of lookups, also of lookup_.size()
     /// elements.  hi_res_[n * expansion_factor_] corresponds to lookup_[n] for
