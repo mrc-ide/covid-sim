@@ -485,7 +485,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
-	int i, j, k, f, nc, na;
+	int i, j, j1, j2, k, f, nc, na;
 	char CountryNameBuf[128 * MAX_COUNTRIES], AdunitListNamesBuf[128 * MAX_ADUNITS];
 
 	char* CountryNames[MAX_COUNTRIES];
@@ -671,10 +671,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include age", "%i", (void*) & (P.DoAge), 1, 1, 0)) P.DoAge = 1;
 	if (!P.DoAge)
 	{
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		for (i = 0; i < NUM_AGE_GROUPS; i++) {
 			P.PropAgeGroup[0][i] = 1.0 / NUM_AGE_GROUPS;
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-		{
 			P.InitialImmunity[i] = 0;
 			P.AgeInfectiousness[i] = P.AgeSusceptibility[i] = 1;
 			P.RelativeSpatialContact[i] = P.RelativeTravelRate[i] = 1.0;
@@ -891,17 +889,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
 				P.LocalJourneyDurationDistrib[i] += P.LocalJourneyDurationDistrib[i - 1];
 			}
-			for (i = j = 0; i <= 1024; i++)
+			for (i = j1 = j2 = 0; i <= 1024; i++)
 			{
 				s = ((double)i) / 1024;
-				while (P.JourneyDurationDistrib[j] < s)j++;
-				P.InvJourneyDurationDistrib[i] = j;
-			}
-			for (i = j = 0; i <= 1024; i++)
-			{
-				s = ((double)i) / 1024;
-				while (P.LocalJourneyDurationDistrib[j] < s)j++;
-				P.InvLocalJourneyDurationDistrib[i] = j;
+				while (P.JourneyDurationDistrib[j1] < s) j1++;
+				P.InvJourneyDurationDistrib[i] = j1;
+				while (P.LocalJourneyDurationDistrib[j2] < s) j2++;
+				P.InvLocalJourneyDurationDistrib[i] = j2;
 			}
 		}
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Mean size of place types", "%lf", (void*)P.PlaceTypeMeanSize, P.PlaceTypeNum, 1, 0);
@@ -4779,7 +4773,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{
@@ -5742,4 +5736,3 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 	}
 	inverseCdf->assign_exponent();
 }
-
