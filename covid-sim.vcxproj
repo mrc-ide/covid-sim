@@ -104,6 +104,7 @@
     <ClCompile Include="src\Param.cpp" />
     <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
+    <ClCompile Include="src\Geometry\Vector2.cpp" />
     <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
   <ItemGroup>
