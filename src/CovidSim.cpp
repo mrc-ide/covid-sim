@@ -2473,7 +2473,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					StateT[Thread].cumInf_age_adunit [AgeGroup][Adunit] = 0;
 				}
 
-
+	std::fill(HostsQuarantine.begin(), HostsQuarantine.end(), PersonQuarantine());
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)

@@ -1065,7 +1065,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	i2 = 0;
 
 	Hosts = (Person*)Memory::xcalloc(P.PopSize, sizeof(Person));
-	HostsQuarantine = std::vector<PersonQuarantine>(P.PopSize);
+	HostsQuarantine = std::vector<PersonQuarantine>(P.PopSize, PersonQuarantine());
 	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
 	for (int i = 0; i < P.NCP; i++)
 	{
