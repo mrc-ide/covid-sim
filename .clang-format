@@ -1,0 +1,12 @@
+﻿---
+BasedOnStyle: Microsoft
+AccessModifierOffset: -2
+BreakBeforeBraces: Allman
+ColumnLimit: 100
+IndentWidth: 2
+Language: Cpp
+Standard: Cpp11
+TabWidth: 2
+UseTab: Always
+
+...
