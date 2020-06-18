@@ -11,13 +11,13 @@ enum InfStat {
 
 	//// Susceptible
 	InfStat_Susceptible = 0,
-	//// E or L (neither infectious nor symptomatic).
+	//// Neither infectious nor symptomatic (E or L).
 	InfStat_Latent = 1,
 	//// Infectious and about to become a case.
 	InfStat_InfectiousAlmostSymptomatic = -1,
-	//// Not just asymptomatic, but also will not become symptomatic (i.e. a case.)
+	//// Not just asymptomatic, but also will not become symptomatic (i.e. a case)
 	InfStat_InfectiousAsymptomaticNotCase = 2,
-	//// case. Infectious and symptomatic.
+	//// Case. Infectious and symptomatic.
 	InfStat_Case = -2,
 	//// Recovered from asymptomatic infection
 	InfStat_RecoveredFromAsymp = 3,
@@ -25,7 +25,7 @@ enum InfStat {
 	InfStat_RecoveredFromSymp = -3,
 	//// InfStat_Recovered (will use this for abs() values) so code reads correctly
 	InfStat_Recovered = 3,
-	//// Immune at start of epidemic - used to model partially immune population. Distinct therefore from recovered, who recovered during runtime. Doesn't take negative values.
+	//// Immune at start of epidemic - used to model partially immune population. Distinct from recovered, who recovered during runtime. Doesn't take negative values.
 	InfStat_ImmuneAtStart = 4,
 	//// Dead was asymptomatic
 	InfStat_Dead_WasAsymp = 5,
