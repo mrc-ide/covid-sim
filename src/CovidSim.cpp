@@ -484,7 +484,7 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 			fprintf(stderr, "Model finished\n");
 		}
-		if (GotDT) CalcLikelihood(DataFile,(GotF)?FitFile:OutFile);
+		if (GotDT) CalcLikelihood(DataFile,OutFile);
 	}
 	while (!StopFit);
 }
@@ -5416,8 +5416,6 @@ void CalibrationThresholdCheck(double t,int n)
 
 void CalcLikelihood(char *DataFile, char *OutFileBase)
 {
-	char* OutFile,FieldName[1024];
-	double c,LL;
 	FILE* dat;
 
 	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
@@ -5425,6 +5423,7 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 
 	if (!DataAlreadyRead)
 	{
+		char FieldName[1024];
 		if (!(dat = fopen(DataFile, "r"))) ERR_CRITICAL("Unable to open data file\n");
 		fscanf(dat, "%i %i %lg", &ncols, &nrows,&NegBinK);
 		ncols++; // add one for time column
@@ -5463,10 +5462,14 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 		}
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
-				fscanf(dat, "%lg", Data[i][j]);
+				fscanf(dat, "%lg", &(Data[i][j]));
+		fclose(dat);
 		DataAlreadyRead = 1;
 	}
-	LL = 0;
+
+	// calculate likelihood function
+	double c, LL;
+	LL = 0.0;
 	c = 1 / ((double)(P.NRactE + P.NRactNE));
 	for (int i = 1; i < ncols;i++)
 	{
@@ -5484,6 +5487,7 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 						ModelValue=c*(TimeSeries[day].incDeath_Critical+ TimeSeries[day].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
 					else if (ColTypes[i] == 2)
 						ModelValue = c * TimeSeries[day].incDeath_ILI; // care home deaths (ILI) by date of death
+					// negative binomial log likelihood
 					LL += lgamma(ModelValue+ NegBinK)-lgamma(ModelValue + 1)+ NegBinK*log(NegBinK/(NegBinK+ ModelValue))+ ModelValue*log(1e-20+ ModelValue/(NegBinK+ModelValue));
 				}
 			}
@@ -5524,6 +5528,13 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 			}
 		}
 	}
+	char OutFile[1024], TmpFile[1024];
+	sprintf(TmpFile, "%s.ll.tmp",OutFileBase);
+	sprintf(OutFile, "%s.ll.txt", OutFileBase);
+	if (!(dat = fopen(TmpFile, "w"))) ERR_CRITICAL("Unable to open likelihood file\n");
+	fprintf(dat, "%i\t%lg\n", P.FitIter, LL);
+	fclose(dat);
+	rename(TmpFile, OutFile); // rename only when file is complete and closed
 }
 
 void RecordInfTypes(void)
