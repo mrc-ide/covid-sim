@@ -94,7 +94,6 @@ AdminUnit AdUnits[MAX_ADUNITS];
 //// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
 Results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 Airport* Airports;
-BitmapHeader* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
 Events* InfEventLog;
 int nEvents;
@@ -107,12 +106,6 @@ double case_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], case_hous
 double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES];
 double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
 double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
-
-// These allow up to about 2 billion people per pixel, which should be ample.
-int32_t *bmPopulation; // The population in each bitmap pixel. Special value -1 means "country boundary"
-int32_t *bmInfected; // The number of infected people in each bitmap pixel.
-int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
-int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -156,9 +149,9 @@ int main(int argc, char* argv[])
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-	P.BitmapFormat = BitmapFormats::PNG;
+	P.bitmap.format_ = CovidSim::BitMap::Formats::PNG;
 #else
-	P.BitmapFormat = BitmapFormats::BMP;
+	P.bitmap.format_ = CovidSim::BitMap::Formats::BMP;
 #endif
 
 	// Set parameter defaults - read them in after
@@ -233,7 +226,7 @@ int main(int argc, char* argv[])
 	}
 
 	std::cerr << "Param=" << param_file << "\nOut=" << output_file_base << "\nDens=" << density_file << std::endl;
-	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
+	fprintf(stderr, "Bitmap Format = *.%s\n", P.bitmap.format_ == CovidSim::BitMap::Formats::PNG ? "png" : "bmp");
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -408,7 +401,7 @@ int main(int argc, char* argv[])
 			//sprintf(OutFile, "%s.avE", OutFileBase);
 			//SaveSummaryResults();
 
-			Bitmap_Finalise();
+			P.bitmap.finalise();
 
 			fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
 			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
@@ -425,13 +418,13 @@ void parse_bmp_option(std::string const& input) {
 
 	if (input_copy.compare("png") == 0) {
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
-		P.BitmapFormat = BitmapFormats::PNG;
+		P.bitmap.format_ = CovidSim::BitMap::Formats::PNG;
 #else
 		ERR_CRITICAL("PNG Bitmaps not supported - please build with Image Magic or WIN32 support");
 #endif
 	}
 	else if (input_copy.compare("bmp") == 0) {
-		P.BitmapFormat = BitmapFormats::BMP;
+		P.bitmap.format_ = CovidSim::BitMap::Formats::BMP;
 	}
 	else {
 		ERR_CRITICAL_FMT("Unrecognised bitmap format: %s", input_copy.c_str());
@@ -1260,7 +1253,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*)&(P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*)&(P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap movie frame interval", "%i", (void*)&(P.BitmapMovieFrame), 1, 1, 0)) P.BitmapMovieFrame = 250;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap", "%i", (void*)&(P.OutputBitmap), 1, 1, 0)) P.OutputBitmap = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap", "%i", (void*) & (P.bitmap.output_), 1, 1, 0)) P.bitmap.output_ = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap detected", "%i", (void*)&(P.OutputBitmapDetected), 1, 1, 0)) P.OutputBitmapDetected = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output immunity on bitmap", "%i", (void*)&(P.DoImmuneBitmap), 1, 1, 0)) P.DoImmuneBitmap = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output infection tree", "%i", (void*)&(P.DoInfectionTree), 1, 1, 0)) P.DoInfectionTree = 0;
@@ -2495,19 +2488,19 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	int nim;
 	int NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS];
 
-	if (P.OutputBitmap)
+	if (P.bitmap.output_)
 	{
 #ifdef _WIN32
-		//if (P.OutputBitmap == 1)
+		//if (P.bitmap.output_ == 1)
 		//{
 		//	char buf[200];
 		//	sprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
 		//	avi = CreateAvi(buf, P.BitmapMovieFrame, NULL);
 		//}
 #endif
-		for (unsigned p = 0; p < bmh->imagesize; p++)
+		for (unsigned p = 0; p < P.bitmap.header_->imagesize; p++)
 		{
-			bmInfected[p] = bmRecovered[p] = bmTreated[p] = 0;
+			CovidSim::BitMap::Builder::infected_[p] = CovidSim::BitMap::Builder::recovered_[p] = CovidSim::BitMap::Builder::treated_[p] = 0;
 		}
 	}
 	ns = 0;
@@ -3421,7 +3414,7 @@ void SaveResults(std::string const& output_file_base)
 	//	DeleteFile(outname);
 	//	}
 #endif
-	if(P.OutputBitmap >= 1 && P.BitmapFormat == BitmapFormats::PNG)
+		if(P.bitmap.output_ >= 1 && P.bitmap.format_ == CovidSim::BitMap::Formats::PNG)
 		{
 		// Generate Google Earth .kml file
 		outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + ".ge.kml"; // outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base ".kml";
@@ -5121,11 +5114,11 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			StateT[j].contact_dist[i] = 0;
 		}
 	}
-	if (P.OutputBitmap >= 1)
+	if (P.bitmap.output_ >= 1)
 	{
 		TSMean = TSMeanNE; TSVar = TSVarNE;
-		CaptureBitmap();
-		OutputBitmap(0, output_file_base);
+		P.bitmap.capture();
+		P.bitmap.output (0, output_file_base);
 	}
 }
 
