@@ -583,8 +583,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.DoAdUnits)
 	{
 		char** AdunitNames, * AdunitNamesBuf;
-		AdunitNames = (char**)Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*));
-		AdunitNamesBuf = (char*)Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char));
+		AdunitNames = (char**)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE, sizeof(char*));
+		AdunitNamesBuf = (char*)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE * 360, sizeof(char));
 
 		for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 		{
@@ -3925,12 +3925,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			SARI_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
-			Critical_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
-			CritRecov_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
-			incSARI_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
-			incCritical_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
-			incCritRecov_a = (double*)Memory::xmalloc(NUM_AGE_GROUPS * sizeof(double));
+			SARI_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			Critical_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			CritRecov_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incSARI_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incCritical_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incCritRecov_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4047,12 +4047,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			SARI_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
-			Critical_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
-			CritRecov_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
-			incSARI_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
-			incCritical_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
-			incCritRecov_a = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
+			SARI_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			Critical_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			CritRecov_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incSARI_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incCritical_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incCritRecov_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4262,10 +4262,10 @@ void LoadSnapshot(void)
 
 	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	Array_InvCDF = (int**)Memory::xmalloc(P.NCP * sizeof(int*));
-	Array_max_trans = (float**)Memory::xmalloc(P.NCP * sizeof(float*));
-	Array_cum_trans = (float**)Memory::xmalloc(P.NCP * sizeof(float*));
-	Array_tot_prob = (float*)Memory::xmalloc(P.NCP * sizeof(float));
+	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
+	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
+	Array_cum_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
+	Array_tot_prob = (float*)Memory::xcalloc(P.NCP, sizeof(float));
 	for (i = 0; i < P.NCP; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;

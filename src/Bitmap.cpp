@@ -183,7 +183,7 @@ void OutputBitmap(int tp)
 		  static UINT palsize;
 		  static ColorPalette* palette;
 		  palsize = gdip_bmp->GetPaletteSize();
-		  palette = (ColorPalette*)Memory::xmalloc(palsize);
+		  palette = (ColorPalette*)Memory::xcalloc(1, palsize);
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
 		  palette->Entries[0] = 0x00ffffff; // Transparent white
@@ -264,10 +264,10 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	bmPopulation = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
-	bmInfected = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
-	bmRecovered = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
-	bmTreated = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
+	bmPopulation = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmInfected = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmRecovered = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmTreated = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
 
 #ifdef _WIN32
 	if (P.BitmapFormat == BitmapFormats::PNG)
@@ -281,7 +281,7 @@ void InitBMHead()
 
 	  Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 	  Gdiplus::GetImageEncodersSize(&num, &size);
-	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xmalloc(size);
+	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xcalloc(1, size);
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 	  for (UINT j = 0; j < num; ++j) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()

@@ -32,8 +32,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	char buf[2048];
 	FILE* dat;
 
-  Xcg1 = (int32_t*)Memory::xmalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t));
-  Xcg2 = (int32_t*)Memory::xmalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE * sizeof(int32_t));
+  Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
+  Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
@@ -49,7 +49,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		{
 			P.DoBin = 1;
 			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			BinFileBuf = Memory::xmalloc(P.BinFileLen * sizeof(BinFile));
+			BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
 			BF = (BinFile*)BinFileBuf;
 			fclose(dat);
@@ -64,7 +64,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
 			// Read each line, and build the binary structure that corresponds to it
 			rewind(dat);
-			BinFileBuf = (void*)Memory::xmalloc(P.BinFileLen * sizeof(BinFile));
+			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 			BF = (BinFile*)BinFileBuf;
 			int index = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL)
@@ -716,10 +716,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 
 	Cells = (Cell*)Memory::xcalloc(P.NC, sizeof(Cell));
 	Mcells = (Microcell*)Memory::xcalloc(P.NMC, sizeof(Microcell));
-	mcell_num = (int*)Memory::xmalloc(P.NMC * sizeof(int));
-	mcell_dens = (double*)Memory::xmalloc(P.NMC * sizeof(double));
-	mcell_country = (int*)Memory::xmalloc(P.NMC * sizeof(int));
-	mcell_adunits = (int*)Memory::xmalloc(P.NMC * sizeof(int));
+	mcell_num = (int*)Memory::xcalloc(P.NMC, sizeof(int));
+	mcell_dens = (double*)Memory::xcalloc(P.NMC, sizeof(double));
+	mcell_country = (int*)Memory::xcalloc(P.NMC, sizeof(int));
+	mcell_adunits = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 
 	for (j = 0; j < P.NMC; j++)
 	{
@@ -820,7 +820,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				P.BinFileLen = 0;
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
-				BinFileBuf = (void*)Memory::xmalloc(P.BinFileLen * sizeof(BinFile));
+				BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 				BF = (BinFile*)BinFileBuf;
 				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
 				rn = 0;
@@ -878,9 +878,9 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	if (!P.DoAdUnits) P.NumAdunits = 1;
 	if ((P.DoAdUnits) && (P.DoAdunitDemog))
 	{
-		State.InvAgeDist = (int**)Memory::xmalloc(P.NumAdunits * sizeof(int*));
+		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
-			State.InvAgeDist[i] = (int*)Memory::xmalloc(1000 * sizeof(int));
+			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
 		if (!(dat = fopen(RegDemogFile, "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
@@ -962,8 +962,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	}
 	else
 	{
-		State.InvAgeDist = (int**)Memory::xmalloc(sizeof(int*));
-		State.InvAgeDist[0] = (int*)Memory::xmalloc(1000 * sizeof(int));
+		State.InvAgeDist = (int**)Memory::xcalloc(1, sizeof(int*));
+		State.InvAgeDist[0] = (int*)Memory::xcalloc(1000, sizeof(int));
 		CumAgeDist[0] = 0;
 		for (int i = 1; i <= NUM_AGE_GROUPS; i++)
 			CumAgeDist[i] = CumAgeDist[i - 1] + P.PropAgeGroup[0][i - 1];
@@ -1025,8 +1025,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	free(mcell_adunits);
 	t = 0.0;
 
-	McellLookup = (Microcell **)Memory::xmalloc(P.NMCP * sizeof(Microcell*));
-	State.CellMemberArray = (int*)Memory::xmalloc(P.PopSize * sizeof(int));
+	McellLookup = (Microcell **)Memory::xcalloc(P.NMCP, sizeof(Microcell*));
+	State.CellMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
 	P.NCP = 0;
 	for (int i = i2 = j2 = 0; i < P.NC; i++)
 	{
@@ -1053,8 +1053,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
 	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
 
-	CellLookup = (Cell **)Memory::xmalloc(P.NCP * sizeof(Cell*));
-	State.CellSuscMemberArray = (int*)Memory::xmalloc(P.PopSize * sizeof(int));
+	CellLookup = (Cell **)Memory::xcalloc(P.NCP, sizeof(Cell*));
+	State.CellSuscMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
 	int susceptibleAccumulator = 0;
 	i2 = 0;
 	for (j = 0; j < P.NC; j++)
@@ -1074,9 +1074,9 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		Cell *c = CellLookup[i];
 		if (c->n > 0)
 		{
-			c->InvCDF = (int*)Memory::xmalloc(1025 * sizeof(int));
-			c->max_trans = (float*)Memory::xmalloc(P.NCP * sizeof(float));
-			c->cum_trans = (float*)Memory::xmalloc(P.NCP * sizeof(float));
+			c->InvCDF = (int*)Memory::xcalloc(1025, sizeof(int));
+			c->max_trans = (float*)Memory::xcalloc(P.NCP, sizeof(float));
+			c->cum_trans = (float*)Memory::xcalloc(P.NCP, sizeof(float));
 		}
 	}
 	for (int i = 0; i < P.NC; i++)
@@ -1118,7 +1118,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			k += m;
 		}
 	}
-	Households = (Household*)Memory::xmalloc(P.NH * sizeof(Household));
+	Households = (Household*)Memory::xcalloc(P.NH, sizeof(Household));
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
 
@@ -1159,14 +1159,14 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	if (P.DoCorrectAgeDist)
 	{
 		double** AgeDistAd, ** AgeDistCorrF, ** AgeDistCorrB;
-		AgeDistAd = (double**)Memory::xmalloc(MAX_ADUNITS * sizeof(double*));
-		AgeDistCorrF = (double**)Memory::xmalloc(MAX_ADUNITS * sizeof(double*));
-		AgeDistCorrB = (double**)Memory::xmalloc(MAX_ADUNITS * sizeof(double*));
+		AgeDistAd = (double**)Memory::xcalloc(MAX_ADUNITS, sizeof(double*));
+		AgeDistCorrF = (double**)Memory::xcalloc(MAX_ADUNITS, sizeof(double*));
+		AgeDistCorrB = (double**)Memory::xcalloc(MAX_ADUNITS, sizeof(double*));
 		for (int i = 0; i < P.NumAdunits; i++)
 		{
-			AgeDistAd[i] = (double*)Memory::xmalloc((NUM_AGE_GROUPS + 1) * sizeof(double));
-			AgeDistCorrF[i] = (double*)Memory::xmalloc((NUM_AGE_GROUPS + 1) * sizeof(double));
-			AgeDistCorrB[i] = (double*)Memory::xmalloc((NUM_AGE_GROUPS + 1) * sizeof(double));
+			AgeDistAd[i] = (double*)Memory::xcalloc((NUM_AGE_GROUPS + 1), sizeof(double));
+			AgeDistCorrF[i] = (double*)Memory::xcalloc((NUM_AGE_GROUPS + 1), sizeof(double));
+			AgeDistCorrB[i] = (double*)Memory::xcalloc((NUM_AGE_GROUPS + 1), sizeof(double));
 		}
 
 		// compute AgeDistAd[i][j] = total number of people in adunit i, age group j
@@ -1318,7 +1318,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		free(State.InvAgeDist);
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
-		Places = (Place **)Memory::xmalloc(P.PlaceTypeNum * sizeof(Place*));
+		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
 	if ((P.DoSchoolFile) && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
@@ -1329,7 +1329,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
 			Places[j] = (Place*)Memory::xcalloc(m, sizeof(Place));
 			for (int i = 0; i < m; i++)
-				Places[j][i].AvailByAge = (unsigned short int*)Memory::xmalloc(P.PlaceTypeMaxAgeRead[j] * sizeof(unsigned short int));
+				Places[j][i].AvailByAge = (unsigned short int*)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
 			P.Nplace[j] = 0;
 			for (int i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
 		}
@@ -1360,7 +1360,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
 				{
-					Mcells[i].places[j] = (int*)Memory::xmalloc(Mcells[i].np[j] * sizeof(int));
+					Mcells[i].places[j] = (int*)Memory::xcalloc(Mcells[i].np[j], sizeof(int));
 					Mcells[i].np[j] = 0;
 				}
 		for (j = 0; j < P.nsp; j++)
@@ -1410,7 +1410,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 					t -= ((double)Mcells[i].n) / maxd;
 					if (Mcells[i].np[j2] > 0)
 					{
-						Mcells[i].places[j2] = (int*)Memory::xmalloc(Mcells[i].np[j2] * sizeof(int));
+						Mcells[i].places[j2] = (int*)Memory::xcalloc(Mcells[i].np[j2], sizeof(int));
 						x = (double)(i / P.get_number_of_micro_cells_high());
 						y = (double)(i % P.get_number_of_micro_cells_high());
 						for (j = 0; j < Mcells[i].np[j2]; j++)
@@ -1446,17 +1446,17 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	l = 0;
 	for (j = 0; j < P.NC; j++)
 		if (l < Cells[j].n) l = Cells[j].n;
-	SamplingQueue = (int**)Memory::xmalloc(P.NumThreads * sizeof(int*));
+	SamplingQueue = (int**)Memory::xcalloc(P.NumThreads, sizeof(int*));
 	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, SamplingQueue, StateT, l)
 	for (int i = 0; i < P.NumThreads; i++)
 	{
-		SamplingQueue[i] = (int*)Memory::xmalloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE) * sizeof(int));
+		SamplingQueue[i] = (int*)Memory::xcalloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE), sizeof(int));
 		for (int k = 0; k < P.NumThreads; k++)
-			StateT[i].inf_queue[k] = (Infection*)Memory::xmalloc(P.InfQueuePeakLength * sizeof(Infection));
-		StateT[i].cell_inf = (float*)Memory::xmalloc((l + 1) * sizeof(float));
-		StateT[i].host_closure_queue = (HostClosure*)Memory::xmalloc(P.InfQueuePeakLength * sizeof(HostClosure));
+			StateT[i].inf_queue[k] = (Infection*)Memory::xcalloc(P.InfQueuePeakLength, sizeof(Infection));
+		StateT[i].cell_inf = (float*)Memory::xcalloc(l + 1, sizeof(float));
+		StateT[i].host_closure_queue = (HostClosure*)Memory::xcalloc(P.InfQueuePeakLength, sizeof(HostClosure));
 	}
 
 	//set up queues and storage for digital contact tracing
@@ -1465,13 +1465,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		for (int i = 0; i < P.NumAdunits; i++)
 		{
 			//malloc or calloc for these?
-			AdUnits[i].dct = (int*)Memory::xmalloc(AdUnits[i].n * sizeof(int));
+			AdUnits[i].dct = (int*)Memory::xcalloc(AdUnits[i].n, sizeof(int));
 		}
 		for (int i = 0; i < P.NumThreads; i++)
 		{
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				StateT[i].dct_queue[j] = (ContactEvent*)Memory::xmalloc(AdUnits[j].n * sizeof(ContactEvent));
+				StateT[i].dct_queue[j] = (ContactEvent*)Memory::xcalloc(AdUnits[j].n, sizeof(ContactEvent));
 			}
 		}
 	}
@@ -1481,7 +1481,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 	{
 		for (int i = 0; i < P.NumAdunits; i++)
 		{
-			AdUnits[i].origin_dest = (double*)Memory::xmalloc(MAX_ADUNITS * sizeof(double));
+			AdUnits[i].origin_dest = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
 			for (j = 0; j < P.NumThreads; j++)
 			{
 				StateT[j].origin_dest[i] = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
