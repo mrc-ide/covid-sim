@@ -2747,6 +2747,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	{
 		for (int j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
 		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
+		StateT[i].host_closure_queue_size = 0;
 	}
 	if (DoInitUpdateProbs)
 	{
@@ -3035,6 +3036,7 @@ int RunModel(int run) //added run number as parameter
 						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) { if ((ir == 0) && (((int)t) > P.DurImportTimeProfile)) fs = 0; }
 					}
 					if (P.DoAirports) TravelReturnSweep(t);
+					UpdateHostClosure();
 				}
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
