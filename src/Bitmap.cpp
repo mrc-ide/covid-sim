@@ -9,6 +9,7 @@
 #include "Error.h"
 #include "Param.h"
 #include "Model.h"
+#include "Memory.h"
 
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** BITMAP stuff.
@@ -182,8 +183,7 @@ void OutputBitmap(int tp)
 		  static UINT palsize;
 		  static ColorPalette* palette;
 		  palsize = gdip_bmp->GetPaletteSize();
-		  palette = (ColorPalette*)malloc(palsize);
-		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
+		  palette = (ColorPalette*)Memory::xmalloc(palsize);
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
 		  palette->Entries[0] = 0x00ffffff; // Transparent white
@@ -225,8 +225,7 @@ void InitBMHead()
 	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
-	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	bmf = (unsigned char*)Memory::xcalloc((size_t)k + k2, sizeof(unsigned char));
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
 	bmh = (BitmapHeader*)bmf;
@@ -265,11 +264,10 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
-		!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
-		!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))) ||
-		!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	bmPopulation = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
+	bmInfected = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
+	bmRecovered = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
+	bmTreated = (int32_t*)Memory::xmalloc(bmh->imagesize * sizeof(int32_t));
 
 #ifdef _WIN32
 	if (P.BitmapFormat == BitmapFormats::PNG)
@@ -283,8 +281,7 @@ void InitBMHead()
 
 	  Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 	  Gdiplus::GetImageEncodersSize(&num, &size);
-	  if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
-	    ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xmalloc(size);
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 	  for (UINT j = 0; j < num; ++j) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
