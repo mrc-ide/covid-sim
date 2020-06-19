@@ -105,6 +105,7 @@
     <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
     <ClCompile Include="src\Geometry\Vector2.cpp" />
+    <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
@@ -133,6 +134,7 @@
     <ClInclude Include="src\Models\Household.h" />
     <ClInclude Include="src\Models\Microcell.h" />
     <ClInclude Include="src\Models\Person.h" />
+    <ClInclude Include="src\InverseCdf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
