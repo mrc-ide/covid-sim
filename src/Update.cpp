@@ -578,7 +578,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					{
 						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
 						{
-#pragma omp critical (place_trig)
+#pragma omp atomic
 							Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
 						}
 					}
@@ -1064,7 +1064,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 		if (P.DoAdUnits)	StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
-#pragma omp critical (tot_treat)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
@@ -1095,7 +1095,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker] += nc;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 		if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit] += nc;
-#pragma omp critical (tot_treat)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
@@ -1300,10 +1300,10 @@ void DoVacc(int ai, unsigned short int ts)
 
 	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-#pragma omp critical (state_cumV)
 	if (State.cumV < P.VaccMaxCourses)
 	{
 		cumV_OK = true;
+#pragma omp atomic
 		State.cumV++;
 	}
 	if (cumV_OK)
@@ -1312,10 +1312,10 @@ void DoVacc(int ai, unsigned short int ts)
 
 		if (P.VaccDosePerDay >= 0)
 		{
-#pragma omp critical (state_cumV_daily)
+#pragma omp atomic
 			State.cumV_daily++;
 		}
-#pragma omp critical (tot_vacc)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
@@ -1341,10 +1341,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 
 	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-#pragma omp critical (state_cumVG)
 	if (State.cumVG < P.VaccMaxCourses)
 	{
 		cumVG_OK = true;
+#pragma omp atomic
 		State.cumVG++;
 	}
 	if (cumVG_OK)
@@ -1352,10 +1352,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Hosts[ai].vacc_start_time = ts;
 		if (P.VaccDosePerDay >= 0)
 		{
-#pragma omp critical (state_cumV_daily)
+#pragma omp atomic
 			State.cumVG_daily++;
 		}
-#pragma omp critical (tot_vacc)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{

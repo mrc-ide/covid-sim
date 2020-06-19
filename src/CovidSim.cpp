@@ -52,7 +52,8 @@ void LoadSnapshot(void);
 void SaveSnapshot(void);
 void RecordInfTypes(void);
 void RecordSample(double, int);
-
+void CalibrationThresholdCheck(double, int);
+void CalcLikelihood(char*, char*);
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
 
 int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, int);
@@ -115,11 +116,12 @@ const int ICDF_START = 100;
 
 int main(int argc, char* argv[])
 {
-	char  PreParamFile[1024]{},ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{}, RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{},FitFile[1024]{}, buf[2048]{}, * sep;
-	int i, GotF,GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, GotNR, Perr, cl, StopFit;
+	char  PreParamFile[1024]{}, ParamFile[1024]{}, DensityFile[1024]{}, NetworkFile[1024]{}, AirTravelFile[1024]{}, SchoolFile[1024]{};
+	char RegDemogFile[1024]{}, InterventionFile[MAXINTFILE][1024]{}, FitFile[1024]{}, DataFile[1024]{}, buf[2048]{}, * sep;
+	int i, GotF,GotP, GotPP, GotO, GotL, GotS, GotAP, GotScF, GotNR, GotDT, Perr, cl, StopFit;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	GotF = GotP = GotO = GotL = GotS = GotAP = GotScF = GotPP = GotNR = 0;
+	GotF = GotP = GotO = GotL = GotS = GotAP = GotScF = GotPP = GotNR = GotDT = 0;
 
 	Perr = 0;
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
@@ -170,6 +172,11 @@ int main(int argc, char* argv[])
 				sscanf(&argv[i][3], "%s", DensityFile);
 				P.DoHeteroDensity = 1;
 				P.DoPeriodicBoundaries = 0;
+			}
+			else if (argv[i][1] == 'D' && argv[i][2] == 'T' && argv[i][3] == ':')
+			{
+				sscanf(&argv[i][3], "%s", DataFile);
+				GotDT = 1;
 			}
 			else if (argv[i][1] == 'A' && argv[i][2] == ':')
 			{
@@ -411,10 +418,10 @@ int main(int argc, char* argv[])
 				}
 				int32_t thisRunSeed1, thisRunSeed2;
 				int ContCalib, ModelCalibLoop = 0;
-				P.StopCalibration = 0;
+				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop =  0;
 				do
 				{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-					if ((P.ModelCalibIteration == 0) && (ModelCalibLoop < 4))
+					if ((P.ModelCalibIteration%14 == 0) && (ModelCalibLoop < 4))
 					{
 						thisRunSeed1 = P.nextRunSeed1;
 						thisRunSeed2 = P.nextRunSeed2;
@@ -477,6 +484,7 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 			fprintf(stderr, "Model finished\n");
 		}
+		if (GotDT) CalcLikelihood(DataFile,(GotF)?FitFile:OutFile);
 	}
 	while (!StopFit);
 }
@@ -563,22 +571,24 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		{
 			ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.NKR, P.NK_HR);
 		}
-
-		if (P.DoHouseholds)
-		{
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Household size distribution", "%lf", (void*)P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household attack rate", "%lf", (void*)&(P.HouseholdTrans), 1, 1, 0);
-			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household transmission denominator power", "%lf", (void*)&(P.HouseholdTransPow), 1, 1, 0);
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct age distribution after household allocation to exactly match specified demography", "%i", (void*)&(P.DoCorrectAgeDist), 1, 1, 0)) P.DoCorrectAgeDist = 0;
-		}
-		else
-		{
-			P.HouseholdTrans = 0.0;
-			P.HouseholdTransPow = 1.0;
-			P.HouseholdSizeDistrib[0][0] = 1.0;
-			for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-				P.HouseholdSizeDistrib[0][i] = 0;
-		}
+	}
+	if (P.DoHouseholds)
+	{
+		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Household size distribution", "%lf", (void*)P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household attack rate", "%lf", (void*)&(P.HouseholdTrans), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household transmission denominator power", "%lf", (void*)&(P.HouseholdTransPow), 1, 1, 0);
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct age distribution after household allocation to exactly match specified demography", "%i", (void*)&(P.DoCorrectAgeDist), 1, 1, 0)) P.DoCorrectAgeDist = 0;
+	}
+	else
+	{
+		P.HouseholdTrans = 0.0;
+		P.HouseholdTransPow = 1.0;
+		P.HouseholdSizeDistrib[0][0] = 1.0;
+		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+			P.HouseholdSizeDistrib[0][i] = 0;
+	}
+	if(P.FitIter==0)
+	{
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
 			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
 		for (i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
@@ -792,15 +802,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	}
 	if (P.DoPlaces)
 	{
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of household contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentHouseholdScaling), 1, 1, 0)) P.CareHomeResidentHouseholdScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of spatial contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentSpatialScaling), 1, 1, 0)) P.CareHomeResidentSpatialScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of between group (home) contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentPlaceScaling), 1, 1, 0)) P.CareHomeResidentPlaceScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of within group (home) contacts for care home workers", "%lf", (void*)&(P.CareHomeWorkerGroupScaling), 1, 1, 0)) P.CareHomeWorkerGroupScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Relative probability that care home residents are hospitalised", "%lf", (void*)&(P.CareHomeRelProbHosp), 1, 1, 0)) P.CareHomeRelProbHosp = 1.0;
+
 		if (P.FitIter == 0)
 		{
 			if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place type number for care homes", "%i", (void*)&(P.CareHomePlaceType), 1, 1, 0)) P.CareHomePlaceType = -1;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Allow initial infections to be in care homes", "%i", (void*)&(P.CareHomeAllowInitialInfections), 1, 1, 0)) P.CareHomeAllowInitialInfections = 0;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum age of care home residents", "%i", (void*)&(P.CareHomeResidentMinimumAge), 1, 1, 0)) P.CareHomeResidentMinimumAge = 1000;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of household contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentHouseholdScaling), 1, 1, 0)) P.CareHomeResidentHouseholdScaling = 1.0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of spatial contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentSpatialScaling), 1, 1, 0)) P.CareHomeResidentSpatialScaling = 1.0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of between group (home) contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentGroupScaling), 1, 1, 0)) P.CareHomeResidentGroupScaling = 1.0;
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Relative probability that care home residents are hospitalised", "%lf", (void*)&(P.CareHomeRelProbHosp), 1, 1, 0)) P.CareHomeRelProbHosp = 1.0;
 
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
@@ -984,6 +997,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.MinPopDensForInitialInfection), 1, 1, 0)) P.MinPopDensForInitialInfection = 0;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum age of initial infections", "%i", (void*)&(P.MaxAgeForInitialInfection), 1, 1, 0)) P.MaxAgeForInitialInfection = 1000;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.DoAllInitialInfectioninSameLoc), 1, 1, 0)) P.DoAllInitialInfectioninSameLoc=0;
 	if (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Day of year of start of seeding", "%lf", (void*)&(P.InitialInfectionCalTime), 1, 1, 0))
@@ -1171,9 +1185,16 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			for (j = 0; j < NUM_AGE_GROUPS; j++) P.FalsePositiveAgeRate[j] = 1.0;
 	}
 
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum sensitivity of serology assay", "%lf", (void*)&(P.SeroConvMaxSens), 1, 1, 0)) P.SeroConvMaxSens = 1.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean time from infection to seroconversion", "%lf", (void*)&(P.SeroConvTime), 1, 1, 0)) P.SeroConvTime = 14.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power in time to seroconversion function", "%lf", (void*)&(P.SeroConvPow), 1, 1, 0)) P.SeroConvPow = 3.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Specificity of serology assay", "%lf", (void*)&(P.SeroConvSpec), 1, 1, 0)) P.SeroConvSpec = 1.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of modelled infection prevalence to match surveys", "%lf", (void*)&(P.InfPrevSurveyScale), 1, 1, 0)) P.InfPrevSurveyScale = 1.0;
+
 	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*) & (P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
 	if(P.DoSeverity)
 	{
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleIFR), 1, 1, 0)) P.ScaleIFR = 1.0;
 		//// Means for icdf's.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
@@ -1308,6 +1329,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ILI_ByAge", "%lf", (void*)P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.CFR_ILI_ByAge[i] = 0.00;
+		//Add param to allow severity to be uniformly scaled up or down.
+		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		{
+			P.Prop_SARI_ByAge[i] *= P.ScaleIFR;
+			P.Prop_Critical_ByAge[i] *= P.ScaleIFR;
+			P.Prop_ILI_ByAge[i] = 1.0 - P.Prop_Mild_ByAge[i] - P.Prop_SARI_ByAge[i] - P.Prop_Critical_ByAge[i];
+		}
 	}
 	if (P.FitIter == 0)
 	{
@@ -2945,7 +2973,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
 				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType<0 || Hosts[l].PlaceLinks[P.CareHomePlaceType]<0))
 					{
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
@@ -2981,7 +3009,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 					if (Hosts[l].inf == InfStat_Susceptible)
 					{
-						if (CalcPersonSusc(l, 0, 0, 0) > 0)
+						if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 						{
 							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
 							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
@@ -3017,7 +3045,7 @@ void SeedInfection(double t, int* nsi, int rf, int run) //adding run number to p
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 				if (Hosts[l].inf == InfStat_Susceptible)
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age<=P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 					{
 						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc_x;
 						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc_y;
@@ -3099,6 +3127,7 @@ int RunModel(int run) //added run number as parameter
 	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
 		RecordSample(t, ns - 1);
+		CalibrationThresholdCheck(t, ns - 1);
 		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
 			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
 		if (!InterruptRun)
@@ -3778,7 +3807,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][0]);
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%i", AdUnits[i].n);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
 		fprintf(dat, "\n");
 		for(i = 0; i < P.NumSamples; i++)
@@ -4727,10 +4756,9 @@ void RecordSample(double t, int n)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC,trigAlert, trigAlertC;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDC;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts;
-	double s,thr;
 
 	//// Severity quantities
 	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
@@ -4790,21 +4818,21 @@ void RecordSample(double t, int n)
 		if (P.DoSeverity)
 		{
 			///// severity states by thread
-			Mild				+= StateT[j].Mild				;
-			ILI					+= StateT[j].ILI				;
-			SARI				+= StateT[j].SARI				;
-			Critical			+= StateT[j].Critical			;
-			CritRecov			+= StateT[j].CritRecov			;
+			Mild += StateT[j].Mild;
+			ILI += StateT[j].ILI;
+			SARI += StateT[j].SARI;
+			Critical += StateT[j].Critical;
+			CritRecov += StateT[j].CritRecov;
 
 			///// cumulative severity states by thread
-			cumMild				+= StateT[j].cumMild			;
-			cumILI				+= StateT[j].cumILI				;
-			cumSARI				+= StateT[j].cumSARI			;
-			cumCritical			+= StateT[j].cumCritical		;
-			cumCritRecov		+= StateT[j].cumCritRecov		;
-			cumDeath_ILI		+= StateT[j].cumDeath_ILI		;
-			cumDeath_SARI		+= StateT[j].cumDeath_SARI		;
-			cumDeath_Critical	+= StateT[j].cumDeath_Critical	;
+			cumMild += StateT[j].cumMild;
+			cumILI += StateT[j].cumILI;
+			cumSARI += StateT[j].cumSARI;
+			cumCritical += StateT[j].cumCritical;
+			cumCritRecov += StateT[j].cumCritRecov;
+			cumDeath_ILI += StateT[j].cumDeath_ILI;
+			cumDeath_SARI += StateT[j].cumDeath_SARI;
+			cumDeath_Critical += StateT[j].cumDeath_Critical;
 		}
 
 		//add up cumulative country counts: ggilani - 12/11/14
@@ -4896,44 +4924,44 @@ void RecordSample(double t, int n)
 	if (P.DoSeverity)
 	{
 		//// Record incidence. (Must be done with old State totals)
-		TimeSeries[n].incMild			= (double)(cumMild				- State.cumMild				);
-		TimeSeries[n].incILI			= (double)(cumILI				- State.cumILI				);
-		TimeSeries[n].incSARI			= (double)(cumSARI				- State.cumSARI				);
-		TimeSeries[n].incCritical		= (double)(cumCritical			- State.cumCritical			);
-		TimeSeries[n].incCritRecov		= (double)(cumCritRecov			- State.cumCritRecov		);
-		TimeSeries[n].incDeath_ILI		= (double)(cumDeath_ILI			- State.cumDeath_ILI		);
-		TimeSeries[n].incDeath_SARI		= (double)(cumDeath_SARI		- State.cumDeath_SARI		);
-		TimeSeries[n].incDeath_Critical	= (double)(cumDeath_Critical	- State.cumDeath_Critical	);
+		TimeSeries[n].incMild = (double)(cumMild - State.cumMild);
+		TimeSeries[n].incILI = (double)(cumILI - State.cumILI);
+		TimeSeries[n].incSARI = (double)(cumSARI - State.cumSARI);
+		TimeSeries[n].incCritical = (double)(cumCritical - State.cumCritical);
+		TimeSeries[n].incCritRecov = (double)(cumCritRecov - State.cumCritRecov);
+		TimeSeries[n].incDeath_ILI = (double)(cumDeath_ILI - State.cumDeath_ILI);
+		TimeSeries[n].incDeath_SARI = (double)(cumDeath_SARI - State.cumDeath_SARI);
+		TimeSeries[n].incDeath_Critical = (double)(cumDeath_Critical - State.cumDeath_Critical);
 
 		/////// update state with totals
-		State.Mild				= Mild				;
-		State.ILI				= ILI				;
-		State.SARI				= SARI				;
-		State.Critical			= Critical			;
-		State.CritRecov			= CritRecov			;
-		State.cumMild			= cumMild			;
-		State.cumILI			= cumILI			;
-		State.cumSARI			= cumSARI			;
-		State.cumCritical		= cumCritical		;
-		State.cumCritRecov		= cumCritRecov		;
-		State.cumDeath_ILI		= cumDeath_ILI		;
-		State.cumDeath_SARI		= cumDeath_SARI		;
-		State.cumDeath_Critical	= cumDeath_Critical	;
+		State.Mild = Mild;
+		State.ILI = ILI;
+		State.SARI = SARI;
+		State.Critical = Critical;
+		State.CritRecov = CritRecov;
+		State.cumMild = cumMild;
+		State.cumILI = cumILI;
+		State.cumSARI = cumSARI;
+		State.cumCritical = cumCritical;
+		State.cumCritRecov = cumCritRecov;
+		State.cumDeath_ILI = cumDeath_ILI;
+		State.cumDeath_SARI = cumDeath_SARI;
+		State.cumDeath_Critical = cumDeath_Critical;
 
 		//// Record new totals for time series. (Must be done with old State totals)
-		TimeSeries[n].Mild				= Mild				;
-		TimeSeries[n].ILI				= ILI				;
-		TimeSeries[n].SARI				= SARI				;
-		TimeSeries[n].Critical			= Critical			;
-		TimeSeries[n].CritRecov			= CritRecov			;
-		TimeSeries[n].cumMild			= cumMild			;
-		TimeSeries[n].cumILI			= cumILI			;
-		TimeSeries[n].cumSARI			= cumSARI			;
-		TimeSeries[n].cumCritical		= cumCritical		;
-		TimeSeries[n].cumCritRecov		= cumCritRecov		;
-		TimeSeries[n].cumDeath_ILI		= cumDeath_ILI		;
-		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
-		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
+		TimeSeries[n].Mild = Mild;
+		TimeSeries[n].ILI = ILI;
+		TimeSeries[n].SARI = SARI;
+		TimeSeries[n].Critical = Critical;
+		TimeSeries[n].CritRecov = CritRecov;
+		TimeSeries[n].cumMild = cumMild;
+		TimeSeries[n].cumILI = cumILI;
+		TimeSeries[n].cumSARI = cumSARI;
+		TimeSeries[n].cumCritical = cumCritical;
+		TimeSeries[n].cumCritRecov = cumCritRecov;
+		TimeSeries[n].cumDeath_ILI = cumDeath_ILI;
+		TimeSeries[n].cumDeath_SARI = cumDeath_SARI;
+		TimeSeries[n].cumDeath_Critical = cumDeath_Critical;
 
 		for (int i = 0; i < NUM_AGE_GROUPS; i++)
 		{
@@ -5010,77 +5038,77 @@ void RecordSample(double t, int n)
 			{
 				//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 				//// First subtract old total while unchanged.
-				TimeSeries[n].incMild_adunit			[i] = (double)(-State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] = (double)(-State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] = (double)(-State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] = (double)(-State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] = (double)(-State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] = (double)(-State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] = (double)(-State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] = (double)(-State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] = (double)(-State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[n].incMild_adunit[i] = (double)(-State.cumMild_adunit[i]);
+				TimeSeries[n].incILI_adunit[i] = (double)(-State.cumILI_adunit[i]);
+				TimeSeries[n].incSARI_adunit[i] = (double)(-State.cumSARI_adunit[i]);
+				TimeSeries[n].incCritical_adunit[i] = (double)(-State.cumCritical_adunit[i]);
+				TimeSeries[n].incCritRecov_adunit[i] = (double)(-State.cumCritRecov_adunit[i]);
+				TimeSeries[n].incD_adunit[i] = (double)(-State.cumD_adunit[i]);
+				TimeSeries[n].incDeath_ILI_adunit[i] = (double)(-State.cumDeath_ILI_adunit[i]);
+				TimeSeries[n].incDeath_SARI_adunit[i] = (double)(-State.cumDeath_SARI_adunit[i]);
+				TimeSeries[n].incDeath_Critical_adunit[i] = (double)(-State.cumDeath_Critical_adunit[i]);
 
 				//// reset State (not StateT) to zero. Don't need to do this with non-admin unit as local variables Mild, cumSARI etc. initialized to zero at beginning of function. Check with Gemma
-				State.Mild_adunit				[i] = 0;
-				State.ILI_adunit				[i] = 0;
-				State.SARI_adunit				[i] = 0;
-				State.Critical_adunit			[i] = 0;
-				State.CritRecov_adunit			[i] = 0;
-				State.cumMild_adunit			[i] = 0;
-				State.cumILI_adunit				[i] = 0;
-				State.cumSARI_adunit			[i] = 0;
-				State.cumCritical_adunit		[i] = 0;
-				State.cumCritRecov_adunit		[i] = 0;
-				State.cumD_adunit				[i] = 0;
-				State.cumDeath_ILI_adunit		[i] = 0;
-				State.cumDeath_SARI_adunit		[i] = 0;
-				State.cumDeath_Critical_adunit	[i] = 0;
+				State.Mild_adunit[i] = 0;
+				State.ILI_adunit[i] = 0;
+				State.SARI_adunit[i] = 0;
+				State.Critical_adunit[i] = 0;
+				State.CritRecov_adunit[i] = 0;
+				State.cumMild_adunit[i] = 0;
+				State.cumILI_adunit[i] = 0;
+				State.cumSARI_adunit[i] = 0;
+				State.cumCritical_adunit[i] = 0;
+				State.cumCritRecov_adunit[i] = 0;
+				State.cumD_adunit[i] = 0;
+				State.cumDeath_ILI_adunit[i] = 0;
+				State.cumDeath_SARI_adunit[i] = 0;
+				State.cumDeath_Critical_adunit[i] = 0;
 
 				for (j = 0; j < P.NumThreads; j++)
 				{
 					//// collate from threads
-					State.Mild_adunit				[i] += StateT[j].Mild_adunit				[i];
-					State.ILI_adunit				[i] += StateT[j].ILI_adunit					[i];
-					State.SARI_adunit				[i] += StateT[j].SARI_adunit				[i];
-					State.Critical_adunit			[i] += StateT[j].Critical_adunit			[i];
-					State.CritRecov_adunit			[i] += StateT[j].CritRecov_adunit			[i];
-					State.cumMild_adunit			[i] += StateT[j].cumMild_adunit				[i];
-					State.cumILI_adunit				[i] += StateT[j].cumILI_adunit				[i];
-					State.cumSARI_adunit			[i] += StateT[j].cumSARI_adunit				[i];
-					State.cumCritical_adunit		[i] += StateT[j].cumCritical_adunit			[i];
-					State.cumCritRecov_adunit		[i] += StateT[j].cumCritRecov_adunit		[i];
-					State.cumD_adunit				[i] += StateT[j].cumD_adunit				[i];
-					State.cumDeath_ILI_adunit		[i] += StateT[j].cumDeath_ILI_adunit		[i];
-					State.cumDeath_SARI_adunit		[i] += StateT[j].cumDeath_SARI_adunit		[i];
-					State.cumDeath_Critical_adunit	[i] += StateT[j].cumDeath_Critical_adunit	[i];
+					State.Mild_adunit[i] += StateT[j].Mild_adunit[i];
+					State.ILI_adunit[i] += StateT[j].ILI_adunit[i];
+					State.SARI_adunit[i] += StateT[j].SARI_adunit[i];
+					State.Critical_adunit[i] += StateT[j].Critical_adunit[i];
+					State.CritRecov_adunit[i] += StateT[j].CritRecov_adunit[i];
+					State.cumMild_adunit[i] += StateT[j].cumMild_adunit[i];
+					State.cumILI_adunit[i] += StateT[j].cumILI_adunit[i];
+					State.cumSARI_adunit[i] += StateT[j].cumSARI_adunit[i];
+					State.cumCritical_adunit[i] += StateT[j].cumCritical_adunit[i];
+					State.cumCritRecov_adunit[i] += StateT[j].cumCritRecov_adunit[i];
+					State.cumD_adunit[i] += StateT[j].cumD_adunit[i];
+					State.cumDeath_ILI_adunit[i] += StateT[j].cumDeath_ILI_adunit[i];
+					State.cumDeath_SARI_adunit[i] += StateT[j].cumDeath_SARI_adunit[i];
+					State.cumDeath_Critical_adunit[i] += StateT[j].cumDeath_Critical_adunit[i];
 				}
 
 				//// Record incidence. Need new total minus old total. Add new total
-				TimeSeries[n].incMild_adunit			[i] += (double)(State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] += (double)(State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] += (double)(State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] += (double)(State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] += (double)(State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] += (double)(State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] += (double)(State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] += (double)(State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] += (double)(State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[n].incMild_adunit[i] += (double)(State.cumMild_adunit[i]);
+				TimeSeries[n].incILI_adunit[i] += (double)(State.cumILI_adunit[i]);
+				TimeSeries[n].incSARI_adunit[i] += (double)(State.cumSARI_adunit[i]);
+				TimeSeries[n].incCritical_adunit[i] += (double)(State.cumCritical_adunit[i]);
+				TimeSeries[n].incCritRecov_adunit[i] += (double)(State.cumCritRecov_adunit[i]);
+				TimeSeries[n].incD_adunit[i] += (double)(State.cumD_adunit[i]);
+				TimeSeries[n].incDeath_ILI_adunit[i] += (double)(State.cumDeath_ILI_adunit[i]);
+				TimeSeries[n].incDeath_SARI_adunit[i] += (double)(State.cumDeath_SARI_adunit[i]);
+				TimeSeries[n].incDeath_Critical_adunit[i] += (double)(State.cumDeath_Critical_adunit[i]);
 
 				//// Record new totals for time series. (Must be done with old State totals)
-				TimeSeries[n].Mild_adunit				[i] = State.Mild_adunit					[i];
-				TimeSeries[n].ILI_adunit				[i] = State.ILI_adunit					[i];
-				TimeSeries[n].SARI_adunit				[i] = State.SARI_adunit					[i];
-				TimeSeries[n].Critical_adunit			[i] = State.Critical_adunit				[i];
-				TimeSeries[n].CritRecov_adunit			[i] = State.CritRecov_adunit			[i];
-				TimeSeries[n].cumMild_adunit			[i] = State.cumMild_adunit				[i];
-				TimeSeries[n].cumILI_adunit				[i] = State.cumILI_adunit				[i];
-				TimeSeries[n].cumSARI_adunit			[i] = State.cumSARI_adunit				[i];
-				TimeSeries[n].cumCritical_adunit		[i] = State.cumCritical_adunit			[i];
-				TimeSeries[n].cumCritRecov_adunit		[i] = State.cumCritRecov_adunit			[i];
-				TimeSeries[n].cumD_adunit				[i] = State.cumD_adunit					[i];
-				TimeSeries[n].cumDeath_ILI_adunit		[i] = State.cumDeath_ILI_adunit			[i];
-				TimeSeries[n].cumDeath_SARI_adunit		[i] = State.cumDeath_SARI_adunit		[i];
-				TimeSeries[n].cumDeath_Critical_adunit	[i] = State.cumDeath_Critical_adunit	[i];
+				TimeSeries[n].Mild_adunit[i] = State.Mild_adunit[i];
+				TimeSeries[n].ILI_adunit[i] = State.ILI_adunit[i];
+				TimeSeries[n].SARI_adunit[i] = State.SARI_adunit[i];
+				TimeSeries[n].Critical_adunit[i] = State.Critical_adunit[i];
+				TimeSeries[n].CritRecov_adunit[i] = State.CritRecov_adunit[i];
+				TimeSeries[n].cumMild_adunit[i] = State.cumMild_adunit[i];
+				TimeSeries[n].cumILI_adunit[i] = State.cumILI_adunit[i];
+				TimeSeries[n].cumSARI_adunit[i] = State.cumSARI_adunit[i];
+				TimeSeries[n].cumCritical_adunit[i] = State.cumCritical_adunit[i];
+				TimeSeries[n].cumCritRecov_adunit[i] = State.cumCritRecov_adunit[i];
+				TimeSeries[n].cumD_adunit[i] = State.cumD_adunit[i];
+				TimeSeries[n].cumDeath_ILI_adunit[i] = State.cumDeath_ILI_adunit[i];
+				TimeSeries[n].cumDeath_SARI_adunit[i] = State.cumDeath_SARI_adunit[i];
+				TimeSeries[n].cumDeath_Critical_adunit[i] = State.cumDeath_Critical_adunit[i];
 			}
 	}
 
@@ -5126,7 +5154,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits)
 		for (int i = 0; i <= P.NumAdunits; i++)
 		{
-			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
+			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] = 0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
 			{
 				TimeSeries[n].incI_adunit[i] += (double)StateT[j].cumI_adunit[i];
@@ -5165,10 +5193,10 @@ void RecordSample(double t, int n)
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
 	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
-	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
+	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NMC);
 
 	//update contact number distribution in State
-	for (int i = 0; i < (MAX_CONTACTS+1); i++)
+	for (int i = 0; i < (MAX_CONTACTS + 1); i++)
 	{
 		for (j = 0; j < P.NumThreads; j++)
 		{
@@ -5176,6 +5204,23 @@ void RecordSample(double t, int n)
 			StateT[j].contact_dist[i] = 0;
 		}
 	}
+	if (P.OutputBitmap >= 1)
+	{
+		TSMean = TSMeanNE; TSVar = TSVarNE;
+		CaptureBitmap();
+		OutputBitmap(0);
+	}
+}
+
+void CalibrationThresholdCheck(double t,int n)
+{
+	int j, k;
+	int trigAlert, trigAlertC;
+	unsigned short int ts;
+	double s, thr;
+
+
+	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	trigAlertC = State.cumDC;
 	if (n >= P.PreControlClusterIdDuration) trigAlertC -= (int)TimeSeries[n - P.PreControlClusterIdDuration].cumDC;
@@ -5367,12 +5412,117 @@ void RecordSample(double t, int n)
 			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
 		}
 	}
+}
 
-	if (P.OutputBitmap >= 1)
+void CalcLikelihood(char *DataFile, char *OutFileBase)
+{
+	char* OutFile,FieldName[1024];
+	double c,LL;
+	FILE* dat;
+
+	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
+	static double **Data,NegBinK;
+
+	if (!DataAlreadyRead)
 	{
-		TSMean = TSMeanNE; TSVar = TSVarNE;
-		CaptureBitmap	();
-		OutputBitmap	(0);
+		if (!(dat = fopen(DataFile, "r"))) ERR_CRITICAL("Unable to open data file\n");
+		fscanf(dat, "%i %i %lg", &ncols, &nrows,&NegBinK);
+		ncols++; // add one for time column
+		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		for(int i=0;i<nrows;i++)
+			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		for (int i = 0; i < ncols; i++)
+		{
+			fscanf(dat, "%s", FieldName);
+			if (!strcmp(FieldName, "day"))
+			{
+				ColTypes[i] = -1;
+				if (i != 0) ERR_CRITICAL("'day' must be first column in data file\n");
+			}
+			if (!strcmp(FieldName, "all_deaths"))
+				ColTypes[i] = 0;
+			else if (!strcmp(FieldName, "hospital_deaths"))
+				ColTypes[i] = 1;
+			else if (!strcmp(FieldName, "care_home_deaths"))
+				ColTypes[i] = 2;
+			else if (!strcmp(FieldName, "seroprevalence_numerator"))
+				ColTypes[i] = 3;
+			else if (!strcmp(FieldName, "seroprevalence_denominator"))
+			{
+				ColTypes[i] = 4;
+				if (ColTypes[i - 1] != 3) ERR_CRITICAL("Seroprevalence denominator must be next column after numerator in data file\n");
+			}
+			else if (!strcmp(FieldName, "infection_prevalence_numerator"))
+				ColTypes[i] = 5;
+			else if (!strcmp(FieldName, "infection_prevalence_denominator"))
+			{
+				ColTypes[i] = 6;
+				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
+			}
+		}
+		for (int i = 0; i < nrows; i++)
+			for (int j = 0; j < ncols; j++)
+				fscanf(dat, "%lg", Data[i][j]);
+		DataAlreadyRead = 1;
+	}
+	LL = 0;
+	c = 1 / ((double)(P.NRactE + P.NRactNE));
+	for (int i = 1; i < ncols;i++)
+	{
+		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2)) 
+		{
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i]>=0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double ModelValue;
+					if (ColTypes[i]==0)
+						ModelValue=c*TimeSeries[day].incD; // all deaths by date of death
+					else if (ColTypes[i] == 1)
+						ModelValue=c*(TimeSeries[day].incDeath_Critical+ TimeSeries[day].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
+					else if (ColTypes[i] == 2)
+						ModelValue = c * TimeSeries[day].incDeath_ILI; // care home deaths (ILI) by date of death
+					LL += lgamma(ModelValue+ NegBinK)-lgamma(ModelValue + 1)+ NegBinK*log(NegBinK/(NegBinK+ ModelValue))+ ModelValue*log(1e-20+ ModelValue/(NegBinK+ModelValue));
+				}
+			}
+		}
+		else if (ColTypes[i] == 3) //seroprevalence by date of sample
+		{
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double m = Data[j][i]; // numerator
+					double N = Data[j][i + 1]; // denominator
+					double ModelValue;
+					for (int k = 0; k < day; k++) // loop over all days of infection up to day of sample
+					{
+						double prob_seroconvert = P.SeroConvMaxSens/(1.0+pow(P.SeroConvTime/((double)(day - k)),P.SeroConvPow));
+						ModelValue += c * TimeSeries[k].incI * prob_seroconvert;
+					}
+					ModelValue += c * TimeSeries[day].S * (1.0 - P.SeroConvSpec);
+					ModelValue /= ((double)P.PopSize);
+					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+				}
+			}
+		}
+		else if (ColTypes[i] == 5) // infection prevalence by date of sample
+		{
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double m = Data[j][i]; // numerator
+					double N = Data[j][i + 1]; // denominator
+					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day].I / ((double)P.PopSize);
+					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+				}
+			}
+		}
 	}
 }
 
@@ -5494,7 +5644,6 @@ void RecordInfTypes(void)
 	}
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
-	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;

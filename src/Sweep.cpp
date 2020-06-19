@@ -386,7 +386,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								{
 									s3 *= P.MoveRestrEffect;
 								}
-
 								if ((k != P.HotelPlaceType) && (!si->Travelling))
 								{
 									int i2 = (si->PlaceGroupLinks[k]);
@@ -418,6 +417,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									{
 										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
+										if ((k==P.CareHomePlaceType)&&((!Hosts[ci].care_home_resident)||(!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
@@ -438,13 +439,11 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 											}
 										}
-
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
-
 											if (bm)
 											{
 												if ((dist2_raw(Households[Hosts[i3].hh].loc_x, Households[Hosts[i3].hh].loc_y,
@@ -453,7 +452,6 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
 												s *= P.MoveRestrEffect;
-
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												cq = Hosts[i3].pcell % P.NumThreads;
@@ -490,7 +488,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
 										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
-										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[i3].PlaceGroupLinks[k])) s *= P.CareHomeResidentGroupScaling;
+										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[i3].PlaceGroupLinks[k])) s *= P.CareHomeResidentPlaceScaling;
+										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
+										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
@@ -654,7 +654,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								Microcell* mi = Mcells + si->mcell;
 								Microcell* mt = Mcells + Hosts[i3].mcell;
 								s = CalcSpatialSusc(i3, ts, ci, tn);
-
+								// Care home residents may have fewer contacts
+								if ((Hosts[i3].care_home_resident) || (Hosts[ci].care_home_resident)) s *= P.CareHomeResidentSpatialScaling;
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if (fct)
 								{
