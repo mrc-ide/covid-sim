@@ -96,8 +96,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
 		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 		//// calculate radius squared, and increment sum of radii squared.
-		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0][0]);
-		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0][1]);
+		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0].x);
+		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0].y);
 		q = x * x + y * y;
 		StateT[tn].sumRad2 += q;
 
@@ -200,8 +200,8 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 		InfEventLog[nEvents].t = t;
 		InfEventLog[nEvents].infectee_ind = ai;
 		InfEventLog[nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc.x + P.SpatialBoundingBox[0];
-		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc.y + P.SpatialBoundingBox[1];
+		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc.x + P.SpatialBoundingBox.start.x;
+		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc.y + P.SpatialBoundingBox.start.y;
 		InfEventLog[nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[nEvents].thread = tn;

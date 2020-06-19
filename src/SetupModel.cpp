@@ -17,6 +17,8 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 
+using namespace Geometry;
+
 void* BinFileBuf;
 BinFile* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];
@@ -109,8 +111,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 			// We will compute a precise spatial bounding box using the population locations.
 			// Initially, set the min values too high, and the max values too low, and then
 			// we will adjust them as we read population data.
-			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
-			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
+			P.SpatialBoundingBox.start = Vector2<double>(1e10, 1e10);
+			P.SpatialBoundingBox.end = Vector2<double>(-1e10, -1e10);
 			s2 = 0;
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
@@ -129,30 +131,30 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 						s2 += t;
 						// Adjust the bounds of the spatial bounding box so that they include the location
 						// for this block of population.
-						if (x < P.SpatialBoundingBox[0]) P.SpatialBoundingBox[0] = x;
-						if (x >= P.SpatialBoundingBox[2]) P.SpatialBoundingBox[2] = x + 1e-6;
-						if (y < P.SpatialBoundingBox[1]) P.SpatialBoundingBox[1] = y;
-						if (y >= P.SpatialBoundingBox[3]) P.SpatialBoundingBox[3] = y + 1e-6;
+						if (x < P.SpatialBoundingBox.start.x) P.SpatialBoundingBox.start.x = x;
+						if (x >= P.SpatialBoundingBox.end.x) P.SpatialBoundingBox.end.x = x + 1e-6;
+						if (y < P.SpatialBoundingBox.start.y) P.SpatialBoundingBox.start.y = y;
+						if (y >= P.SpatialBoundingBox.end.y) P.SpatialBoundingBox.end.y = y + 1e-6;
 					}
 			}
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
 		}
 
 		P.in_cells_.height = P.in_cells_.width;
-		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.in_cells_.width) * P.in_cells_.width;
-		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.in_cells_.height) * P.in_cells_.height;
-		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.in_cells_.width) * P.in_cells_.width;
-		P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.in_cells_.height) * P.in_cells_.height;
-		P.in_degrees_.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.in_degrees_.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
+		P.SpatialBoundingBox.start.x = floor(P.SpatialBoundingBox.start.x / P.in_cells_.width) * P.in_cells_.width;
+		P.SpatialBoundingBox.start.y = floor(P.SpatialBoundingBox.start.y / P.in_cells_.height) * P.in_cells_.height;
+		P.SpatialBoundingBox.end.x = ceil(P.SpatialBoundingBox.end.x / P.in_cells_.width) * P.in_cells_.width;
+		P.SpatialBoundingBox.end.y = ceil(P.SpatialBoundingBox.end.y / P.in_cells_.height) * P.in_cells_.height;
+		P.in_degrees_.width = P.SpatialBoundingBox.end.x - P.SpatialBoundingBox.start.x;
+		P.in_degrees_.height = P.SpatialBoundingBox.end.y - P.SpatialBoundingBox.start.y;
 		P.ncw = 4 * ((int)ceil(P.in_degrees_.width / P.in_cells_.width / 4));
 		P.nch = 4 * ((int)ceil(P.in_degrees_.height / P.in_cells_.height / 4));
 		P.in_degrees_.width = ((double)P.ncw) * P.in_cells_.width;
 		P.in_degrees_.height = ((double)P.nch) * P.in_cells_.height;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width;
-		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height;
+		P.SpatialBoundingBox.end.x = P.SpatialBoundingBox.start.x + P.in_degrees_.width;
+		P.SpatialBoundingBox.end.y = P.SpatialBoundingBox.start.y + P.in_degrees_.height;
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
+		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox.start.x, P.SpatialBoundingBox.start.y, P.SpatialBoundingBox.end.x, P.SpatialBoundingBox.end.y);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width > 180) {
@@ -170,8 +172,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
+		P.SpatialBoundingBox.start = Vector2<double>(0, 0);
+		P.SpatialBoundingBox.end = Vector2<double>(s, s);
 		P.PopSize = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
 		P.in_degrees_.width = P.in_degrees_.height = s;
@@ -195,8 +197,8 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	P.in_microcells_.height = P.in_cells_.height / ((double)P.NMCL);
 	for (int i = 0; i < P.NumSeedLocations; i++)
 	{
-		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
-		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
+		P.LocationInitialInfection[i].x -= P.SpatialBoundingBox.start.x;
+		P.LocationInitialInfection[i].y -= P.SpatialBoundingBox.start.y;
 	}
 	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.in_degrees_.width, P.in_degrees_.height);
@@ -208,7 +210,7 @@ void SetupModel(char* DensityFile, char* NetworkFile, char* SchoolFile, char* Re
 	if (!(nKernel = (double*)calloc(P.NKR + 1, sizeof(double))) ||
 		!(nKernelHR = (double*)calloc(P.NKR + 1, sizeof(double)))) ERR_CRITICAL("Unable to allocate kernel storage\n");
 	P.KernelDelta = t / P.NKR;
-	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
+	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox.start.x,P.SpatialBoundingBox.start.y,P.SpatialBoundingBox.end.x,P.SpatialBoundingBox.end.y,P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
@@ -779,10 +781,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			{
 				k = 1;
 			}
-			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
+			if ((k) && (x >= P.SpatialBoundingBox.start.x) && (y >= P.SpatialBoundingBox.start.y) && (x < P.SpatialBoundingBox.end.x) && (y < P.SpatialBoundingBox.end.y))
 			{
-				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width + 0.1);
-				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height + 0.1);
+				j = (int)floor((x - P.SpatialBoundingBox.start.x) / P.in_microcells_.width + 0.1);
+				k = (int)floor((y - P.SpatialBoundingBox.start.y) / P.in_microcells_.height + 0.1);
 				l = j * P.get_number_of_micro_cells_high() + k;
 				if (l < P.NMC)
 				{
@@ -826,8 +828,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[0]; //x
-						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox[1]; //y
+						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox.start.x; //x
+						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.get_number_of_micro_cells_high())) + 0.5)) + P.SpatialBoundingBox.start.y; //y
 						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
 						BF[rn].pop = mcell_dens[l];
 						BF[rn].cnt = mcell_country[l];
@@ -1252,8 +1254,8 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 
 	if (!P.DoRandomInitialInfectionLoc)
 	{
-		int k = (int)(P.LocationInitialInfection[0][0] / P.in_microcells_.width);
-		l = (int)(P.LocationInitialInfection[0][1] / P.in_microcells_.height);
+		int k = (int)(P.LocationInitialInfection[0].x / P.in_microcells_.width);
+		l = (int)(P.LocationInitialInfection[0].y / P.in_microcells_.height);
 		j = k * P.get_number_of_micro_cells_high() + l;
 
 		double rand_r = 0.0; //added these variables so that if initial infection location is empty we can search the 10km neighbourhood to find a suitable cell
@@ -1265,15 +1267,15 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			{
 				rand_r = ranf(); rand_theta = ranf();
 				rand_r = 0.083 * sqrt(rand_r); rand_theta = 2 * PI * rand_theta; //rand_r is multiplied by 0.083 as this is roughly equal to 10km in decimal degrees
-				k = (int)((P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta)) / P.in_microcells_.width);
-				l = (int)((P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta)) / P.in_microcells_.height);
+				k = (int)((P.LocationInitialInfection[0].x + rand_r * cos(rand_theta)) / P.in_microcells_.width);
+				l = (int)((P.LocationInitialInfection[0].y + rand_r * sin(rand_theta)) / P.in_microcells_.height);
 				j = k * P.get_number_of_micro_cells_high() + l;
 				counter++;
 			}
 			if (counter < 100)
 			{
-				P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][0] + rand_r * cos(rand_theta); //set LocationInitialInfection to actual one used
-				P.LocationInitialInfection[0][1] = P.LocationInitialInfection[0][1] + rand_r * sin(rand_theta);
+				P.LocationInitialInfection[0].x = P.LocationInitialInfection[0].x + rand_r * cos(rand_theta); //set LocationInitialInfection to actual one used
+				P.LocationInitialInfection[0].y = P.LocationInitialInfection[0].y + rand_r * sin(rand_theta);
 			}
 		}
 		if (Mcells[j].n < P.NumInitialInfections[0])
@@ -1337,9 +1339,9 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		{
 			fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
 			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
-			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox[0]);
-			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox[1]);
-			if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) && (y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
+			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox.start.x);
+			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox.start.y);
+			if ((x >= P.SpatialBoundingBox.start.x) && (x < P.SpatialBoundingBox.end.x) && (y >= P.SpatialBoundingBox.start.y) && (y < P.SpatialBoundingBox.end.y))
 			{
 				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width)) + ((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height));
 				if (Cells[i].n == 0) mr++;
