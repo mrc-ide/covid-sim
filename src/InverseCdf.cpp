@@ -1,9 +1,15 @@
 #include "InverseCdf.h"
-#include <math.h>
+#include <cmath>
 #include "Rand.h"
 
 
-// set defaults if not present in parameter file
+/**
+ * Function: set_defaults
+ *
+ * Purpose: set defaults if not present in parameter file
+ * @param start_value - the value to use for cdf_values_[CDF_RES]
+ * @return void
+ */
 void InverseCdf::set_defaults(double start_value)
 {
 	cdf_values_[CDF_RES] = start_value;
@@ -11,6 +17,12 @@ void InverseCdf::set_defaults(double start_value)
 		cdf_values_[i] = -log(1 - ((double)i) / CDF_RES);
 }
 
+/**
+ * Function: apply_exponent
+ *
+ * Purpose: exponentiate each quantile
+ * @return void
+ */
 void InverseCdf::apply_exponent()
 {
 	for (int quantile = 0; quantile <= CDF_RES; quantile++)
@@ -19,6 +31,14 @@ void InverseCdf::apply_exponent()
 	}
 }
 
+
+/**
+ * Function: apply_exponent
+ *
+ * Purpose: exponentiate each quantile
+ * @param value - value of the exponent
+ * @return void
+ */
 void InverseCdf::apply_exponent(double value)
 {
 	for (int i = 0; i <= CDF_RES; i++)
@@ -27,6 +47,16 @@ void InverseCdf::apply_exponent(double value)
 	}
 }
 
+
+/**
+ * Function: choose
+ *
+ * Purpose: choose a value from the InverseCdf data
+ * @param Mean
+ * @param tn - thread number
+ * @param timesteps_per_day
+ * @return value chosen from InverseCdf data
+ */
 unsigned short int InverseCdf::choose(double Mean, int tn, double timesteps_per_day)
 {
 	unsigned short int Value;
