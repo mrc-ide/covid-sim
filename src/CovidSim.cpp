@@ -1027,19 +1027,19 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 		s /= ((double)k);
 		for (i = 0; i <= k; i++) P.infectiousness[i] /= s;
-		P.infectious_icdf.apply_exponent(-1.0);
+		P.infectious_icdf.assign_exponent(-1.0);
 	}
 	else
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf.get_values(), CDF_RES + 1, 1, 0))
 		{
-			P.infectious_icdf.set_defaults(ICDF_START);
+			P.infectious_icdf.assign_neg_log(ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
-		P.infectious_icdf.apply_exponent();
+		P.infectious_icdf.assign_exponent();
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include latent period", "%i", (void*) & (P.DoLatent), 1, 1, 0)) P.DoLatent = 0;
 	if (P.DoLatent)
@@ -5736,8 +5736,8 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 {
 	if (!GetInputParameter2(param_file_dat, preparam_file_dat, icdf_name, "%lf", (void*)inverseCdf->get_values(), CDF_RES + 1, 1, 0))
 	{
-		inverseCdf->set_defaults(start_value);
+		inverseCdf->assign_neg_log(start_value);
 	}
-	inverseCdf->apply_exponent();
+	inverseCdf->assign_exponent();
 }
 

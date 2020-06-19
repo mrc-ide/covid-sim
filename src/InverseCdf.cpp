@@ -4,13 +4,13 @@
 
 
 /**
- * Function: set_defaults
+ * Function: assign_neg_log
  *
  * Purpose: set defaults if not present in parameter file
  * @param start_value - the value to use for cdf_values_[CDF_RES]
  * @return void
  */
-void InverseCdf::set_defaults(double start_value)
+void InverseCdf::assign_neg_log(double start_value)
 {
 	cdf_values_[CDF_RES] = start_value;
 	for (int i = 0; i < CDF_RES; i++)
@@ -18,12 +18,12 @@ void InverseCdf::set_defaults(double start_value)
 }
 
 /**
- * Function: apply_exponent
+ * Function: assign_exponent
  *
  * Purpose: exponentiate each quantile
  * @return void
  */
-void InverseCdf::apply_exponent()
+void InverseCdf::assign_exponent()
 {
 	for (int quantile = 0; quantile <= CDF_RES; quantile++)
 	{
@@ -33,13 +33,13 @@ void InverseCdf::apply_exponent()
 
 
 /**
- * Function: apply_exponent
+ * Function: assign_exponent
  *
  * Purpose: exponentiate each quantile
  * @param value - value of the exponent
  * @return void
  */
-void InverseCdf::apply_exponent(double value)
+void InverseCdf::assign_exponent(double value)
 {
 	for (int i = 0; i <= CDF_RES; i++)
 	{

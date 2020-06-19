@@ -8,11 +8,11 @@ class InverseCdf
 
 public:
 
-	void set_defaults(double start_value);
+	void assign_neg_log(double start_value);
 
-	void apply_exponent();
+	void assign_exponent();
 
-	void apply_exponent(double value);
+	void assign_exponent(double value);
 
 	unsigned short int choose(double Mean, int tn, double timesteps_per_day);
 
