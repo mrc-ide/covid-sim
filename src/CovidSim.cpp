@@ -1033,7 +1033,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf.get_values(), CDF_RES + 1, 1, 0))
 		{
-			P.infectious_icdf.assign_neg_log(ICDF_START);
+			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
@@ -5736,7 +5736,7 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 {
 	if (!GetInputParameter2(param_file_dat, preparam_file_dat, icdf_name, "%lf", (void*)inverseCdf->get_values(), CDF_RES + 1, 1, 0))
 	{
-		inverseCdf->assign_neg_log(start_value);
+		inverseCdf->set_neg_log(start_value);
 	}
 	inverseCdf->assign_exponent();
 }

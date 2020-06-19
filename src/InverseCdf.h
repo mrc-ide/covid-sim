@@ -8,7 +8,7 @@ class InverseCdf
 
 public:
 
-	void assign_neg_log(double start_value);
+	void set_neg_log(double start_value);
 
 	void assign_exponent();
 

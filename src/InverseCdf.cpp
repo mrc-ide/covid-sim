@@ -4,13 +4,13 @@
 
 
 /**
- * Function: assign_neg_log
+ * Function: set_neg_log
  *
  * Purpose: set defaults if not present in parameter file
  * @param start_value - the value to use for cdf_values_[CDF_RES]
  * @return void
  */
-void InverseCdf::assign_neg_log(double start_value)
+void InverseCdf::set_neg_log(double start_value)
 {
 	cdf_values_[CDF_RES] = start_value;
 	for (int i = 0; i < CDF_RES; i++)
