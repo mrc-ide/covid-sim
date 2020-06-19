@@ -1439,6 +1439,15 @@ void InfectiousToDeath(int cellIndex)
 	Cells[cellIndex].D++; //// one more dead person
 }
 
+/**
+ * Function: UpdateCell
+ *
+ * Purpose: update Cells and Hosts
+ * @param cellPeople - pointer to people in cell. e.g. *susceptible identifies where the final susceptible member of cell is.
+ * @param index - index into cellPeople to update
+ * @param srcIndex - index into cellPeople to update from
+ * @return void
+ */
 void UpdateCell(int* cellPeople,
 	int index,
 	int srcIndex)
@@ -1446,6 +1455,16 @@ void UpdateCell(int* cellPeople,
 	UpdateCell(cellPeople, cellPeople, index, srcIndex);
 }
 
+/**
+ * Function: UpdateCell
+ *
+ * Purpose: update Cells and Hosts 
+ * @param cellPeople - pointer to people in cell to update. e.g. *susceptible identifies where the final susceptible member of cell is.
+ * @param srcCellPeople - pointer to people in cell to update from. e.g. *infected identifies where the final infected member of cell is.
+ * @param index - index into cellPeople to update
+ * @param srcIndex - index into srcCellPeople to update from
+ * @return void
+ */
 void UpdateCell(int* cellPeople,
 	int* srcCellPeople,
 	int index,
