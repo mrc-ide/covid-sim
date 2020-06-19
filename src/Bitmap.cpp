@@ -113,6 +113,7 @@ void OutputBitmap(int tp)
 	char buf[3000], OutF[3000];
 	int j = 0;
 	static int cn[4] = {0, 0, 0, 0};
+	const char *OutPrefix[4] = {"", "Mean.", "Min.", "Max."};
 
 	char *OutBaseName = strrchr(OutFile, '/');
 	char *OutBaseName2 = strrchr(OutFile, '\\');
@@ -123,11 +124,9 @@ void OutputBitmap(int tp)
 		OutBaseName = OutFile;
 	}
 
-	for (auto &i : cn) {
-		j = i;
-		i++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
-	}
+	j = cn[tp];
+	cn[tp]++;
+	sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s%s", OutFile, OutPrefix[tp], OutBaseName);
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
