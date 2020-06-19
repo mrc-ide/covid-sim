@@ -123,29 +123,27 @@ void OutputBitmap(int tp)
 		OutBaseName = OutFile;
 	}
 
-	if (tp == 0)
-	{
-		j = cn1;
-		cn1++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
-	}
-	else if (tp == 1)
-	{
-		j = cn2;
-		cn2++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Mean.%s", OutFile, OutBaseName);
-	}
-	else if (tp == 2)
-	{
-		j = cn3;
-		cn3++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Min.%s", OutFile, OutBaseName);
-	}
-	else if (tp == 3)
-	{
-		j = cn4;
-		cn4++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
+	switch (tp) {
+		case 0:
+			j = cn1;
+			cn1++;
+			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
+			break;
+		case 1:
+			j = cn2;
+			cn2++;
+			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Mean.%s", OutFile, OutBaseName);
+			break;
+		case 2:
+			j = cn3;
+			cn3++;
+			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Min.%s", OutFile, OutBaseName);
+			break;
+		case 3:
+			j = cn4;
+			cn4++;
+			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
+			break;
 	}
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
@@ -273,10 +271,9 @@ void InitBMHead()
 		!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
 		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
 
-
+#ifdef _WIN32
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
-#ifdef _WIN32
 	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, NULL);
 	  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	  Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
@@ -300,8 +297,8 @@ void InitBMHead()
 	    }
 	  }
 	  free(pImageCodecInfo);
-#endif
 	}
+#endif
 
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", OutFileBase);

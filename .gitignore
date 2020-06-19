@@ -15,7 +15,7 @@ build_*/
 cmake-build-debug/
 .project
 *.vcxproj.user
-tests/*-output/
+tests/*output*/
 .idea/
 
 # VScode
