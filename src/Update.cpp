@@ -25,6 +25,24 @@ void LatentToInfectious(int cellIndex);
 void InfectiousToRecovered(int cellIndex);
 void InfectiousToDeath(int cellIndex);
 
+
+void ToInfected(int tn, Person* a, int ai, double q);
+void FromMild(int tn, Person* a, int ai);
+void ToMild(int tn, Person* a, int ai);
+void FromCritRecov(int tn, Person* a, int ai);
+
+void FromSARI(int tn, Person* a, int ai);
+
+void FromILI(int tn, Person* a, int ai);
+void ToILI(int tn, Person* a, int ai);
+
+void ILIToSARI(int tn, Person* a, int ai);
+void SARIToCritical(int tn, Person* a, int ai);
+void CriticalToRecovered(int tn, Person* a, int ai);
+void CriticalToDeath(int tn, Person* a, int ai);
+void SARIToDeath(int tn, Person* a, int ai);
+void ILIToDeath(int tn, Person* a, int ai);
+
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
@@ -91,15 +109,13 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		ts = (unsigned short int) (P.TimeStepsPerDay * t);
 		a->inf = InfStat_Latent; //// set person a to be infected
 		a->infection_time = (unsigned short int) ts; //// record their infection time
-		///// Change threaded state variables to reflect new infection status of person a.
-		StateT[tn].cumI++;
-		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
-		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
+
 		//// calculate radius squared, and increment sum of radii squared.
 		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0][0]);
 		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0][1]);
 		q = x * x + y * y;
-		StateT[tn].sumRad2 += q;
+
+		ToInfected(tn, a, ai, q);
 
 		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
 		{
@@ -242,15 +258,8 @@ void DoMild(int ai, int tn)
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_Mild;
-			StateT[tn].Mild++;
-			StateT[tn].cumMild++;
-			StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumMild_adunit[Mcells[a->mcell].adunit]++;
-			}
+
+			ToMild(tn, a, ai);
 		}
 	}
 }
@@ -262,15 +271,8 @@ void DoILI(int ai, int tn)
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_ILI;
-			StateT[tn].ILI++;
-			StateT[tn].cumILI++;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit	[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumILI_adunit[Mcells[a->mcell].adunit]++;
-			}
+			ToILI(tn, a, ai);
+
 		}
 	}
 }
@@ -282,18 +284,7 @@ void DoSARI(int ai, int tn)
 		if (a->Severity_Current == Severity_ILI)
 		{
 			a->Severity_Current = Severity_SARI;
-			StateT[tn].ILI--;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].SARI++;
-			StateT[tn].cumSARI++;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumSARI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit		[Mcells[a->mcell].adunit]--;
-				StateT[tn].SARI_adunit		[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumSARI_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			ILIToSARI(tn, a, ai);
 		}
 	}
 }
@@ -305,18 +296,7 @@ void DoCritical(int ai, int tn)
 		if (a->Severity_Current == Severity_SARI)
 		{
 			a->Severity_Current = Severity_Critical;
-			StateT[tn].SARI--;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].Critical++;
-			StateT[tn].cumCritical++;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumCritical_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].Critical_adunit		[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumCritical_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			SARIToCritical(tn, a, ai);
 		}
 	}
 }
@@ -331,18 +311,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 		if (a->Severity_Current == Severity_Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
 			a->Severity_Current = Severity_RecoveringFromCritical;
-			StateT[tn].Critical--;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].CritRecov++;
-			StateT[tn].cumCritRecov++;
-			StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumCritRecov_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
-				StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumCritRecov_adunit[Mcells[a->mcell].adunit]++;
-			}
+			CriticalToRecovered(tn, a, ai);
 		}
 	}
 }
@@ -353,43 +322,20 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	{
 		if (a->Severity_Current == Severity_Critical)
 		{
-			StateT[tn].Critical--;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_Critical++;
-			StateT[tn].cumDeath_Critical_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_Critical_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			CriticalToDeath(tn, a, ai);
+
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_SARI)
 		{
-			StateT[tn].SARI--;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_SARI++;
-			StateT[tn].cumDeath_SARI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_SARI_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			SARIToDeath(tn, a, ai);
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_ILI)
 		{
-			StateT[tn].ILI--;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_ILI++;
-			StateT[tn].cumDeath_ILI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_ILI_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			ILIToDeath(tn, a, ai);
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
@@ -409,33 +355,26 @@ void DoRecover_FromSeverity(int ai, int tn)
 		{
 			if (a->Severity_Current == Severity_Mild)
 			{
-				StateT[tn].Mild--;
-				StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
+				FromMild(tn, a, ai);
+
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_ILI)
 			{
-				StateT[tn].ILI--;
-				StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+				FromILI(tn, a, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_SARI)
 			{
-				StateT[tn].SARI--;
-				StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+				FromSARI(tn, a, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
-				StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
-				StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
+				FromCritRecov(tn, a, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
@@ -1426,4 +1365,145 @@ void InfectiousToDeath(int cellIndex)
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].D++; //// one more dead person
 }
+
+void ToInfected(int tn, Person* a, int ai, double q)
+{
+	///// Change threaded state variables to reflect new infection status of person a.
+	StateT[tn].cumI++;
+	StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
+	StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
+	StateT[tn].sumRad2 += q;
+}
+
+void FromMild(int tn, Person* a, int ai)
+{
+	StateT[tn].Mild--;
+	StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
+	if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
+}
+
+void ToMild(int tn, Person* a, int ai)
+{
+	StateT[tn].Mild++;
+	StateT[tn].cumMild++;
+	StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
+	StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
+	if (P.DoAdUnits)
+	{
+		StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
+		StateT[tn].cumMild_adunit[Mcells[a->mcell].adunit]++;
+	}
+}
+
+
+void FromCritRecov(int tn, Person* a, int ai)
+{
+	StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
+	StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
+	if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
+
+}
+
+void FromSARI(int tn, Person* a, int ai)
+{
+	StateT[tn].SARI--;
+	StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
+	if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+}
+
+void FromILI(int tn, Person* a, int ai)
+{
+	StateT[tn].ILI--;
+	StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
+	if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+}
+
+void ToILI(int tn, Person* a, int ai)
+{
+	StateT[tn].ILI++;
+	StateT[tn].cumILI++;
+	StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
+	StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
+	if (P.DoAdUnits)
+	{
+		StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]++;
+		StateT[tn].cumILI_adunit[Mcells[a->mcell].adunit]++;
+	}
+}
+
+void FromSeverity(int* quantity, int *age, int *adUnit, Person* a, int ai)
+{
+	(*quantity)--;
+	age[HOST_AGE_GROUP(ai)]--;
+
+	if (P.DoAdUnits)
+	{
+		adUnit[Mcells[a->mcell].adunit]--;
+	}
+}
+
+void ToSeverity(int* quantity, int* cumQuantity, int* age, int* cumAge, int* adUnit, int* cumAdUnit, Person* a, int ai)
+{
+	(*quantity)++;
+	(*cumQuantity)++;
+
+	age[HOST_AGE_GROUP(ai)]++;
+	cumAge[HOST_AGE_GROUP(ai)]++;
+
+	if (P.DoAdUnits)
+	{
+		adUnit[Mcells[a->mcell].adunit]++;
+		cumAdUnit[Mcells[a->mcell].adunit]++;
+	}
+}
+
+void ToSeverity(int* cumQuantity, int* cumAge, int* cumAdUnit, Person* a, int ai)
+{
+	(*cumQuantity)++;
+
+	cumAge[HOST_AGE_GROUP(ai)]++;
+
+	if (P.DoAdUnits)
+	{
+		cumAdUnit[Mcells[a->mcell].adunit]++;
+	}
+}
+
+
+void ILIToSARI(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, a, ai);
+	ToSeverity(&StateT[tn].SARI, &StateT[tn].cumSARI, StateT[tn].SARI_age, StateT[tn].cumSARI_age, StateT[tn].SARI_adunit, StateT[tn].cumSARI_adunit, a, ai);
+}
+
+void SARIToCritical(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, a, ai);
+	ToSeverity(&StateT[tn].Critical, &StateT[tn].cumCritical, StateT[tn].Critical_age, StateT[tn].cumCritical_age, StateT[tn].Critical_adunit, StateT[tn].cumCritical_adunit, a, ai);
+}
+
+void CriticalToRecovered(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, a, ai);
+	ToSeverity(&StateT[tn].CritRecov, &StateT[tn].cumCritRecov, StateT[tn].CritRecov_age, StateT[tn].cumCritRecov_age, StateT[tn].CritRecov_adunit, StateT[tn].cumCritRecov_adunit, a, ai);
+}
+
+void CriticalToDeath(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, a, ai);
+	ToSeverity(&StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, a, ai);
+}
+
+void SARIToDeath(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, a, ai);
+	ToSeverity(&StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, a, ai);
+}
+
+void ILIToDeath(int tn, Person* a, int ai)
+{
+	FromSeverity(&StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, a, ai);
+	ToSeverity(&StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, a, ai);
+}
+
 
