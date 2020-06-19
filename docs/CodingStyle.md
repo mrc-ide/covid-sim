@@ -54,10 +54,11 @@ In particular use:
  * Header files: \*.h
  * Source files: \*.cpp
  * Namespaces: CamelCase
- * Classes, Structures, Class Enums, Enum Members: CamelCase
+ * Classes, Structures, Class Enums: CamelCase
  * Template Parameters: Short CAPS (So T, or IT not ITERATOR or Iterator)
- * Function parameters and variables: snake\_case
+ * Function parameters, variables, enum members: snake\_case
  * Class, structure member variables: snake\_case\_trailing\_underscore\_
+ * Macros: CAPS\_SNAKE\_CASE.
 
 ## Language Features
 
@@ -77,13 +78,14 @@ In particular use:
  * Source files should include the appropriate headers, and not depend on
    headers including other headers.
 
+ * Macros and predefined symbols are discouraged.
+
+ * Use `enum class` not `enum`.
+
  * All new classes/functions should be placed in a namespace.
 
  * `using namespace` should not be used to import symbols into the global
    namespace.
-
- * No exceptions in code that might be run in a multi-threaded environment.
-   Excpetions and OpenMP are hard to get to play well with each other.
 
  * Don't use explicit `this` unless required.
 
@@ -92,3 +94,73 @@ In particular use:
    * noexcept when they don't throw exceptions
 
    * (Methods) const when they don't modify state.
+
+ * When dispatching over all values in an enum use `switch`.
+
+### OpenMP usage
+
+No exceptions in code that may be run under OpenMP threads due to the
+difficulty of ensuring we handle uncaught exceptions.
+
+`#pragma omp parallel` should have a `default(none)` clause and all shared
+variables used need to be explicitly listed in a `shared()` clause.
+
+All `#pragma omp` statements that apply to following scopes (`parallel` and
+`critical` for example) should be immediately followed by an `if`, `for`, `while`
+statement or an opening brace.
+
+So:
+
+```c++
+#pragma omp paralell ...
+for (...)
+{
+}
+```
+
+or
+
+```c++
+#pragma omp critical
+{
+  x = y;
+}
+```
+
+But not:
+
+```c++
+#pragma omp critical
+x = y;
+```
+
+### Exceptions
+
+As stated above no exceptions with OpenMP code.  However, where exceptions
+have to be used (interaction with libraries) or where it makes sense to use
+them in single-threaded contexts (command line parsing, file reading for
+instance) they should be used with care.
+
+In particular exceptions are for exceptional circumstances - logic failures,
+breaking of pre/post conditions or invariants.  User error is not an
+exceptional circumstance and should be handled in other ways.  For CovidSim
+user error is getting the command line parameters wrong, or providing
+incomplete/incorrect input files.
+
+Use `noexcept()` wherever it applies.  This can help improve code generation.
+
+### Design notes.
+
+Instances of a class should always look from the outside as if they are in a
+valid state.  That is that on entry/exit from a member method a class should
+still be valid - even if it is not during the method call.
+
+Document the pre & post conditions and invariants on all classes, and
+functions.  Test them with `assert` at appropriate places.
+
+### Third-party libraries
+
+To keep configuration and external pre-installeed dependencies simple
+third-party libraries can only be supported if, like GoogleTest, they can be
+downloaded and configured by CMake at build time.
+
