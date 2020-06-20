@@ -132,7 +132,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 						s2 += t;
 						// Adjust the bounds of the spatial bounding box so that they include the location
 						// for this block of population.
-						P.SpatialBoundingBox.add(Geometry::Vector2d(x, y));
+						P.SpatialBoundingBox.expand(Geometry::Vector2d(x, y));
 					}
 			}
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;

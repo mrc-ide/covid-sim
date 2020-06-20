@@ -10,23 +10,22 @@ set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h Error.h
   InverseCdf.h Memory.h CLI.h)
 source_group(covidsim\\main FILES ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 
-add_subdirectory(Geometry)
-
 # CovidSim target
 add_executable(CovidSim ${MAIN_SRC_FILES} ${MAIN_HDR_FILES})
 target_include_directories(CovidSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_subdirectory(Geometry)
 add_subdirectory(Models)
 
+target_link_libraries(CovidSim PUBLIC geometrylib)
 if(USE_OPENMP)
-  target_link_libraries(CovidSim PUBLIC geometrylib OpenMP::OpenMP_CXX)
+  target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
 endif()
 if(WIN32)
-  target_link_libraries(CovidSim PUBLIC geometrylib Gdiplus.lib Vfw32.lib)
+  target_link_libraries(CovidSim PUBLIC Gdiplus.lib Vfw32.lib)
   target_compile_definitions(CovidSim PUBLIC  "_CRT_SECURE_NO_WARNINGS")
   add_compile_options("fp:strict")
 elseif(UNIX)
-  target_link_libraries(CovidSim PUBLIC geometrylib)
   target_compile_definitions(CovidSim PUBLIC UNIX)
 else()
   message(FATAL_ERROR "Unknown operating system type: ${CMAKE_SYSTEM_NAME}")

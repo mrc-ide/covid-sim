@@ -15,7 +15,7 @@ namespace CovidSim
       {
         Maximum2<double> v1(9.0, 6.5);
         Vector2d v2(7.0, 8.0);
-        v1.add(v2, 0.0);
+        v1.expand(v2, 0.0);
         EXPECT_EQ(v1.x, 9.0) << "X value not max";
         EXPECT_EQ(v1.y, 8.0) << "Y value not max";
       }
@@ -24,7 +24,7 @@ namespace CovidSim
       {
         Minimum2<double> v1(9.0, 6.5);
         Vector2d v2(7.0, 8.0);
-        v1.add(v2);
+        v1.expand(v2);
         EXPECT_EQ(v1.x, 7.0) << "X value not min";
         EXPECT_EQ(v1.y, 6.5) << "Y value not min";
       }
@@ -69,8 +69,8 @@ namespace CovidSim
       {
         BoundingBox2d box;
         box.reset();
-        box.add(Vector2d(9.0, 8.5));
-        box.add(Vector2d(5.0, 6.0));
+        box.expand(Vector2d(9.0, 8.5));
+        box.expand(Vector2d(5.0, 6.0));
         EXPECT_TRUE( box.inside(Vector2d(7.0, 7.0)));
         EXPECT_FALSE(box.inside(Vector2d(3.0, 7.0)));
         EXPECT_FALSE(box.inside(Vector2d(9.5, 7.0)));

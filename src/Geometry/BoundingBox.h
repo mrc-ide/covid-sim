@@ -14,7 +14,10 @@ namespace Geometry {
   {
   public:
     /// Default constructor initialises nothing
-    Maximum2() = default;
+    Maximum2()
+      : Vector2<T>()
+    {
+    }
 
     /// Construct with the values
     /// \param x X coordinate
@@ -24,10 +27,10 @@ namespace Geometry {
     {
     }
 
-    /// Adjust so it is the maximum of this and the other point
+    /// Expand so it is the maximum of this and the other point
     /// \param p Point
     /// \param offset Value to add to component of p
-    void add(const Vector2<T>& p, T offset)
+    void expand(const Vector2<T>& p, T offset)
     {
       if (p.x >= this->x) this->x = p.x + offset;
       if (p.y >= this->y) this->y = p.y + offset;
@@ -57,7 +60,10 @@ namespace Geometry {
   {
   public:
     /// Default constructor initialises nothing
-    Minimum2() = default;
+    Minimum2()
+      : Vector2<T>()
+    {
+    }
 
     /// Construct with the values
     /// \param x X coordinate
@@ -67,9 +73,9 @@ namespace Geometry {
     {
     }
 
-    /// Adjust so it is the minimum of this and the other point
+    /// Expand so it is the minimum of this and the other point
     /// \param p Point
-    void add(const Vector2<T>& p)
+    void expand(const Vector2<T>& p)
     {
       if (p.x < this->x) this->x = p.x;
       if (p.y < this->y) this->y = p.y;
@@ -176,12 +182,12 @@ namespace Geometry {
       top_right_.x = top_right_.y = -1e10;
     }
 
-    /// Add a point to the bounds
+    /// Expand the bounds to fit the given point
     /// \param p Point
-    void add(const Vector2d& p)
+    void expand(const Vector2d& p)
     {
-      bottom_left_.add(p);
-      top_right_.add(p, 1e-6);
+      bottom_left_.expand(p);
+      top_right_.expand(p, 1e-6);
     }
   };
 }
