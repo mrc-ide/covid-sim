@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include "../Dist.h"
 
 namespace Geometry {
 	template<class T>
@@ -16,10 +15,6 @@ namespace Geometry {
 		T length() const;
 
 		T length_squared() const;
-
-		T distance_to(const Vector2<T> &other) const;
-
-		T distance_to_squared(const Vector2<T> &other) const;
 
 		Vector2<T> abs() const;
 
@@ -66,16 +61,6 @@ namespace Geometry {
 	template<class T>
 	T Vector2<T>::length_squared() const {
 		return this->x * this->x + this->y * this->y;
-	}
-
-	template<class T>
-	T Vector2<T>::distance_to(const Vector2<T> &other) const {
-		return (T) std::sqrt(this->distance_to_squared(other));
-	}
-
-	template<class T>
-	T Vector2<T>::distance_to_squared(const Vector2<T> &other) const {
-		return (T) dist2_raw(this->x, this->y, other.x, other.y);
 	}
 
 	template<class T>
