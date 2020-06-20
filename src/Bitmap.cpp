@@ -112,7 +112,8 @@ void OutputBitmap(int tp)
 {
 	char buf[3000], OutF[3000];
 	int j = 0;
-	static int cn1 = 0, cn2 = 0, cn3 = 0, cn4 = 0;
+	static int cn[4] = {0, 0, 0, 0};
+	const char *OutPrefix[4] = {"", "Mean.", "Min.", "Max."};
 
 	char *OutBaseName = strrchr(OutFile, '/');
 	char *OutBaseName2 = strrchr(OutFile, '\\');
@@ -123,28 +124,9 @@ void OutputBitmap(int tp)
 		OutBaseName = OutFile;
 	}
 
-	switch (tp) {
-		case 0:
-			j = cn1;
-			cn1++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
-			break;
-		case 1:
-			j = cn2;
-			cn2++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Mean.%s", OutFile, OutBaseName);
-			break;
-		case 2:
-			j = cn3;
-			cn3++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Min.%s", OutFile, OutBaseName);
-			break;
-		case 3:
-			j = cn4;
-			cn4++;
-			sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
-			break;
-	}
+	j = cn[tp];
+	cn[tp]++;
+	sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s%s", OutFile, OutPrefix[tp], OutBaseName);
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
@@ -177,7 +159,7 @@ void OutputBitmap(int tp)
 	  //This transfers HBITMAP to GDI+ Bitmap object
 	  Bitmap* gdip_bmp = Bitmap::FromHBITMAP(bmpdib, NULL);
 	  //Now change White in palette (first entry) to be transparent
-	  if ((cn1 == 1) && (tp == 0))
+	  if ((cn[0] == 1) && (tp == 0))
 	  {
 		  static UINT palsize;
 		  static ColorPalette* palette;
