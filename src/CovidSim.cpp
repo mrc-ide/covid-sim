@@ -1245,15 +1245,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	if (P.FitIter == 0)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.BoundingBox[0]), 4, 1, 0))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.BoundingBox.bottom_left().x), 4, 1, 0))
 		{
-			P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
-			P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+			P.BoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
+			P.BoundingBox.top_right()   = Geometry::Vector2d(1.0, 1.0);
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) &(P.SpatialBoundingBox[0]), 4, 1, 0))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) &(P.SpatialBoundingBox.bottom_left().x), 4, 1, 0))
 		{
-			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
-			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
+			P.SpatialBoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
+			P.SpatialBoundingBox.top_right()   = Geometry::Vector2d(1.0, 1.0);
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*)&(P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*)&(P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
@@ -2367,16 +2367,15 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc.x < P.SpatialBoundingBox[0]) || (Airports[i].loc.x >= P.SpatialBoundingBox[2])
-			|| (Airports[i].loc.y < P.SpatialBoundingBox[1]) || (Airports[i].loc.y >= P.SpatialBoundingBox[3]))
+		if (!P.SpatialBoundingBox.inside(Geometry::Vector2d(Airports[i].loc)))
 		{
 			Airports[i].loc.x = Airports[i].loc.y = -1;
 			Airports[i].total_traffic = 0;
 		}
 		else
 		{
-			Airports[i].loc.x -= (float)P.SpatialBoundingBox[0];
-			Airports[i].loc.y -= (float)P.SpatialBoundingBox[1];
+			Airports[i].loc.x -= (float)P.SpatialBoundingBox.bottom_left().x;
+			Airports[i].loc.y -= (float)P.SpatialBoundingBox.bottom_left().y;
 			Airports[i].total_traffic = (float)traf;
 		}
 		t = 0;
@@ -3459,7 +3458,7 @@ void SaveResults(std::string const& output_file_base)
 				outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + "." + std::to_string(i + 1) + ".png";
 				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname.c_str());
 				fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
-					P.SpatialBoundingBox[3], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[0]);
+					P.SpatialBoundingBox.top_right().y, P.SpatialBoundingBox.bottom_left().y, P.SpatialBoundingBox.top_right().x, P.SpatialBoundingBox.bottom_left().x);
 				fprintf(dat, "</GroundOverlay>\n");
 			}
 		fprintf(dat, "</Document>\n</kml>\n");

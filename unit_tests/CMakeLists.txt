@@ -16,3 +16,4 @@ include(GoogleTest)
 include_directories("${gtest_SOURCE_DIR}/include")
 
 ADD_SUBDIRECTORY(example)
+ADD_SUBDIRECTORY(geometry)

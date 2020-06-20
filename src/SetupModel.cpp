@@ -113,8 +113,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			// We will compute a precise spatial bounding box using the population locations.
 			// Initially, set the min values too high, and the max values too low, and then
 			// we will adjust them as we read population data.
-			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 1e10;
-			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = -1e10;
+			P.SpatialBoundingBox.reset();
 			s2 = 0;
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
@@ -133,30 +132,26 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 						s2 += t;
 						// Adjust the bounds of the spatial bounding box so that they include the location
 						// for this block of population.
-						if (x < P.SpatialBoundingBox[0]) P.SpatialBoundingBox[0] = x;
-						if (x >= P.SpatialBoundingBox[2]) P.SpatialBoundingBox[2] = x + 1e-6;
-						if (y < P.SpatialBoundingBox[1]) P.SpatialBoundingBox[1] = y;
-						if (y >= P.SpatialBoundingBox[3]) P.SpatialBoundingBox[3] = y + 1e-6;
+						P.SpatialBoundingBox.add(Geometry::Vector2d(x, y));
 					}
 			}
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
 		}
 
 		P.in_cells_.height = P.in_cells_.width;
-		P.SpatialBoundingBox[0] = floor(P.SpatialBoundingBox[0] / P.in_cells_.width) * P.in_cells_.width;
-		P.SpatialBoundingBox[1] = floor(P.SpatialBoundingBox[1] / P.in_cells_.height) * P.in_cells_.height;
-		P.SpatialBoundingBox[2] = ceil(P.SpatialBoundingBox[2] / P.in_cells_.width) * P.in_cells_.width;
-		P.SpatialBoundingBox[3] = ceil(P.SpatialBoundingBox[3] / P.in_cells_.height) * P.in_cells_.height;
-		P.in_degrees_.width = P.SpatialBoundingBox[2] - P.SpatialBoundingBox[0];
-		P.in_degrees_.height = P.SpatialBoundingBox[3] - P.SpatialBoundingBox[1];
+		P.SpatialBoundingBox.to_grid(P.in_cells_.width, P.in_cells_.height);
+		P.in_degrees_.width = P.SpatialBoundingBox.width();
+		P.in_degrees_.height = P.SpatialBoundingBox.height();
 		P.ncw = 4 * ((int)ceil(P.in_degrees_.width / P.in_cells_.width / 4));
 		P.nch = 4 * ((int)ceil(P.in_degrees_.height / P.in_cells_.height / 4));
 		P.in_degrees_.width = ((double)P.ncw) * P.in_cells_.width;
 		P.in_degrees_.height = ((double)P.nch) * P.in_cells_.height;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width;
-		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height;
+		P.SpatialBoundingBox.top_right() = P.SpatialBoundingBox.bottom_left()
+			+ Geometry::Vector2d(P.in_degrees_.width, P.in_degrees_.height);
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
+		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
+				P.SpatialBoundingBox.bottom_left().x, P.SpatialBoundingBox.bottom_left().y,
+				P.SpatialBoundingBox.top_right().x,   P.SpatialBoundingBox.top_right().y);
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width > 180) {
@@ -174,8 +169,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
+		P.SpatialBoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
+		P.SpatialBoundingBox.top_right() = Geometry::Vector2d(s, s);
 		P.PopSize = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
 		P.in_degrees_.width = P.in_degrees_.height = s;
@@ -188,21 +183,21 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
 	P.scale.x = P.BitmapScale;
 	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
-	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scale.x);
+	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox.width()) * P.scale.x);
 	P.b.width = (P.b.width + 3) / 4;
 	P.b.width *= 4;
-	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox[3] - P.BoundingBox[1]) * P.scale.y);
+	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox.height()) * P.scale.y);
 	P.b.height += (4 - P.b.height % 4) % 4;
 	P.bheight2 = P.b.height + 20; // space for colour legend
 	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
-	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox[0] * P.scale.x);
-	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox[1] * P.scale.y);
+	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox.bottom_left().x * P.scale.x);
+	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox.bottom_left().y * P.scale.y);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);
 	P.in_microcells_.height = P.in_cells_.height / ((double)P.NMCL);
 	for (int i = 0; i < P.NumSeedLocations; i++)
 	{
-		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox[0];
-		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox[1];
+		P.LocationInitialInfection[i][0] -= P.SpatialBoundingBox.bottom_left().x;
+		P.LocationInitialInfection[i][1] -= P.SpatialBoundingBox.bottom_left().y;
 	}
 	// Find longest distance - may not be diagonally across the bounding box.
 	t = dist2_raw(0, 0, P.in_degrees_.width, P.in_degrees_.height);
@@ -850,10 +845,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			{
 				k = 1;
 			}
-			if ((k) && (x >= P.SpatialBoundingBox[0]) && (y >= P.SpatialBoundingBox[1]) && (x < P.SpatialBoundingBox[2]) && (y < P.SpatialBoundingBox[3]))
+			if ((k) && P.SpatialBoundingBox.inside(Geometry::Vector2d(x, y)))
 			{
-				j = (int)floor((x - P.SpatialBoundingBox[0]) / P.in_microcells_.width + 0.1);
-				k = (int)floor((y - P.SpatialBoundingBox[1]) / P.in_microcells_.height + 0.1);
+				j = (int)floor((x - P.SpatialBoundingBox.bottom_left().x) / P.in_microcells_.width  + 0.1);
+				k = (int)floor((y - P.SpatialBoundingBox.bottom_left().y) / P.in_microcells_.height + 0.1);
 				l = j * P.total_microcells_high_ + k;
 				if (l < P.NMC)
 				{
@@ -897,8 +892,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox[0]; //x
-						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox[1]; //y
+						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().x; //x
+						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().y; //y
 						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
 						BF[rn].pop = mcell_dens[l];
 						BF[rn].cnt = mcell_country[l];
@@ -1406,9 +1401,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		{
 			fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
 			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
-			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox[0]);
-			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox[1]);
-			if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) && (y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
+			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox.bottom_left().x);
+			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox.bottom_left().y);
+			if (P.SpatialBoundingBox.inside(Geometry::Vector2d(x, y)))
 			{
 				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width)) + ((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height));
 				if (Cells[i].n == 0) mr++;
