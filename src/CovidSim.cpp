@@ -891,14 +891,16 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
 				P.LocalJourneyDurationDistrib[i] += P.LocalJourneyDurationDistrib[i - 1];
 			}
-			for (i = j = 0; i <= 1024; i++)
+			for (i = 0; i <= 1024; i++)
 			{
+				int j = 0;
 				s = ((double)i) / 1024;
 				while (P.JourneyDurationDistrib[j] < s)j++;
 				P.InvJourneyDurationDistrib[i] = j;
 			}
-			for (i = j = 0; i <= 1024; i++)
+			for (i = 0; i <= 1024; i++)
 			{
+				int j = 0;
 				s = ((double)i) / 1024;
 				while (P.LocalJourneyDurationDistrib[j] < s)j++;
 				P.InvLocalJourneyDurationDistrib[i] = j;
@@ -4779,7 +4781,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{
