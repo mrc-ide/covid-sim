@@ -4779,7 +4779,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{
@@ -5699,7 +5699,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else
-						CurPos = NumItem;
+						break;
 				}
 			}
 		}
@@ -5720,8 +5720,8 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 					}
 					else
 					{
-						i = NumItem2;
 						j = NumItem;
+						break;
 					}
 				}
 				//Offset=Offset+(NumItem2-1); //added this line to get the correct offset in address position when incrementing j
