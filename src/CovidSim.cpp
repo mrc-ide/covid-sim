@@ -1217,10 +1217,10 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.CFR_ILI_ByAge[i] = 0.00;
 	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox.start.x), 4, 1, 0))
 	{
-		P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
-		P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+		P.BoundingBox.start = Vector2<double>(0, 0);
+		P.BoundingBox.end = Vector2<double>(1, 1);
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox.start.x), 4, 1, 0))
 	{
