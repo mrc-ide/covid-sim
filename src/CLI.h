@@ -77,8 +77,8 @@ public:
     void print_detailed_help_and_exit();
 
 private:
-    std::map<std::string, ParserFn> m_option_map;
-    std::map<std::string, std::string> m_doc_map;
+    std::map<std::string, ParserFn> option_map_;
+    std::map<std::string, std::string> doc_map_;
 };
 
 #endif

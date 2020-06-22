@@ -57,12 +57,12 @@ void parse_number(std::string const& input, T& output) {
 
 void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, std::string const& doc)
 {
-    if (m_option_map.find(option) != m_option_map.cend()) {
+    if (option_map_.find(option) != option_map_.cend()) {
         std::cerr << "Duplicate option specified " << option << ", ignoring..." << std::endl;
         return;
     }
-    m_option_map.emplace(option, func);
-    m_doc_map.emplace(option, doc);
+    option_map_.emplace(option, func);
+    doc_map_.emplace(option, doc);
 }
 
 
@@ -118,8 +118,8 @@ void CmdLineArgs::parse(int argc, char* argv[], Param& P) {
         std::string option = argument.substr(1, pos - 1); // everything after / and up to :
         std::string value = argument.substr(pos + 1); // everything after :
 
-        auto it = m_option_map.find(option);
-        if (it == m_option_map.cend()) {
+        auto it = option_map_.find(option);
+        if (it == option_map_.cend()) {
             std::cout << "Unknown option \"" << option << "\". Skipping" << std::endl;
             continue;
         }
@@ -148,7 +148,7 @@ void CmdLineArgs::print_help()
 {
     std::stringstream ss;
     ss << "CovidSim";
-    for (auto const& it : m_option_map) {
+    for (auto const& it : option_map_) {
         ss << " [/" << it.first << ']';
     }
     std::cerr << ss.str() << ' ' << USAGE << std::endl;
@@ -165,7 +165,7 @@ void CmdLineArgs::print_detailed_help()
 {
     print_help();
     std::stringstream ss;
-    for (auto const& it : m_doc_map) {
+    for (auto const& it : doc_map_) {
         ss << '\t' << it.first << '\t' << it.second << '\n';
     }
     std::cerr << DETAILED_USAGE << '\n' << ss.str() << std::endl;
