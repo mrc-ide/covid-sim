@@ -18,30 +18,35 @@ void RecordEvent(double, int, int, int, int); //added int as argument to InfectS
 unsigned short int ChooseFromICDF(double *, double, int);
 Severity ChooseFinalDiseaseSeverity(int, int);
 
-// state transition helpers
+// infection state transition helpers
 void SusceptibleToRecovered(int cellIndex);
 void SusceptibleToLatent(int cellIndex);
 void LatentToInfectious(int cellIndex);
 void InfectiousToRecovered(int cellIndex);
 void InfectiousToDeath(int cellIndex);
 
+// severity state transition helpers
 
-void ToInfected(int tn, Person* a, int ai, double q);
-void FromMild(int tn, Person* a, int ai);
-void ToMild(int tn, Person* a, int ai);
-void FromCritRecov(int tn, Person* a, int ai);
+void ToInfected(int tn, short infectType, int ai, double q);
 
-void FromSARI(int tn, Person* a, int ai);
+void FromMild(int tn, int microCellIndex, int ai);
+void ToMild(int tn, int microCellIndex, int ai);
 
-void FromILI(int tn, Person* a, int ai);
-void ToILI(int tn, Person* a, int ai);
+void FromCritRecov(int tn, int microCellIndex, int ai);
 
-void ILIToSARI(int tn, Person* a, int ai);
-void SARIToCritical(int tn, Person* a, int ai);
-void CriticalToRecovered(int tn, Person* a, int ai);
-void CriticalToDeath(int tn, Person* a, int ai);
-void SARIToDeath(int tn, Person* a, int ai);
-void ILIToDeath(int tn, Person* a, int ai);
+void FromSARI(int tn, int microCellIndex, int ai);
+
+void FromILI(int tn, int microCellIndex, int ai);
+void ToILI(int tn, int microCellIndex, int ai);
+
+void ILIToSARI(int tn, int microCellIndex, int ai);
+void ILIToDeath(int tn, int microCellIndex, int ai);
+
+void SARIToCritical(int tn, int microCellIndex, int ai);
+void SARIToDeath(int tn, int microCellIndex, int ai);
+
+void CriticalToRecovered(int tn, int microCellIndex, int ai);
+void CriticalToDeath(int tn, int microCellIndex, int ai);
 
 void DoImmune(int ai)
 {
@@ -115,7 +120,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0][1]);
 		q = x * x + y * y;
 
-		ToInfected(tn, a, ai, q);
+		ToInfected(tn, a->infect_type, ai, q);
 
 		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
 		{
@@ -259,7 +264,7 @@ void DoMild(int ai, int tn)
 		{
 			a->Severity_Current = Severity_Mild;
 
-			ToMild(tn, a, ai);
+			ToMild(tn, a->mcell, ai);
 		}
 	}
 }
@@ -271,7 +276,7 @@ void DoILI(int ai, int tn)
 		if (a->Severity_Current == Severity_Asymptomatic)
 		{
 			a->Severity_Current = Severity_ILI;
-			ToILI(tn, a, ai);
+			ToILI(tn, a->mcell, ai);
 
 		}
 	}
@@ -284,7 +289,7 @@ void DoSARI(int ai, int tn)
 		if (a->Severity_Current == Severity_ILI)
 		{
 			a->Severity_Current = Severity_SARI;
-			ILIToSARI(tn, a, ai);
+			ILIToSARI(tn, a->mcell, ai);
 		}
 	}
 }
@@ -296,7 +301,7 @@ void DoCritical(int ai, int tn)
 		if (a->Severity_Current == Severity_SARI)
 		{
 			a->Severity_Current = Severity_Critical;
-			SARIToCritical(tn, a, ai);
+			SARIToCritical(tn, a->mcell, ai);
 		}
 	}
 }
@@ -311,7 +316,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 		if (a->Severity_Current == Severity_Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
 			a->Severity_Current = Severity_RecoveringFromCritical;
-			CriticalToRecovered(tn, a, ai);
+			CriticalToRecovered(tn, a->mcell, ai);
 		}
 	}
 }
@@ -322,20 +327,20 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	{
 		if (a->Severity_Current == Severity_Critical)
 		{
-			CriticalToDeath(tn, a, ai);
+			CriticalToDeath(tn, a->mcell, ai);
 
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_SARI)
 		{
-			SARIToDeath(tn, a, ai);
+			SARIToDeath(tn, a->mcell, ai);
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
 		else if (a->Severity_Current == Severity_ILI)
 		{
-			ILIToDeath(tn, a, ai);
+			ILIToDeath(tn, a->mcell, ai);
 			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 			a->Severity_Current = Severity_Dead;
 		}
@@ -355,26 +360,26 @@ void DoRecover_FromSeverity(int ai, int tn)
 		{
 			if (a->Severity_Current == Severity_Mild)
 			{
-				FromMild(tn, a, ai);
+				FromMild(tn, a->mcell, ai);
 
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_ILI)
 			{
-				FromILI(tn, a, ai);
+				FromILI(tn, a->mcell, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_SARI)
 			{
-				FromSARI(tn, a, ai);
+				FromSARI(tn, a->mcell, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
 			else if (a->Severity_Current == Severity_RecoveringFromCritical)
 			{
-				FromCritRecov(tn, a, ai);
+				FromCritRecov(tn, a->mcell, ai);
 				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 				a->Severity_Current = Severity_Recovered;
 			}
@@ -1366,144 +1371,131 @@ void InfectiousToDeath(int cellIndex)
 	Cells[cellIndex].D++; //// one more dead person
 }
 
-void ToInfected(int tn, Person* a, int ai, double q)
+// severity state functions
+
+void decrement(int &x)
+{
+	x--;
+}
+
+void increment(int& x)
+{
+	x++;
+}
+
+void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai, void (*fcnPtr)(int& x))
+{
+	fcnPtr(quantity);
+	fcnPtr(age[HOST_AGE_GROUP(ai)]);
+
+	if (P.DoAdUnits)
+	{
+		fcnPtr(adUnit[Mcells[microCellIndex].adunit]);
+	}
+}
+
+
+void FromSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
+{
+	// function pointer to the increment function
+	void (*fcnPtr)(int& x) { decrement };
+
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, fcnPtr);
+}
+
+
+void ToSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
+{
+	// function pointer to the increment function
+	void (*fcnPtr)(int& x) { increment };
+
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, fcnPtr);
+}
+
+void ToSeverity(int& quantity, int& cumQuantity, int* age, int* cumAge, int* adUnit, int* cumAdUnit, int microCellIndex, int ai)
+{
+	// function pointer to the increment function
+	void (*fcnPtr)(int& x) { increment }; 
+
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, fcnPtr);
+	ChangeSeverity(cumQuantity, cumAge, cumAdUnit, microCellIndex, ai, fcnPtr);
+}
+
+void ToInfected(int tn, short infectType, int ai, double q)
 {
 	///// Change threaded state variables to reflect new infection status of person a.
 	StateT[tn].cumI++;
-	StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
+	StateT[tn].cumItype[infectType % INFECT_TYPE_MASK]++;
 	StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
 	StateT[tn].sumRad2 += q;
 }
 
-void FromMild(int tn, Person* a, int ai)
+void FromMild(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].Mild--;
-	StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
-	if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
+	FromSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, microCellIndex, ai);
 }
 
-void ToMild(int tn, Person* a, int ai)
+void ToMild(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].Mild++;
-	StateT[tn].cumMild++;
-	StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
-	StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
-	if (P.DoAdUnits)
-	{
-		StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
-		StateT[tn].cumMild_adunit[Mcells[a->mcell].adunit]++;
-	}
+	ToSeverity(StateT[tn].Mild, StateT[tn].cumMild, StateT[tn].Mild_age, StateT[tn].cumMild_age, StateT[tn].Mild_adunit, StateT[tn].cumMild_adunit,
+		microCellIndex, ai);
 }
 
-
-void FromCritRecov(int tn, Person* a, int ai)
+void FromCritRecov(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
-	StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
-	if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
-
+	//// decrement CritRecov, not critical.
+	FromSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, ai);
 }
 
-void FromSARI(int tn, Person* a, int ai)
+void FromSARI(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].SARI--;
-	StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-	if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
+	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, ai);
 }
 
-void FromILI(int tn, Person* a, int ai)
+void FromILI(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].ILI--;
-	StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-	if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
+	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, ai);
 }
 
-void ToILI(int tn, Person* a, int ai)
+void ToILI(int tn, int microCellIndex, int ai)
 {
-	StateT[tn].ILI++;
-	StateT[tn].cumILI++;
-	StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
-	StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
-	if (P.DoAdUnits)
-	{
-		StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]++;
-		StateT[tn].cumILI_adunit[Mcells[a->mcell].adunit]++;
-	}
+	ToSeverity(StateT[tn].ILI, StateT[tn].cumILI, StateT[tn].ILI_age, StateT[tn].cumILI_age, StateT[tn].ILI_adunit, StateT[tn].cumILI_adunit, microCellIndex, ai);
 }
 
-void FromSeverity(int* quantity, int *age, int *adUnit, Person* a, int ai)
+void ILIToSARI(int tn, int microCellIndex, int ai)
 {
-	(*quantity)--;
-	age[HOST_AGE_GROUP(ai)]--;
-
-	if (P.DoAdUnits)
-	{
-		adUnit[Mcells[a->mcell].adunit]--;
-	}
+	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].SARI, StateT[tn].cumSARI, StateT[tn].SARI_age, StateT[tn].cumSARI_age, StateT[tn].SARI_adunit, StateT[tn].cumSARI_adunit, microCellIndex, ai);
 }
 
-void ToSeverity(int* quantity, int* cumQuantity, int* age, int* cumAge, int* adUnit, int* cumAdUnit, Person* a, int ai)
+void SARIToCritical(int tn, int microCellIndex, int ai)
 {
-	(*quantity)++;
-	(*cumQuantity)++;
-
-	age[HOST_AGE_GROUP(ai)]++;
-	cumAge[HOST_AGE_GROUP(ai)]++;
-
-	if (P.DoAdUnits)
-	{
-		adUnit[Mcells[a->mcell].adunit]++;
-		cumAdUnit[Mcells[a->mcell].adunit]++;
-	}
+	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].Critical, StateT[tn].cumCritical, StateT[tn].Critical_age, StateT[tn].cumCritical_age, StateT[tn].Critical_adunit, StateT[tn].cumCritical_adunit, microCellIndex, ai);
 }
 
-void ToSeverity(int* cumQuantity, int* cumAge, int* cumAdUnit, Person* a, int ai)
+void CriticalToRecovered(int tn, int microCellIndex, int ai)
 {
-	(*cumQuantity)++;
-
-	cumAge[HOST_AGE_GROUP(ai)]++;
-
-	if (P.DoAdUnits)
-	{
-		cumAdUnit[Mcells[a->mcell].adunit]++;
-	}
+	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].CritRecov, StateT[tn].cumCritRecov, StateT[tn].CritRecov_age, StateT[tn].cumCritRecov_age, StateT[tn].CritRecov_adunit, StateT[tn].cumCritRecov_adunit, microCellIndex, ai);
 }
 
-
-void ILIToSARI(int tn, Person* a, int ai)
+void CriticalToDeath(int tn, int microCellIndex, int ai)
 {
-	FromSeverity(&StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, a, ai);
-	ToSeverity(&StateT[tn].SARI, &StateT[tn].cumSARI, StateT[tn].SARI_age, StateT[tn].cumSARI_age, StateT[tn].SARI_adunit, StateT[tn].cumSARI_adunit, a, ai);
+	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, microCellIndex, ai);
 }
 
-void SARIToCritical(int tn, Person* a, int ai)
+void SARIToDeath(int tn, int microCellIndex, int ai)
 {
-	FromSeverity(&StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, a, ai);
-	ToSeverity(&StateT[tn].Critical, &StateT[tn].cumCritical, StateT[tn].Critical_age, StateT[tn].cumCritical_age, StateT[tn].Critical_adunit, StateT[tn].cumCritical_adunit, a, ai);
+	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, microCellIndex, ai);
 }
 
-void CriticalToRecovered(int tn, Person* a, int ai)
+void ILIToDeath(int tn, int microCellIndex, int ai)
 {
-	FromSeverity(&StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, a, ai);
-	ToSeverity(&StateT[tn].CritRecov, &StateT[tn].cumCritRecov, StateT[tn].CritRecov_age, StateT[tn].cumCritRecov_age, StateT[tn].CritRecov_adunit, StateT[tn].cumCritRecov_adunit, a, ai);
-}
-
-void CriticalToDeath(int tn, Person* a, int ai)
-{
-	FromSeverity(&StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, a, ai);
-	ToSeverity(&StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, a, ai);
-}
-
-void SARIToDeath(int tn, Person* a, int ai)
-{
-	FromSeverity(&StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, a, ai);
-	ToSeverity(&StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, a, ai);
-}
-
-void ILIToDeath(int tn, Person* a, int ai)
-{
-	FromSeverity(&StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, a, ai);
-	ToSeverity(&StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, a, ai);
+	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, ai);
+	ToSeverity(StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, microCellIndex, ai);
 }
 
 
