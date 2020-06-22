@@ -15,7 +15,7 @@
 void parse_read_file(std::string const& input, std::string& output) {
     // check to see if the file exists and error out if it doesn't
     if (static_cast<bool>(std::ifstream(input)) == false) {
-        ERR_CRITICAL((input + " is not a file").c_str());
+        ERR_CRITICAL_FMT("%s is not a file", input.c_str());
     }
     output = input;
 }
@@ -23,8 +23,8 @@ void parse_read_file(std::string const& input, std::string& output) {
 void parse_write_dir(std::string const& input, std::string& output) {
     // check to see if this prefix already exists as a file and error out
     if (static_cast<bool>(std::ifstream(input)) == true) {
-        ERR_CRITICAL(("Cannot use this prefix, this path already exists"
-                     " as a file: " + input).c_str());
+        ERR_CRITICAL_FMT("Cannot use this prefix, this path already exists"
+                         " as a file: %s", input.c_str());
     }
     // TODO: add a platform-independent check to see if the prefix could
     // be added as a directory or file
@@ -57,7 +57,7 @@ void parse_number(std::string const& input, T& output) {
 void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, std::string const& doc)
 {
     if (option_map_.find(option) != option_map_.cend()) {
-        ERR_CRITICAL(("Duplicate option specified " + option).c_str());
+        ERR_CRITICAL_FMT("Duplicate option specified %s", option.c_str());
     }
     option_map_.emplace(option, func);
     doc_map_.emplace(option, doc);
