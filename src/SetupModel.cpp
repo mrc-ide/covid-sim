@@ -24,7 +24,7 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFile, std::string const& SaveNetworkFile, std::string const& SchoolFile, std::string const& RegDemogFile)
+void SetupModel(std::string const& density_file, std::string const& out_density_file, std::string const& load_network_file, std::string const& save_network_file, std::string const& school_file, std::string const& reg_demog_file)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -39,10 +39,10 @@ void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFi
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
 	P.DoBin = -1;
-	if (!DensityFile.empty())
+	if (!density_file.empty())
 	{
 		fprintf(stderr, "Scanning population density file\n");
-		if (!(dat = fopen(DensityFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		if (!(dat = fopen(density_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
 		unsigned int density_file_header;
 		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
@@ -215,7 +215,7 @@ void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFi
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
 	t2 = 0.0;
 
-	SetupPopulation(DensityFile, SchoolFile, RegDemogFile);
+	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
   TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
@@ -299,14 +299,14 @@ void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFi
 	fprintf(stderr, "Initialising places...\n");
 	if (P.DoPlaces)
 	{
-		if (!LoadNetworkFile.empty())
-			LoadPeopleToPlaces(LoadNetworkFile);
+		if (!load_network_file.empty())
+			LoadPeopleToPlaces(load_network_file);
 		else
 			AssignPeopleToPlaces();
 	}
 
-	if (P.DoPlaces && !SaveNetworkFile.empty())
-		SavePeopleToPlaces(SaveNetworkFile);
+	if (P.DoPlaces && !save_network_file.empty())
+		SavePeopleToPlaces(save_network_file);
 	//SaveDistribs();
 
 	// From here on, we want the same random numbers regardless of whether we used the RNG to make the network,
@@ -702,7 +702,7 @@ void SetupModel(std::string const& DensityFile, std::string const& LoadNetworkFi
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
-void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFile, std::string const& RegDemogFile)
+void SetupPopulation(std::string const& density_file, std::string const& out_density_file, std::string const& school_file, std::string const& reg_demog_file)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
@@ -731,7 +731,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 	if (P.DoAdUnits)
 		for (int i = 0; i < MAX_ADUNITS; i++)
 			P.PopByAdunit[i][0] = P.PopByAdunit[i][1] = 0;
-	if (!DensityFile.empty())
+	if (!density_file.empty())
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
@@ -800,7 +800,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 					}
 					else
 						mcell_adunits[l] = 0;
-					if (!OutDensFile.empty() && (P.DoBin) && (mcell_adunits[l] >= 0))
+					if (!out_density_file.empty() && (P.DoBin) && (mcell_adunits[l] >= 0))
 					{
 						if (rn2 < rn) BF[rn2] = rec;
 						rn2++;
@@ -810,10 +810,10 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 		}
 		//		fclose(dat2);
 		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
-		if (!OutDensFile.empty() && (P.DoBin)) P.BinFileLen = rn2;
+		if (!out_density_file.empty() && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
-			if (!OutDensFile.empty())
+			if (!out_density_file.empty())
 			{
 				free(BinFileBuf);
 				P.DoBin = 1;
@@ -837,9 +837,9 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 			}
 		}
 
-		if (!OutDensFile.empty())
+		if (!out_density_file.empty())
 		{
-			if (!(dat2 = fopen(OutDensFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
+			if (!(dat2 = fopen(out_density_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
@@ -876,12 +876,12 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 		maxd = ((double)P.NMC);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
-	if ((P.DoAdUnits) && !RegDemogFile.empty())
+	if ((P.DoAdUnits) && !reg_demog_file.empty())
 	{
 		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
 			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
-		if (!(dat = fopen(RegDemogFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		if (!(dat = fopen(reg_demog_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
@@ -978,7 +978,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 	}
 	if (P.DoAdUnits)
 		for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].n = 0;
-	if ((P.DoAdUnits) && !RegDemogFile.empty() && (P.DoCorrectAdunitPop))
+	if ((P.DoAdUnits) && !reg_demog_file.empty() && (P.DoCorrectAdunitPop))
 	{
 		for (int i = 0; i < P.NumAdunits; i++)
 			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
@@ -1092,7 +1092,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 	{
 		j = (int)(McellLookup[j2] - Mcells);
 		l = ((j / P.get_number_of_micro_cells_high()) / P.NMCL) * P.nch + ((j % P.get_number_of_micro_cells_high()) / P.NMCL);
-		ad = (!RegDemogFile.empty() && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
+		ad = (!reg_demog_file.empty() && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
 		for (int k = 0; k < Mcells[j].n;)
 		{
 			m = 1;
@@ -1124,7 +1124,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
-		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, RegDemogFile, stderr_shared)
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, reg_demog_file, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
@@ -1139,7 +1139,7 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 				m = Hosts[i].listpos;
 				xh = P.in_microcells_.width * (ranf_mt(tn) + x);
 				yh = P.in_microcells_.height * (ranf_mt(tn) + y);
-				AssignHouseholdAges(m, i, tn, RegDemogFile);
+				AssignHouseholdAges(m, i, tn, reg_demog_file);
 				for (i2 = 0; i2 < m; i2++) Hosts[i + i2].listpos = 0;
 				if (P.DoHouseholds)
 				{
@@ -1175,11 +1175,11 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 				AgeDistAd[i][j] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			int k = !RegDemogFile.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
+			int k = !reg_demog_file.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
 			AgeDistAd[k][HOST_AGE_GROUP(i)]++;
 		}
 		// normalize AgeDistAd[i][j], so it's the proportion of people in adunit i that are in age group j
-		int k = !RegDemogFile.empty() ? P.NumAdunits : 1;
+		int k = !reg_demog_file.empty() ? P.NumAdunits : 1;
 		for (int i = 0; i < k; i++)
 		{
 			s = 0.0;
@@ -1218,11 +1218,11 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 
 		// make age adjustments to population
 #pragma omp parallel for private(j,k,m,s) schedule(static,1) default(none) \
-			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells, RegDemogFile)
+			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells, reg_demog_file)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.PopSize; i += P.NumThreads)
 			{
-				m = !RegDemogFile.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
+				m = !reg_demog_file.empty() ? Mcells[Hosts[i].mcell].adunit : 0;
 				j = HOST_AGE_GROUP(i);
 				s = ranf_mt(tn);
 				// probabilistic age adjustment by one age category (5 years)
@@ -1319,10 +1319,10 @@ void SetupPopulation(std::string const& DensityFile, std::string const& SchoolFi
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
-	if (!SchoolFile.empty() && (P.DoPlaces))
+	if (!school_file.empty() && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(SchoolFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
+		if (!(dat = fopen(school_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -1688,7 +1688,7 @@ void SetupAirports(void)
 const double PROP_OTHER_PARENT_AWAY = 0.0;
 
 
-void AssignHouseholdAges(int n, int pers, int tn, std::string const& RegDemogFile)
+void AssignHouseholdAges(int n, int pers, int tn, std::string const& reg_demog_file)
 {
 	/* Complex household age distribution model
 		- picks number of children (nc)
@@ -1700,7 +1700,7 @@ void AssignHouseholdAges(int n, int pers, int tn, std::string const& RegDemogFil
 	int i, j, k, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
 
-	ad = (!RegDemogFile.empty() && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
+	ad = (!reg_demog_file.empty() && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
 	if (!P.DoHouseholds)
 	{
 		for (i = 0; i < n; i++)
@@ -2462,14 +2462,14 @@ void StratifyPlaces(void)
 	}
 }
 
-void LoadPeopleToPlaces(std::string const& LoadNetworkFile)
+void LoadPeopleToPlaces(std::string const& load_network_file)
 {
 	int i, j, k, l, m, n, npt, i2;
 	int32_t s1, s2;
 	FILE* dat;
 	int fileversion;
 
-	if (!(dat = fopen(LoadNetworkFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
+	if (!(dat = fopen(load_network_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
 	fread_big(&fileversion, sizeof(fileversion), 1, dat);
 	if (fileversion != NETWORK_FILE_VERSION)
 	{
@@ -2520,14 +2520,14 @@ void LoadPeopleToPlaces(std::string const& LoadNetworkFile)
 	*/	fprintf(stderr, "\n");
 	fclose(dat);
 }
-void SavePeopleToPlaces(std::string const& SaveNetworkFile)
+void SavePeopleToPlaces(std::string const& save_network_file)
 {
 	int i, j, npt;
 	FILE* dat;
 	int fileversion = NETWORK_FILE_VERSION;
 
 	npt = P.PlaceTypeNoAirNum;
-	if (!(dat = fopen(SaveNetworkFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
+	if (!(dat = fopen(save_network_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
 	if (P.PlaceTypeNum > 0)

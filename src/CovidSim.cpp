@@ -110,7 +110,7 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile, OutDensFile, OutFile, OutFileBase, SnapshotLoadFile, SnapshotSaveFile;
+std::string AdunitFile, OutFile, OutFileBase, SnapshotLoadFile, SnapshotSaveFile;
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -129,7 +129,8 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string AirTravelFile, DensityFile, LoadNetworkFile, ParamFile, PreParamFile, RegDemogFile, SaveNetworkFile, SchoolFile;
+	std::string air_travel_file, density_file, load_network_file, out_density_file, param_file;
+	std::string pre_param_file, reg_demog_file, save_network_file, school_file;
 	int GotNR = 0;
 
 	int cl = clock();
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
 
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, AdunitFile, "Administrative Division");
-	args.add_string_option("AP", parse_read_file, AirTravelFile, "Air travel data file");
+	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_number_option("c", P.MaxNumThreads, "Number of threads to use");
 	args.add_number_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
@@ -161,37 +162,37 @@ int main(int argc, char* argv[])
 	args.add_number_option("CLP4", P.clP4, "Overwrites #4 wildcard in parameter file");
 	args.add_number_option("CLP5", P.clP5, "Overwrites #5 wildcard in parameter file");
 	args.add_number_option("CLP6", P.clP6, "Overwrites #6 wildcard in parameter file");
-	args.add_string_option("d", parse_read_file, RegDemogFile, "Regional demography file");
-	args.add_string_option("D", parse_read_file, DensityFile, "Population density file");
+	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
+	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
 	// quickly: ggilani - 15/10/14
 	args.add_number_option("KO", P.KernelOffsetScale, "Scales the P.KernelOffsetScale parameter");
 	args.add_number_option("KP", P.KernelPowerScale, "Scales the P.KernelPowerScale parameter");
-	args.add_string_option("L", parse_read_file, LoadNetworkFile, "Network file to load");
+	args.add_string_option("L", parse_read_file, load_network_file, "Network file to load");
 	args.add_string_option("LS", parse_read_file, SnapshotLoadFile, "Snapshot file to load");
-	args.add_string_option("M", parse_write_dir, OutDensFile, "Output density file");
+	args.add_string_option("M", parse_write_dir, out_density_file, "Output density file");
 	args.add_number_option("NR", GotNR, "Number of realisations");
 	args.add_string_option("O", parse_write_dir, OutFileBase, "Output file path prefix");
-	args.add_string_option("P", parse_read_file, ParamFile, "Parameter file");
-	args.add_string_option("PP", parse_read_file, PreParamFile, "Pre-Parameter file");
+	args.add_string_option("P", parse_read_file, param_file, "Parameter file");
+	args.add_string_option("PP", parse_read_file, pre_param_file, "Pre-Parameter file");
 	args.add_number_option("R", P.R0scale, "R0 scaling");
-	args.add_string_option("s", parse_read_file, SchoolFile, "School file");
-	args.add_string_option("S", parse_write_dir, SaveNetworkFile, "Network file to save");
+	args.add_string_option("s", parse_read_file, school_file, "School file");
+	args.add_string_option("S", parse_write_dir, save_network_file, "Network file to save");
 	args.add_custom_option("SS", parse_save_snapshot_option, "Interval and file to save snapshots [double,string]");
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
     // Check if S and L options were both specified (can only be one)
-	if (!SaveNetworkFile.empty() && !LoadNetworkFile.empty())
+	if (!save_network_file.empty() && !load_network_file.empty())
 	{
 		std::cerr << "Specifying both /L and /S is not allowed" << std::endl;
 		args.print_detailed_help_and_exit();
 	}
 
 	// Check if P or O were not specified
-	if (ParamFile.empty() || OutFileBase.empty())
+	if (param_file.empty() || OutFileBase.empty())
 	{
 		std::cerr << "Missing /P and /O arguments which are required" << std::endl;
 		args.print_detailed_help_and_exit();
@@ -199,7 +200,7 @@ int main(int argc, char* argv[])
 
 	OutFile = OutFileBase;
 
-	std::cerr << "Param=" << ParamFile << "\nOut=" << OutFile << "\nDens=" << DensityFile << std::endl;
+	std::cerr << "Param=" << param_file << "\nOut=" << OutFile << "\nDens=" << density_file << std::endl;
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
 	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 
@@ -226,9 +227,9 @@ int main(int argc, char* argv[])
 #else
 	P.NumThreads = 1;
 #endif
-	if (PreParamFile.empty())
+	if (pre_param_file.empty())
 	{
-		PreParamFile = std::string(".." DIRECTORY_SEPARATOR "Pre_") + ParamFile;
+		pre_param_file = std::string(".." DIRECTORY_SEPARATOR "Pre_") + param_file;
 	}
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -237,14 +238,13 @@ int main(int argc, char* argv[])
 
 
 	P.NumRealisations = GotNR;
-	ReadParams(ParamFile, PreParamFile);
+	ReadParams(param_file, pre_param_file);
 	if (P.DoAirports)
 	{
-		if (AirTravelFile.empty()) {
-			std::cerr << "Parameter file indicated airports should be used but '/AP' file was not given" << std::endl;
-			std::exit(1);
+		if (air_travel_file.empty()) {
+			ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
 		}
-		ReadAirTravel(AirTravelFile);
+		ReadAirTravel(air_travel_file);
 	}
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 	///// initialize model (for all realisations).
-	SetupModel(DensityFile, LoadNetworkFile, SaveNetworkFile, SchoolFile, RegDemogFile);
+	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file);
 
 	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)

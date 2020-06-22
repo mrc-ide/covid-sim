@@ -3,8 +3,8 @@
 
 #include <string>
 
-void SetupModel(std::string const&, std::string const&, std::string const&, std::string const&, std::string const&);
-void SetupPopulation(std::string const&, std::string const&, std::string const&);
+void SetupModel(std::string const&, std::string const&, std::string const&, std::string const&, std::string const&, std::string const&);
+void SetupPopulation(std::string const&, std::string const&, std::string const&, std::string const&);
 void SetupAirports(void);
 void AssignHouseholdAges(int, int, int, std::string const&);
 void AssignPeopleToPlaces(void);
@@ -24,6 +24,6 @@ struct BinFile
 	int cnt, ad;
 };
 
-extern std::string OutDensFile, OutFile;
+extern std::string OutFile;
 
 #endif // COVIDSIM_SETUPMODEL_H_INCLUDED_
