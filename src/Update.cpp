@@ -200,8 +200,7 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 		InfEventLog[nEvents].t = t;
 		InfEventLog[nEvents].infectee_ind = ai;
 		InfEventLog[nEvents].infectee_adunit = Mcells[Hosts[ai].mcell].adunit;
-		InfEventLog[nEvents].infectee_x = Households[Hosts[ai].hh].loc.x + P.SpatialBoundingBox.start.x;
-		InfEventLog[nEvents].infectee_y = Households[Hosts[ai].hh].loc.y + P.SpatialBoundingBox.start.y;
+		InfEventLog[nEvents].infectee_position = Households[Hosts[ai].hh].loc + P.SpatialBoundingBox.start;
 		InfEventLog[nEvents].listpos = Hosts[ai].listpos;
 		InfEventLog[nEvents].infectee_cell = Hosts[ai].pcell;
 		InfEventLog[nEvents].thread = tn;

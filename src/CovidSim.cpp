@@ -2780,7 +2780,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		nEvents = 0;
 		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
-			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].infectee_position = Vector2<double>(0, 0);
+			InfEventLog[i].t = InfEventLog[i].t_infector = 0.0;
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
 			InfEventLog[i].infectee_adunit = InfEventLog[i].listpos = InfEventLog[i].infectee_cell = InfEventLog[i].infector_cell = InfEventLog[i].thread = 0;
 		}
@@ -4260,7 +4261,7 @@ void SaveEvents(void)
 	for (i = 0; i < nEvents; i++)
 	{
 		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
-			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
+			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_position.x, InfEventLog[i].infectee_position.y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
 	fclose(dat);
 }
