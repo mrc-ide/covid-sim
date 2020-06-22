@@ -2118,7 +2118,7 @@ void AssignPeopleToPlaces()
 						ic = Hosts[i].mcell;
 
 						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
-						Direction m2 = Right;
+						Direction m2 = Direction::Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
 							auto const host_country = mcell_country[Hosts[i].mcell];
