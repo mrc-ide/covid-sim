@@ -27,9 +27,6 @@ static CLSID  encoderClsid;
 #endif
 
 static unsigned char* bmf, *bmPixels, *bmp;
-// externs from CovidSim.cpp
-// TODO: move these to a header files
-extern std::string OutFile;
 
 void CaptureBitmap()
 {
