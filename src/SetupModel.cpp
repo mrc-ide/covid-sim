@@ -296,7 +296,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 
 
-	if(P.OutputNonSeverity) SaveAgeDistrib();
+	if(P.OutputNonSeverity) SaveAgeDistrib(out_file_base);
 
 	fprintf(stderr, "Initialising places...\n");
 	if (P.DoPlaces)
@@ -2557,13 +2557,13 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 	fclose(dat);
 }
 
-void SaveAgeDistrib(void)
+void SaveAgeDistrib(std::string const& out_file)
 {
 	int i;
 	FILE* dat;
 	std::string outname;
 
-	outname = OutFile + ".agedist.xls";
+	outname = out_file + ".agedist.xls";
 	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	if (P.DoDeath)
 	{

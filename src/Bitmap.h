@@ -43,7 +43,7 @@ extern int32_t *bmPopulation, *bmInfected, *bmRecovered, *bmTreated;
 extern BitmapHeader* bmh;
 
 void CaptureBitmap();
-void OutputBitmap(int);
+void OutputBitmap(int, std::string const&);
 void InitBMHead(std::string const&);
 
 void Bitmap_Finalise();
