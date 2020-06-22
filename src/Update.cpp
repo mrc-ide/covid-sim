@@ -38,7 +38,9 @@ void FromILI(int tn, int microCellIndex, int ai);
 void ToILI(int tn, int microCellIndex, int ai);
 void FromCritical(int tn, int microCellIndex, int ai);
 void ToCritical(int tn, int microCellIndex, int ai);
-void ToDeath(int tn, int microCellIndex, int ai);
+void ToDeathILI(int tn, int microCellIndex, int ai);
+void ToDeathSARI(int tn, int microCellIndex, int ai);
+void ToDeathCritical(int tn, int microCellIndex, int ai);
 
 // if the dest cell state == src cell state, use this
 void UpdateCell(int* cellPeople, int index, int srcIndex);
@@ -328,21 +330,22 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 		{
 			case Severity_Critical:
 				FromCritical(tn, a->mcell, ai);
+				ToDeathCritical(tn, a->mcell, ai);
 				break;
 
 			case Severity_SARI:
 				FromSARI(tn, a->mcell, ai);
+				ToDeathSARI(tn, a->mcell, ai);
 				break;
 
 			case Severity_ILI:
 				FromILI(tn, a->mcell, ai);
+				ToDeathILI(tn, a->mcell, ai);
 				break;
 		}
 
 		//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 		a->Severity_Current = Severity_Dead;
-
-		ToDeath(tn, a->mcell, ai);
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
@@ -1472,7 +1475,18 @@ void ToCritical(int tn, int microCellIndex, int ai)
 	ToSeverity(StateT[tn].cumCritical, StateT[tn].cumCritical_age, StateT[tn].cumCritical_adunit, microCellIndex, ai);
 }
 
-void ToDeath(int tn, int microCellIndex, int ai)
+
+void ToDeathSARI(int tn, int microCellIndex, int ai)
+{
+	ToSeverity(StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, microCellIndex, ai);
+}
+
+void ToDeathCritical(int tn, int microCellIndex, int ai)
+{
+	ToSeverity(StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, microCellIndex, ai);
+}
+
+void ToDeathILI(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, microCellIndex, ai);
 }
