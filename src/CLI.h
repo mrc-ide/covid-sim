@@ -1,5 +1,5 @@
-#ifndef COVIDSIM_CLI_HPP_INCLUDED_
-#define COVIDSIM_CLI_HPP_INCLUDED_
+#ifndef COVIDSIM_CLI_H_INCLUDED_
+#define COVIDSIM_CLI_H_INCLUDED_
 
 #include <functional>
 #include <map>
@@ -23,12 +23,14 @@ void parse_read_file(std::string const& input, std::string& output);
 void parse_write_dir(std::string const& input, std::string& output);
 
 /**
- * Parses and checks if the input string is an integral type.
- *
- * Will error if the number is outside the bounds of the specified data type.
+ * Parses and checks if the input string is an integer.
  */
-template<typename T>
-void parse_number(std::string const& input, T& output);
+void parse_integer(std::string const& input, int& output);
+
+/**
+ * Parses and checks if the input string is an double.
+ */
+void parse_double(std::string const& input, double& output);
 
 class CmdLineArgs {
 public:
@@ -46,14 +48,22 @@ public:
     void add_custom_option(std::string const& option, ParserFn func, std::string const& doc);
 
     /**
+     * Use this function when adding a new double option to the CLI.
+     *
+     * This will bind the output variable to the parse_double() function and
+     * gets inserted into a map of other options. This provides a strong cohesion
+     * between an option name (i.e. 'R') with its variable (i.e. 'P.R0scale')
+     */
+    void add_double_option(std::string const& option, double& output, std::string const& doc);
+
+    /**
      * Use this function when adding a new integral option to the CLI.
      *
-     * This will bind the output variable to the parse_integral() function and
+     * This will bind the output variable to the parse_integer() function and
      * gets inserted into a map of other options. This provides a strong cohesion
      * between an option name (i.e. 'c') with its variable (i.e. 'P.MaxNumThreads')
      */
-    template<typename T>
-    void add_number_option(std::string const& option, T& output, std::string const& doc);
+    void add_integer_option(std::string const& option, int& output, std::string const& doc);
 
     /**
      * Use this function when adding a new string option to the CLI.

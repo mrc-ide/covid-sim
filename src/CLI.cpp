@@ -6,7 +6,6 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <type_traits>
 
 #include "CLI.h"
 #include "Error.h"
@@ -31,26 +30,27 @@ void parse_write_dir(std::string const& input, std::string& output) {
     output = input;
 }
 
-template<typename T>
-void parse_number(std::string const& input, T& output) {
-    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
-                  "Integral or floating point required.");
+void parse_integer(std::string const& input, int& output)
+{
+    try {
+        output = std::stoi(input);
+    } catch (const std::invalid_argument& e) {
+        ERR_CRITICAL_FMT("EINVAL: Expected integer got %s", input.c_str());
+    } catch  (const std::out_of_range& e) {
+        ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %d to %d. Got %s",
+                        std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), input.c_str());
+    }
+}
 
-    std::istringstream iss(input);
-    iss >> output;
-    if (iss.fail()) {
-        if (output == std::numeric_limits<T>::max()) {
-            std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
-                      << " when parsing " << iss.str() << std::endl;
-        }
-        else if (output == std::numeric_limits<T>::min()) {
-            std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
-                      << " when parsing " << iss.str() << std::endl;
-        }
-        else {
-            std::cerr << "ERROR: Expected integral or floating point, got " << iss.str() << std::endl;
-        }
-        std::exit(1);
+void parse_double(std::string const& input, double& output)
+{
+    try {
+        output = std::stod(input);
+    } catch (const std::invalid_argument& e) {
+        ERR_CRITICAL_FMT("EINVAL: Expected double got %s", input.c_str());
+    } catch  (const std::out_of_range& e) {
+        ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %.4e to %.4e. Got %s",
+                        std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), input.c_str());
     }
 }
 
@@ -63,17 +63,15 @@ void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, st
     doc_map_.emplace(option, doc);
 }
 
-
-template<typename T>
-void CmdLineArgs::add_number_option(std::string const& option, T& output, std::string const& doc)
+void CmdLineArgs::add_double_option(std::string const& option, double& output, std::string const& doc)
 {
-    add_custom_option(option, std::bind(parse_number<T>, std::placeholders::_1, std::ref(output)), doc);
+    add_custom_option(option, std::bind(parse_double, std::placeholders::_1, std::ref(output)), doc);
 }
 
-// Explicit template instantiations for the linker
-// https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
-template void CmdLineArgs::add_number_option<double>(std::string const&, double&, std::string const&);
-template void CmdLineArgs::add_number_option<int>(std::string const&, int&, std::string const&);
+void CmdLineArgs::add_integer_option(std::string const& option, int& output, std::string const& doc)
+{
+    add_custom_option(option, std::bind(parse_integer, std::placeholders::_1, std::ref(output)), doc);
+}
 
 void CmdLineArgs::add_string_option(std::string const& option, StringParserFn func, std::string& output, std::string const& doc)
 {
@@ -96,10 +94,10 @@ void CmdLineArgs::parse(int argc, char* argv[], Param& P) {
 
     // Get seeds.
     int i = argc - 4;
-    parse_number(argv[i], P.setupSeed1);
-    parse_number(argv[i+1], P.setupSeed2);
-    parse_number(argv[i+2], P.runSeed1);
-    parse_number(argv[i+3], P.runSeed2);
+    parse_integer(argv[i], P.setupSeed1);
+    parse_integer(argv[i+1], P.setupSeed2);
+    parse_integer(argv[i+2], P.runSeed1);
+    parse_integer(argv[i+3], P.runSeed2);
 
     for (i = 1; i < argc - 4; i++)
     {

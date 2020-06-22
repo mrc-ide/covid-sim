@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 							"timestep interval when a snapshot should be saved and <S> is the "
 							"filename in which to save the snapshot");
 		}
-		parse_number(input.substr(0, sep), P.SnapshotSaveTime);
+		parse_double(input.substr(0, sep), P.SnapshotSaveTime);
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
 	};
 
@@ -161,34 +161,34 @@ int main(int argc, char* argv[])
 	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
-	args.add_number_option("c", P.MaxNumThreads, "Number of threads to use");
-	args.add_number_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
-	args.add_number_option("CLP1", P.clP1, "Overwrites #1 wildcard in parameter file");
-	args.add_number_option("CLP2", P.clP2, "Overwrites #2 wildcard in parameter file");
-	args.add_number_option("CLP3", P.clP3, "Overwrites #3 wildcard in parameter file");
-	args.add_number_option("CLP4", P.clP4, "Overwrites #4 wildcard in parameter file");
-	args.add_number_option("CLP5", P.clP5, "Overwrites #5 wildcard in parameter file");
-	args.add_number_option("CLP6", P.clP6, "Overwrites #6 wildcard in parameter file");
+	args.add_integer_option("c", P.MaxNumThreads, "Number of threads to use");
+	args.add_integer_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
+	args.add_double_option("CLP1", P.clP1, "Overwrites #1 wildcard in parameter file");
+	args.add_double_option("CLP2", P.clP2, "Overwrites #2 wildcard in parameter file");
+	args.add_double_option("CLP3", P.clP3, "Overwrites #3 wildcard in parameter file");
+	args.add_double_option("CLP4", P.clP4, "Overwrites #4 wildcard in parameter file");
+	args.add_double_option("CLP5", P.clP5, "Overwrites #5 wildcard in parameter file");
+	args.add_double_option("CLP6", P.clP6, "Overwrites #6 wildcard in parameter file");
 	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
 	// quickly: ggilani - 15/10/14
-	args.add_number_option("KO", P.KernelOffsetScale, "Scales the P.KernelOffsetScale parameter");
-	args.add_number_option("KP", P.KernelPowerScale, "Scales the P.KernelPowerScale parameter");
+	args.add_double_option("KO", P.KernelOffsetScale, "Scales the P.KernelOffsetScale parameter");
+	args.add_double_option("KP", P.KernelPowerScale, "Scales the P.KernelPowerScale parameter");
 	args.add_string_option("L", parse_read_file, load_network_file, "Network file to load");
 	args.add_string_option("LS", parse_read_file, snapshot_load_file, "Snapshot file to load");
 	args.add_string_option("M", parse_write_dir, out_density_file, "Output density file");
-	args.add_number_option("NR", GotNR, "Number of realisations");
+	args.add_integer_option("NR", GotNR, "Number of realisations");
 	args.add_string_option("O", parse_write_dir, output_file_base, "Output file path prefix");
 	args.add_string_option("P", parse_read_file, param_file, "Parameter file");
 	args.add_string_option("PP", parse_read_file, pre_param_file, "Pre-Parameter file");
-	args.add_number_option("R", P.R0scale, "R0 scaling");
+	args.add_double_option("R", P.R0scale, "R0 scaling");
 	args.add_string_option("s", parse_read_file, school_file, "School file");
 	args.add_string_option("S", parse_write_dir, save_network_file, "Network file to save");
 	args.add_custom_option("SS", parse_snapshot_save_option, "Interval and file to save snapshots [double,string]");
-	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
+	args.add_integer_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
     // Check if S and L options were both specified (can only be one)
