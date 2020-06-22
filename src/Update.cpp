@@ -324,23 +324,25 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
-		if (a->Severity_Current == Severity_Critical)
+		switch(a->Severity_Current)
 		{
-			FromCritical(tn, a->mcell, ai);
+			case Severity_Critical:
+				FromCritical(tn, a->mcell, ai);
+				break;
+
+			case Severity_SARI:
+				FromSARI(tn, a->mcell, ai);
+				break;
+
+			case Severity_ILI:
+				FromILI(tn, a->mcell, ai);
+				break;
 		}
-		else if (a->Severity_Current == Severity_SARI)
-		{
-			FromSARI(tn, a->mcell, ai);
-		}
-		else if (a->Severity_Current == Severity_ILI)
-		{
-			FromILI(tn, a->mcell, ai);
-		}
+
 		//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
 		a->Severity_Current = Severity_Dead;
 
 		ToDeath(tn, a->mcell, ai);
-
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
