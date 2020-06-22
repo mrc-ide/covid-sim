@@ -2557,13 +2557,13 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 	fclose(dat);
 }
 
-void SaveAgeDistrib(std::string const& out_file)
+void SaveAgeDistrib(std::string const& output_file_base)
 {
 	int i;
 	FILE* dat;
 	std::string outname;
 
-	outname = out_file + ".agedist.xls";
+	outname = output_file_base + ".agedist.xls";
 	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 	if (P.DoDeath)
 	{

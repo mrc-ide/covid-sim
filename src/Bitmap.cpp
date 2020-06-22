@@ -110,30 +110,28 @@ void CaptureBitmap()
 	}
 }
 
-void OutputBitmap(int tp, std::string const& out_file)
+void OutputBitmap(int tp, std::string const& output_file_base)
 {
-	std::string OutF;
 	char buf[3000];
 	int j = 0;
 	static int cn[4] = {0, 0, 0, 0};
 	const char *OutPrefix[4] = {"", "Mean.", "Min.", "Max."};
 
-	std::string out_base_name = out_file;
-
-	// if the out_file has a forward or backwards slash, use that as the cutoff
-	// point for the out_base_name, otherwise keep the full out_file
-	auto out_base_name_loc = out_file.find_last_of('/');
-	auto out_base_name_loc_2 = out_file.find_last_of('\\');
-	if (out_base_name_loc_2 != std::string::npos && (out_base_name_loc == std::string::npos || out_base_name_loc_2 > out_base_name_loc)) {
-		out_base_name_loc = out_base_name_loc_2;
+	// if the output_file_base has a forward or backwards slash, use that as the cutoff
+	// point for the leaf_name, otherwise keep the full output_file_base
+	auto slash_loc = output_file_base.find_last_of('/');
+	auto bslash_loc = output_file_base.find_last_of('\\');
+	if (bslash_loc != std::string::npos && (slash_loc == std::string::npos || bslash_loc > slash_loc)) {
+		slash_loc = bslash_loc;
 	}
-	if (out_base_name_loc != std::string::npos) {
-		out_base_name = out_base_name.substr(out_base_name_loc);
+	auto leaf_name = output_file_base;
+	if (slash_loc != std::string::npos) {
+		leaf_name = leaf_name.substr(slash_loc);
 	}
 
 	j = cn[tp];
 	cn[tp]++;
-	OutF = out_file + ".ge" DIRECTORY_SEPARATOR + OutPrefix[tp] + out_base_name;
+	auto OutF = output_file_base + ".ge" DIRECTORY_SEPARATOR + OutPrefix[tp] + leaf_name;
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
