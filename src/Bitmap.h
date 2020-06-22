@@ -2,6 +2,7 @@
 #define COVIDSIM_BITMAP_H_INCLUDED_
 
 #include <cstdint>
+#include <string>
 
 #ifdef UNIX
 #define DIRECTORY_SEPARATOR "/"
@@ -43,7 +44,7 @@ extern BitmapHeader* bmh;
 
 void CaptureBitmap();
 void OutputBitmap(int);
-void InitBMHead();
+void InitBMHead(std::string const&);
 
 void Bitmap_Finalise();
 

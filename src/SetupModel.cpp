@@ -24,7 +24,9 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
-void SetupModel(std::string const& density_file, std::string const& out_density_file, std::string const& load_network_file, std::string const& save_network_file, std::string const& school_file, std::string const& reg_demog_file)
+void SetupModel(std::string const& density_file, std::string const& out_density_file, std::string const& load_network_file,
+				std::string const& save_network_file, std::string const& school_file, std::string const& reg_demog_file,
+				std::string const& out_file_base)
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
@@ -641,7 +643,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 	if (P.OutputBitmap)
 	{
-		InitBMHead();
+		InitBMHead(out_file_base);
 	}
 	if (P.DoMassVacc)
 	{

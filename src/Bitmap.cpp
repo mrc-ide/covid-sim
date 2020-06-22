@@ -29,7 +29,7 @@ static CLSID  encoderClsid;
 static unsigned char* bmf, *bmPixels, *bmp;
 // externs from CovidSim.cpp
 // TODO: move these to a header files
-extern std::string OutFile, OutFileBase;
+extern std::string OutFile;
 
 void CaptureBitmap()
 {
@@ -205,7 +205,7 @@ void OutputBitmap(int tp)
 	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
 	}
 }
-void InitBMHead()
+void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
@@ -286,7 +286,7 @@ void InitBMHead()
 #endif
 
 	char buf[1024+3];
-	sprintf(buf, "%s.ge", OutFileBase.c_str());
+	sprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else

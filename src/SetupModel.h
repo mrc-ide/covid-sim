@@ -3,7 +3,7 @@
 
 #include <string>
 
-void SetupModel(std::string const&, std::string const&, std::string const&, std::string const&, std::string const&, std::string const&);
+void SetupModel(std::string const&, std::string const&, std::string const&, std::string const&, std::string const&, std::string const&, std::string const&);
 void SetupPopulation(std::string const&, std::string const&, std::string const&, std::string const&);
 void SetupAirports(void);
 void AssignHouseholdAges(int, int, int, std::string const&);

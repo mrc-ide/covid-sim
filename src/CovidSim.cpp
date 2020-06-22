@@ -45,14 +45,13 @@
 
 void parse_bmp_option(std::string const&);
 void parse_intervention_file_option(std::string const&);
-void parse_save_snapshot_option(std::string const&);
-void ReadParams(std::string const&, std::string const&);
+void ReadParams(std::string const&, std::string const&, std::string const&);
 void ReadInterventions(std::string const&);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
 void ReadAirTravel(std::string const&);
 void InitModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
-int RunModel(int); //adding run number as a parameter for event log: ggilani - 15/10/2014
+int RunModel(int, std::string const&, std::string const&);
 
 void SaveDistribs(void);
 void SaveOriginDestMatrix(void); //added function to save origin destination matrix so it can be done separately to the main results: ggilani - 13/02/15
@@ -60,8 +59,8 @@ void SaveResults(void);
 void SaveSummaryResults(void);
 void SaveRandomSeeds(void); //added this function to save random seeds for each run: ggilani - 09/03/17
 void SaveEvents(void); //added this function to save infection events from all realisations: ggilani - 15/10/14
-void LoadSnapshot(void);
-void SaveSnapshot(void);
+void LoadSnapshot(std::string const&);
+void SaveSnapshot(std::string const&);
 void RecordInfTypes(void);
 void RecordSample(double, int);
 
@@ -110,7 +109,7 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-std::string AdunitFile, OutFile, OutFileBase, SnapshotLoadFile, SnapshotSaveFile;
+std::string OutFile;
 
 int ns, DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
@@ -129,9 +128,21 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 
 int main(int argc, char* argv[])
 {
-	std::string air_travel_file, density_file, load_network_file, out_density_file, param_file;
-	std::string pre_param_file, reg_demog_file, save_network_file, school_file;
+	std::string ad_unit_file, air_travel_file, density_file, load_network_file, out_density_file;
+	std::string out_file_base, param_file, pre_param_file, reg_demog_file, save_network_file, school_file;
 	int GotNR = 0;
+
+	std::string snapshot_load_file, snapshot_save_file;
+	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
+		auto sep = input.find_first_of(',');
+		if (sep == std::string::npos) {
+			ERR_CRITICAL("Expected argument value to be in the format '<D>,<S>' where <D> is the "
+							"timestep interval when a snapshot should be saved and <S> is the "
+							"filename in which to save the snapshot");
+		}
+		parse_number(input.substr(0, sep), P.SnapshotSaveTime);
+		parse_read_file(input.substr(sep + 1), snapshot_save_file);
+	};
 
 	int cl = clock();
 
@@ -151,7 +162,7 @@ int main(int argc, char* argv[])
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
 
 	CmdLineArgs args;
-	args.add_string_option("A", parse_read_file, AdunitFile, "Administrative Division");
+	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_number_option("c", P.MaxNumThreads, "Number of threads to use");
@@ -171,16 +182,16 @@ int main(int argc, char* argv[])
 	args.add_number_option("KO", P.KernelOffsetScale, "Scales the P.KernelOffsetScale parameter");
 	args.add_number_option("KP", P.KernelPowerScale, "Scales the P.KernelPowerScale parameter");
 	args.add_string_option("L", parse_read_file, load_network_file, "Network file to load");
-	args.add_string_option("LS", parse_read_file, SnapshotLoadFile, "Snapshot file to load");
+	args.add_string_option("LS", parse_read_file, snapshot_load_file, "Snapshot file to load");
 	args.add_string_option("M", parse_write_dir, out_density_file, "Output density file");
 	args.add_number_option("NR", GotNR, "Number of realisations");
-	args.add_string_option("O", parse_write_dir, OutFileBase, "Output file path prefix");
+	args.add_string_option("O", parse_write_dir, out_file_base, "Output file path prefix");
 	args.add_string_option("P", parse_read_file, param_file, "Parameter file");
 	args.add_string_option("PP", parse_read_file, pre_param_file, "Pre-Parameter file");
 	args.add_number_option("R", P.R0scale, "R0 scaling");
 	args.add_string_option("s", parse_read_file, school_file, "School file");
 	args.add_string_option("S", parse_write_dir, save_network_file, "Network file to save");
-	args.add_custom_option("SS", parse_save_snapshot_option, "Interval and file to save snapshots [double,string]");
+	args.add_custom_option("SS", parse_snapshot_save_option, "Interval and file to save snapshots [double,string]");
 	args.add_number_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
@@ -192,13 +203,13 @@ int main(int argc, char* argv[])
 	}
 
 	// Check if P or O were not specified
-	if (param_file.empty() || OutFileBase.empty())
+	if (param_file.empty() || out_file_base.empty())
 	{
 		std::cerr << "Missing /P and /O arguments which are required" << std::endl;
 		args.print_detailed_help_and_exit();
 	}
 
-	OutFile = OutFileBase;
+	OutFile = out_file_base;
 
 	std::cerr << "Param=" << param_file << "\nOut=" << OutFile << "\nDens=" << density_file << std::endl;
 	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
@@ -238,7 +249,7 @@ int main(int argc, char* argv[])
 
 
 	P.NumRealisations = GotNR;
-	ReadParams(param_file, pre_param_file);
+	ReadParams(param_file, pre_param_file, ad_unit_file);
 	if (P.DoAirports)
 	{
 		if (air_travel_file.empty()) {
@@ -252,7 +263,7 @@ int main(int argc, char* argv[])
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 	///// initialize model (for all realisations).
-	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file);
+	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file, out_file_base);
 
 	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)
@@ -272,7 +283,7 @@ int main(int argc, char* argv[])
 	{
 		if (P.NumRealisations > 1)
 		{
-			OutFile = OutFileBase + "." + std::to_string(i);
+			OutFile = out_file_base + "." + std::to_string(i);
 			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
@@ -298,9 +309,9 @@ int main(int argc, char* argv[])
 
 		///// initialize model (for this realisation).
 		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
-		if (!SnapshotLoadFile.empty()) LoadSnapshot();
+		if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
 		int ModelCalibLoop = 0;
-		while (RunModel(i))
+		while (RunModel(i, snapshot_save_file, snapshot_load_file))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 			if ((P.ModelCalibIteration == 10) && (ModelCalibLoop < 3))
 			{
@@ -333,7 +344,7 @@ int main(int argc, char* argv[])
 			SaveEvents();
 		}
 	}
-	OutFile = OutFileBase;
+	OutFile = out_file_base;
 
 	//Calculate origin destination matrix if needed
 	if ((P.DoAdUnits) && (P.DoOriginDestinationMatrix))
@@ -348,11 +359,11 @@ int main(int argc, char* argv[])
 	{
 		SaveEvents();
 	}
-	OutFile = OutFileBase + ".avNE";
+	OutFile = out_file_base + ".avNE";
 	SaveSummaryResults();
 	P.NRactual = P.NRactE;
 	TSMean = TSMeanE; TSVar = TSVarE;
-	OutFile = OutFileBase + ".avE";
+	OutFile = out_file_base + ".avE";
 	//SaveSummaryResults();
 
 	Bitmap_Finalise();
@@ -371,16 +382,14 @@ void parse_bmp_option(std::string const& input) {
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
 		P.BitmapFormat = BitmapFormats::PNG;
 #else
-		std::cerr << "PNG Bitmaps not supported - please build with Image Magic or WIN32 support" << std::endl;
-		std::exit(1);
+		ERR_CRITICAL("PNG Bitmaps not supported - please build with Image Magic or WIN32 support");
 #endif
 	}
 	else if (input_copy.compare("bmp") == 0) {
 		P.BitmapFormat = BitmapFormats::BMP;
 	}
 	else {
-		std::cerr << "Unrecognised bitmap format: " << input_copy << std::endl;
-		std::exit(1);
+		ERR_CRITICAL_FMT("Unrecognised bitmap format: %s", input_copy.c_str());
 	}
 }
 
@@ -390,17 +399,7 @@ void parse_intervention_file_option(std::string const& input) {
 	InterventionFiles.emplace_back(output);
 }
 
-void parse_save_snapshot_option(std::string const& input) {
-	auto sep = input.find_first_of(',');
-	if (sep == std::string::npos) {
-		std::cerr << "Argument value didn't use a ',': " << input << std::endl;
-		std::exit(1);
-	}
-	parse_number(input.substr(0, sep), P.SnapshotSaveTime);
-	parse_read_file(input.substr(sep + 1), SnapshotSaveFile);
-}
-
-void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
+void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& ad_unit_file)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
@@ -413,7 +412,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile)
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
 	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
 	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
-	if (!(AdminFile_dat = fopen(AdunitFile.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
+	if (!(AdminFile_dat = fopen(ad_unit_file.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
 		P.LongitudeCutLine = -360.0;
 	}
@@ -2827,7 +2826,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 }
 
 
-int RunModel(int run) //added run number as parameter
+int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file)
 {
 	int j, k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
@@ -2868,7 +2867,7 @@ int RunModel(int run) //added run number as parameter
 */
 	InterruptRun = 0;
 	lcI = 1;
-	if (!SnapshotLoadFile.empty())
+	if (!snapshot_load_file.empty())
 	{
 		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
 		t = ((double)P.ts_age) * P.TimeStep;
@@ -2953,7 +2952,7 @@ int RunModel(int run) //added run number as parameter
 				}
 				t += P.TimeStep;
 				if (P.DoDeath) P.ts_age++;
-				if (!SnapshotSaveFile.empty() && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot();
+				if (!snapshot_save_file.empty() && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot(snapshot_save_file);
 				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
 				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
 				cI = ((double)(State.S)) / ((double)P.PopSize);
@@ -4159,7 +4158,7 @@ void SaveEvents(void)
 	fclose(dat);
 }
 
-void LoadSnapshot(void)
+void LoadSnapshot(std::string const& snapshot_load_file)
 {
 	FILE* dat;
 	int i, j, * CellMemberArray, * CellSuscMemberArray;
@@ -4169,7 +4168,7 @@ void LoadSnapshot(void)
 	int** Array_InvCDF;
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
-	if (!(dat = fopen(SnapshotLoadFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
 	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
 	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
@@ -4244,12 +4243,12 @@ void LoadSnapshot(void)
 	fclose(dat);
 }
 
-void SaveSnapshot(void)
+void SaveSnapshot(std::string const& snapshot_save_file)
 {
 	FILE* dat;
 	int i = 1;
 
-	if (!(dat = fopen(SnapshotSaveFile.c_str(), "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(snapshot_save_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
