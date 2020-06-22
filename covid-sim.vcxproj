@@ -93,6 +93,7 @@
     <ClCompile Include="src\BinIO.cpp" />
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
+    <ClCompile Include="src\CLI.cpp" />
     <ClCompile Include="src\Dist.cpp" />
     <ClCompile Include="src\Error.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
@@ -111,6 +112,7 @@
     <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
+    <ClInclude Include="src\CLI.h" />
     <ClInclude Include="src\Constants.h" />
     <ClInclude Include="src\Country.h" />
     <ClInclude Include="src\Dist.h" />

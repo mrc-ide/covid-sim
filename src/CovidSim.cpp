@@ -28,7 +28,7 @@
 #include "Update.h"
 #include "Sweep.h"
 #include "Memory.h"
-#include "CLI.hpp"
+#include "CLI.h"
 
 #ifdef _OPENMP
 #include <omp.h>

@@ -8,7 +8,7 @@
 #include <string>
 #include <type_traits>
 
-#include "CLI.hpp"
+#include "CLI.h"
 #include "Param.h"
 
 void parse_read_file(std::string const& input, std::string& output) {
