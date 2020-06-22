@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include "Error.h"
 #include "Update.h"
 #include "Model.h"
 #include "ModelMacros.h"
@@ -15,7 +16,6 @@ using namespace Geometry;
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
-unsigned short int ChooseFromICDF(double *, double, int);
 Severity ChooseFinalDiseaseSeverity(int, int);
 
 // infection state transition helpers
@@ -40,6 +40,10 @@ void ToCritical(int tn, int microCellIndex, int ai);
 void ToRecovered(int tn, int microCellIndex, int ai);
 void ToDeath(int tn, int microCellIndex, int ai);
 
+// if the dest cell state == src cell state, use this
+void UpdateCell(int* cellPeople, int index, int srcIndex);
+void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
+
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
@@ -56,19 +60,19 @@ void DoImmune(int ai)
 
 		if (a->listpos < Cells[c].S)
 		{
-			Cells[c].susceptible[a->listpos] = Cells[c].susceptible[Cells[c].S];
-			Hosts[Cells[c].susceptible[a->listpos]].listpos = a->listpos;
+			UpdateCell(Cells[c].susceptible, a->listpos, Cells[c].S);
 		}
 		if (Cells[c].L > 0)
 		{
-			Cells[c].susceptible[Cells[c].S] = Cells[c].susceptible[Cells[c].S + Cells[c].L];
-			Hosts[Cells[c].susceptible[Cells[c].S]].listpos = Cells[c].S;
+			UpdateCell(Cells[c].susceptible, Cells[c].S, Cells[c].S + Cells[c].L);
 		}
+
 		if (Cells[c].I > 0)
 		{
-			Cells[c].susceptible[Cells[c].S + Cells[c].L] = Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I];
-			Hosts[Cells[c].susceptible[Cells[c].S + Cells[c].L]].listpos = Cells[c].S + Cells[c].L;
+			UpdateCell(Cells[c].susceptible, Cells[c].S + Cells[c].L, Cells[c].S + Cells[c].L + Cells[c].I);
+
 		}
+
 		if (a->listpos < Cells[c].S + Cells[c].L + Cells[c].I)
 		{
 			Cells[c].susceptible[Cells[c].S + Cells[c].L + Cells[c].I] = ai;
@@ -120,8 +124,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 
 			if (a->listpos < Cells[a->pcell].S)
 			{
-				Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].susceptible[Cells[a->pcell].S];
-				Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
+				UpdateCell(Cells[a->pcell].susceptible, a->listpos, Cells[a->pcell].S);
+
 				a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
 				Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
 			}
@@ -408,7 +412,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
+			else							a->recovery_or_death_time = a->latent_time + P.infectious_icdf.choose(P.InfectiousPeriod, tn, P.TimeStepsPerDay);
 		}
 		else
 		{
@@ -425,33 +429,33 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery[age], tn);
+				a->recovery_or_death_time = CaseTime + P.MildToRecovery_icdf.choose(P.Mean_MildToRecovery[age], tn, P.TimeStepsPerDay);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time		= CaseTime		+ ChooseFromICDF(P.ILIToSARI_icdf		, P.Mean_ILIToSARI[age], tn);
-				a->Critical_time	= a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf	, P.Mean_SARIToCritical[age], tn);
+				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
+				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time					+ ChooseFromICDF(P.CriticalToDeath_icdf		, P.Mean_CriticalToDeath[age], tn);
+					a->recovery_or_death_time = a->Critical_time					+ P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
 				else
 				{
-					a->RecoveringFromCritical_time	= a->Critical_time					+ ChooseFromICDF(P.CriticalToCritRecov_icdf	, P.Mean_CriticalToCritRecov[age], tn);
-					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ ChooseFromICDF(P.CritRecovToRecov_icdf	, P.Mean_CritRecovToRecov[age], tn);
+					a->RecoveringFromCritical_time	= a->Critical_time					+ P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
+					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
-				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
+				a->SARI_time = CaseTime + P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf	, P.Mean_SARIToDeath[age], tn);
+					a->recovery_or_death_time = a->SARI_time + P.SARIToDeath_icdf.choose(P.Mean_SARIToDeath[age], tn, P.TimeStepsPerDay);
 				else
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf	, P.Mean_SARIToRecovery[age], tn);
+					a->recovery_or_death_time = a->SARI_time + P.SARIToRecovery_icdf.choose(P.Mean_SARIToRecovery[age], tn, P.TimeStepsPerDay);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf		, P.Mean_ILIToDeath[age], tn);
+					a->recovery_or_death_time = CaseTime + P.ILIToDeath_icdf.choose(P.Mean_ILIToDeath[age], tn, P.TimeStepsPerDay);
 				else
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf	, P.Mean_ILIToRecovery[age], tn);
+					a->recovery_or_death_time = CaseTime + P.ILIToRecovery_icdf.choose(P.Mean_ILIToRecovery[age], tn, P.TimeStepsPerDay);
 			}
 		}
 
@@ -477,8 +481,8 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (Cells[a->pcell].L > 0)
 		{
-			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].latent[Cells[a->pcell].L]; //// reset pointers.
-			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = a->listpos;
+			UpdateCell(Cells[a->pcell].susceptible, Cells[a->pcell].latent, a->listpos, Cells[a->pcell].L);
+
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L; //// change person a's listpos, which will now refer to their position among infectious people, not latent.
 			Cells[a->pcell].infected[0] = ai; //// this person is now first infectious person in the array. Pointer was moved back one so now that memory address refers to person ai. Alternative would be to move everyone back one which would take longer.
 		}
@@ -872,8 +876,7 @@ void DoRecover(int ai, int tn, int run)
 		j = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			Cells[a->pcell].susceptible[i] = Cells[a->pcell].susceptible[j];
-			Hosts[Cells[a->pcell].susceptible[i]].listpos = i;
+			UpdateCell(Cells[a->pcell].susceptible, i, j);
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
@@ -916,8 +919,7 @@ void DoDeath(int ai, int tn, int run)
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
 		{
-			Cells[a->pcell].susceptible[a->listpos] = Cells[a->pcell].infected[Cells[a->pcell].I];
-			Hosts[Cells[a->pcell].susceptible[a->listpos]].listpos = i;
+			UpdateCell(Cells[a->pcell].susceptible, Cells[a->pcell].infected, a->listpos, Cells[a->pcell].I);
 			a->listpos = Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I;
 			Cells[a->pcell].susceptible[a->listpos] = ai;
 		}
@@ -1163,8 +1165,12 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
 									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
 									{
-										if (Hosts[l].absent_start_time > t_start) Hosts[l].absent_start_time = t_start;
-										if (Hosts[l].absent_stop_time < t_stop) Hosts[l].absent_stop_time = t_stop;
+										int index = StateT[tn].host_closure_queue_size;
+										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
+										StateT[tn].host_closure_queue[index].host_index = l;
+										StateT[tn].host_closure_queue[index].start_time = t_start;
+										StateT[tn].host_closure_queue[index].stop_time = t_stop;
+										StateT[tn].host_closure_queue_size++;
 										StateT[tn].cumAPA++;
 										f = 1;
 									}
@@ -1183,6 +1189,20 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	}
 }
 
+void UpdateHostClosure() {
+	for (int hcq_thread_no = 0; hcq_thread_no < P.NumThreads; hcq_thread_no++)
+	{
+		for (int host_closure = 0; host_closure < StateT[hcq_thread_no].host_closure_queue_size; host_closure++)
+		{
+			int host_index = StateT[hcq_thread_no].host_closure_queue[host_closure].host_index;
+			unsigned short t_start = StateT[hcq_thread_no].host_closure_queue[host_closure].start_time;
+			unsigned short t_stop = StateT[hcq_thread_no].host_closure_queue[host_closure].stop_time;
+			if (Hosts[host_index].absent_start_time > t_start) Hosts[host_index].absent_start_time = t_start;
+			if (Hosts[host_index].absent_stop_time < t_stop) Hosts[host_index].absent_stop_time = t_stop;
+		}
+		StateT[hcq_thread_no].host_closure_queue_size = 0;
+	}
+}
 
 void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 {
@@ -1312,20 +1332,6 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup] + P.Prop_Critical_ByAge[AgeGroup]) DiseaseSeverity = Severity_Critical;
 	else DiseaseSeverity = Severity_Mild;
 	return DiseaseSeverity;
-}
-
-unsigned short int ChooseFromICDF(double *ICDF, double Mean, int tn)
-{
-	unsigned short int Value;
-	int i;
-	double q, ti;
-
-	i = (int)floor(q = ranf_mt(tn) * CDF_RES); //// note q defined here as well as i.
-	q -= ((double)i); //// remainder
-	ti = -Mean * log(q * ICDF[i + 1] + (1.0 - q) * ICDF[i]); //// weighted average (sort of) between quartile values from CDF_RES. logged as it was previously exponentiated in ReadParams. Minus as exp(-cdf) was done in ReadParaams. Sort of
-	Value = (unsigned short int) floor(0.5 + (ti * P.TimeStepsPerDay));
-
-	return Value;
 }
 
 void SusceptibleToRecovered(int cellIndex)
@@ -1492,3 +1498,41 @@ void FromCritical(int tn, int microCellIndex, int ai)
 {
 	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, ai);
 }
+
+/**
+ * Function: UpdateCell
+ *
+ * Purpose: update Cells and Hosts
+ * @param cellPeople - pointer to people in cell. e.g. *susceptible identifies where the final susceptible member of cell is.
+ * @param index - index into cellPeople to update
+ * @param srcIndex - index into cellPeople to update from
+ * @return void
+ */
+void UpdateCell(int* cellPeople,
+	int index,
+	int srcIndex)
+{
+	UpdateCell(cellPeople, cellPeople, index, srcIndex);
+}
+
+/**
+ * Function: UpdateCell
+ *
+ * Purpose: update Cells and Hosts 
+ * @param cellPeople - pointer to people in cell to update. e.g. *susceptible identifies where the final susceptible member of cell is.
+ * @param srcCellPeople - pointer to people in cell to update from. e.g. *infected identifies where the final infected member of cell is.
+ * @param index - index into cellPeople to update
+ * @param srcIndex - index into srcCellPeople to update from
+ * @return void
+ */
+void UpdateCell(int* cellPeople,
+	int* srcCellPeople,
+	int index,
+	int srcIndex)
+{
+	cellPeople[index] = srcCellPeople[srcIndex];
+
+	// update the listpos
+	Hosts[cellPeople[index]].listpos = index;
+}
+

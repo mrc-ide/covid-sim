@@ -25,7 +25,7 @@ case "$distro_id" in
 
     'ubuntu')
         apt-get update
-        apt-get install -y cmake make g++ python3 doxygen wget
+        apt-get install -y cmake make g++ python3 doxygen wget git
         ;;
 
     'centos'|'rhel')
