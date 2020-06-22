@@ -523,7 +523,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
+				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat::Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
@@ -1142,7 +1142,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				if (P.DoHouseholds)
 				{
 					for (i2 = 0; i2 < m; i2++) {
-						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
+						Hosts[i + i2].inf = InfStat::Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
 					}
 				}
 				Households[Hosts[i].hh].FirstPerson = i;
