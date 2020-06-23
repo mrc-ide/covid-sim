@@ -325,32 +325,27 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
-		// Note: only assign a->Severity_Current = Severity_Dead in the case statements.
+		// Note: only assign a->Severity_Current = Severity::Dead inside the switch cases.
 		// In rare cases DoDeath_FromCriticalorSARIorILI can be called before a person has had their severity assigned.
-		
 		switch(a->Severity_Current)
 		{
 			case Severity::Critical:
 				FromCritical(tn, a->mcell, ai);
 				ToDeathCritical(tn, a->mcell, ai);
-
 				a->Severity_Current = Severity::Dead;
 				break;
 
 			case Severity::SARI:
 				FromSARI(tn, a->mcell, ai);
 				ToDeathSARI(tn, a->mcell, ai);
-
 				a->Severity_Current = Severity::Dead;
 				break;
 
 			case Severity::ILI:
 				FromILI(tn, a->mcell, ai);
 				ToDeathILI(tn, a->mcell, ai);
-
 				a->Severity_Current = Severity::Dead;
 				break;
-
 		}
 	}
 }
@@ -363,33 +358,32 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// moved this from DoRecover
 	Person* a = Hosts + ai;
 
+	// Note: only assign a->Severity_Current = Severity::Recovered inside the switch cases.
+	// In rare cases DoRecover_FromSeverity can be called before a person has had their severity assigned.
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
 		{
-			if (a->Severity_Current == Severity::Mild)
+			switch (a->Severity_Current)
 			{
-				FromMild(tn, a->mcell, ai);
+				case Severity::Mild:
+					FromMild(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
 
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::ILI)
-			{
-				FromILI(tn, a->mcell, ai);
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::SARI)
-			{
-				FromSARI(tn, a->mcell, ai);
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::RecoveringFromCritical)
-			{
-				FromCritRecov(tn, a->mcell, ai);
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
+				case Severity::ILI:
+					FromILI(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
+
+				case Severity::SARI:
+					FromSARI(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
+
+				case Severity::RecoveringFromCritical:
+					FromCritRecov(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
 			}
 		}
 }
