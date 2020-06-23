@@ -80,19 +80,19 @@ double ExpKernel(double r2)
 double PowerKernel(double r2)
 {
 	double t = -P.KernelShape * log(sqrt(r2) / P.KernelScale + 1);
-	return (t < -690) ? 0 : exp(t);
+	return (t < -690) ? 0.0 : exp(t);
 }
 
 double PowerKernelB(double r2)
 {
 	double t = 0.5 * P.KernelShape * log(r2 / (P.KernelScale * P.KernelScale));
-	return (t > 690) ? 0 : (1 / (exp(t) + 1));
+	return (t > 690) ? 0.0 : (1 / (exp(t) + 1));
 }
 
 double PowerKernelUS(double r2)
 {
 	double t = log(sqrt(r2) / P.KernelScale + 1);
-	return (t < -690) ? 0 : (exp(-P.KernelShape * t) + P.KernelP3 * exp(-P.KernelP4 * t)) / (1 + P.KernelP3);
+	return (t < -690) ? 0.0 : (exp(-P.KernelShape * t) + P.KernelP3 * exp(-P.KernelP4 * t)) / (1 + P.KernelP3);
 }
 
 double GaussianKernel(double r2)
@@ -102,14 +102,14 @@ double GaussianKernel(double r2)
 
 double StepKernel(double r2)
 {
-	return (r2 > P.KernelScale * P.KernelScale) ? 0 : 1;
+	return (r2 > P.KernelScale * P.KernelScale) ? 0.0 : 1.0;
 }
 
 double PowerExpKernel(double r2)
 {
 	double d = sqrt(r2);
 	double t = -P.KernelShape * log(d / P.KernelScale + 1);
-	return (t < -690) ? 0 : exp(t - pow(d / P.KernelP3, P.KernelP4));
+	return (t < -690) ? 0.0 : exp(t - pow(d / P.KernelP3, P.KernelP4));
 }
 
 double numKernel(double r2)
