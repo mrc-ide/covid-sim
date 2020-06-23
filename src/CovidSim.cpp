@@ -20,6 +20,7 @@
 #include "CalcInfSusc.h"
 #include "Update.h"
 #include "Sweep.h"
+#include "Memory.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -485,7 +486,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
-	int i, j, k, f, nc, na;
+	int i, j, j1, j2, k, f, nc, na;
 	char CountryNameBuf[128 * MAX_COUNTRIES], AdunitListNamesBuf[128 * MAX_ADUNITS];
 
 	char* CountryNames[MAX_COUNTRIES];
@@ -582,8 +583,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (P.DoAdUnits)
 	{
 		char** AdunitNames, * AdunitNamesBuf;
-		if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-		if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		AdunitNames = (char**)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE, sizeof(char*));
+		AdunitNamesBuf = (char*)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE * 360, sizeof(char));
 
 		for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 		{
@@ -671,10 +672,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include age", "%i", (void*) & (P.DoAge), 1, 1, 0)) P.DoAge = 1;
 	if (!P.DoAge)
 	{
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		for (i = 0; i < NUM_AGE_GROUPS; i++) {
 			P.PropAgeGroup[0][i] = 1.0 / NUM_AGE_GROUPS;
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-		{
 			P.InitialImmunity[i] = 0;
 			P.AgeInfectiousness[i] = P.AgeSusceptibility[i] = 1;
 			P.RelativeSpatialContact[i] = P.RelativeTravelRate[i] = 1.0;
@@ -891,17 +890,13 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
 				P.LocalJourneyDurationDistrib[i] += P.LocalJourneyDurationDistrib[i - 1];
 			}
-			for (i = j = 0; i <= 1024; i++)
+			for (i = j1 = j2 = 0; i <= 1024; i++)
 			{
 				s = ((double)i) / 1024;
-				while (P.JourneyDurationDistrib[j] < s)j++;
-				P.InvJourneyDurationDistrib[i] = j;
-			}
-			for (i = j = 0; i <= 1024; i++)
-			{
-				s = ((double)i) / 1024;
-				while (P.LocalJourneyDurationDistrib[j] < s)j++;
-				P.InvLocalJourneyDurationDistrib[i] = j;
+				while (P.JourneyDurationDistrib[j1] < s) j1++;
+				P.InvJourneyDurationDistrib[i] = j1;
+				while (P.LocalJourneyDurationDistrib[j2] < s) j2++;
+				P.InvLocalJourneyDurationDistrib[i] = j2;
 			}
 		}
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Mean size of place types", "%lf", (void*)P.PlaceTypeMeanSize, P.PlaceTypeNum, 1, 0);
@@ -2297,8 +2292,8 @@ void ReadAirTravel(char* AirTravelFile)
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
-	if (!(buf = (float*)calloc(P.Nairports + 1, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-	if (!(Airports = (Airport*)calloc(P.Nairports, sizeof(Airport)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+	buf = (float*)Memory::xcalloc(P.Nairports + 1, sizeof(float));
+	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
@@ -2328,8 +2323,8 @@ void ReadAirTravel(char* AirTravelFile)
 		Airports[i].num_connected = k;
 		if (Airports[i].num_connected > 0)
 		{
-			if (!(Airports[i].prop_traffic = (float*)calloc(Airports[i].num_connected, sizeof(float)))) ERR_CRITICAL("Unable to allocate airport storage\n");
-			if (!(Airports[i].conn_airports = (unsigned short int*) calloc(Airports[i].num_connected, sizeof(unsigned short int)))) ERR_CRITICAL("Unable to allocate airport storage\n");
+			Airports[i].prop_traffic = (float*)Memory::xcalloc(Airports[i].num_connected, sizeof(float));
+			Airports[i].conn_airports = (unsigned short int*)Memory::xcalloc(Airports[i].num_connected, sizeof(unsigned short int));
 			for (j = k = 0; j < P.Nairports; j++)
 				if (buf[j] > 0)
 				{
@@ -2596,8 +2591,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
 				Hosts[k].Critical_time = USHRT_MAX - 1;
 				Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
-				Hosts[k].Severity_Current = Severity_Asymptomatic;
-				Hosts[k].Severity_Final = Severity_Asymptomatic;
+				Hosts[k].Severity_Current = Severity::Asymptomatic;
+				Hosts[k].Severity_Final = Severity::Asymptomatic;
 				Hosts[k].inf = InfStat_Susceptible;
 			}
 		}
@@ -3924,12 +3919,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(NUM_AGE_GROUPS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			SARI_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			Critical_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			CritRecov_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incSARI_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incCritical_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
+			incCritRecov_a = (double*)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double));
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4046,12 +4041,12 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a,sc3a,sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 
-			if (!(SARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(Critical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(CritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incSARI_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritical_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(incCritRecov_a = (double*)malloc(MAX_ADUNITS * sizeof(double)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			SARI_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			Critical_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			CritRecov_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incSARI_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incCritical_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
+			incCritRecov_a = (double*)Memory::xcalloc(MAX_ADUNITS, sizeof(double));
 			sc1a = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 			sc2a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
 			sc3a = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
@@ -4261,10 +4256,10 @@ void LoadSnapshot(void)
 
 	if (!(dat = fopen(SnapshotLoadFile, "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	if (!(Array_InvCDF = (int**)malloc(P.NCP * sizeof(int*)))) ERR_CRITICAL("Unable to allocate temp cell storage\n");
-	if (!(Array_max_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_cum_trans = (float**)malloc(P.NCP * sizeof(float*)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
-	if (!(Array_tot_prob = (float*)malloc(P.NCP * sizeof(float)))) ERR_CRITICAL("Unable to temp allocate cell storage\n");
+	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
+	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
+	Array_cum_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
+	Array_tot_prob = (float*)Memory::xcalloc(P.NCP, sizeof(float));
 	for (i = 0; i < P.NCP; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;
@@ -4779,7 +4774,7 @@ void RecordSample(double t, int n)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts); 
+	RecordQuarNotInfected(n, ts);
 
 	if (P.DoSeverity)
 	{
@@ -5742,4 +5737,3 @@ void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* ic
 	}
 	inverseCdf->assign_exponent();
 }
-

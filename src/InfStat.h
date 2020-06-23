@@ -36,19 +36,19 @@ enum InfStat {
 };
 
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
-enum Severity {
+enum struct Severity {
 	//// Flag value.
-	Severity_Asymptomatic = -1,
-	Severity_Mild = 0,
-	Severity_ILI = 1,
-	Severity_SARI = 2,
-	Severity_Critical = 3,
+	Asymptomatic,
+	Mild,
+	ILI,
+	SARI,
+	Critical,
 	//// Recovering from Critical (not recovered yet).
-	Severity_RecoveringFromCritical = 4,
-	//// Label to avoid double counting. Not sure you need.
-	Severity_Dead = 5,
-	//// Label to avoid double counting. Not sure you need.
-	Severity_Recovered = 6
+	RecoveringFromCritical,
+	//// label to avoid double counting. Not sure you need.
+	Dead,
+	//// label to avoid double counting. Not sure you need.
+	Recovered
 };
 
 #endif // COVIDSIM_INFSTAT_H_INCLUDED_
