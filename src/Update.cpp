@@ -10,6 +10,7 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 #include "Rand.h"
+#include <functional>
 
 using namespace Geometry;
 
@@ -19,32 +20,32 @@ void RecordEvent(double, int, int, int, int); //added int as argument to InfectS
 Severity ChooseFinalDiseaseSeverity(int, int);
 
 // infection state transition helpers
-void SusceptibleToRecovered(int cellIndex);
-void SusceptibleToLatent(int cellIndex);
-void LatentToInfectious(int cellIndex);
-void InfectiousToRecovered(int cellIndex);
-void InfectiousToDeath(int cellIndex);
+static void SusceptibleToRecovered(int cellIndex);
+static void SusceptibleToLatent(int cellIndex);
+static void LatentToInfectious(int cellIndex);
+static void InfectiousToRecovered(int cellIndex);
+static void InfectiousToDeath(int cellIndex);
 
 // severity state transition helpers
 
-void ToInfected(int tn, short infectType, int ai, double q);
-void FromMild(int tn, int microCellIndex, int ai);
-void ToMild(int tn, int microCellIndex, int ai);
-void FromCritRecov(int tn, int microCellIndex, int ai);
-void ToCritRecov(int tn, int microCellIndex, int ai);
-void FromSARI(int tn, int microCellIndex, int ai);
-void ToSARI(int tn, int microCellIndex, int ai);
-void FromILI(int tn, int microCellIndex, int ai);
-void ToILI(int tn, int microCellIndex, int ai);
-void FromCritical(int tn, int microCellIndex, int ai);
-void ToCritical(int tn, int microCellIndex, int ai);
-void ToDeathILI(int tn, int microCellIndex, int ai);
-void ToDeathSARI(int tn, int microCellIndex, int ai);
-void ToDeathCritical(int tn, int microCellIndex, int ai);
+static void ToInfected(int tn, short infectType, int ai, double q);
+static void FromMild(int tn, int microCellIndex, int ai);
+static void ToMild(int tn, int microCellIndex, int ai);
+static void FromCritRecov(int tn, int microCellIndex, int ai);
+static void ToCritRecov(int tn, int microCellIndex, int ai);
+static void FromSARI(int tn, int microCellIndex, int ai);
+static void ToSARI(int tn, int microCellIndex, int ai);
+static void FromILI(int tn, int microCellIndex, int ai);
+static void ToILI(int tn, int microCellIndex, int ai);
+static void FromCritical(int tn, int microCellIndex, int ai);
+static void ToCritical(int tn, int microCellIndex, int ai);
+static void ToDeathILI(int tn, int microCellIndex, int ai);
+static void ToDeathSARI(int tn, int microCellIndex, int ai);
+static void ToDeathCritical(int tn, int microCellIndex, int ai);
 
 // if the dest cell state == src cell state, use this
-void UpdateCell(int* cellPeople, int index, int srcIndex);
-void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
+static void UpdateCell(int* cellPeople, int index, int srcIndex);
+static void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
 
 void DoImmune(int ai)
 {
@@ -1341,7 +1342,7 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	return DiseaseSeverity;
 }
 
-void SusceptibleToRecovered(int cellIndex)
+static void SusceptibleToRecovered(int cellIndex)
 {
 	Cells[cellIndex].S--;
 	Cells[cellIndex].R++;
@@ -1349,7 +1350,7 @@ void SusceptibleToRecovered(int cellIndex)
 	Cells[cellIndex].infected--;
 }
 
-void SusceptibleToLatent(int cellIndex)
+static void SusceptibleToLatent(int cellIndex)
 {
 	Cells[cellIndex].S--;
 	Cells[cellIndex].L++;			//// number of latently infected people increases by one.
@@ -1357,21 +1358,21 @@ void SusceptibleToLatent(int cellIndex)
 }
 
 
-void LatentToInfectious(int cellIndex)
+static void LatentToInfectious(int cellIndex)
 {
 	Cells[cellIndex].L--;		//// one fewer person latently infected.
 	Cells[cellIndex].I++;		//// one more infectious person.
 	Cells[cellIndex].infected--; //// first infected person is now one index earlier in array.
 }
 
-void InfectiousToRecovered(int cellIndex)
+static void InfectiousToRecovered(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].R++; //// one more recovered person
 }
 
 
-void InfectiousToDeath(int cellIndex)
+static void InfectiousToDeath(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].D++; //// one more dead person
@@ -1379,37 +1380,32 @@ void InfectiousToDeath(int cellIndex)
 
 // severity state functions
 
-void decrement(int& x) {x--;}
-void increment(int& x) {x++;}
-
-void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai, void (*fcnPtr)(int& x))
+static void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai, std::function<void(int&)> action)
 {
-	fcnPtr(quantity);
-	fcnPtr(age[HOST_AGE_GROUP(ai)]);
+	action(quantity);
+	action(age[HOST_AGE_GROUP(ai)]);
 
 	if (P.DoAdUnits)
 	{
-		fcnPtr(adUnit[Mcells[microCellIndex].adunit]);
+		action(adUnit[Mcells[microCellIndex].adunit]);
 	}
 }
 
-
-void FromSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
+static void FromSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
 {
-	void (*fcnPtr)(int& x) { decrement };
+	std::function<void(int&)> action = [](int& x) { x--; };
 
-	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, fcnPtr);
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, action);
 }
 
-
-void ToSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
+static void ToSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int ai)
 {
-	void (*fcnPtr)(int& x) { increment };
+	std::function<void(int&)> action = [](int& x) { x++; };
 
-	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, fcnPtr);
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, ai, action);
 }
 
-void ToInfected(int tn, short infectType, int ai, double q)
+static void ToInfected(int tn, short infectType, int ai, double q)
 {
 	///// Change threaded state variables to reflect new infection status of person a.
 	StateT[tn].cumI++;
@@ -1418,12 +1414,12 @@ void ToInfected(int tn, short infectType, int ai, double q)
 	StateT[tn].sumRad2 += q;
 }
 
-void FromMild(int tn, int microCellIndex, int ai)
+static void FromMild(int tn, int microCellIndex, int ai)
 {
 	FromSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, microCellIndex, ai);
 }
 
-void ToMild(int tn, int microCellIndex, int ai)
+static void ToMild(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, 
 		microCellIndex, ai);
@@ -1432,63 +1428,63 @@ void ToMild(int tn, int microCellIndex, int ai)
 
 }
 
-void FromCritRecov(int tn, int microCellIndex, int ai)
+static void FromCritRecov(int tn, int microCellIndex, int ai)
 {
 	//// decrement CritRecov, not critical.
 	FromSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, ai);
 }
 
-void ToCritRecov(int tn, int microCellIndex, int ai)
+static void ToCritRecov(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, ai);
 	ToSeverity(StateT[tn].cumCritRecov, StateT[tn].cumCritRecov_age, StateT[tn].cumCritRecov_adunit, microCellIndex, ai);
 }
 
-void FromSARI(int tn, int microCellIndex, int ai)
+static void FromSARI(int tn, int microCellIndex, int ai)
 {
 	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, ai);
 }
 
-void ToSARI(int tn, int microCellIndex, int ai)
+static void ToSARI(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, ai);
 	ToSeverity(StateT[tn].cumSARI, StateT[tn].cumSARI_age, StateT[tn].cumSARI_adunit, microCellIndex, ai);
 }
 
-void FromILI(int tn, int microCellIndex, int ai)
+static void FromILI(int tn, int microCellIndex, int ai)
 {
 	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, ai);
 }
 
-void ToILI(int tn, int microCellIndex, int ai)
+static void ToILI(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, ai);
 	ToSeverity(StateT[tn].cumILI, StateT[tn].cumILI_age, StateT[tn].cumILI_adunit, microCellIndex, ai);
 }
 
-void FromCritical(int tn, int microCellIndex, int ai)
+static void FromCritical(int tn, int microCellIndex, int ai)
 {
 	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, ai);
 }
 
-void ToCritical(int tn, int microCellIndex, int ai)
+static void ToCritical(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, ai);
 	ToSeverity(StateT[tn].cumCritical, StateT[tn].cumCritical_age, StateT[tn].cumCritical_adunit, microCellIndex, ai);
 }
 
 
-void ToDeathSARI(int tn, int microCellIndex, int ai)
+static void ToDeathSARI(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, microCellIndex, ai);
 }
 
-void ToDeathCritical(int tn, int microCellIndex, int ai)
+static void ToDeathCritical(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, microCellIndex, ai);
 }
 
-void ToDeathILI(int tn, int microCellIndex, int ai)
+static void ToDeathILI(int tn, int microCellIndex, int ai)
 {
 	ToSeverity(StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, microCellIndex, ai);
 }
@@ -1502,7 +1498,7 @@ void ToDeathILI(int tn, int microCellIndex, int ai)
  * @param srcIndex - index into cellPeople to update from
  * @return void
  */
-void UpdateCell(int* cellPeople,
+static void UpdateCell(int* cellPeople,
 	int index,
 	int srcIndex)
 {
@@ -1519,7 +1515,7 @@ void UpdateCell(int* cellPeople,
  * @param srcIndex - index into srcCellPeople to update from
  * @return void
  */
-void UpdateCell(int* cellPeople,
+static void UpdateCell(int* cellPeople,
 	int* srcCellPeople,
 	int index,
 	int srcIndex)
