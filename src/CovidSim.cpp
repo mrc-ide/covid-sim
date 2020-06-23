@@ -5104,7 +5104,8 @@ void RecordSample(double t, int n)
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
 					else if (P.ModelCalibIteration >= 2) {
-						if (abs((RatioPredictedObserved - 1.0) <= DesiredAccuracy)) {
+						if ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) ||
+							(((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))) {
 							P.StopCalibration = 1;
 						}
 						else if (P.ModelCalibIteration % 2 == 0) // on even iterations, adjust timings
