@@ -326,26 +326,32 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
+		// Note: only assign a->Severity_Current = Severity_Dead in the case statements.
+		// In rare cases DoDeath_FromCriticalorSARIorILI can be called before a person has had their severity assigned.
+		
 		switch(a->Severity_Current)
 		{
 			case Severity_Critical:
 				FromCritical(tn, a->mcell, ai);
 				ToDeathCritical(tn, a->mcell, ai);
+
+				a->Severity_Current = Severity_Dead;
 				break;
 
 			case Severity_SARI:
 				FromSARI(tn, a->mcell, ai);
 				ToDeathSARI(tn, a->mcell, ai);
+
+				a->Severity_Current = Severity_Dead;
 				break;
 
 			case Severity_ILI:
 				FromILI(tn, a->mcell, ai);
 				ToDeathILI(tn, a->mcell, ai);
+
+				a->Severity_Current = Severity_Dead;
 				break;
 		}
-
-		//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-		a->Severity_Current = Severity_Dead;
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
