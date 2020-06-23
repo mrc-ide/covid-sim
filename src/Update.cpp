@@ -11,6 +11,7 @@
 #include "Bitmap.h"
 #include "Rand.h"
 #include <functional>
+#include <cassert>
 
 using namespace Geometry;
 
@@ -1349,6 +1350,11 @@ static void SusceptibleToRecovered(int cellIndex)
 	Cells[cellIndex].R++;
 	Cells[cellIndex].latent--;
 	Cells[cellIndex].infected--;
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].S >= 0);
+	assert(Cells[cellIndex].latent >= 0);
+	assert(Cells[cellIndex].infected >= 0);
 }
 
 static void SusceptibleToLatent(int cellIndex)
@@ -1356,6 +1362,10 @@ static void SusceptibleToLatent(int cellIndex)
 	Cells[cellIndex].S--;
 	Cells[cellIndex].L++;			//// number of latently infected people increases by one.
 	Cells[cellIndex].latent--;		//// pointer to latent in that cell decreased.
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].S >= 0);
+	assert(Cells[cellIndex].latent >= 0);
 }
 
 
@@ -1364,12 +1374,21 @@ static void LatentToInfectious(int cellIndex)
 	Cells[cellIndex].L--;		//// one fewer person latently infected.
 	Cells[cellIndex].I++;		//// one more infectious person.
 	Cells[cellIndex].infected--; //// first infected person is now one index earlier in array.
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].L >= 0);
+	assert(Cells[cellIndex].infected >= 0);
+
 }
 
 static void InfectiousToRecovered(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].R++; //// one more recovered person
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].I >= 0);
+
 }
 
 
@@ -1377,6 +1396,10 @@ static void InfectiousToDeath(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].D++; //// one more dead person
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].I >= 0);
+
 }
 
 // severity state functions
@@ -1390,6 +1413,11 @@ static void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIn
 	{
 		action(adUnit[Mcells[microCellIndex].adunit]);
 	}
+
+	// assert values are non-negative
+	assert(quantity >= 0);
+	assert(age[HOST_AGE_GROUP(personIndex)] >= 0);
+	assert(adUnit[Mcells[microCellIndex].adunit] >= 0);
 }
 
 static void FromSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int personIndex)
