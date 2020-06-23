@@ -5097,29 +5097,33 @@ void RecordSample(double t, int n)
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
-					if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
-						P.StopCalibration = 1;
-					else if (P.ModelCalibIteration == 0)
+					if (P.ModelCalibIteration == 0)
 					{
 						// rescale threshold
 						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations, adjust timings
-					{
-						if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
-						{
-							P.Epidemic_StartDate_CalTime--;
-							P.HolidaysStartDay_SimTime--;
+					else if (P.ModelCalibIteration >= 2) {
+						if (abs((RatioPredictedObserved - 1.0) <= DesiredAccuracy)) {
+							P.StopCalibration = 1;
 						}
-						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
+						else if (P.ModelCalibIteration % 2 == 0) // on even iterations, adjust timings
 						{
-							P.Epidemic_StartDate_CalTime++;
-							P.HolidaysStartDay_SimTime++;
+							if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
+							{
+								P.Epidemic_StartDate_CalTime--;
+								P.HolidaysStartDay_SimTime--;
+							}
+							else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
+							{
+								P.Epidemic_StartDate_CalTime++;
+								P.HolidaysStartDay_SimTime++;
+							}
+						}
+						else { // on odd iterations, adjust seeding.
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))  // on odd iterations, adjust seeding.
-						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 
