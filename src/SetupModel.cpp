@@ -815,7 +815,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		{
 			if (P.OutputDensFile)
 			{
-				free(BinFileBuf);
+				Memory::xfree(BinFileBuf);
 				P.DoBin = 1;
 				P.BinFileLen = 0;
 				for (l = 0; l < P.NMC; l++)
@@ -847,7 +847,7 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
-		free(BinFileBuf);
+		Memory::xfree(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
 		maxd = 0;
 		for (int i = 0; i < P.NMC; i++)
@@ -1019,10 +1019,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
 	}
 
-	free(mcell_dens);
-	free(mcell_num);
-	free(mcell_country);
-	free(mcell_adunits);
+	Memory::xfree(mcell_dens);
+	Memory::xfree(mcell_num);
+	Memory::xfree(mcell_country);
+	Memory::xfree(mcell_adunits);
 	t = 0.0;
 
 	McellLookup = (Microcell **)Memory::xcalloc(P.NMCP, sizeof(Microcell*));
@@ -1233,13 +1233,13 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			}
 		for (int i = 0; i < P.NumAdunits; i++)
 		{
-			free(AgeDistAd[i]);
-			free(AgeDistCorrF[i]);
-			free(AgeDistCorrB[i]);
+			Memory::xfree(AgeDistAd[i]);
+			Memory::xfree(AgeDistCorrF[i]);
+			Memory::xfree(AgeDistCorrB[i]);
 		}
-		free(AgeDistAd);
-		free(AgeDistCorrF);
-		free(AgeDistCorrB);
+		Memory::xfree(AgeDistAd);
+		Memory::xfree(AgeDistCorrF);
+		Memory::xfree(AgeDistCorrB);
 	}
 	for (int i = 0; i < P.PopSize; i++)
 	{
@@ -1312,10 +1312,10 @@ void SetupPopulation(char* SchoolFile, char* RegDemogFile)
 			}
 	*/
 	/*	if((P.DoAdUnits)&&(P.DoAdunitDemog))
-			{for(i=0;i<P.NumAdunits;i++) free(State.InvAgeDist[i]);}
+			{for(i=0;i<P.NumAdunits;i++) Memory::xfree(State.InvAgeDist[i]);}
 		else
-			free(State.InvAgeDist[0]);
-		free(State.InvAgeDist);
+			Memory::xfree(State.InvAgeDist[0]);
+		Memory::xfree(State.InvAgeDist);
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
@@ -1630,7 +1630,7 @@ void SetupAirports(void)
 			}
 		}
 	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
-	free(base);
+	Memory::xfree(base);
 #pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) shared(P, Airports, Places, stderr_shared)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
@@ -2080,7 +2080,7 @@ void AssignPeopleToPlaces()
 					{
 						if (Cells[i].S > Cells[i].cumTC)
 						{
-							free(Cells[i].susceptible);
+							Memory::xfree(Cells[i].susceptible);
 							Cells[i].susceptible = (int*)Memory::xcalloc(Cells[i].S, sizeof(int));
 						}
 						Cells[i].S = 0;
@@ -2303,7 +2303,7 @@ void AssignPeopleToPlaces()
 					}
 				}
 				fprintf(stderr, "%i hosts assigned to placetype %i\n", ca, tp);
-				free(PeopleArray);
+				Memory::xfree(PeopleArray);
 				for (int i = 0; i < P.Nplace[tp]; i++)
 				{
 					Places[tp][i].treat_end_time = 0;
@@ -2311,8 +2311,8 @@ void AssignPeopleToPlaces()
 				}
 				for (int i = 0; i < P.NumThreads; i++)
 				{
-					free(NearestPlacesProb[i]);
-					free(NearestPlaces[i]);
+					Memory::xfree(NearestPlacesProb[i]);
+					Memory::xfree(NearestPlaces[i]);
 				}
 			}
 		}
@@ -2321,7 +2321,7 @@ void AssignPeopleToPlaces()
 			Cells[i].n = Cells[i].cumTC;
 			Cells[i].cumTC = 0;
 			Cells[i].S = Cells[i].I = Cells[i].L = Cells[i].R = 0;
-			free(Cells[i].susceptible);
+			Memory::xfree(Cells[i].susceptible);
 			Cells[i].susceptible = Cells[i].infected;
 		}
 	}
