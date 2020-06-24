@@ -1,8 +1,8 @@
-## Parameters used for COVID
+# Parameters used for COVID
 
-### Place Closure
+## Place Closure
 
-<table><tr><td colspan="2">[Place closure start time]</td><tr>
+<table><tr><td colspan="2">**[Place closure start time]**</td><tr>
 <tr><td>Class</td><td>Interventions</td></tr>
 <tr><td>Type:</td><td>Real</td></tr>
 <tr><td>Length:</td><td>Scalar</td></tr>
@@ -11,7 +11,15 @@
 <tr><td>Description:</td><td>Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)</td></tr>
 </table>
 
-[Place closure second start time]	Interventions	Real	1	100000	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works
+<table><tr><td colspan="2">**[Place closure second start time]**</td><tr>
+<tr><td>Class</td><td>Interventions</td></tr>
+<tr><td>Type:</td><td>Real</td></tr>
+<tr><td>Length:</td><td>Scalar</td></tr>
+<tr><td>Example:</td><td>100000</td></tr>
+<tr><td>Sensitivity Analysys:</td><td>Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies</td></tr>
+<tr><td>Description:</td><td>Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works</td></tr>
+</table>
+
 
 [Place closure in administrative units rather than rings]	Interventions	Integer	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value
 
@@ -43,7 +51,7 @@
 
 [Trigger incidence per cell for end of place closure]	Interventions	Real	1	50	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	This parameter (which is poorly named) specifies the global or admin unit specific incidence threshold (e.g. of ICU cases) which triggers the end of place closure. See [Use global triggers for interventions] and [Use cases per thousand threshold for area controls]
 						
-### Household Quarantine
+## Household Quarantine
 
 [Household quarantine start time]	Interventions	Real	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of household quarantine intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)
 
@@ -64,7 +72,7 @@
 [Individual level compliance with quarantine]	Interventions	Real	1	1	Could be decreased to 0.75, though contact rate scaling parameters already imply <100% compliance	For a complaint household, what proportion of its members comply with HQ
 						
 
-### Case Isolation
+## Case Isolation
 
 [Case isolation start time]	Interventions	Real	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of case isolation intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)
 
@@ -78,7 +86,7 @@
 
 [Residual contacts after case isolation]	Interventions	Real	1	0.25	could be varied by +/-0.2	Proportion of contacts still occuring after self-isolation
 						
-### Social Distancing
+## Social Distancing
 
 [Social distancing start time]	Interventions	Real	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of social distancing intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)
 
@@ -106,7 +114,7 @@
 
 [Relative spatial contact rate given enhanced social distancing]	Interventions	Real	1	0.25	Could be varied by +/- 0.15	Multiplicative scaling of random spatial contact rates for someone who complying with enhanced social distancing
 						
-### False Positive
+## False Positive
 
 [False positive rate]	Transmission	Real	1	0	No	Not currently used for COVID
 
@@ -115,9 +123,9 @@
 [False positive relative incidence by age]	Transmission	Real	2	0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0	No	Not currently used for COVID
 
 
-## Parameters not currently used in modelling COVID
+# Parameters not currently used in modelling COVID
 
-### Treatment
+## Treatment
 
 Parameter name	Class	Type	Length (1=scalar, >1 = vector)	Example value	Sensitivity analysis	Description
 [Treatment start time]	Interventions	Real	1	100000	No - not used for COVID	Models antiviral treatment - not currently for COVID
@@ -136,7 +144,7 @@ Parameter name	Class	Type	Length (1=scalar, >1 = vector)	Example value	Sensitivi
 [Only treat mixing groups within places]	Interventions	Integer	1	0	No - not used for COVID	Models antiviral treatment - not currently for COVID
 [Maximum number of doses available]	Interventions	Integer	1	60000000	No - not used for COVID	Models antiviral treatment - not currently for COVID
 						
-### Movement Restrictions
+## Movement Restrictions
 
 [Movement restrictions start time]	Interventions	Real	1	100000	No - not used for COVID	Models movement restrictions - not currently used for COVID
 [Movement restrictions trigger incidence per cell]	Interventions	Integer	1	1000000000	No - not used for COVID	Models movement restrictions - not currently used for COVID
@@ -146,7 +154,7 @@ Parameter name	Class	Type	Length (1=scalar, >1 = vector)	Example value	Sensitivi
 [Minimum radius of movement restrictions]	Interventions	Real	1	5000	No - not used for COVID	Models movement restrictions - not currently used for COVID
 [Impose blanket movement restrictions]	Interventions	Integer	1	0	No - not used for COVID	Models movement restrictions - not currently used for COVID
 						
-### Vaccination
+## Vaccination
 
 [Vaccination start time]	Interventions	Real	1	100000	No - not used for COVID	Models vaccination - not currently used for COVID
 [Duration of household vaccination policy]	Interventions	Real	1	1000	No - not used for COVID	Models vaccination - not currently used for COVID
