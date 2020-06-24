@@ -53,7 +53,6 @@ MakePreParamList = function(
 		DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
 		
 		ProportionSymptomatic = c(0.25, 0.25, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50),
-
 		SymptInfectiousness = 8,
 		
 		Mean_MildToRecovery 				= 7       ,
