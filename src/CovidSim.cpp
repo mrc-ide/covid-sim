@@ -35,6 +35,8 @@
 #include <strings.h>
 #endif
 
+using namespace Geometry;
+
 void ReadParams(char*, char*);
 void ReadInterventions(char*);
 int GetXMLNode(FILE*, const char*, const char*, char*, int);
@@ -948,7 +950,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0].x), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0] = Vector2<double>(0, 0);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.MinPopDensForInitialInfection), 1, 1, 0)) P.MinPopDensForInitialInfection = 0;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
@@ -1191,15 +1193,15 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				P.CFR_ILI_ByAge[i] = 0.00;
 	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox.start.x), 4, 1, 0))
 	{
-		P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
-		P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+		P.BoundingBox.start = Vector2<double>(0, 0);
+		P.BoundingBox.end = Vector2<double>(1, 1);
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox[0]), 4, 1, 0))
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox.start.x), 4, 1, 0))
 	{
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
+		P.SpatialBoundingBox.start = Vector2<double>(0, 0);
+		P.SpatialBoundingBox.end = Vector2<double>(1, 1);
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
@@ -2301,16 +2303,16 @@ void ReadAirTravel(char* AirTravelFile)
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if ((Airports[i].loc.x < P.SpatialBoundingBox[0]) || (Airports[i].loc.x >= P.SpatialBoundingBox[2])
-			|| (Airports[i].loc.y < P.SpatialBoundingBox[1]) || (Airports[i].loc.y >= P.SpatialBoundingBox[3]))
+		if ((Airports[i].loc.x < P.SpatialBoundingBox.start.x) || (Airports[i].loc.x >= P.SpatialBoundingBox.end.x)
+			|| (Airports[i].loc.y < P.SpatialBoundingBox.start.y) || (Airports[i].loc.y >= P.SpatialBoundingBox.end.y))
 		{
 			Airports[i].loc.x = Airports[i].loc.y = -1;
 			Airports[i].total_traffic = 0;
 		}
 		else
 		{
-			Airports[i].loc.x -= (float)P.SpatialBoundingBox[0];
-			Airports[i].loc.y -= (float)P.SpatialBoundingBox[1];
+			Airports[i].loc.x -= (float)P.SpatialBoundingBox.start.x;
+			Airports[i].loc.y -= (float)P.SpatialBoundingBox.start.y;
 			Airports[i].total_traffic = (float)traf;
 		}
 		t = 0;
@@ -2756,7 +2758,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		nEvents = 0;
 		for (int i = 0; i < P.MaxInfEvents; i++)
 		{
-			InfEventLog[i].t = InfEventLog[i].infectee_x = InfEventLog[i].infectee_y = InfEventLog[i].t_infector = 0.0;
+			InfEventLog[i].infectee_position = Vector2<double>(0, 0);
+			InfEventLog[i].t = InfEventLog[i].t_infector = 0.0;
 			InfEventLog[i].infectee_ind = InfEventLog[i].infector_ind = 0;
 			InfEventLog[i].infectee_adunit = InfEventLog[i].listpos = InfEventLog[i].infectee_cell = InfEventLog[i].infector_cell = InfEventLog[i].thread = 0;
 		}
@@ -2805,8 +2808,8 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 	{
 		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height);
+			k = (int)(P.LocationInitialInfection[i].x / P.in_microcells_.width);
+			l = (int)(P.LocationInitialInfection[i].y / P.in_microcells_.height);
 			j = k * P.get_number_of_micro_cells_high() + l;
 			m = 0;
 			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
@@ -2819,8 +2822,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
+							P.LocationInitialInfection[i] = Vector2<double>(Households[Hosts[l].hh].loc);
 						}
 						Hosts[l].infector = -2;
 						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
@@ -2852,8 +2854,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					{
 						if (CalcPersonSusc(l, 0, 0, 0) > 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
+							P.LocationInitialInfection[i] = Vector2<double>(Households[Hosts[l].hh].loc);
 							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 							DoInfect(l, t, 0, run);
 							m = 0;
@@ -2888,8 +2889,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				{
 					if (CalcPersonSusc(l, 0, 0, 0) > 0)
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
+						P.LocationInitialInfection[i] = Vector2<double>(Households[Hosts[l].hh].loc);
 						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
 						DoInfect(l, t, 0, run);
 						m = 0;
@@ -3388,7 +3388,7 @@ void SaveResults(void)
 				sprintf(outname, "%s.ge" DIRECTORY_SEPARATOR "%s.%i.png", OutFile, OutFile, i + 1);
 				fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname);
 				fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
-					P.SpatialBoundingBox[3], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[0]);
+					P.SpatialBoundingBox.end.y, P.SpatialBoundingBox.start.y, P.SpatialBoundingBox.end.x, P.SpatialBoundingBox.start.x);
 				fprintf(dat, "</GroundOverlay>\n");
 			}
 		fprintf(dat, "</Document>\n</kml>\n");
@@ -4240,7 +4240,7 @@ void SaveEvents(void)
 	for (i = 0; i < nEvents; i++)
 	{
 		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
-			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
+			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_position.x, InfEventLog[i].infectee_position.y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
 	fclose(dat);
 }
