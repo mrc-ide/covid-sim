@@ -208,9 +208,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (tw > t) t = tw;
 	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
-  nKernel = (double*)Memory::xcalloc(P.NKR + 1, sizeof(double));
-  nKernelHR = (double*)Memory::xcalloc(P.NKR + 1, sizeof(double));
-	P.KernelDelta = t / P.NKR;
+	P.KernelLookup.setup(t);
 	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
@@ -220,7 +218,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-  TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
+	TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSVarE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMeanNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSVarNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
@@ -326,12 +324,9 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	fprintf(stderr, "Initialising kernel...\n");
-	P.KernelShape = P.MoveKernelShape;
-	P.KernelScale = P.MoveKernelScale;
-	P.KernelP3 = P.MoveKernelP3;
-	P.KernelP4 = P.MoveKernelP4;
-	P.KernelType = P.MoveKernelType;
-	InitKernel(1.0);
+	P.Kernel = P.MoveKernel;
+	P.KernelLookup.init(1.0, P.Kernel);
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 
 	if (P.DoPlaces)
 	{
@@ -1516,12 +1511,9 @@ void SetupAirports(void)
 	// Convince static analysers that values are set correctly:
 	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
-	P.KernelType = P.AirportKernelType;
-	P.KernelScale = P.AirportKernelScale;
-	P.KernelShape = P.AirportKernelShape;
-	P.KernelP3 = P.AirportKernelP3;
-	P.KernelP4 = P.AirportKernelP4;
-	InitKernel(1.0);
+	P.Kernel = P.AirportKernel;
+	P.KernelLookup.init(1.0, P.Kernel);
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 	Airports[0].DestMcells = (IndexList*)Memory::xcalloc(P.NMCP * NNA, sizeof(IndexList));
 	base = (IndexList*)Memory::xcalloc(P.NMCP * NNA, sizeof(IndexList));
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
@@ -1547,7 +1539,7 @@ void SetupAirports(void)
 			for (int j = 0; j < P.Nairports; j++)
 				if (Airports[j].total_traffic > 0)
 				{
-					t = numKernel(dist2_raw(x, y, Airports[j].loc.x, Airports[j].loc.y)) * Airports[j].total_traffic;
+					t = P.KernelLookup.num(dist2_raw(x, y, Airports[j].loc.x, Airports[j].loc.y)) * Airports[j].total_traffic;
 					if (k < NNA)
 					{
 						Mcells[i].AirportList[k].id = j;
@@ -1657,7 +1649,7 @@ void SetupAirports(void)
 				if ((t = dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
 					Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y)) < tmin)
 				{
-					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)numKernel(t);
+					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)P.KernelLookup.num(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
 					Airports[i].num_place++;
 				}
@@ -1678,12 +1670,9 @@ void SetupAirports(void)
 			}
 		}
 	for (int i = 0; i < P.Nplace[P.HotelPlaceType]; i++) Places[P.HotelPlaceType][i].n = 0;
-	P.KernelType = P.MoveKernelType;
-	P.KernelScale = P.MoveKernelScale;
-	P.KernelShape = P.MoveKernelShape;
-	P.KernelP3 = P.MoveKernelP3;
-	P.KernelP4 = P.MoveKernelP4;
-	InitKernel(1.0);
+	P.Kernel = P.MoveKernel;
+	P.KernelLookup.init(1.0, P.Kernel);
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
 
@@ -2103,12 +2092,13 @@ void AssignPeopleToPlaces()
 					NearestPlaces[i] = (int*)Memory::xcalloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(int));
 					NearestPlacesProb[i] = (double*)Memory::xcalloc(P.PlaceTypeNearestNeighb[tp] + CACHE_LINE_SIZE, sizeof(double));
 				}
-				P.KernelType = P.PlaceTypeKernelType[tp];
-				P.KernelScale = P.PlaceTypeKernelScale[tp];
-				P.KernelShape = P.PlaceTypeKernelShape[tp];
-				P.KernelP3 = P.PlaceTypeKernelP3[tp];
-				P.KernelP4 = P.PlaceTypeKernelP4[tp];
-				InitKernel(1.0);
+				P.Kernel.type_ = P.PlaceTypeKernelType[tp];
+				P.Kernel.scale_ = P.PlaceTypeKernelScale[tp];
+				P.Kernel.shape_ = P.PlaceTypeKernelShape[tp];
+				P.Kernel.p3_ = P.PlaceTypeKernelP3[tp];
+				P.Kernel.p4_ = P.PlaceTypeKernelP4[tp];
+				P.KernelLookup.init(1.0, P.Kernel);
+				CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 				UpdateProbs(1);
 				ca = 0;
 				fprintf(stderr, "Allocating people to place type %i\n", tp);
@@ -2142,7 +2132,7 @@ void AssignPeopleToPlaces()
 											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
 											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
 												Places[tp][Mcells[ic].places[tp][cnt]].loc.x, Places[tp][Mcells[ic].places[tp][cnt]].loc.y);
-											s = numKernel(t);
+											s = P.KernelLookup.num(t);
 											if (tp < P.nsp)
 											{
 												t = ((double)Places[tp][Mcells[ic].places[tp][cnt]].treat_end_time);
@@ -2281,7 +2271,7 @@ void AssignPeopleToPlaces()
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
-									s = ((double)ct->S) / ((double)ct->S0) * numKernel(t) / Cells[i].max_trans[l];
+									s = ((double)ct->S) / ((double)ct->S0) * P.KernelLookup.num(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{
 										if (Mcells[Hosts[k].mcell].adunit != Mcells[Places[tp][j].mcell].adunit) s *= (1 - P.InhibitInterAdunitPlaceAssignment[tp]);

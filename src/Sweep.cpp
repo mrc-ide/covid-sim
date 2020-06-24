@@ -236,7 +236,7 @@ void TravelDepartSweep(double t)
 								}
 								if (f2)
 								{
-									s = numKernel(s2) / Cells[c].max_trans[l];
+									s = P.KernelLookup.num(s2) / Cells[c].max_trans[l];
 									if (ranf_mt(tn) >= s)
 									{
 #pragma omp critical
@@ -862,7 +862,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						int i3 = ct->susceptible[m];
 						
 						s2 = dist2(Hosts + i3, Hosts + ci); /// calculate distance squared between this susceptible person and person ci/si identified earlier
-						s = numKernel(s2) / c->max_trans[l]; //// acceptance probability
+						s = P.KernelLookup.num(s2) / c->max_trans[l]; //// acceptance probability
 						
 						// initialise f2=0 (f2=1 is the while condition for this loop)
 						f2 = 0;
