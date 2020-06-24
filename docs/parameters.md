@@ -271,7 +271,7 @@
 <table><tr><td colspan="6"><strong>[Proportion compliant with enhanced social distancing by age group]</strong></td><tr>
 <tr><td><strong>Class</strong></td><td>Interventions</td>
   <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td></tr>
-<tr><td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0.75  0.75  0.75</td></tr>
+<tr><td><strong>Example:</td><td colspan="3">0  0  0  0  0  0  0  0  0  0  0  0  0  0  0.75  0.75  0.75</td></tr>
 <tr><td><strong>Description:</strong></td><td colspan="3">If [Age dependent severity delays] set to 1, otherwise 1 mean value for all ages. If this parameter is present, [Proportion compliant with enhanced social distancing] is ignored. This parameter allows compliance with enhanced social distancing to be specified by 5 year age bands, allowing sheilding to be modelled. Can be included in addition to standard social distancing - those complying with enhanced social distancing have those parameters applied, people not complying with enhanced social distancing have standard social distancing params applied</td></tr>
 </table>
 <br/>
@@ -401,7 +401,7 @@
 <table><tr><td colspan="6"><strong>[False positive relative incidence by age]</strong></td><tr>
 <tr><td><strong>Class</td><td>Transmission</td>
   <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td></tr>
-<tr><td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0</td></tr>
+<tr><td><strong>Example:</td><td colspan="3">0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0</td></tr>
 <tr><td><strong>Description:</strong></td><td colspan="3">Not currently used for COVID</td></tr>
 </table>
 <br/>
