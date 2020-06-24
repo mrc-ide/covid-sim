@@ -5100,7 +5100,7 @@ void RecordSample(double t, int n)
 					if (P.ModelCalibIteration == 0)
 					{
 						// rescale threshold
-						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
+						k = (int)(P.CaseOrDeathThresholdBeforeAlert / RatioPredictedObserved);
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
 					else if (P.ModelCalibIteration >= 2) {
@@ -5121,7 +5121,8 @@ void RecordSample(double t, int n)
 								P.HolidaysStartDay_SimTime++;
 							}
 						}
-						else { // on odd iterations, adjust seeding.
+						else /* if (P.ModelCalibIteration % 2 == 1) */ // on odd iterations, adjust seeding.
+						{
 							P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 						}
 					}
