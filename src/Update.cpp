@@ -10,6 +10,8 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 #include "Rand.h"
+#include <functional>
+#include <cassert>
 
 using namespace Geometry;
 
@@ -18,16 +20,33 @@ void RecordEvent(double, int, int, int, int); //added int as argument to InfectS
 
 Severity ChooseFinalDiseaseSeverity(int, int);
 
-// state transition helpers
-void SusceptibleToRecovered(int cellIndex);
-void SusceptibleToLatent(int cellIndex);
-void LatentToInfectious(int cellIndex);
-void InfectiousToRecovered(int cellIndex);
-void InfectiousToDeath(int cellIndex);
+// infection state transition helpers
+static void SusceptibleToRecovered(int cellIndex);
+static void SusceptibleToLatent(int cellIndex);
+static void LatentToInfectious(int cellIndex);
+static void InfectiousToRecovered(int cellIndex);
+static void InfectiousToDeath(int cellIndex);
+
+// severity state transition helpers
+
+static void ToInfected(int tn, short infectType, int personIndex, double radiusSquared);
+static void FromMild(int tn, int microCellIndex, int personIndex);
+static void ToMild(int tn, int microCellIndex, int personIndex);
+static void FromCritRecov(int tn, int microCellIndex, int personIndex);
+static void ToCritRecov(int tn, int microCellIndex, int personIndex);
+static void FromSARI(int tn, int microCellIndex, int personIndex);
+static void ToSARI(int tn, int microCellIndex, int personIndex);
+static void FromILI(int tn, int microCellIndex, int personIndex);
+static void ToILI(int tn, int microCellIndex, int personIndex);
+static void FromCritical(int tn, int microCellIndex, int personIndex);
+static void ToCritical(int tn, int microCellIndex, int personIndex);
+static void ToDeathILI(int tn, int microCellIndex, int personIndex);
+static void ToDeathSARI(int tn, int microCellIndex, int personIndex);
+static void ToDeathCritical(int tn, int microCellIndex, int personIndex);
 
 // if the dest cell state == src cell state, use this
-void UpdateCell(int* cellPeople, int index, int srcIndex);
-void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
+static void UpdateCell(int* cellPeople, int index, int srcIndex);
+static void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIndex);
 
 void DoImmune(int ai)
 {
@@ -85,7 +104,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
 	unsigned short int ts; //// time step
-	double q, x, y; //// q radius squared, x and y coords. q later changed to be quantile of inverse CDF to choose latent period.
+	double radiusSquared, x, y; //// radius squared, x and y coords. 
+	double q; //// quantile of inverse CDF to choose latent period.
 	Person* a;
 
 	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
@@ -95,17 +115,15 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		ts = (unsigned short int) (P.TimeStepsPerDay * t);
 		a->inf = InfStat_Latent; //// set person a to be infected
 		a->infection_time = (unsigned short int) ts; //// record their infection time
-		///// Change threaded state variables to reflect new infection status of person a.
-		StateT[tn].cumI++;
-		StateT[tn].cumItype[a->infect_type % INFECT_TYPE_MASK]++;
-		StateT[tn].cumIa[HOST_AGE_GROUP(ai)]++;
+
 		//// calculate radius squared, and increment sum of radii squared.
 		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0][0]);
 		y = (Households[a->hh].loc.y - P.LocationInitialInfection[0][1]);
-		q = x * x + y * y;
-		StateT[tn].sumRad2 += q;
+		radiusSquared = x * x + y * y;
 
-		if (q > StateT[tn].maxRad2) StateT[tn].maxRad2 = q; //// update maximum radius squared from seeding infection
+		ToInfected(tn, a->infect_type, ai, radiusSquared);
+
+		if (radiusSquared > StateT[tn].maxRad2) StateT[tn].maxRad2 = radiusSquared; //// update maximum radius squared from seeding infection
 		{
 			SusceptibleToLatent(a->pcell);
 
@@ -246,15 +264,8 @@ void DoMild(int ai, int tn)
 		if (a->Severity_Current == Severity::Asymptomatic)
 		{
 			a->Severity_Current = Severity::Mild;
-			StateT[tn].Mild++;
-			StateT[tn].cumMild++;
-			StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumMild_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumMild_adunit[Mcells[a->mcell].adunit]++;
-			}
+
+			ToMild(tn, a->mcell, ai);
 		}
 	}
 }
@@ -266,15 +277,7 @@ void DoILI(int ai, int tn)
 		if (a->Severity_Current == Severity::Asymptomatic)
 		{
 			a->Severity_Current = Severity::ILI;
-			StateT[tn].ILI++;
-			StateT[tn].cumILI++;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumILI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit	[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumILI_adunit[Mcells[a->mcell].adunit]++;
-			}
+			ToILI(tn, a->mcell, ai);
 		}
 	}
 }
@@ -286,18 +289,8 @@ void DoSARI(int ai, int tn)
 		if (a->Severity_Current == Severity::ILI)
 		{
 			a->Severity_Current = Severity::SARI;
-			StateT[tn].ILI--;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].SARI++;
-			StateT[tn].cumSARI++;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumSARI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit		[Mcells[a->mcell].adunit]--;
-				StateT[tn].SARI_adunit		[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumSARI_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			FromILI(tn, a->mcell, ai);
+			ToSARI(tn, a->mcell, ai);
 		}
 	}
 }
@@ -309,18 +302,8 @@ void DoCritical(int ai, int tn)
 		if (a->Severity_Current == Severity::SARI)
 		{
 			a->Severity_Current = Severity::Critical;
-			StateT[tn].SARI--;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].Critical++;
-			StateT[tn].cumCritical++;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumCritical_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].Critical_adunit		[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumCritical_adunit	[Mcells[a->mcell].adunit]++;
-			}
+			FromSARI(tn, a->mcell, ai);
+			ToCritical(tn, a->mcell, ai);
 		}
 	}
 }
@@ -335,18 +318,8 @@ void DoRecoveringFromCritical(int ai, int tn)
 		if (a->Severity_Current == Severity::Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
 			a->Severity_Current = Severity::RecoveringFromCritical;
-			StateT[tn].Critical--;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].CritRecov++;
-			StateT[tn].cumCritRecov++;
-			StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]++;
-			StateT[tn].cumCritRecov_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Critical_adunit[Mcells[a->mcell].adunit]--;
-				StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]++;
-				StateT[tn].cumCritRecov_adunit[Mcells[a->mcell].adunit]++;
-			}
+			FromCritical(tn, a->mcell, ai);
+			ToCritRecov(tn, a->mcell, ai);
 		}
 	}
 }
@@ -355,47 +328,27 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 	Person* a = Hosts + ai;
 	if (P.DoSeverity)
 	{
-		if (a->Severity_Current == Severity::Critical)
+		// Note: only assign a->Severity_Current = Severity::Dead inside the switch cases.
+		// In rare cases DoDeath_FromCriticalorSARIorILI can be called before a person has had their severity assigned.
+		switch(a->Severity_Current)
 		{
-			StateT[tn].Critical--;
-			StateT[tn].Critical_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_Critical++;
-			StateT[tn].cumDeath_Critical_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].Critical_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_Critical_adunit	[Mcells[a->mcell].adunit]++;
-			}
-			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-			a->Severity_Current = Severity::Dead;
-		}
-		else if (a->Severity_Current == Severity::SARI)
-		{
-			StateT[tn].SARI--;
-			StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_SARI++;
-			StateT[tn].cumDeath_SARI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].SARI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_SARI_adunit	[Mcells[a->mcell].adunit]++;
-			}
-			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-			a->Severity_Current = Severity::Dead;
-		}
-		else if (a->Severity_Current == Severity::ILI)
-		{
-			StateT[tn].ILI--;
-			StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-			StateT[tn].cumDeath_ILI++;
-			StateT[tn].cumDeath_ILI_age[HOST_AGE_GROUP(ai)]++;
-			if (P.DoAdUnits)
-			{
-				StateT[tn].ILI_adunit			[Mcells[a->mcell].adunit]--;
-				StateT[tn].cumDeath_ILI_adunit	[Mcells[a->mcell].adunit]++;
-			}
-			//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-			a->Severity_Current = Severity::Dead;
+			case Severity::Critical:
+				FromCritical(tn, a->mcell, ai);
+				ToDeathCritical(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Dead;
+				break;
+
+			case Severity::SARI:
+				FromSARI(tn, a->mcell, ai);
+				ToDeathSARI(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Dead;
+				break;
+
+			case Severity::ILI:
+				FromILI(tn, a->mcell, ai);
+				ToDeathILI(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Dead;
+				break;
 		}
 	}
 }
@@ -408,40 +361,32 @@ void DoRecover_FromSeverity(int ai, int tn)
 	//// moved this from DoRecover
 	Person* a = Hosts + ai;
 
+	// Note: only assign a->Severity_Current = Severity::Recovered inside the switch cases.
+	// In rare cases DoRecover_FromSeverity can be called before a person has had their severity assigned.
 	if (P.DoSeverity)
 		if (a->inf == InfStat_InfectiousAsymptomaticNotCase || a->inf == InfStat_Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
 		{
-			if (a->Severity_Current == Severity::Mild)
+			switch (a->Severity_Current)
 			{
-				StateT[tn].Mild--;
-				StateT[tn].Mild_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].Mild_adunit[Mcells[a->mcell].adunit]--;
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::ILI)
-			{
-				StateT[tn].ILI--;
-				StateT[tn].ILI_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].ILI_adunit[Mcells[a->mcell].adunit]--;
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::SARI)
-			{
-				StateT[tn].SARI--;
-				StateT[tn].SARI_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].SARI_adunit[Mcells[a->mcell].adunit]--;
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
-			}
-			else if (a->Severity_Current == Severity::RecoveringFromCritical)
-			{
-				StateT[tn].CritRecov--; //// decrement CritRecov, not critical.
-				StateT[tn].CritRecov_age[HOST_AGE_GROUP(ai)]--;
-				if (P.DoAdUnits) StateT[tn].CritRecov_adunit[Mcells[a->mcell].adunit]--;
-				//// change current status (so that flags work if function called again for same person). Don't move this outside of this if statement, even though it looks like it can be moved safely. It can't.
-				a->Severity_Current = Severity::Recovered;
+				case Severity::Mild:
+					FromMild(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
+
+				case Severity::ILI:
+					FromILI(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
+
+				case Severity::SARI:
+					FromSARI(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
+
+				case Severity::RecoveringFromCritical:
+					FromCritRecov(tn, a->mcell, ai);
+					a->Severity_Current = Severity::Recovered;
+					break;
 			}
 		}
 }
@@ -1399,40 +1344,178 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	return DiseaseSeverity;
 }
 
-void SusceptibleToRecovered(int cellIndex)
+static void SusceptibleToRecovered(int cellIndex)
 {
 	Cells[cellIndex].S--;
 	Cells[cellIndex].R++;
 	Cells[cellIndex].latent--;
 	Cells[cellIndex].infected--;
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].S >= 0);
+	assert(Cells[cellIndex].latent >= 0);
+	assert(Cells[cellIndex].infected >= 0);
 }
 
-void SusceptibleToLatent(int cellIndex)
+static void SusceptibleToLatent(int cellIndex)
 {
 	Cells[cellIndex].S--;
 	Cells[cellIndex].L++;			//// number of latently infected people increases by one.
 	Cells[cellIndex].latent--;		//// pointer to latent in that cell decreased.
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].S >= 0);
+	assert(Cells[cellIndex].latent >= 0);
 }
 
 
-void LatentToInfectious(int cellIndex)
+static void LatentToInfectious(int cellIndex)
 {
 	Cells[cellIndex].L--;		//// one fewer person latently infected.
 	Cells[cellIndex].I++;		//// one more infectious person.
 	Cells[cellIndex].infected--; //// first infected person is now one index earlier in array.
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].L >= 0);
+	assert(Cells[cellIndex].infected >= 0);
+
 }
 
-void InfectiousToRecovered(int cellIndex)
+static void InfectiousToRecovered(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].R++; //// one more recovered person
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].I >= 0);
+
 }
 
 
-void InfectiousToDeath(int cellIndex)
+static void InfectiousToDeath(int cellIndex)
 {
 	Cells[cellIndex].I--; //// one less infectious person
 	Cells[cellIndex].D++; //// one more dead person
+
+	// assert values are non-negative
+	assert(Cells[cellIndex].I >= 0);
+
+}
+
+// severity state functions
+
+static void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int personIndex, std::function<void(int&)> action)
+{
+	action(quantity);
+	action(age[HOST_AGE_GROUP(personIndex)]);
+
+	if (P.DoAdUnits)
+	{
+		action(adUnit[Mcells[microCellIndex].adunit]);
+	}
+
+	// assert values are non-negative
+	assert(quantity >= 0);
+	assert(age[HOST_AGE_GROUP(personIndex)] >= 0);
+	assert(adUnit[Mcells[microCellIndex].adunit] >= 0);
+}
+
+static void FromSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int personIndex)
+{
+	std::function<void(int&)> action = [](int& x) { x--; };
+
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, personIndex, action);
+}
+
+static void ToSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int personIndex)
+{
+	std::function<void(int&)> action = [](int& x) { x++; };
+
+	ChangeSeverity(quantity, age, adUnit, microCellIndex, personIndex, action);
+}
+
+static void ToInfected(int tn, short infectType, int personIndex, double radiusSquared)
+{
+	///// Change threaded state variables to reflect new infection status of person personIndex.
+	StateT[tn].cumI++;
+	StateT[tn].cumItype[infectType % INFECT_TYPE_MASK]++;
+	StateT[tn].cumIa[HOST_AGE_GROUP(personIndex)]++;
+	StateT[tn].sumRad2 += radiusSquared;
+}
+
+static void FromMild(int tn, int microCellIndex, int personIndex)
+{
+	FromSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, microCellIndex, personIndex);
+}
+
+static void ToMild(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, 
+		microCellIndex, personIndex);
+	ToSeverity(StateT[tn].cumMild, StateT[tn].cumMild_age, StateT[tn].cumMild_adunit,
+		microCellIndex, personIndex);
+
+}
+
+static void FromCritRecov(int tn, int microCellIndex, int personIndex)
+{
+	//// decrement CritRecov, not critical.
+	FromSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, personIndex);
+}
+
+static void ToCritRecov(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, personIndex);
+	ToSeverity(StateT[tn].cumCritRecov, StateT[tn].cumCritRecov_age, StateT[tn].cumCritRecov_adunit, microCellIndex, personIndex);
+}
+
+static void FromSARI(int tn, int microCellIndex, int personIndex)
+{
+	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, personIndex);
+}
+
+static void ToSARI(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, personIndex);
+	ToSeverity(StateT[tn].cumSARI, StateT[tn].cumSARI_age, StateT[tn].cumSARI_adunit, microCellIndex, personIndex);
+}
+
+static void FromILI(int tn, int microCellIndex, int personIndex)
+{
+	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, personIndex);
+}
+
+static void ToILI(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, personIndex);
+	ToSeverity(StateT[tn].cumILI, StateT[tn].cumILI_age, StateT[tn].cumILI_adunit, microCellIndex, personIndex);
+}
+
+static void FromCritical(int tn, int microCellIndex, int personIndex)
+{
+	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, personIndex);
+}
+
+static void ToCritical(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, personIndex);
+	ToSeverity(StateT[tn].cumCritical, StateT[tn].cumCritical_age, StateT[tn].cumCritical_adunit, microCellIndex, personIndex);
+}
+
+
+static void ToDeathSARI(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, microCellIndex, personIndex);
+}
+
+static void ToDeathCritical(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, microCellIndex, personIndex);
+}
+
+static void ToDeathILI(int tn, int microCellIndex, int personIndex)
+{
+	ToSeverity(StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, microCellIndex, personIndex);
 }
 
 /**
@@ -1444,7 +1527,7 @@ void InfectiousToDeath(int cellIndex)
  * @param srcIndex - index into cellPeople to update from
  * @return void
  */
-void UpdateCell(int* cellPeople,
+static void UpdateCell(int* cellPeople,
 	int index,
 	int srcIndex)
 {
@@ -1461,7 +1544,7 @@ void UpdateCell(int* cellPeople,
  * @param srcIndex - index into srcCellPeople to update from
  * @return void
  */
-void UpdateCell(int* cellPeople,
+static void UpdateCell(int* cellPeople,
 	int* srcCellPeople,
 	int index,
 	int srcIndex)
