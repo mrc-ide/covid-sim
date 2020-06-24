@@ -2,7 +2,7 @@
 
 ## Place Closure
 
-<table><tr><td colspan="6"><strong>[Place closure start time]</strong></td><tr>
+<table><tr><td colspan="6"><strong><center><big>[Place closure start time]</big></center></strong></td><tr>
 <tr><td><strong>Class</strong></td><td>Interventions</td>
   <td><strong>Type:</strong></td><td>Real, Scalar</td>
   <td><strong>Example:</strong></td><td>0</td></tr>
@@ -10,22 +10,24 @@
 <tr><td><strong>Description:</strong></td><td colspan="5">Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)</td></tr>
 </table>
 
-<table><tr><td colspan="6"><strong>[Place closure second start time]<strong></td><tr>
+<br/>
+<table><tr><td colspan="6"><strong><center><big>[Place closure second start time]</big></center><strong></td><tr>
 <tr><td><strong>Class</td><td>Interventions</td>
   <td><strong>Type:</td><td>Real, Scalar</td>
   <td><strong>Example:</td><td>100000</td></tr>
 <tr><td>Sensitivity Analysis:</td><td colspan="5">Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies</td></tr>
 <tr><td><strong>Description:</td><td colspan="5">Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works</td></tr>
 </table>
+<br/>
 
-<table><tr><td colspan="6"><strong>[Place closure in administrative units rather than rings]<strong></td><tr>
+<table><tr><td colspan="6"><strong><center><big>[Place closure in administrative units rather than rings]</big></center><strong></td><tr>
 <tr><td><strong>Class</td><td>Interventions</td><
   <td><strong>Type:</td><td>Integer Scalar</td><
   <td><strong>Example:</td><td>100000</td></tr>
 <tr><td><strong>Sensitivity Analysis:</td><td colspan="5">Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies</td></tr>
 <tr><td><strong>Description:</td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
 </table>
-
+<br/>
 
 [Administrative unit divisor for place closure]	Interventions	Integer	1	1	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value
 
