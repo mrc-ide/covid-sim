@@ -38,7 +38,7 @@ struct Param
 	int MoveKernelType;
 	int AirportKernelType;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot;
+	int DoBin;
 	double SnapshotSaveTime, SnapshotLoadTime, clP1, clP2, clP3, clP4, clP5, clP6;
 	int NC; // Number of cells
 	int NMC; // Number of microcells
@@ -53,8 +53,8 @@ struct Param
 	bool is_in_bounds(MicroCellPosition position) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
-	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
-	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
+	int DoAdunitOutput, DoAdunitBoundaryOutput, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
+	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
 
 	/// Size in pixels of the map area in the bitmap output
@@ -65,13 +65,13 @@ struct Param
 
 	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
-	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
+	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
 	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection;
-	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
+	int DoAge, DoSymptoms, IncThreshPop, GlobalIncThreshPop;
 	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
-	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis, DoInterventionFile;
+	int DoAirports, Nairports, Air_popscale, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
 	int32_t setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
