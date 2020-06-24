@@ -1,14 +1,15 @@
 ## Parameters used for COVID
 
-### Place Closure Related
+### Place Closure
 
-<table>
-  <tr>
-    <td colspan="2">[Place closure start time]</td>
-  <tr>
+<table><tr><td colspan="2">[Place closure start time]</td><tr>
+| Class:   | Interventions |
+| Type:    | Real |
+| Length:  | Scalar |
+| Example: | 0 |
+| Sensitivity Analysys: | Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies |
+| Description: | Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option) |
 </table>
-
-Interventions	Real	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)
 
 [Place closure second start time]	Interventions	Real	1	100000	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works
 
