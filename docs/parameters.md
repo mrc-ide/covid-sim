@@ -3,12 +3,12 @@
 ### Place Closure
 
 <table><tr><td colspan="2">[Place closure start time]</td><tr>
-| Class:   | Interventions |
-| Type:    | Real |
-| Length:  | Scalar |
-| Example: | 0 |
-| Sensitivity Analysys: | Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies |
-| Description: | Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option) |
+<tr><td>Class</td><td>Interventions</td></tr>
+<tr><td>Type:</td><td>Real</td></tr>
+<tr><td>Length:</td><td>Scalar</td></tr>
+<tr><td>Example:</td><td>0</td></tr>
+<tr><td>Sensitivity Analysys:</td><td>Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies</td></tr>
+<tr><td>Description:</td><td>Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)</td></tr>
 </table>
 
 [Place closure second start time]	Interventions	Real	1	100000	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works
