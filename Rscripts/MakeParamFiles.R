@@ -306,7 +306,7 @@ MakeParamList = function(
 		#### Interventions are turned on when BOTH start time has passed (and start time + duration has not), AND when trigger threshold exceeded. See https://github.com/mrc-ide/covid-sim/blob/master/docs/intervention-description.md for further discussion.
 		#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
 		
-		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, 
+		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, SymptInfectiousness = 8,
 		
 		# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
 		# = # = # = # = # = # = # = # = # = # = 	CASE ISOLATION PARAMETERS
@@ -427,6 +427,7 @@ MakeParamList = function(
 	
 	ParamList[["Include intervention delays by admin unit"]] = DoInterventionDelaysByAdUnit
 	ParamList[["Vary efficacies over time"]] = VaryEfficaciesOverTime
+	ParamList[["Symptomatic infectiousness relative to asymptomatic"]] = SymptInfectiousness
 	
 	# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
 	# = # = # = # = # = # = # = # = # = # = 	CASE ISOLATION PARAMETERS
