@@ -15,7 +15,7 @@ void parse_read_file(std::string const& input, std::string& output)
 	// check to see if the file exists and error out if it doesn't
 	if (static_cast<bool>(std::ifstream(input)) == false)
 	{
-		ERR_CRITICAL_FMT("%s is not a file", input.c_str());
+		ERR_CRITICAL_FMT("%s is not a file\n", input.c_str());
 	}
 	output = input;
 }
@@ -26,7 +26,7 @@ void parse_write_dir(std::string const& input, std::string& output)
 	if (static_cast<bool>(std::ifstream(input)) == true)
 	{
 		ERR_CRITICAL_FMT("Cannot use this prefix, this path already exists"
-						 " as a file: %s", input.c_str());
+						 " as a file: %s\n", input.c_str());
 	}
 	// TODO: add a platform-independent check to see if the prefix could
 	// be added as a directory or file
@@ -37,15 +37,20 @@ void parse_integer(std::string const& input, int& output)
 {
 	try
 	{
-		output = std::stoi(input);
+		std::size_t pos;
+		output = std::stoi(input, &pos);
+		if (pos != input.size())
+		{
+			ERR_CRITICAL_FMT("Detected invalid characters after parsed integer: %s\n", input.c_str());
+		}
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected integer got %s", input.c_str());
+		ERR_CRITICAL_FMT("EINVAL: Expected integer got %s\n", input.c_str());
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %d to %d. Got %s",
+		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %d to %d. Got %s\n",
 						std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), input.c_str());
 	}
 }
@@ -54,15 +59,20 @@ void parse_double(std::string const& input, double& output)
 {
 	try
 	{
-		output = std::stod(input);
+		std::size_t pos;
+		output = std::stod(input, &pos);
+		if (pos != input.size())
+		{
+			ERR_CRITICAL_FMT("Detected invalid characters after parsed double: %s\n", input.c_str());
+		}
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected double got %s", input.c_str());
+		ERR_CRITICAL_FMT("EINVAL: Expected double got %s\n", input.c_str());
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %.4e to %.4e. Got %s",
+		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %.4e to %.4e. Got %s\n",
 						std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), input.c_str());
 	}
 }
@@ -71,7 +81,7 @@ void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, st
 {
 	if (option_map_.find(option) != option_map_.cend())
 	{
-		ERR_CRITICAL_FMT("Duplicate option specified %s", option.c_str());
+		ERR_CRITICAL_FMT("Duplicate option specified %s\n", option.c_str());
 	}
 	option_map_.emplace(option, func);
 	doc_map_.emplace(option, doc);
