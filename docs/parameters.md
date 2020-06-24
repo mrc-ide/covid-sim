@@ -2,7 +2,8 @@
 
 ## Place Closure
 
-<table><tr><td colspan="2">**[Place closure start time]**</td><tr>
+<table><tr><td colspan="2"><strong>[Place closure start time]</strong></td><tr>
+<tr><td>- | -</td></tr>
 <tr><td>Class</td><td>Interventions</td></tr>
 <tr><td>Type:</td><td>Real</td></tr>
 <tr><td>Length:</td><td>Scalar</td></tr>
@@ -11,7 +12,8 @@
 <tr><td>Description:</td><td>Start time of place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option)</td></tr>
 </table>
 
-<table><tr><td colspan="2">**[Place closure second start time]**</td><tr>
+<table><tr><td colspan="2"><strong>[Place closure second start time]<strong></td><tr>
+<tr><td>- | -</td></tr>
 <tr><td>Class</td><td>Interventions</td></tr>
 <tr><td>Type:</td><td>Real</td></tr>
 <tr><td>Length:</td><td>Scalar</td></tr>
@@ -20,8 +22,18 @@
 <tr><td>Description:</td><td>Start time of second period place closure intervention - in days after [Day of year interventions start], if set, or after [Number of detected cases needed before outbreak alert triggered] threshold is first met (old report 9 calibration option). High value means it won't happen. This mechanism for modelling multiple blocks of place closure has been superseded by a more flexible specification of arbitrary multiple periods of interventions, though this format still works</td></tr>
 </table>
 
+<table><tr><td colspan="2"><strong>[Place closure in administrative units rather than rings]<strong></td><tr>
+<tr><td>- | -</td></tr>
+<tr><td>Class</td><td>Interventions</td></tr>
+<tr><td>Type:</td><td>Integer</td></tr>
+<tr><td>Length:</td><td>Scalar</td></tr>
+<tr><td>Example:</td><td>100000</td></tr>
+<tr><td>Sensitivity Analysys:</td><td>Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies</td></tr>
+<tr><td>Description:</td><td>Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
+</table>
 
-[Place closure in administrative units rather than rings]	Interventions	Integer	1	0	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value
+
+Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value
 
 [Administrative unit divisor for place closure]	Interventions	Integer	1	1	Not suited to parametric sensitivity analysis - intended to allow scenario analysis of different intervention strategies	Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value
 
