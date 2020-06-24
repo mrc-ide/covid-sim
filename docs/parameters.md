@@ -19,37 +19,6 @@
 <br/>
 
 
-<table><tr><td colspan="6"><strong>[Administrative unit divisor for place closure]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Integer, Scalar</td>
-  <td><strong>Example:</td><td>1</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[Place types to close for admin unit closure (0/1 array)]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Integer Vector, length [Number of types of places]</td>
-  <td><strong>Example:</td><td>1  1  1  0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[Cumulative proportion of place members needing to become sick for admin unit closure]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real Vector, length [Number of types of places]</td>
-  <td><strong>Example:</td><td>1  1  1  0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[Proportion of places in admin unit needing to pass threshold for place closure]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>1</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
-</table>
-<br/>
 
 <table><tr><td colspan="6"><strong>[Delay to start place closure]</strong></td><tr>
 <tr><td><strong>Class</strong></td><td>Interventions</td>
@@ -88,22 +57,6 @@
   <td><strong>Type:</td><td>Real, Scalar</td>
   <td><strong>Example:</td><td>1.25</td></tr>
 <tr><td><strong>Description:</strong></td><td colspan="5">Multiplicative scaling of random spatial contact rates for individuals affected by place closure</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[Place closure incidence threshold]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered based on incidence in the place itself. Needs to be kept at 0</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[Place closure fractional incidence threshold]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered based on incidence in the place itself. Needs to be kept at 0</td></tr>
 </table>
 <br/>
 
@@ -307,14 +260,6 @@
 </table>
 <br/>
 
-<table><tr><td colspan="6"><strong>[Minimum radius for social distancing]</strong></td><tr>
-<tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>1</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows ssocial distancing to be triggered in rings around local microcells. Leave at 1.</td></tr>
-</table>
-<br/>
-
 <table><tr><td colspan="6"><strong>[Proportion compliant with enhanced social distancing]</strong></td><tr>
 <tr><td><strong>Class</strong></td><td>Interventions</td>
   <td><strong>Type:</td><td>Real, Scalar</td>
@@ -325,9 +270,9 @@
 
 <table><tr><td colspan="6"><strong>[Proportion compliant with enhanced social distancing by age group]</strong></td><tr>
 <tr><td><strong>Class</strong></td><td>Interventions</td>
-  <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td>
-  <td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0.75  0.75  0.75</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">If [Age dependent severity delays] set to 1, otherwise 1 mean value for all ages. If this parameter is present, [Proportion compliant with enhanced social distancing] is ignored. This parameter allows compliance with enhanced social distancing to be specified by 5 year age bands, allowing sheilding to be modelled. Can be included in addition to standard social distancing - those complying with enhanced social distancing have those parameters applied, people not complying with enhanced social distancing have standard social distancing params applied</td></tr>
+  <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td></tr>
+<tr><td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0.75  0.75  0.75</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="3">If [Age dependent severity delays] set to 1, otherwise 1 mean value for all ages. If this parameter is present, [Proportion compliant with enhanced social distancing] is ignored. This parameter allows compliance with enhanced social distancing to be specified by 5 year age bands, allowing sheilding to be modelled. Can be included in addition to standard social distancing - those complying with enhanced social distancing have those parameters applied, people not complying with enhanced social distancing have standard social distancing params applied</td></tr>
 </table>
 <br/>
 
@@ -355,32 +300,6 @@
 </table>
 <br/>
 
-## False Positive
-
-<table><tr><td colspan="6"><strong>[False positive rate]</strong></td><tr>
-<tr><td><strong>Class</td><td>Transmission</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not currently used for COVID</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[False positive per capita incidence]</strong></td><tr>
-<tr><td><strong>Class</td><td>Transmission</td>
-  <td><strong>Type:</td><td>Real, Scalar</td>
-  <td><strong>Example:</td><td>0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not currently used for COVID</td></tr>
-</table>
-<br/>
-
-<table><tr><td colspan="6"><strong>[False positive relative incidence by age]</strong></td><tr>
-<tr><td><strong>Class</td><td>Transmission</td>
-  <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td>
-  <td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0</td></tr>
-<tr><td><strong>Description:</strong></td><td colspan="5">Not currently used for COVID</td></tr>
-</table>
-<br/>
-
 
 # Parameters not currently used in modelling COVID
 
@@ -402,6 +321,90 @@
 </table>
 <br/>
 
+<table><tr><td colspan="6"><strong>[Administrative unit divisor for place closure]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Integer, Scalar</td>
+  <td><strong>Example:</td><td>1</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[Place types to close for admin unit closure (0/1 array)]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Integer Vector, length [Number of types of places]</td>
+  <td><strong>Example:</td><td>1  1  1  0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[Cumulative proportion of place members needing to become sick for admin unit closure]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Real Vector, length [Number of types of places]</td>
+  <td><strong>Example:</td><td>1  1  1  0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[Proportion of places in admin unit needing to pass threshold for place closure]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>1</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered by total illness related absenteeism in administrative units. Leave set to this value</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[Place closure incidence threshold]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered based on incidence in the place itself. Needs to be kept at 0</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[Place closure fractional incidence threshold]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows school closure to be triggered based on incidence in the place itself. Needs to be kept at 0</td></tr>
+</table>
+<br/>
+
+## Social Distancing
+
+<table><tr><td colspan="6"><strong>[Minimum radius for social distancing]</strong></td><tr>
+<tr><td><strong>Class</strong></td><td>Interventions</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>1</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not used for COVID - allows social distancing to be triggered in rings around local microcells. Leave at 1.</td></tr>
+</table>
+<br/>
+
+
+## False Positives
+
+<table><tr><td colspan="6"><strong>[False positive rate]</strong></td><tr>
+<tr><td><strong>Class</td><td>Transmission</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not currently used for COVID</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[False positive per capita incidence]</strong></td><tr>
+<tr><td><strong>Class</td><td>Transmission</td>
+  <td><strong>Type:</td><td>Real, Scalar</td>
+  <td><strong>Example:</td><td>0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="5">Not currently used for COVID</td></tr>
+</table>
+<br/>
+
+<table><tr><td colspan="6"><strong>[False positive relative incidence by age]</strong></td><tr>
+<tr><td><strong>Class</td><td>Transmission</td>
+  <td><strong>Type:</td><td>Real, Vector of length 17 (5 year age groups to 80+)</td></tr>
+<tr><td><strong>Example:</td><td>0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0</td></tr>
+<tr><td><strong>Description:</strong></td><td colspan="3">Not currently used for COVID</td></tr>
+</table>
+<br/>
 
 ## Treatment
 
