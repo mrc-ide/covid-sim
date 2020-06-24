@@ -1141,7 +1141,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				m = Hosts[i].listpos;
 				xh = P.in_microcells_.width * (ranf_mt(tn) + x);
 				yh = P.in_microcells_.height * (ranf_mt(tn) + y);
-				AssignHouseholdAges(m, i, tn, reg_demog_file);
+				AssignHouseholdAges(m, i, tn, !reg_demog_file.empty());
 				for (i2 = 0; i2 < m; i2++) Hosts[i + i2].listpos = 0;
 				if (P.DoHouseholds)
 				{
@@ -1690,7 +1690,7 @@ void SetupAirports(void)
 const double PROP_OTHER_PARENT_AWAY = 0.0;
 
 
-void AssignHouseholdAges(int n, int pers, int tn, std::string const& reg_demog_file)
+void AssignHouseholdAges(int n, int pers, int tn, bool do_adunit_demog)
 {
 	/* Complex household age distribution model
 		- picks number of children (nc)
@@ -1702,7 +1702,7 @@ void AssignHouseholdAges(int n, int pers, int tn, std::string const& reg_demog_f
 	int i, j, k, nc, ad;
 	int a[MAX_HOUSEHOLD_SIZE + 2];
 
-	ad = (!reg_demog_file.empty() && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
+	ad = (do_adunit_demog && (P.DoAdUnits)) ? Mcells[Hosts[pers].mcell].adunit : 0;
 	if (!P.DoHouseholds)
 	{
 		for (i = 0; i < n; i++)
