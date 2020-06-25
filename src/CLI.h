@@ -8,35 +8,6 @@
 // only a forward-declartion, no need to pull in all of Param.h in this header
 struct Param;
 
-// The parse_* functions are kept outside of the CmdLineArgs class because they
-// can be used to parse any string input and are not specific to CLI arguments.
-// e.g. they may eventually be useful for parsing from the (pre)param files
-
-/**
- * Parses and checks if the input string is a readable file on-disk.
- */
-void parse_read_file(std::string const& input, std::string& output);
-
-/**
- *  Parses and checks if the input string is a writable directory.
- */
-void parse_write_dir(std::string const& input, std::string& output);
-
-/**
- *  handles general string.
- */
-void parse_string(std::string const& input, std::string& output);
-
-/**
- * Parses and checks if the input string is an integer.
- */
-void parse_integer(std::string const& input, int& output);
-
-/**
- * Parses and checks if the input string is an double.
- */
-void parse_double(std::string const& input, double& output);
-
 class CmdLineArgs {
 public:
 	// Function prototype for a generic parser function
