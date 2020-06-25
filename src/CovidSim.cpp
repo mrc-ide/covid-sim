@@ -5612,7 +5612,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{ //added these braces
 				for (i = 0; i < NumItem2; i++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					if(fscanf(dat, "%s", match) != 1) { Messages::out(Messages::Error) << "fscanf failed for " << SItemName << "\n"; }
 					if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
