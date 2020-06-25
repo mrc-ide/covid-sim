@@ -2834,7 +2834,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	int i, i2, k2;
 	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
 	{
-		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+		if (i % 1000 == 0) Messages::out(Messages::Progress) << "\r*** " << i << "              ";
 		if (Hosts[i].inf == 0) j++;
 		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 		{
@@ -2878,8 +2878,11 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
 		RecordSample(t, ns - 1, output_file_base);
-		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
-			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
+    Messages::out(Messages::Progress)
+      << "\r    t=" << t << "   " << State.S << "    " << State.L << "|" << State.I << "    "
+      << State.R << "     " << State.D << " [=" << State.S + State.L + State.I + State.R + State.D
+      << "]  " << State.cumD << " (" << State.cumT << " " << State.cumV << " " << State.cumVG << ")   "
+      << sqrt(State.maxRad2) / 1000 << "    ";
 		if (!InterruptRun)
 		{
 			//Only run to a certain number of infections: ggilani 28/10/14
@@ -2982,7 +2985,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		int i, i2, k2;
 		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
 		{
-			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
+			if (i % 1000 == 0) Messages::out(Messages::Progress) << "\r*** " << i << "              ";
 			if (Hosts[i].inf == 0) j++;
 			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
 			{

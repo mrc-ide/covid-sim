@@ -1160,7 +1160,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			y = (double)(j % P.get_number_of_micro_cells_high());
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
-				fprintf(stderr_shared, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+      {
+        Messages::out(Messages::Progress) << j << "=" << Mcells[j].n << " (" << Mcells[j].adunit
+          << " " << (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor << "\r";
+      }
 			for (int k = 0; k < Mcells[j].n;)
 			{
 				m = Hosts[i].listpos;
@@ -1383,7 +1386,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
-				if (P.Nplace[j] % 1000 == 0) fprintf(stderr, "%i read    \r", P.Nplace[j]);
+				if (P.Nplace[j] % 1000 == 0) {
+          Messages::out(Messages::Progress) << P.Nplace[j] << " read    \r", P.Nplace[j];
+        }
 			}
 		}
 		fclose(dat);
@@ -2145,7 +2150,10 @@ void AssignPeopleToPlaces()
 					int tn = 0;
 					for (j = 0; j < a; j++)
 					{
-						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
+						if (j % 1000 == 0)
+            {
+              Messages::out(Messages::Progress) << "(" << tp << ") " << j << "      \r";
+            }
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
 						l = 1; k = m = f2 = 0;
 						int i = PeopleArray[j];
@@ -2225,7 +2233,7 @@ void AssignPeopleToPlaces()
 							if (k > nn) fprintf(stderr, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
 							if (k == 0)
 							{
-								fprintf(stderr, "# %i %i     \r", i, j);
+                Messages::out(Messages::Progress) << "# " << i << " " << j << "     \r";
 								Hosts[i].PlaceLinks[tp] = -1;
 							}
 							else
@@ -2277,7 +2285,9 @@ void AssignPeopleToPlaces()
 						{
 							int tn = 0;
 							if (i2 % 10000 == 0)
-								fprintf(stderr, "(%i) %i            \r", tp, i2);
+              {
+                Messages::out(Messages::Progress) << "(" << tp << ") " << i2 << "            \r";
+              }
 							k = PeopleArray[i2];
 							int i = Hosts[k].pcell;
 							f2 = 1;
@@ -2539,12 +2549,12 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 			}
 			i2++;
 		}
-		fprintf(stderr, "%i loaded            \r", i * 1000000 + l);
+    Messages::out(Messages::Progress) << i * 1000000 + l << " loaded            \r";
 	}
 
 	/*	for(i=0;i<P.PopSize;i++)
 			{
-			if((i+1)%100000==0) fprintf(stderr,"%i loaded            \r",i+1);
+			if((i+1)%100000==0) Messages::out(Messages::Progress) << i + 1 << " loaded            \r";
 			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
 			}
 	*/	fprintf(stderr, "\n");
@@ -2569,7 +2579,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 		fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
 		for (i = 0; i < P.PopSize; i++)
 		{
-			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
+			if ((i + 1) % 100000 == 0) Messages::out(Messages::Progress) << i + 1 << " saved            \r";
 			/*			fwrite_big(&(Hosts[i].spatial_norm),sizeof(float),1,dat);
 			*/			fwrite_big(&(Hosts[i].PlaceLinks[0]), sizeof(int), npt, dat);
 			for (j = 0; j < npt; j++)
