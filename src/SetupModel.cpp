@@ -25,12 +25,12 @@ int netbuf[NUM_PLACE_TYPES * 1000000];
 
 // code for first 4 bytes of binary file ## NOTE - SHOULD
 // BE LONG LONG TO COPE WITH BIGGER POPULATIONS
-constexpr auto binary_density_file_magic_number = 0xf0f0f0f0;
+constexpr std::uint32_t binary_density_file_magic_number = 0xf0f0f0f0;
 
 void ReadBinaryDensityFile(FILE *dat)
 {
 	P.DoBin = 1;
-	fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+	fread_big(&(P.BinFileLen), sizeof(std::uint32_t), 1, dat);
 	BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 	fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
 	BF = (BinFile *)BinFileBuf;
@@ -103,8 +103,8 @@ void ReadDensityFile(const std::string& density_file)
 	fprintf(stderr, "Scanning population density file\n");
 	if (!(dat = fopen(density_file.c_str(), "rb")))
 		ERR_CRITICAL("Unable to open density file\n");
-	unsigned int density_file_header;
-	fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
+    std::uint32_t density_file_header;
+	fread_big(&density_file_header, sizeof(std::uint32_t), 1, dat);
 	if (density_file_header == binary_density_file_magic_number)
 	{
 		return ReadBinaryDensityFile(dat);
@@ -117,7 +117,7 @@ void WriteBinaryDensityFile(const std::string& out_density_file)
 	FILE *dat2;
 	if (!(dat2 = fopen(out_density_file.c_str(), "wb")))
 		ERR_CRITICAL("Unable to open output density file\n");
-	fwrite_big((void *)&binary_density_file_magic_number, sizeof(unsigned int), 1, dat2);
+	fwrite_big((void *)&binary_density_file_magic_number, sizeof(std::uint32_t), 1, dat2);
 	fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
 	fwrite_big((void *)&(P.BinFileLen), sizeof(unsigned int), 1, dat2);
 	fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
