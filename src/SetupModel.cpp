@@ -23,6 +23,7 @@ void* BinFileBuf;
 BinFile* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];
 
+namespace {
 // code for first 4 bytes of binary file ## NOTE - SHOULD
 // BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 constexpr std::uint32_t binary_density_file_magic_number = 0xf0f0f0f0;
@@ -122,6 +123,7 @@ void WriteBinaryDensityFile(const std::string& out_density_file)
 	fwrite_big((void *)&(P.BinFileLen), sizeof(unsigned int), 1, dat2);
 	fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 	fclose(dat2);
+}
 }
 
 ///// INITIALIZE / SET UP FUNCTIONS
@@ -738,6 +740,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
+namespace {
 void ReadSchoolFile(const std::string& school_file)
 {
 	int m;
@@ -841,6 +844,7 @@ void ReadRegDemogFile(const std::string& reg_demog_file)
 			}
 	}
 	fclose(dat);
+}
 }
 
 void SetupPopulation(std::string const& density_file, std::string const& out_density_file, std::string const& school_file, std::string const& reg_demog_file)
