@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-#include "ParamFile.hpp"
+#include "ParamFile.h"
 
 // ltrim(), rtrim(), and trim() are from a highly up voted answer on StackOverflow
 // https://stackoverflow.com/a/217605

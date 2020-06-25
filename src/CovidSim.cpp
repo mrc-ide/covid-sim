@@ -30,7 +30,7 @@
 #include "Sweep.h"
 #include "Memory.h"
 #include "CLI.h"
-#include "ParamFile.hpp"
+#include "ParamFile.h"
 
 #ifdef _OPENMP
 #include <omp.h>

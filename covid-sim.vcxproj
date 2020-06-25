@@ -124,7 +124,7 @@
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelMacros.h" />
     <ClInclude Include="src\Param.h" />
-    <ClInclude Include="src\ParamFile.hpp" />
+    <ClInclude Include="src\ParamFile.h" />
     <ClInclude Include="src\Rand.h" />
     <ClInclude Include="src\SetupModel.h" />
     <ClInclude Include="src\CovidSim.h" />
