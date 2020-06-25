@@ -12,7 +12,8 @@
  * (e.g. pre-param.txt, param.txt, admin-params.txt) in a clean, type-safe, and
  * concise way.
  */
-class ParamReader {
+class ParamReader
+{
 public:
 	/**
 	 * Constructor which will open up the parameter files specified and read

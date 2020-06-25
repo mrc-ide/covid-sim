@@ -14,19 +14,22 @@
 // https://stackoverflow.com/a/217605
 
 // trim from start (in place)
-static void ltrim(std::string& s) {
+static void ltrim(std::string& s)
+{
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
 			[](int ch) { return !std::isspace(ch); }));
 }
 
 // trim from end (in place)
-static void rtrim(std::string& s) {
+static void rtrim(std::string& s)
+{
 	s.erase(std::find_if(s.rbegin(), s.rend(),
 			[](int ch) { return !std::isspace(ch); }).base(), s.end());
 }
 
 // trim from both ends (in place)
-static void trim(std::string& s) {
+static void trim(std::string& s)
+{
 	ltrim(s);
 	rtrim(s);
 }
@@ -47,16 +50,20 @@ bool ParamReader::raw_extract(std::istringstream& stream, T& output)
 				  "Integral or floating point required.");
 
 	stream >> output;
-	if (stream.fail()) {
-		if (output == std::numeric_limits<T>::max()) {
+	if (stream.fail())
+    {
+		if (output == std::numeric_limits<T>::max())
+        {
 			std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
 					  << " when parsing " << stream.str() << std::endl;
 		}
-		else if (output == std::numeric_limits<T>::min()) {
+		else if (output == std::numeric_limits<T>::min())
+        {
 			std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
 					  << " when parsing " << stream.str() << std::endl;
 		}
-		else {
+		else
+        {
 			std::cerr << "ERROR: Expected integral type, got " << stream.str() << std::endl;
 		}
 		return false;
