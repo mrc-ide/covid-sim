@@ -16,7 +16,7 @@ void* Memory::xmalloc(std::size_t size) noexcept
   /* Ensure we're going to allocate some memory.  */
   if (size == 0)
   {
-    std::fprintf(stderr, "WARNING: xmalloc called with size=0.\n");
+    Messages::out(Messages::Warning) << "xmalloc called with size=0.\n";
     size = 1;
   }
 
@@ -35,7 +35,7 @@ void* Memory::xcalloc(std::size_t nelem, std::size_t elsize) noexcept
   /* Ensure we're going to allocate some memory.  */
   if (elsize == 0 || nelem == 0)
   {
-    std::fprintf(stderr, "WARNING: xcalloc called with nelem = %zu and elsize = %zu.\n", nelem, elsize);
+    Messages::out(Messages::Warning) << "xcalloc called with nelem = " << nelem << " and elsize = " << elsize << ".\n";
     /* Memory we allocate shouldn't be used - so just set it to the smallest
      * amount possible.  */
     elsize = 1;
@@ -57,7 +57,7 @@ void* Memory::xrealloc(void* ptr, std::size_t size) noexcept
   /* Ensure we're going to allocate some memory.  */
   if (size == 0)
   {
-    std::fprintf(stderr, "WARNING: xrealloc called with size=0.\n");
+    Messages::out(Messages::Warning) << "xrealloc called with size=0.\n";
     size = 1;
   }
 

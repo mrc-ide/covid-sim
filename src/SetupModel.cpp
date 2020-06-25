@@ -175,10 +175,10 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width > 180) {
-			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+      Messages::out(Messages::Warning) << "Width of bounding box > 180 degrees.  Results may be inaccurate.\n";
 		}
 		if (P.in_degrees_.height > 90) {
-			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+      Messages::out(Messages::Warning) << "Height of bounding box > 90 degrees.  Results may be inaccurate.\n";
 		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
