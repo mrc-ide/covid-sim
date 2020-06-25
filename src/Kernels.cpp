@@ -3,6 +3,7 @@
 #include "Kernels.h"
 #include "Error.h"
 #include "Dist.h"
+#include "Messages.h"
 
 using namespace CovidSim::TBD1;
 
@@ -33,7 +34,7 @@ void KernelLookup::init(double norm, KernelStruct& kernel)
 	else if (kernel.type_ == 7)
 		fp = &KernelStruct::power_exp;
 	else
-		ERR_CRITICAL_FMT("Unknown kernel type %d.\n", kernel.type_);
+    Messages::out(Messages::Error) << "Unknown kernel type " << kernel.type_ << ".\n";
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(kernel, fp, norm)
@@ -111,7 +112,7 @@ double KernelLookup::num(double r2) const
 	if (t > size_)
 	{
 		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, delta_, t);
-		ERR_CRITICAL("r too large in NumKernel\n");
+		Messages::out(Messages::Error) << "r too large in NumKernel\n";
 	}
 
 	double s = t * expansion_factor_;

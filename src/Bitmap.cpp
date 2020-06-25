@@ -11,6 +11,7 @@
 #include "Param.h"
 #include "Model.h"
 #include "Memory.h"
+#include "Messages.h"
 
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** BITMAP stuff.
@@ -137,7 +138,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  using namespace Magick;
 	  fprintf(stderr, "\noutputing ImageMagick stuff");
 	  sprintf(buf, "%s.bmp", OutF);
-	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
+	  if (!(dat = fopen(buf, "wb"))) Messages::out(Messages::Error) << "Unable to open bitmap file\n";
 	  fprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
 	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
@@ -187,9 +188,9 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  if (!(dat = fopen(buf, "wb"))) {
 	    char* errMsg = strerror(errno);
 	    if (errMsg == nullptr) {
-	      ERR_CRITICAL("strerror failed.\n");
+	      Messages::out(Messages::Error) << "strerror failed.\n";
 	    }
-	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
+      Messages::out(Messages::Error) << "Unable to open bitmap file " << buf << " (" << errno << "): " << errMsg << "\n";
 	  }
 	  fprintf(dat, "BM");
 	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);

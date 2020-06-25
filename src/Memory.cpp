@@ -10,6 +10,7 @@
 #include <cerrno>
 
 #include "Error.h"
+#include "Messages.h"
 
 void* Memory::xmalloc(std::size_t size) noexcept
 {
@@ -23,7 +24,8 @@ void* Memory::xmalloc(std::size_t size) noexcept
   void* result = std::malloc(size);
   if (result == nullptr)
   {
-    ERR_CRITICAL_FMT("Unable to allocate memory: %s\n", std::strerror(errno));
+    auto e = errno;
+    Messages::out(Messages::Error) << "Unable to allocate memory: " << std::strerror(e) << "\n";
   }
 
   return result;
@@ -44,7 +46,8 @@ void* Memory::xcalloc(std::size_t nelem, std::size_t elsize) noexcept
   void* result = std::calloc(nelem, elsize);
   if (result == nullptr)
   {
-    ERR_CRITICAL_FMT("Unable to allocate memory: %s\n", std::strerror(errno));
+    auto e = errno;
+    Messages::out(Messages::Error) << "Unable to allocate memory: " << std::strerror(e) << "\n";
   }
 
   return result;
@@ -65,7 +68,8 @@ void* Memory::xrealloc(void* ptr, std::size_t size) noexcept
   {
     /* On failure realloc doesn't free the previously allocated memory.  */
     std::free(ptr);
-    ERR_CRITICAL_FMT("Unable to re-allocate memory: %s\n", std::strerror(errno));
+    auto e = errno;
+    Messages::out(Messages::Error) << "Unable to allocate memory: " << std::strerror(e) << "\n";
   }
 
   return result;

@@ -29,6 +29,7 @@
 #include "Sweep.h"
 #include "Memory.h"
 #include "CLI.h"
+#include "Messages.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -132,9 +133,10 @@ int main(int argc, char* argv[])
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
 		if (sep == std::string::npos) {
-			ERR_CRITICAL("Expected argument value to be in the format '<D>,<S>' where <D> is the "
-							"timestep interval when a snapshot should be saved and <S> is the "
-							"filename in which to save the snapshot");
+      Messages::out(Messages::Error) <<
+			    "Expected argument value to be in the format '<D>,<S>' where <D> is the "
+					"timestep interval when a snapshot should be saved and <S> is the "
+					"filename in which to save the snapshot";
 		}
 		parse_double(input.substr(0, sep), P.SnapshotSaveTime);
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
@@ -247,7 +249,7 @@ int main(int argc, char* argv[])
 	if (P.DoAirports)
 	{
 		if (air_travel_file.empty()) {
-			ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
+			Messages::out(Messages::Error) << "Parameter file indicated airports should be used but '/AP' file was not given";
 		}
 		ReadAirTravel(air_travel_file, output_file_base);
 	}
@@ -374,14 +376,14 @@ void parse_bmp_option(std::string const& input) {
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
 		P.BitmapFormat = BitmapFormats::PNG;
 #else
-		ERR_CRITICAL("PNG Bitmaps not supported - please build with Image Magic or WIN32 support");
+		Messages::out(Messages::Error) << "PNG Bitmaps not supported - please build with ImageMagick or WIN32 support\n";
 #endif
 	}
 	else if (input_copy.compare("bmp") == 0) {
 		P.BitmapFormat = BitmapFormats::BMP;
 	}
 	else {
-		ERR_CRITICAL_FMT("Unrecognised bitmap format: %s", input_copy.c_str());
+    Messages::out(Messages::Error) << "Unrecognised bitmap format: " << input_copy << "\n";
 	}
 }
 
@@ -402,7 +404,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
 	char* AdunitListNames[MAX_ADUNITS];
 	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
-	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
+	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open parameter file\n";
 	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
 	if (!(AdminFile_dat = fopen(ad_unit_file.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
 	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
@@ -411,7 +413,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	AgeSuscScale = 1.0;
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*)&(P.TimeStep), 1, 1, 0);
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.SampleStep), 1, 1, 0);
-	if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
+	if (P.TimeStep > P.SampleStep) Messages::out(Messages::Error) << "Update step must be smaller than sampling step\n";
 	t = ceil(P.SampleStep / P.TimeStep - 1e-6);
 	P.UpdatesPerSample = (int)t;
 	P.TimeStep = P.SampleStep / t;
@@ -460,12 +462,12 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.KernelLookup.size_, 1, 1, 0)) P.KernelLookup.size_ = 4000000;
 	if (P.KernelLookup.size_ < 2000000)
 	{
-		ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.KernelLookup.size_);
+    Messages::out(Messages::Error) << "[Kernel resolution] needs to be at least 2000000 - not " << P.KernelLookup.size_;
 	}
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.KernelLookup.expansion_factor_, 1, 1, 0)) P.KernelLookup.expansion_factor_ = P.KernelLookup.size_ / 1600;
 	if (P.KernelLookup.expansion_factor_ < 1 || P.KernelLookup.expansion_factor_ >= P.KernelLookup.size_)
 	{
-		ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.KernelLookup.size_, P.KernelLookup.expansion_factor_);
+    Messages::out(Messages::Error) << "[Kernel higher resolution factor] needs to be in range [1, P.NKR = " << P.KernelLookup.size_ << " - not " << P.KernelLookup.expansion_factor_;
 	}
 
 	if (P.DoHouseholds)
@@ -530,7 +532,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			if (P.NumAdunits > 0)
 			{
 				P.DoAdunitBoundaries = 1;
-				if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
+				if (P.NumAdunits > MAX_ADUNITS) Messages::out(Messages::Error) << "MAX_ADUNITS too small.\n";
 				GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of level 1 administrative units to include", "%s", (P.NumAdunits > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumAdunits, 1, 0);
 				na = P.NumAdunits;
 				for (i = 0; i < P.NumAdunits; i++)
@@ -690,7 +692,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.PlaceTypeNum = P.DoAirports = 0;
 	if (P.DoPlaces)
 	{
-		if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+		if (P.PlaceTypeNum > NUM_PLACE_TYPES) Messages::out(Messages::Error) << "Too many place types\n";
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Proportion of age group 1 in place types", "%lf", (void*) & (P.PlaceTypePropAgeGroup), P.PlaceTypeNum, 1, 0);
@@ -767,10 +769,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
 			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
 			if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+        Messages::out(Messages::Error) << "[Number of non-airport places] parameter (" << P.PlaceTypeNoAirNum << ") is greater than number of places (" << P.PlaceTypeNum << ").\n";
 			}
 			if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+        Messages::out(Messages::Error) << "[Hotel place type] parameter (" << P.HotelPlaceType << ") not in the range [" << P.PlaceTypeNoAirNum << ", " << P.PlaceTypeNum << ")\n";
 			}
 
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
@@ -897,7 +899,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of importation time profile provided", "%i", (void*)&(P.DurImportTimeProfile), 1, 1, 0)) P.DurImportTimeProfile = 0;
 	if (P.DurImportTimeProfile > 0)
 	{
-		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
+		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) Messages::out(Messages::Error) << "MAX_DUR_IMPORT_PROFILE too small\n";
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Daily importation time profile", "%lf", (void*)P.ImportInfectionTimeProfile, P.DurImportTimeProfile, 1, 0);
 	}
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Reproduction number", "%lf", (void*) & (P.R0), 1, 1, 0);
@@ -915,7 +917,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				P.infectious_prof[i] = 1;
 		}
 		k = (int)ceil(P.InfectiousPeriod / P.TimeStep);
-		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
+		if (k >= MAX_INFECTIOUS_STEPS) Messages::out(Messages::Error) << "MAX_INFECTIOUS_STEPS not big enough\n";
 		s = 0;
 		P.infectious_prof[INFPROF_RES] = 0;
 		for (i = 0; i < MAX_INFECTIOUS_STEPS; i++)	P.infectiousness[i] = 0;
@@ -940,7 +942,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
-		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
+		if (k >= MAX_INFECTIOUS_STEPS) Messages::out(Messages::Error) << "MAX_INFECTIOUS_STEPS not big enough\n";
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
 		P.infectious_icdf.assign_exponent();
@@ -999,7 +1001,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max absent time", "%i", (void*)&P.MaxAbsentTime, 1, 1, 0)) P.MaxAbsentTime = MAX_ABSENT_TIME;
 			if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
 			{
-				ERR_CRITICAL_FMT("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
+        Messages::out(Messages::Error) << "[Max absent time] out of range (" << P.MaxAbsentTime << "), should be in range [0, " << MAX_ABSENT_TIME << "]\n";
 			}
 		}
 		else
@@ -1951,32 +1953,32 @@ void ReadInterventions(std::string const& IntFile)
 	Intervention CurInterv;
 
 	fprintf(stderr, "Reading intervention file.\n");
-	if (!(dat = fopen(IntFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
+	if (!(dat = fopen(IntFile.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open intervention file\n";
 	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
     }
 	if(fscanf(dat, "<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
     }
-	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ERR_CRITICAL("Intervention file not XML.\n");
+	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) Messages::out(Messages::Error) << "Intervention file not XML.\n";
 	if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+        Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
     }
-	if (strcmp(txt, "InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level.\n");
+	if (strcmp(txt, "InterventionSettings") != 0) Messages::out(Messages::Error) << "Intervention has no top level.\n";
 	ni = 0;
 	while (!feof(dat))
 	{
 		if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-            ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+            Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
         }
 		if (strcmp(txt, "intervention") == 0)
 		{
 			ni++;
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
             }
-			if (strcmp(txt, "parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (strcmp(txt, "parameters") != 0) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
+			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			if (strcmp(txt, "Treatment") == 0)
 				CurInterv.InterventionType = 0;
 			else if (strcmp(txt, "Vaccination") == 0)
@@ -1991,31 +1993,31 @@ void ReadInterventions(std::string const& IntFile)
 				CurInterv.InterventionType = 5;
 			else
 				sscanf(txt, "%i", &CurInterv.InterventionType);
-			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%i", &CurInterv.DoAUThresh);
-			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.StartTime);
 			startt = CurInterv.StartTime;
-			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.StopTime);
 			stopt = CurInterv.StopTime;
-			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.MinDuration);
 			CurInterv.MinDuration *= DAYS_PER_YEAR;
-			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.RepeatInterval);
 			CurInterv.RepeatInterval *= DAYS_PER_YEAR;
-			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.StartThresholdHigh);
-			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.StartThresholdLow);
-			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.StopThreshold);
 			if (GetXMLNode(dat, "NoStartAfterMinDur", "parameters", txt, 1))
 				sscanf(txt, "%i", &CurInterv.NoStartAfterMin);
 			else
 				CurInterv.NoStartAfterMin = 0;
-			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%lf", &CurInterv.Level);
 			if (GetXMLNode(dat, "LevelCellVar", "parameters", txt, 1))
 				sscanf(txt, "%lf", &CurInterv.LevelCellVar);
@@ -2042,9 +2044,9 @@ void ReadInterventions(std::string const& IntFile)
 			else
 				CurInterv.TimeOffset = 0;
 
-			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%u", &CurInterv.MaxRounds);
-			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			sscanf(txt, "%u", &CurInterv.MaxResource);
 			if (GetXMLNode(dat, "NumSequentialReplicas", "parameters", txt, 1))
 				sscanf(txt, "%i", &nsr);
@@ -2052,14 +2054,14 @@ void ReadInterventions(std::string const& IntFile)
 				nsr = 0;
 			do {
                 if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                    ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                    Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
                 }
             } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
-			if (strcmp(txt, "/parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
+			if (strcmp(txt, "/parameters") != 0) Messages::out(Messages::Error) << "Incomplete intervention parameter specification in intervention file\n";
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
             }
-			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ERR_CRITICAL("Incomplete adunits/countries specification in intervention file\n");
+			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) Messages::out(Messages::Error) << "Incomplete adunits/countries specification in intervention file\n";
 			if (strcmp(txt, "adunits") == 0)
 			{
 				while (GetXMLNode(dat, "A", "adunits", buf, 0))
@@ -2140,12 +2142,12 @@ void ReadInterventions(std::string const& IntFile)
 				}
 			}
 			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
+                Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
             }
-			if (strcmp(txt, "/intervention") != 0) ERR_CRITICAL("Incorrect intervention specification in intervention file\n");
+			if (strcmp(txt, "/intervention") != 0) Messages::out(Messages::Error) << "Incorrect intervention specification in intervention file\n";
 		}
 	}
-	if (strcmp(txt, "/InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level closure.\n");
+	if (strcmp(txt, "/InterventionSettings") != 0) Messages::out(Messages::Error) << "Intervention has no top level closure.\n";
 	fprintf(stderr, "%i interventions read\n", ni);
 	fclose(dat);
 }
@@ -2162,24 +2164,24 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	do
 	{
 		if(fscanf(dat, "%*[^<]<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
+            Messages::out(Messages::Error) << "fscanf failed in GetXMLNode\n";
         }
 	} while ((strcmp(buf, CloseParent) != 0) && (strcmp(buf, NodeName) != 0) && (!feof(dat)));
 	if (strcmp(buf, CloseParent) == 0)
 		ret = 0;
 	else
 	{
-		if (strcmp(buf, NodeName) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
+		if (strcmp(buf, NodeName) != 0) Messages::out(Messages::Error) << "Incomplete node specification in XML file\n";
 		if(fscanf(dat, ">%[^<]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
+            Messages::out(Messages::Error) << "fscanf failed in GetXMLNode\n";
         }
 		if (strlen(buf) < 2048) strcpy(Value, buf);
 		//		fprintf(stderr,"# %s=%s\n",NodeName,Value);
 		if(fscanf(dat, "<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+      Messages::out(Messages::Error) << "fscanf failed in GetXMLNode\n";
+    }
 		sprintf(CloseNode, "/%s", NodeName);
-		if (strcmp(buf, CloseNode) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
+		if (strcmp(buf, CloseNode) != 0) Messages::out(Messages::Error) << "Incomplete node specification in XML file\n";
 		ret = 1;
 	}
 	if (ResetFilePos) fseek(dat, CurPos, 0);
@@ -2196,19 +2198,19 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	FILE* dat;
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
-	if (!(dat = fopen(air_travel_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open airport file\n");
+	if (!(dat = fopen(air_travel_file.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open airport file\n";
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
-        ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+        Messages::out(Messages::Error) << "fscanf failed in void ReadAirTravel\n";
     }
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
-	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
-	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
+	if (P.Nairports > MAX_AIRPORTS) Messages::out(Messages::Error) << "Too many airports\n";
+	if (P.Nairports < 2) Messages::out(Messages::Error) << "Too few airports\n";
 	buf = (float*)Memory::xcalloc(P.Nairports + 1, sizeof(float));
 	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
 		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
-            ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+            Messages::out(Messages::Error) << "fscanf failed in void ReadAirTravel\n";
         }
 		traf *= (P.AirportTrafficScale * sc);
 		if ((Airports[i].loc.x < P.SpatialBoundingBox[0]) || (Airports[i].loc.x >= P.SpatialBoundingBox[2])
@@ -2227,7 +2229,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		for (j = k = 0; j < P.Nairports; j++)
 		{
 			if(fscanf(dat, "%f", buf + j) != 1) {
-                ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
+                Messages::out(Messages::Error) << "fscanf failed in void ReadAirTravel\n";
             }
 			if (buf[j] > 0) { k++; t += buf[j]; }
 		}
@@ -2326,7 +2328,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 			}
 		}
 	outname = output_file_base + ".airdist.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open air travel output file\n");
+	if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open air travel output file\n";
 	fprintf(dat, "dist\tfreq\n");
 	for (i = 0; i < MAX_DIST; i++)
 		fprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
@@ -3061,7 +3063,7 @@ void SaveDistribs(std::string const& output_file_base)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
 						PlaceSizeDistrib[j][Places[j][i].n]++;
 		outname = output_file_base + ".placedist.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "dist");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3077,7 +3079,7 @@ void SaveDistribs(std::string const& output_file_base)
 		}
 		fclose(dat);
 		outname = output_file_base + ".placesize.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "size");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
@@ -3108,7 +3110,7 @@ void SaveOriginDestMatrix(std::string const& output_file_base)
 	FILE* dat;
 
 	std::string outname = output_file_base + ".origdestmat.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 	fprintf(dat, "0,");
 	for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 	fprintf(dat, "\n");
@@ -3133,7 +3135,7 @@ void SaveResults(std::string const& output_file_base)
 	if (P.OutputNonSeverity)
 	{
 		outname = output_file_base + ".xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for(i = 0; i < P.NumSamples; i++)
 		{
@@ -3149,7 +3151,7 @@ void SaveResults(std::string const& output_file_base)
 	if ((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		outname = output_file_base + ".adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3173,7 +3175,7 @@ void SaveResults(std::string const& output_file_base)
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		outname = output_file_base + ".digitalcontacttracing.xls"; //modifying to csv file
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
     		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3205,7 +3207,7 @@ void SaveResults(std::string const& output_file_base)
 	if ((P.DoDigitalContactTracing) && (P.OutputDigitalContactDist))
 	{
 		outname = output_file_base + ".digitalcontactdist.xls"; //modifying to csv file
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		//print headers
 		fprintf(dat, "nContacts\tFrequency\n");
 		for (i = 0; i < (MAX_CONTACTS + 1); i++)
@@ -3218,7 +3220,7 @@ void SaveResults(std::string const& output_file_base)
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
 	{
 		outname = output_file_base + ".keyworker.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3241,7 +3243,7 @@ void SaveResults(std::string const& output_file_base)
 	if(P.DoInfectionTree)
 	{
 		outname = output_file_base + "%s.tree.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
@@ -3264,7 +3266,7 @@ void SaveResults(std::string const& output_file_base)
 		outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + ".ge.kml"; // outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base ".kml";
 		if(!(dat = fopen(outname.c_str(), "wb")))
 			{
-			ERR_CRITICAL("Unable to open output kml file\n");
+			Messages::out(Messages::Error) << "Unable to open output kml file\n";
 			}
 		fprintf(dat, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.2\">\n<Document>\n");
 		fprintf(dat, "<name>%s</name>\n", output_file_base.c_str());
@@ -3309,7 +3311,7 @@ void SaveResults(std::string const& output_file_base)
 	if(P.DoSeverity)
 	{
 		outname = output_file_base + ".severity.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open severity output file\n";
 		fprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for (i = 0; i < P.NumSamples; i++)
 		{
@@ -3327,7 +3329,7 @@ void SaveResults(std::string const& output_file_base)
 		{
 			//// output severity results by admin unit
 			outname = output_file_base + ".severity.adunit.xls";
-			if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -3408,7 +3410,7 @@ void SaveResults(std::string const& output_file_base)
 	{
 		//// output infections by age and admin unit
 		outname = output_file_base + ".age.adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 
 		// colnames
@@ -3453,7 +3455,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputNonSeverity)
 	{
 		outname = output_file_base + ".xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		//// set colnames
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
 			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
@@ -3486,7 +3488,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputControls)
 	{
 		outname = output_file_base + ".controls.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t\tS\tincC\tincTC\tincFC\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
 		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tprClosed_%i", j);
 		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
@@ -3519,7 +3521,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputAge)
 	{
 		outname = output_file_base + ".age.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
 			fprintf(dat, "\tI%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
@@ -3549,7 +3551,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		outname = output_file_base + ".adunit.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3576,7 +3578,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		if (P.OutputAdUnitVar)
 		{
 			outname = output_file_base + ".adunitVar.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 			fprintf(dat, "t");
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
@@ -3603,7 +3605,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		outname = output_file_base + ".digitalcontacttracing.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -3636,7 +3638,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
 	{
 		outname = output_file_base + ".keyworker.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if(!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
@@ -3668,7 +3670,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputInfType)
 	{
 		outname = output_file_base + ".inftype.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t\tR\tTG\tSI");
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tRtype_%i", j);
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
@@ -3688,7 +3690,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputR0)
 	{
 		outname = output_file_base + ".R0.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		for (i = 0; i < MAX_SEC_REC; i++)
 		{
 			fprintf(dat, "%i", i);
@@ -3716,7 +3718,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				t += case_household_av[i][j];
 			case_household_av[i][0] = denom_household[i] / c - t;
 		}
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
 			fprintf(dat, "\t%i", i);
 		fprintf(dat, "\n");
@@ -3744,7 +3746,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputCountry)
 	{
 		outname = output_file_base + ".country.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		for (i = 0; i < MAX_COUNTRIES; i++)
 			fprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
 		fclose(dat);
@@ -3755,7 +3757,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		//// output separate severity file (can integrate with main if need be)
 		outname = output_file_base + ".severity.xls";
 
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open severity output file\n";
 		fprintf(dat, "t\tPropSocDist\tRt\tTG\tSI\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tprevQuarNotInfected\tprevQuarNotSymptomatic\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\t");
 		fprintf(dat, "PropSocDist_v\tRt_v\tTG_v\tSI_v\tS_v\tI_v\tR_v\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
@@ -3842,7 +3844,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by age group
 			outname = output_file_base + ".severity.age.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -3964,7 +3966,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
 			outname = output_file_base + ".severity.adunit.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+			if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
@@ -4076,7 +4078,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	{
 		//// output infections by age and admin unit
 		outname = output_file_base + ".age.adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 		fprintf(dat, "t");
 
 		// colnames
@@ -4123,7 +4125,7 @@ void SaveRandomSeeds(std::string const& output_file_base)
 	FILE* dat;
 
 	std::string outname = output_file_base + ".seeds.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 	fprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
 	fclose(dat);
 }
@@ -4142,7 +4144,7 @@ void SaveEvents(std::string const& output_file_base)
 	FILE* dat;
 
 	std::string outname = output_file_base + ".infevents.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 	fprintf(dat, "type,t,thread,ind_infectee,cell_infectee,listpos_infectee,adunit_infectee,x_infectee,y_infectee,t_infector,ind_infector,cell_infector\n");
 	for (i = 0; i < nEvents; i++)
 	{
@@ -4162,7 +4164,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	int** Array_InvCDF;
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
-	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open snapshot file\n";
 	fprintf(stderr, "Loading snapshot.");
 	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
 	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
@@ -4176,15 +4178,15 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 		Array_tot_prob[i] = Cells[i].tot_prob;
 	}
 
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
-	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) Messages::out(Messages::Error) << "Incorrect N (" << P.PopSize << " " << i << ") in snapshot file.\n";
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) Messages::out(Messages::Error) << "Incorrect NH in snapshot file.\n";
+	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) Messages::out(Messages::Error) << "## " << i << " neq " << P.NC << "\nIncorrect NC in snapshot file.\n";
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) Messages::out(Messages::Error) << "Incorrect NCP in snapshot file.\n";
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) Messages::out(Messages::Error) << "Incorrect ncw in snapshot file.\n";
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) Messages::out(Messages::Error) << "Incorrect nch in snapshot file.\n";
+	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) Messages::out(Messages::Error) << "Incorrect setupSeed1 in snapshot file.\n";
+	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) Messages::out(Messages::Error) << "Incorrect setupSeed2 in snapshot file.\n";
+	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) Messages::out(Messages::Error) << "Incorrect TimeStep in snapshot file.\n";
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
 	fprintf(stderr, ".");
@@ -4242,7 +4244,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	FILE* dat;
 	int i = 1;
 
-	if (!(dat = fopen(snapshot_save_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	if (!(dat = fopen(snapshot_save_file.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open snapshot file\n";
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5419,7 +5421,7 @@ int GetInputParameter(FILE* dat, FILE* dat2, const char* SItemName, const char* 
 	FindFlag = GetInputParameter2(dat, dat2, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
 	if (!FindFlag)
 	{
-		ERR_CRITICAL_FMT("\nUnable to find parameter `%s' in input file. Aborting program...\n", SItemName);
+    Messages::out(Messages::Error) << "\nUnable to find parameter `" << SItemName << "' in input file. Aborting program...\n";
 	}
 	return FindFlag;
 }
@@ -5457,14 +5459,15 @@ bool readString(const char* SItemName, FILE* dat, char *buf) {
         return true;
     } else if (r == EOF) {
         if(ferror(dat)) {
-            ERR_CRITICAL_FMT("fscanf failed for %s: %s.\n", SItemName, strerror(errno));
+            Messages::out(Messages::Error) << "fscanf failed for " << SItemName << ": " << strerror(errno) << ".\n";
         } else {
             // EOF
             return false;
         }
     } else {
-        ERR_CRITICAL_FMT("Unexpected fscanf result %d for %s.\n", r, SItemName);
+      Messages::out(Messages::Error) << "Unexpected fscanf result " << r << " for " << SItemName << ".\n";
     }
+    return false;
 }
 
 // #define to map *nix strncasecmp to windows equivalent
@@ -5514,7 +5517,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 		{
 			if (NumItem == 1)
 			{
-				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+				if(fscanf(dat, "%s", match) != 1) { Messages::out(Messages::Error) << "fscanf failed for " << SItemName << "\n"; }
 				if ((match[0] == '#') && (match[1] == '1'))
 				{
 					FindFlag++;
@@ -5590,7 +5593,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					if(fscanf(dat, "%s", match) != 1) { Messages::out(Messages::Error) << "fscanf failed for " << SItemName << "%s\n"; }
 					if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;

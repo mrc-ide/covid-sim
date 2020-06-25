@@ -10,6 +10,7 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 #include "Rand.h"
+#include "Messages.h"
 #include <functional>
 #include <cassert>
 
@@ -104,7 +105,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
 	unsigned short int ts; //// time step
-	double radiusSquared, x, y; //// radius squared, x and y coords. 
+	double radiusSquared, x, y; //// radius squared, x and y coords.
 	double q; //// quantile of inverse CDF to choose latent period.
 	Person* a;
 
@@ -1176,7 +1177,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
 									{
 										int index = StateT[tn].host_closure_queue_size;
-										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
+										if (index >= P.InfQueuePeakLength) Messages::out(Messages::Error) << "Out of space in host_closure_queue\n";
 										StateT[tn].host_closure_queue[index].host_index = l;
 										StateT[tn].host_closure_queue[index].start_time = t_start;
 										StateT[tn].host_closure_queue[index].stop_time = t_stop;
@@ -1450,7 +1451,7 @@ static void FromMild(int tn, int microCellIndex, int personIndex)
 
 static void ToMild(int tn, int microCellIndex, int personIndex)
 {
-	ToSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, 
+	ToSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit,
 		microCellIndex, personIndex);
 	ToSeverity(StateT[tn].cumMild, StateT[tn].cumMild_age, StateT[tn].cumMild_adunit,
 		microCellIndex, personIndex);
@@ -1537,7 +1538,7 @@ static void UpdateCell(int* cellPeople,
 /**
  * Function: UpdateCell
  *
- * Purpose: update Cells and Hosts 
+ * Purpose: update Cells and Hosts
  * @param cellPeople - pointer to people in cell to update. e.g. *susceptible identifies where the final susceptible member of cell is.
  * @param srcCellPeople - pointer to people in cell to update from. e.g. *infected identifies where the final infected member of cell is.
  * @param index - index into cellPeople to update

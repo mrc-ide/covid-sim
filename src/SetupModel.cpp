@@ -1,3 +1,4 @@
+#include <cassert>
 #include <climits>
 #include <cstdlib>
 #include <cstring>
@@ -17,6 +18,7 @@
 #include "InfStat.h"
 #include "Bitmap.h"
 #include "Memory.h"
+#include "Messages.h"
 
 void* BinFileBuf;
 BinFile* BF;
@@ -44,7 +46,10 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (!density_file.empty())
 	{
 		fprintf(stderr, "Scanning population density file\n");
-		if (!(dat = fopen(density_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		if (!(dat = fopen(density_file.c_str(), "rb")))
+    {
+      Messages::out(Messages::Error) << "Unable to open density file\n";
+    }
 		unsigned int density_file_header;
 		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
@@ -63,7 +68,10 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			rewind(dat);
 			P.BinFileLen = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL) P.BinFileLen++;
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			if(ferror(dat))
+      {
+        Messages::out(Messages::Error) << "Error while reading density file.\n";
+      }
 			// Read each line, and build the binary structure that corresponds to it
 			rewind(dat);
 			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
@@ -74,7 +82,10 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				int i2;
 				double x, y;
 				// This shouldn't be able to happen, as we just counted the number of lines:
-				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
+				if (index == P.BinFileLen)
+        {
+          Messages::out(Messages::Error) << "Too many input lines while reading density file\n";
+        }
 				if (P.DoAdUnits)
 				{
 					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
@@ -101,9 +112,15 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				BF[index].ad = l;
 				index++;
 			}
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			if(ferror(dat))
+      {
+        Messages::out(Messages::Error) << "Error while reading density file\n";
+      }
 			// This shouldn't be able to happen, as we just counted the number of lines:
-			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
+			if (index != P.BinFileLen)
+      {
+        Messages::out(Messages::Error) << "Too few input lines while reading density file\n";
+      }
 			fclose(dat);
 		}
 
@@ -731,7 +748,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if (!density_file.empty())
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
-		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
+		//		if(!(dat2=fopen("EnvTest.txt","w"))) Messages::out(Messages::Error) << "Unable to open test file\n";
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
@@ -765,7 +782,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 						AdUnits[P.NumAdunits].id = j2;
 						AdUnits[P.NumAdunits].cnt_id = country;
 						P.NumAdunits++;
-						if (P.NumAdunits >= MAX_ADUNITS) ERR_CRITICAL("Total number of administrative units exceeds MAX_ADUNITS\n");
+						if (P.NumAdunits >= MAX_ADUNITS)
+            {
+              Messages::out(Messages::Error) << "Total number of administrative units exceeds MAX_ADUNITS\n";
+            }
 					}
 					else
 					{
@@ -836,7 +856,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 		if (!out_density_file.empty())
 		{
-			if (!(dat2 = fopen(out_density_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
+			if (!(dat2 = fopen(out_density_file.c_str(), "wb")))
+      {
+        Messages::out(Messages::Error) << "Unable to open output density file\n";
+      }
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
@@ -878,7 +901,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
 			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
-		if (!(dat = fopen(reg_demog_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		if (!(dat = fopen(reg_demog_file.c_str(), "rb"))) {
+      Messages::out(Messages::Error) << "Unable to open regional demography file\n";
+    }
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
@@ -984,7 +1009,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		{
 			if (mcell_num[i] > 0)
             {
-				if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing PopByAdunit)\n", i);
+				if (mcell_adunits[i] < 0)
+        {
+          Messages::out(Messages::Error) << ("Cell %i has adunits < 0 (indexing PopByAdunit)\n", i);
+        }
 				mcell_dens[i] *= P.PopByAdunit[mcell_adunits[i]][1] / (1e-10 + P.PopByAdunit[mcell_adunits[i]][0]);
             }
 			maxd += mcell_dens[i];
@@ -1005,7 +1033,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
 			P.NMCP++;
-			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
+			if (mcell_adunits[i] < 0)
+      {
+        Messages::out(Messages::Error) << "Cell " << i << " has adunits < 0 (indexing AdUnits)\n";
+      }
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
 	}
@@ -1242,7 +1273,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	{
 		if (Hosts[i].age >= NUM_AGE_GROUPS * AGE_GROUP_WIDTH)
 		{
-			ERR_CRITICAL_FMT("Person %i has unexpected age %i\n", i, Hosts[i].age);
+      Messages::out(Messages::Error) << "Person " << i << " has unexpected age " << Hosts[i].age << "\n";
 		}
 		AgeDist[HOST_AGE_GROUP(i)]++;
 	}
@@ -1275,7 +1306,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		}
 		if (Mcells[j].n < P.NumInitialInfections[0])
-			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
+    {
+      Messages::out(Messages::Error) << "Too few people in seed microcell to start epidemic with required number of initial infections.\n";
+    }
 	}
 	fprintf(stderr, "Checking cells...\n");
 	maxd = ((double)P.PopSize);
@@ -1319,7 +1352,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if (!school_file.empty() && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(school_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
+		if (!(dat = fopen(school_file.c_str(), "rb")))
+    {
+      Messages::out(Messages::Error) << "Unable to open school file\n";
+    }
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -1509,7 +1545,7 @@ void SetupAirports(void)
 
 	fprintf(stderr, "Assigning airports to microcells\n");
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	assert(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum);
 
 	P.Kernel = P.AirportKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
@@ -2268,7 +2304,7 @@ void AssignPeopleToPlaces()
 									if (j >= P.Nplace[tp])
 									{
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
-										ERR_CRITICAL("Out of bounds place link\n");
+                    Messages::out(Messages::Error) << "Out of bounds place link\n";
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
 									s = ((double)ct->S) / ((double)ct->S0) * P.KernelLookup.num(t) / Cells[i].max_trans[l];
@@ -2461,11 +2497,14 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	FILE* dat;
 	int fileversion;
 
-	if (!(dat = fopen(load_network_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
+	if (!(dat = fopen(load_network_file.c_str(), "rb")))
+  {
+    Messages::out(Messages::Error) << "Unable to open network file for loading\n";
+  }
 	fread_big(&fileversion, sizeof(fileversion), 1, dat);
 	if (fileversion != NETWORK_FILE_VERSION)
 	{
-		ERR_CRITICAL("Incompatible network file - please rebuild using '/S:'.\n");
+		Messages::out(Messages::Error) << "Incompatible network file - please rebuild using '/S:'.\n";
 	}
 
 	npt = P.PlaceTypeNoAirNum;
@@ -2473,11 +2512,11 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	fread_big(&j, sizeof(int), 1, dat);
 	fread_big(&s1, sizeof(int32_t), 1, dat);
 	fread_big(&s2, sizeof(int32_t), 1, dat);
-	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
-	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
+	if (i != npt) Messages::out(Messages::Error) << "Number of place types does not match saved value\n";
+	if (j != P.PopSize) Messages::out(Messages::Error) << "Population size does not match saved value\n";
 	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2))
 	{
-		ERR_CRITICAL_FMT("Random number seeds do not match saved values: %" PRId32 " != %" PRId32 " || %" PRId32 " != %" PRId32 "\n", s1, P.setupSeed1, s2, P.setupSeed2);
+    Messages::out(Messages::Error) << "Random number seeds do not match saved values: " << s1 << " != " << P.setupSeed1 << " || " << s2 <<  " != " << P.setupSeed2 << "\n";
 	}
 	k = (P.PopSize + 999999) / 1000000;
 	for (i = 0; i < P.PopSize; i++)
@@ -2496,7 +2535,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 				if (Hosts[i2].PlaceLinks[m] >= P.Nplace[m])
 				{
 					fprintf(stderr, "*%i %i: %i %i\n", i2, m, Hosts[i2].PlaceLinks[m], P.Nplace[m]);
-					ERR_CRITICAL("Out of bounds place link\n");
+					Messages::out(Messages::Error) << "Out of bounds place link\n";
 				}
 			}
 			i2++;
@@ -2512,6 +2551,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	*/	fprintf(stderr, "\n");
 	fclose(dat);
 }
+
 void SavePeopleToPlaces(std::string const& save_network_file)
 {
 	int i, j, npt;
@@ -2519,7 +2559,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 	int fileversion = NETWORK_FILE_VERSION;
 
 	npt = P.PlaceTypeNoAirNum;
-	if (!(dat = fopen(save_network_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
+	if (!(dat = fopen(save_network_file.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open network file for saving\n";
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
 	if (P.PlaceTypeNum > 0)
@@ -2537,7 +2577,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 				if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 				{
 					fprintf(stderr, "*%i %i: %i %i\n", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
-					ERR_CRITICAL("Out of bounds place link\n");
+					Messages::out(Messages::Error) << "Out of bounds place link\n";
 				}
 		}
 	}
@@ -2554,7 +2594,7 @@ void SaveAgeDistrib(std::string const& output_file_base)
 	std::string outname;
 
 	outname = output_file_base + ".agedist.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	if (!(dat = fopen(outname.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open output file\n";
 	if (P.DoDeath)
 	{
 		fprintf(dat, "age\tfreq\tlifeexpect\n");
