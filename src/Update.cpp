@@ -1353,8 +1353,6 @@ static void SusceptibleToRecovered(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].S >= 0);
-	assert(Cells[cellIndex].latent >= 0);
-	assert(Cells[cellIndex].infected >= 0);
 }
 
 static void SusceptibleToLatent(int cellIndex)
@@ -1365,7 +1363,6 @@ static void SusceptibleToLatent(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].S >= 0);
-	assert(Cells[cellIndex].latent >= 0);
 }
 
 
@@ -1377,7 +1374,6 @@ static void LatentToInfectious(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].L >= 0);
-	assert(Cells[cellIndex].infected >= 0);
 
 }
 
