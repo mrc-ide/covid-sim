@@ -9,7 +9,6 @@
 #include <cstring>
 #include <cerrno>
 
-#include "Error.h"
 #include "Messages.h"
 
 void* Memory::xmalloc(std::size_t size) noexcept

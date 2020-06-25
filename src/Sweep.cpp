@@ -6,7 +6,6 @@
 
 #include "CalcInfSusc.h"
 #include "Dist.h"
-#include "Error.h"
 #include "InfStat.h"
 #include "Kernels.h"
 #include "Rand.h"

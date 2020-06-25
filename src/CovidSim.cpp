@@ -15,7 +15,6 @@
 #include "CovidSim.h"
 #include "BinIO.h"
 #include "Rand.h"
-#include "Error.h"
 #include "Dist.h"
 #include "Kernels.h"
 #include "Bitmap.h"

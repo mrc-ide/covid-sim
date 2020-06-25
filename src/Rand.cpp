@@ -3,7 +3,6 @@
 #include <algorithm>
 #include "Rand.h"
 #include "Constants.h"
-#include "Error.h"
 #include "Messages.h"
 
 #ifdef _OPENMP

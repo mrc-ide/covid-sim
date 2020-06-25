@@ -7,7 +7,6 @@
 #include <string>
 
 #include "CLI.h"
-#include "Error.h"
 #include "Param.h"
 #include "Messages.h"
 

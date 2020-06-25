@@ -1,7 +1,6 @@
 #include <cmath>
 #include <iostream>
 #include "Kernels.h"
-#include "Error.h"
 #include "Dist.h"
 #include "Messages.h"
 

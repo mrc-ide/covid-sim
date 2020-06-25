@@ -7,7 +7,6 @@
 
 #include "BinIO.h"
 #include "Bitmap.h"
-#include "Error.h"
 #include "Param.h"
 #include "Model.h"
 #include "Memory.h"

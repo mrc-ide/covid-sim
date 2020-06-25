@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "BinIO.h"
-#include "Error.h"
 #include "Rand.h"
 #include "Kernels.h"
 #include "Constants.h"
