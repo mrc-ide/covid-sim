@@ -604,16 +604,16 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
-				Hosts[j1].quar_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
+				HostsQuarantine[j1].start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
 				///// cycle through remaining household members and repeat the above steps
 				for (j = j1; j < j2; j++)
 				{
-					if(j>j1) Hosts[j].quar_start_time = Hosts[j1].quar_start_time;
-					Hosts[j].quar_comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
-					if ((Hosts[j].quar_comply) && (!HOST_ABSENT(j)))
+					if(j>j1) HostsQuarantine[j].start_time = HostsQuarantine[j1].start_time;
+					HostsQuarantine[j].comply = ((k == 0) ? 0 : ((ranf_mt(tn) < P.HQuarantinePropIndivCompliant) ? 1 : 0));
+					if ((HostsQuarantine[j].comply) && (!HOST_ABSENT(j)))
 					{
 						if (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff)
 						{
@@ -847,7 +847,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 		if (HOST_TREATED(ai)) Cells[Hosts[ai].pcell].cumTC++;
 		StateT[tn].cumC++;
 		StateT[tn].cumCa[age]++;
-		StateT[tn].cumC_country[Mcells[Hosts[ai].mcell].country]++; //add to cumulative count of cases in that country: ggilani - 12/11/14
+		StateT[tn].cumC_country[mcell_country[Hosts[ai].mcell]]++; //add to cumulative count of cases in that country: ggilani - 12/11/14
 		StateT[tn].cumC_keyworker[a->keyworker]++;
 
 

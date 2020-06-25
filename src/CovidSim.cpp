@@ -4,9 +4,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstdlib>
 #include <cerrno>
 #include <cstddef>
+#include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -77,11 +78,13 @@ int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
 Param P;
 Person* Hosts;
+std::vector<PersonQuarantine> HostsQuarantine;
 Household* Households;
 PopVar State, StateT[MAX_NUM_THREADS];
 Cell* Cells; // Cells[i] is the i'th cell
 Cell ** CellLookup; // CellLookup[i] is a pointer to the i'th populated cell
 Microcell* Mcells, ** McellLookup;
+std::vector<uint16_t> mcell_country;
 Place** Places;
 AdminUnit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
@@ -2470,7 +2473,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 					StateT[Thread].cumInf_age_adunit [AgeGroup][Adunit] = 0;
 				}
 
-
+	std::fill(HostsQuarantine.begin(), HostsQuarantine.end(), PersonQuarantine());
 #pragma omp parallel for schedule(static,1) default(none) \
 		shared(P, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
@@ -2479,9 +2482,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			Hosts[k].absent_start_time = USHRT_MAX - 1;
 			Hosts[k].absent_stop_time = 0;
 			if (P.DoAirports) Hosts[k].PlaceLinks[P.HotelPlaceType] = -1;
-			Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].quar_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
+			Hosts[k].vacc_start_time = Hosts[k].treat_start_time = Hosts[k].isolation_start_time = Hosts[k].absent_start_time = Hosts[k].dct_start_time = Hosts[k].dct_trigger_time = USHRT_MAX - 1;
 			Hosts[k].treat_stop_time = Hosts[k].absent_stop_time = Hosts[k].dct_end_time = 0;
-			Hosts[k].quar_comply = 2;
 			Hosts[k].to_die = 0;
 			Hosts[k].Travelling = 0;
 			Hosts[k].detected = 0; //set detected to zero initially: ggilani - 19/02/15
@@ -2717,7 +2719,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 		{
 			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width);
 			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height);
-			j = k * P.get_number_of_micro_cells_high() + l;
+			j = k * P.total_microcells_high_ + l;
 			m = 0;
 			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
 			{
@@ -5178,7 +5180,7 @@ void RecordInfTypes(void)
 			{
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
-				infcountry[Mcells[Hosts[i].mcell].country]++;
+				infcountry[mcell_country[Hosts[i].mcell]]++;
 				if (abs(Hosts[i].inf) < InfStat_Recovered)
 					l = -1;
 				else if (l >= 0)
@@ -5330,7 +5332,7 @@ void CalcOriginDestMatrix_adunit()
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
-			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_from % P.nch) * P.NMCL;
+			ptrdiff_t cl_from_mcl = (cl_from / P.nch) * P.NMCL * P.total_microcells_high_ + (cl_from % P.nch) * P.NMCL;
 
 			//loop over microcells in these cells to find populations in each admin unit and so flows
 			for (int k = 0; k < P.NMCL; k++)
@@ -5338,7 +5340,7 @@ void CalcOriginDestMatrix_adunit()
 				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.get_number_of_micro_cells_high();
+					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.total_microcells_high_;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5354,7 +5356,7 @@ void CalcOriginDestMatrix_adunit()
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
-				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.get_number_of_micro_cells_high() + (cl_to % P.nch) * P.NMCL;
+				ptrdiff_t cl_to_mcl = (cl_to / P.nch) * P.NMCL * P.total_microcells_high_ + (cl_to % P.nch) * P.NMCL;
 				//calculate distance and kernel between the cells
 				//total_flow=Cells[cl_from].max_trans[j]*Cells[cl_from].n*Cells[cl_to].n;
 				double total_flow;
@@ -5373,7 +5375,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.get_number_of_micro_cells_high();
+						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.total_microcells_high_;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
