@@ -166,12 +166,12 @@ int main(int argc, char* argv[])
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_integer_option("c", P.MaxNumThreads, "Number of threads to use");
 	args.add_integer_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
-	args.add_double_option("CLP1", P.clP1, "Overwrites #1 wildcard in parameter file");
-	args.add_double_option("CLP2", P.clP2, "Overwrites #2 wildcard in parameter file");
-	args.add_double_option("CLP3", P.clP3, "Overwrites #3 wildcard in parameter file");
-	args.add_double_option("CLP4", P.clP4, "Overwrites #4 wildcard in parameter file");
-	args.add_double_option("CLP5", P.clP5, "Overwrites #5 wildcard in parameter file");
-	args.add_double_option("CLP6", P.clP6, "Overwrites #6 wildcard in parameter file");
+	args.add_double_option("CLP1", P.clP[0], "Overwrites #1 wildcard in parameter file");
+	args.add_double_option("CLP2", P.clP[1], "Overwrites #2 wildcard in parameter file");
+	args.add_double_option("CLP3", P.clP[2], "Overwrites #3 wildcard in parameter file");
+	args.add_double_option("CLP4", P.clP[3], "Overwrites #4 wildcard in parameter file");
+	args.add_double_option("CLP5", P.clP[4], "Overwrites #5 wildcard in parameter file");
+	args.add_double_option("CLP6", P.clP[5], "Overwrites #6 wildcard in parameter file");
 	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
@@ -5517,66 +5517,19 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			if (NumItem == 1)
 			{
 				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-				if ((match[0] == '#') && (match[1] == '1'))
-				{
-					FindFlag++;
-					if (n == 1)
-						* ((double*)ItemPtr) = P.clP1;
-					else if (n == 2)
-						* ((int*)ItemPtr) = (int)P.clP1;
-					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
+				if (match[0] == '#') {
+					int match_id = match[1] - '1';
+					if ((match_id >= 1) && (match_id <= 6))
+					{
+						FindFlag++;
+						if (n == 1)
+							* ((double*)ItemPtr) = P.clP[match_id];
+						else if (n == 2)
+							* ((int*)ItemPtr) = (int)P.clP[match_id];
+						else if (n == 3)
+							sscanf(match, "%s", (char*)ItemPtr);
+					}
 				}
-				else if ((match[0] == '#') && (match[1] == '2'))
-				{
-					FindFlag++;
-					if (n == 1)
-						* ((double*)ItemPtr) = P.clP2;
-					else if (n == 2)
-						* ((int*)ItemPtr) = (int)P.clP2;
-					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-				}
-				else if((match[0] == '#') && (match[1] == '3'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP3;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP3;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '4'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP4;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP4;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '5'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP5;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP5;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
-				else if((match[0] == '#') && (match[1] == '6'))
-					{
-					FindFlag++;
-					if(n == 1)
-						* ((double*)ItemPtr) = P.clP6;
-					else if(n == 2)
-						* ((int*)ItemPtr) = (int)P.clP6;
-					else if(n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
-					}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
 					FindFlag++;
