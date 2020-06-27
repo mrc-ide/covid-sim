@@ -50,7 +50,7 @@ to:
 
 The model is written in C++.
 
-The primary platforms it has been developed and tested on are Windows and Ubuntu Linux.
+The primary platforms it has been developed and tested on Windows and Ubuntu Linux.
 
 It should build and run on any other POSIX compliant Unix-like platform (for example macOS, other Linux distributions).  However, no active development occurs on them.
 
