@@ -23,6 +23,108 @@ void* BinFileBuf;
 BinFile* BF;
 int netbuf[NUM_PLACE_TYPES * 1000000];
 
+namespace {
+// code for first 4 bytes of binary file ## NOTE - SHOULD
+// BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+constexpr std::uint32_t binary_density_file_magic_number = 0xf0f0f0f0;
+
+void ReadBinaryDensityFile(FILE *dat)
+{
+	P.DoBin = 1;
+	fread_big(&(P.BinFileLen), sizeof(std::uint32_t), 1, dat);
+	BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
+	fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
+	BF = (BinFile *)BinFileBuf;
+	fclose(dat);
+}
+
+void ReadTSVDensityFile(FILE *dat)
+{
+	char buf[2048];
+	P.DoBin = 0;
+	// Count the number of lines in the density file
+	rewind(dat);
+	P.BinFileLen = 0;
+	while (fgets(buf, sizeof(buf), dat) != NULL)
+		P.BinFileLen++;
+	if (ferror(dat))
+		ERR_CRITICAL("Error while reading density file\n");
+	// Read each line, and build the binary structure that corresponds to it
+	rewind(dat);
+	BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
+	BF = (BinFile *)BinFileBuf;
+	int index = 0;
+	while (fgets(buf, sizeof(buf), dat) != NULL)
+	{
+		int i2, l;
+		double t, x, y;
+		// This shouldn't be able to happen, as we just counted the number of lines:
+		if (index == P.BinFileLen)
+			ERR_CRITICAL("Too many input lines while reading density file\n");
+		if (P.DoAdUnits)
+		{
+			sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
+			if (l / P.CountryDivisor != i2)
+			{
+				// fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
+			}
+		}
+		else
+		{
+			sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
+			l = 0;
+		}
+		// Ensure we use an x which gives us a contiguous whole for the
+		// geography.
+		if (x >= P.LongitudeCutLine)
+		{
+			BF[index].x = x;
+		}
+		else
+		{
+			BF[index].x = x + 360;
+		}
+		BF[index].y = y;
+		BF[index].pop = t;
+		BF[index].cnt = i2;
+		BF[index].ad = l;
+		index++;
+	}
+	if (ferror(dat))
+		ERR_CRITICAL("Error while reading density file\n");
+	// This shouldn't be able to happen, as we just counted the number of lines:
+	if (index != P.BinFileLen)
+		ERR_CRITICAL("Too few input lines while reading density file\n");
+	fclose(dat);
+}
+
+void ReadDensityFile(const std::string& density_file)
+{
+	FILE *dat;
+	fprintf(stderr, "Scanning population density file\n");
+	if (!(dat = fopen(density_file.c_str(), "rb")))
+		ERR_CRITICAL("Unable to open density file\n");
+    std::uint32_t density_file_header;
+	fread_big(&density_file_header, sizeof(std::uint32_t), 1, dat);
+	if (density_file_header == binary_density_file_magic_number)
+	{
+		return ReadBinaryDensityFile(dat);
+	}
+	return ReadTSVDensityFile(dat);
+}
+
+void WriteBinaryDensityFile(const std::string& out_density_file)
+{
+	FILE *dat2;
+	if (!(dat2 = fopen(out_density_file.c_str(), "wb")))
+		ERR_CRITICAL("Unable to open output density file\n");
+	fwrite_big((void *)&binary_density_file_magic_number, sizeof(std::uint32_t), 1, dat2);
+	fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
+	fwrite_big((void *)&(P.BinFileLen), sizeof(unsigned int), 1, dat2);
+	fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
+	fclose(dat2);
+}
+}
 
 ///// INITIALIZE / SET UP FUNCTIONS
 void SetupModel(std::string const& density_file, std::string const& out_density_file, std::string const& load_network_file,
@@ -32,8 +134,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	int l, m, j2, l2, m2;
 	unsigned int rn;
 	double t, s, s2, s3, t2, t3, d, q;
-	char buf[2048];
-	FILE* dat;
 
   Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
   Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
@@ -44,69 +144,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.DoBin = -1;
 	if (!density_file.empty())
 	{
-		fprintf(stderr, "Scanning population density file\n");
-		if (!(dat = fopen(density_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
-		unsigned int density_file_header;
-		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
-		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
-		{
-			P.DoBin = 1;
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
-			BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
-			BF = (BinFile*)BinFileBuf;
-			fclose(dat);
-		}
-		else
-		{
-			P.DoBin = 0;
-			// Count the number of lines in the density file
-			rewind(dat);
-			P.BinFileLen = 0;
-			while(fgets(buf, sizeof(buf), dat) != NULL) P.BinFileLen++;
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
-			// Read each line, and build the binary structure that corresponds to it
-			rewind(dat);
-			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-			BF = (BinFile*)BinFileBuf;
-			int index = 0;
-			while(fgets(buf, sizeof(buf), dat) != NULL)
-			{
-				int i2;
-				double x, y;
-				// This shouldn't be able to happen, as we just counted the number of lines:
-				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
-				if (P.DoAdUnits)
-				{
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
-					if (l / P.CountryDivisor != i2)
-					{
-						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
-					}
-				}
-				else {
-					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
-					l = 0;
-				}
-				// Ensure we use an x which gives us a contiguous whole for the
-				// geography.
-				if (x >= P.LongitudeCutLine) {
-					BF[index].x = x;
-				}
-				else {
-					BF[index].x = x + 360;
-				}
-				BF[index].y = y;
-				BF[index].pop = t;
-				BF[index].cnt = i2;
-				BF[index].ad = l;
-				index++;
-			}
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
-			// This shouldn't be able to happen, as we just counted the number of lines:
-			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
-			fclose(dat);
-		}
+        ReadDensityFile(density_file);
 
 		if (P.DoAdunitBoundaries)
 		{
@@ -702,14 +740,118 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	fprintf(stderr, "Model configuration complete.\n");
 }
 
+namespace {
+void ReadSchoolFile(const std::string& school_file)
+{
+	int m;
+	FILE *dat;
+	fprintf(stderr, "Reading school file\n");
+	if (!(dat = fopen(school_file.c_str(), "rb")))
+		ERR_CRITICAL("Unable to open school file\n");
+	fscanf(dat, "%i", &P.nsp);
+	for (int j = 0; j < P.nsp; j++)
+	{
+		fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
+		Places[j] = (Place *)Memory::xcalloc(m, sizeof(Place));
+		for (int i = 0; i < m; i++)
+			Places[j][i].AvailByAge = (unsigned short int *)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
+		P.Nplace[j] = 0;
+		for (int i = 0; i < P.NMC; i++)
+			Mcells[i].np[j] = 0;
+	}
+	int mr = 0;
+	int j;
+	while (!feof(dat))
+	{
+		double x, y;
+		fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
+		for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++)
+			fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
+		Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox[0]);
+		Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox[1]);
+		if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) &&
+				(y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
+		{
+			int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width)) +
+							((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height));
+			if (Cells[i].n == 0)
+				mr++;
+			Places[j][P.Nplace[j]].n = m;
+			i = (int)(Places[j][P.Nplace[j]].loc.x / P.in_microcells_.width);
+			const int k = (int)(Places[j][P.Nplace[j]].loc.y / P.in_microcells_.height);
+			const int j2 = i * P.total_microcells_high_ + k;
+			Mcells[j2].np[j]++;
+			Places[j][P.Nplace[j]].mcell = j2;
+			P.Nplace[j]++;
+			if (P.Nplace[j] % 1000 == 0)
+				fprintf(stderr, "%i read    \r", P.Nplace[j]);
+		}
+	}
+	fclose(dat);
+	fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
+}
+
+void ReadRegDemogFile(const std::string& reg_demog_file)
+{
+	constexpr char delimiters[] = " \t,";
+
+	FILE *dat;
+	if (!(dat = fopen(reg_demog_file.c_str(), "rb")))
+		ERR_CRITICAL("Unable to open regional demography file\n");
+	for (int k = 0; k < P.NumAdunits; k++)
+	{
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			P.PropAgeGroup[k][i] = 0;
+		for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
+			P.HouseholdSizeDistrib[k][i] = 0;
+		P.PopByAdunit[k][1] = 0;
+	}
+	char buf[4096];
+	while (!feof(dat))
+	{
+		fgets(buf, 2047, dat);
+		char *col = strtok(buf, delimiters);
+		int l;
+		sscanf(col, "%i", &l);
+		const int m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
+		const int k = P.AdunitLevel1Lookup[m];
+		if (k >= 0)
+			if (l / P.AdunitLevel1Mask == AdUnits[k].id / P.AdunitLevel1Mask)
+			{
+				col = strtok(NULL, delimiters);
+				double x;
+				sscanf(col, "%lg", &x);
+				P.PopByAdunit[k][1] += x;
+				double s;
+				for (int i = 0; i < NUM_AGE_GROUPS; i++)
+				{
+					col = strtok(NULL, delimiters);
+					sscanf(col, "%lg", &s);
+					P.PropAgeGroup[k][i] += s;
+				}
+				col = strtok(NULL, delimiters);
+				if (P.DoHouseholds)
+				{
+					double y;
+					sscanf(col, "%lg", &y);
+					for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
+					{
+						col = strtok(NULL, delimiters);
+						sscanf(col, "%lg", &s);
+						P.HouseholdSizeDistrib[k][i] += y * s;
+					}
+				}
+			}
+	}
+	fclose(dat);
+}
+}
+
 void SetupPopulation(std::string const& density_file, std::string const& out_density_file, std::string const& school_file, std::string const& reg_demog_file)
 {
 	int j, l, m, i2, j2, last_i, mr, ad, country;
 	unsigned int rn, rn2;
 	double t, s, x, y, xh, yh, maxd, CumAgeDist[NUM_AGE_GROUPS + 1];
-	char buf[4096], *col;
-	const char delimiters[] = " \t,";
-	FILE* dat = NULL, *dat2;
 	BinFile rec;
 	double *mcell_dens;
 	int *mcell_adunits, *mcell_num;
@@ -839,13 +981,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 		if (!out_density_file.empty())
 		{
-			if (!(dat2 = fopen(out_density_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
-			rn = 0xf0f0f0f0;
-			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
-			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
-			fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
-			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
-			fclose(dat2);
+            WriteBinaryDensityFile(out_density_file);
 		}
 		Memory::xfree(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
@@ -879,49 +1015,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
 			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
-		if (!(dat = fopen(reg_demog_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
-		for (int k = 0; k < P.NumAdunits; k++)
-		{
-			for (int i = 0; i < NUM_AGE_GROUPS; i++)
-				P.PropAgeGroup[k][i] = 0;
-			for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
-				P.HouseholdSizeDistrib[k][i] = 0;
-			P.PopByAdunit[k][1] = 0;
-		}
-		while (!feof(dat))
-		{
-			fgets(buf, 2047, dat);
-			col = strtok(buf, delimiters);
-			sscanf(col, "%i", &l);
-			m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
-			int k = P.AdunitLevel1Lookup[m];
-			if (k >= 0)
-				if (l / P.AdunitLevel1Mask == AdUnits[k].id / P.AdunitLevel1Mask)
-				{
-					col = strtok(NULL, delimiters);
-					sscanf(col, "%lg", &x);
-					P.PopByAdunit[k][1] += x;
-					t = 0;
-					for (int i = 0; i < NUM_AGE_GROUPS; i++)
-					{
-						col = strtok(NULL, delimiters);
-						sscanf(col, "%lg", &s);
-						P.PropAgeGroup[k][i] += s;
-					}
-					col = strtok(NULL, delimiters);
-					if (P.DoHouseholds)
-					{
-						sscanf(col, "%lg", &y);
-						for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
-						{
-							col = strtok(NULL, delimiters);
-							sscanf(col, "%lg", &s);
-							P.HouseholdSizeDistrib[k][i] += y * s;
-						}
-					}
-				}
-		}
-		fclose(dat);
+        ReadRegDemogFile(reg_demog_file);
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			t = 0;
@@ -1319,41 +1413,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
 	if (!school_file.empty() && (P.DoPlaces))
 	{
-		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(school_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
-		fscanf(dat, "%i", &P.nsp);
-		for (j = 0; j < P.nsp; j++)
-		{
-			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
-			Places[j] = (Place*)Memory::xcalloc(m, sizeof(Place));
-			for (int i = 0; i < m; i++)
-				Places[j][i].AvailByAge = (unsigned short int*)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
-			P.Nplace[j] = 0;
-			for (int i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
-		}
-		mr = 0;
-		while (!feof(dat))
-		{
-			fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
-			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
-			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox[0]);
-			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox[1]);
-			if ((x >= P.SpatialBoundingBox[0]) && (x < P.SpatialBoundingBox[2]) && (y >= P.SpatialBoundingBox[1]) && (y < P.SpatialBoundingBox[3]))
-			{
-				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width)) + ((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height));
-				if (Cells[i].n == 0) mr++;
-				Places[j][P.Nplace[j]].n = m;
-				i = (int)(Places[j][P.Nplace[j]].loc.x / P.in_microcells_.width);
-				int k = (int)(Places[j][P.Nplace[j]].loc.y / P.in_microcells_.height);
-				j2 = i * P.total_microcells_high_ + k;
-				Mcells[j2].np[j]++;
-				Places[j][P.Nplace[j]].mcell = j2;
-				P.Nplace[j]++;
-				if (P.Nplace[j] % 1000 == 0) fprintf(stderr, "%i read    \r", P.Nplace[j]);
-			}
-		}
-		fclose(dat);
-		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
+        ReadSchoolFile(school_file);
 		for (int i = 0; i < P.NMC; i++)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
