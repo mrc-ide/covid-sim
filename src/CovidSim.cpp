@@ -53,7 +53,7 @@ void SaveSnapshot(void);
 void RecordInfTypes(void);
 void RecordSample(double, int);
 void CalibrationThresholdCheck(double, int);
-void CalcLikelihood(char*, char*);
+void CalcLikelihood(int, char*, char*);
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
 
 int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, int);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 			}
 			else if (argv[i][1] == 'D' && argv[i][2] == 'T' && argv[i][3] == ':')
 			{
-				sscanf(&argv[i][3], "%s", DataFile);
+				sscanf(&argv[i][4], "%s", DataFile);
 				GotDT = 1;
 			}
 			else if (argv[i][1] == 'A' && argv[i][2] == ':')
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
 					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
-				if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
+				if (((i == 0) && (P.FitIter==1)) || (P.ResetSeeds && P.KeepSameSeeds))
 				{
 					P.nextRunSeed1 = P.runSeed1;
 					P.nextRunSeed2 = P.runSeed2;
@@ -443,7 +443,7 @@ int main(int argc, char* argv[])
 					ContCalib = RunModel(i);
 				}
 				while (ContCalib);
-
+				if (GotDT) CalcLikelihood(i, DataFile, OutFileBase);
 				if (P.OutputNonSummaryResults)
 				{
 					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
@@ -474,8 +474,8 @@ int main(int argc, char* argv[])
 			sprintf(OutFile, "%s.avNE", OutFileBase);
 			SaveSummaryResults();
 			P.NRactual = P.NRactE;
-			TSMean = TSMeanE; TSVar = TSVarE;
-			sprintf(OutFile, "%s.avE", OutFileBase);
+			//TSMean = TSMeanE; TSVar = TSVarE;
+			//sprintf(OutFile, "%s.avE", OutFileBase);
 			//SaveSummaryResults();
 
 			Bitmap_Finalise();
@@ -484,7 +484,6 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 			fprintf(stderr, "Model finished\n");
 		}
-		if (GotDT) CalcLikelihood(DataFile,OutFile);
 	}
 	while (!StopFit);
 }
@@ -549,6 +548,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include households", "%i", (void*)&(P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge", "%i", (void*)&(P.OutputAge), 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverity", "%i", (void*)&(P.OutputSeverity), 1, 1, 0)) P.OutputSeverity = 1;	//// ON  by default.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit", "%i", (void*)&(P.OutputSeverityAdminUnit), 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge", "%i", (void*)&(P.OutputSeverityAge), 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge", "%i", (void*)&(P.OutputAdUnitAge), 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
@@ -3558,7 +3558,7 @@ void SaveResults(void)
 #endif
 
 
-	if(P.DoSeverity)
+	if((P.DoSeverity)&&(P.OutputSeverity))
 	{
 		sprintf(outname, "%s.severity.xls", OutFile);
 		if(!(dat = fopen(outname, "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
@@ -4002,7 +4002,7 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 		fclose(dat);
 	}
 
-	if (P.DoSeverity)
+	if ((P.DoSeverity)&&(P.OutputSeverity))
 	{
 		//// output separate severity file (can integrate with main if need be)
 		sprintf(outname, "%s.severity.xls", OutFile);
@@ -5414,25 +5414,25 @@ void CalibrationThresholdCheck(double t,int n)
 	}
 }
 
-void CalcLikelihood(char *DataFile, char *OutFileBase)
+void CalcLikelihood(int run, char *DataFile, char *OutFileBase)
 {
 	FILE* dat;
 
 	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
-	static double **Data,NegBinK;
+	static double **Data,NegBinK,sumL;
 
 	if (!DataAlreadyRead)
 	{
 		char FieldName[1024];
 		if (!(dat = fopen(DataFile, "r"))) ERR_CRITICAL("Unable to open data file\n");
-		fscanf(dat, "%i %i %lg", &ncols, &nrows,&NegBinK);
-		ncols++; // add one for time column
+		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
 		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		for(int i=0;i<nrows;i++)
 			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		for (int i = 0; i < ncols; i++)
 		{
+			ColTypes[i] = -100;
 			fscanf(dat, "%s", FieldName);
 			if (!strcmp(FieldName, "day"))
 			{
@@ -5459,6 +5459,7 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 				ColTypes[i] = 6;
 				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
 			}
+			fprintf(stderr, "## %i %s\n", ColTypes[i], FieldName);
 		}
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
@@ -5470,7 +5471,8 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 	// calculate likelihood function
 	double c, LL;
 	LL = 0.0;
-	c = 1 / ((double)(P.NRactE + P.NRactNE));
+	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
+	int offset= (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
 	for (int i = 1; i < ncols;i++)
 	{
 		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2)) 
@@ -5482,13 +5484,20 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 				{
 					double ModelValue;
 					if (ColTypes[i]==0)
-						ModelValue=c*TimeSeries[day].incD; // all deaths by date of death
+						ModelValue=c*TimeSeries[day-offset].incD; // all deaths by date of death
 					else if (ColTypes[i] == 1)
-						ModelValue=c*(TimeSeries[day].incDeath_Critical+ TimeSeries[day].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
+						ModelValue=c*(TimeSeries[day-offset].incDeath_Critical+ TimeSeries[day-offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
 					else if (ColTypes[i] == 2)
-						ModelValue = c * TimeSeries[day].incDeath_ILI; // care home deaths (ILI) by date of death
-					// negative binomial log likelihood
-					LL += lgamma(ModelValue+ NegBinK)-lgamma(ModelValue + 1)+ NegBinK*log(NegBinK/(NegBinK+ ModelValue))+ ModelValue*log(1e-20+ ModelValue/(NegBinK+ModelValue));
+						ModelValue = c * TimeSeries[day-offset].incDeath_ILI; // care home deaths (ILI) by date of death
+					//poisson LL with offset of 1 to avoid NaN at zero
+					double zero_offset = 1;
+					if (NegBinK >= 1000)
+						//prob model and data from same underlying poisson
+						LL += lgamma(2 * (Data[j][i] + ModelValue) + 1) - lgamma(Data[j][i] + ModelValue + 1) - lgamma(Data[j][i] + 1) - lgamma(ModelValue + 1) - (3 * (Data[j][i] + ModelValue) + 1) * log(2);
+						//LL += -(ModelValue + zero_offset) - lgamma(Data[j][i] + 1+ zero_offset) + (Data[j][i]+ zero_offset) * log(ModelValue + zero_offset);
+					else
+					//neg bin LL with offset of 1 to avoid NaN at zero
+					LL+= lgamma(Data[j][i] + NegBinK)-lgamma(Data[j][i] + 1) - lgamma(NegBinK) + NegBinK*log(NegBinK/(NegBinK+ ModelValue + zero_offset))+ Data[j][i]*log((ModelValue+ zero_offset)/(NegBinK + ModelValue + zero_offset));
 				}
 			}
 		}
@@ -5502,12 +5511,12 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 					double m = Data[j][i]; // numerator
 					double N = Data[j][i + 1]; // denominator
 					double ModelValue;
-					for (int k = 0; k < day; k++) // loop over all days of infection up to day of sample
+					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
 						double prob_seroconvert = P.SeroConvMaxSens/(1.0+pow(P.SeroConvTime/((double)(day - k)),P.SeroConvPow));
-						ModelValue += c * TimeSeries[k].incI * prob_seroconvert;
+						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
-					ModelValue += c * TimeSeries[day].S * (1.0 - P.SeroConvSpec);
+					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
 					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
 				}
@@ -5522,19 +5531,33 @@ void CalcLikelihood(char *DataFile, char *OutFileBase)
 				{
 					double m = Data[j][i]; // numerator
 					double N = Data[j][i + 1]; // denominator
-					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day].I / ((double)P.PopSize);
+					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day-offset].I / ((double)P.PopSize);
 					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
 				}
 			}
 		}
 	}
-	char OutFile[1024], TmpFile[1024];
-	sprintf(TmpFile, "%s.ll.tmp",OutFileBase);
-	sprintf(OutFile, "%s.ll.txt", OutFileBase);
-	if (!(dat = fopen(TmpFile, "w"))) ERR_CRITICAL("Unable to open likelihood file\n");
-	fprintf(dat, "%i\t%lg\n", P.FitIter, LL);
-	fclose(dat);
-	rename(TmpFile, OutFile); // rename only when file is complete and closed
+	fprintf(stderr, "Log-likelihood = %lg\n", LL);
+	if (run == 0)
+		sumL = LL;
+	else
+	{
+		double maxLL = LL;
+		if (sumL > maxLL) maxLL = sumL;
+		sumL = maxLL + log(exp(sumL - maxLL) + exp(LL - maxLL));
+	}
+
+	if (run + 1 == P.NumRealisations)
+	{
+		LL = sumL - log((double)P.NumRealisations);
+		char OutFile[1024], TmpFile[1024];
+		sprintf(TmpFile, "%s.ll.tmp", OutFileBase);
+		sprintf(OutFile, "%s.ll.txt", OutFileBase);
+		if (!(dat = fopen(TmpFile, "w"))) ERR_CRITICAL("Unable to open likelihood file\n");
+		fprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
+		fclose(dat);
+		rename(TmpFile, OutFile); // rename only when file is complete and closed
+	}
 }
 
 void RecordInfTypes(void)
@@ -5655,6 +5678,7 @@ void RecordInfTypes(void)
 	}
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
+
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;

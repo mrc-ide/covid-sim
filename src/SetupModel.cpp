@@ -544,7 +544,7 @@ int ReadFitIter(char* FitFile)
 	double cl,cl2;
 	char FitFileIter[1024];
 
-	sprintf(FitFileIter, "%s.F%i.txt", FitFile, P.FitIter);
+	sprintf(FitFileIter, "%s.f%i.txt", FitFile, P.FitIter);
 	do
 	{
 		cl = ((double) clock()) / CLOCKS_PER_SEC;
@@ -641,6 +641,7 @@ void InitTransmissionCoeffs(void)
 		for (int j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
 			{
+			double tpl = t;
 #pragma omp parallel for private(d,q,s2,s3,t3,l,m) schedule(static,1000) reduction(+:t) default(none) shared(P, Hosts, Places, j)
 				for (int i = 0; i < P.PopSize; i++)
 				{
@@ -683,7 +684,7 @@ void InitTransmissionCoeffs(void)
 						t += (1 - t3 * d) * s3 + (1 - d) * (((double)(Places[j][k].n - 1)) - s3);
 					}
 				}
-				fprintf(stderr, "%lg  ", t / ((double)P.PopSize));
+				fprintf(stderr, "%lg  ", (t-tpl) / ((double)P.PopSize));
 			}
 	double recovery_time_days = 0;
 	double recovery_time_timesteps = 0;
