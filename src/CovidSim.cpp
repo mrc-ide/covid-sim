@@ -311,7 +311,7 @@ int main(int argc, char* argv[])
 		int ModelCalibLoop = 0;
 		while (RunModel(i, snapshot_save_file, snapshot_load_file, run_output_file_base))
 		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			if ((P.ModelCalibIteration == 10) && (ModelCalibLoop < 3))
+			if ((P.ModelCalibIteration == 16) && (ModelCalibLoop < 3))
 			{
 				thisRunSeed1 = P.nextRunSeed1;
 				thisRunSeed2 = P.nextRunSeed2;
@@ -5015,7 +5015,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
 						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations, adjust timings
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 < 2)) // on even iterations, adjust timings
 					{
 						if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
 						{
@@ -5028,7 +5028,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 							P.HolidaysStartDay_SimTime++;
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))  // on odd iterations, adjust seeding.
+					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))  // on odd iterations, adjust seeding.
 						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
