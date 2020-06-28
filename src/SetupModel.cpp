@@ -331,7 +331,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = Hosts[i].care_home_resident = 0;
-
+	double nstaff = 0, nres = 0;
 	if ((P.CareHomePlaceType >= 0) && (P.CareHomeResidentMinimumAge < 1000))  // label care home residents as they don't have household contacts
 	{
 		double nstaff = 0, nres = 0;
@@ -350,7 +350,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	else
 		P.CareHomePropResidents = 0.0;
-
+	fprintf(stderr, "%lg care home residents\n%lg care home workers\n", nres, nstaff);
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	if (P.DoPlaces)
@@ -565,7 +565,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 
-			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
+			// Care home residents less likely to infect via spatial contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * ((Hosts[i].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0) * P.TimeStep;
 
@@ -1995,17 +1995,20 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.Nplace[tp]; i++)
 					{
 						Places[tp][i].n = 0;
-						j = (int)gen_lognormal(P.PlaceTypeMeanSize[tp], P.PlaceTypeSizeSD[tp]);
+						do
+						{
+							j = (int)gen_lognormal(P.PlaceTypeMeanSize[tp], P.PlaceTypeSizeSD[tp]);
+						} while (j<P.PlaceTypeSizeMin[tp] || j>P.PlaceTypeSizeMax[tp]);
 						if (j > USHRT_MAX - 1) j = USHRT_MAX - 1;
 						m += (int)(Places[tp][i].treat_end_time = (unsigned short)j);
 					}
 				}
 				else
 				{
-					s = pow(P.PlaceTypeSizeOffset[tp] / (P.PlaceTypeSizeOffset[tp] + P.PlaceTypeSizeMax[tp] - 1), P.PlaceTypeSizePower[tp]);
+					s = pow(P.PlaceTypeSizeOffset[tp] / (P.PlaceTypeSizeOffset[tp] + P.PlaceTypeSizeMax[tp] - P.PlaceTypeSizeMin[tp]), P.PlaceTypeSizePower[tp]);
 					for (int i = 0; i < P.Nplace[tp]; i++)
 					{
-						j = (int)floor(P.PlaceTypeSizeOffset[tp] * pow((1 - s) * ranf() + s, -1 / P.PlaceTypeSizePower[tp]) + 1 - P.PlaceTypeSizeOffset[tp]);
+						j = (int)floor(P.PlaceTypeSizeOffset[tp] * pow((1 - s) * ranf() + s, -1 / P.PlaceTypeSizePower[tp]) + P.PlaceTypeSizeMin[tp] - P.PlaceTypeSizeOffset[tp]);
 						if (j > USHRT_MAX - 1) j = USHRT_MAX - 1;
 						m += (int)(Places[tp][i].treat_end_time = (unsigned short)j);
 						Places[tp][i].n = 0;
