@@ -430,16 +430,29 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (	((a->Severity_Final == Severity::Critical)	&& (ranf_mt(tn) < P.CFR_Critical_ByAge	[age]))		||
-					((a->Severity_Final == Severity::SARI	)	&& (ranf_mt(tn) < P.CFR_SARI_ByAge		[age]))		||
-					((a->Severity_Final == Severity::ILI		)	&& (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]))		)
+			if (((a->Severity_Final == Severity::Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age])) ||
+				((a->Severity_Final == Severity::SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age])) ||
+				((a->Severity_Final == Severity::ILI) && (ranf_mt(tn) < P.CFR_ILI_ByAge[age])))
+			{
 				a->to_die = 1;
+			}
+
+			if ((a->care_home_resident) && ((a->Severity_Final == Severity::Critical) || (a->Severity_Final == Severity::SARI)) && (ranf_mt(tn) > P.CareHomeRelProbHosp))
+			{
+				// care home residents who weren't hospitalised but would otherwise have needed critical care will all die
+				if (a->Severity_Final == Severity::Critical)
+				{
+					a->to_die = 1;
+				}
+				// change final severity to ILI (meaning not hospitalised), but leave to_die flag
+				a->Severity_Final = Severity::ILI;
+			}
 
 			//// choose events and event times
 			if (a->Severity_Final == Severity::Mild)
-      {
+			{
 				a->recovery_or_death_time = CaseTime + P.MildToRecovery_icdf.choose(P.Mean_MildToRecovery[age], tn, P.TimeStepsPerDay);
-      }
+			}
 			else if (a->Severity_Final == Severity::Critical)
 			{
 				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);

@@ -635,6 +635,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
 										// calculate place susceptibility s
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
+										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k] != Hosts[i3].PlaceGroupLinks[k]))
+											s *= P.CareHomeResidentGroupScaling;
+
 										
 										// ** Do contact tracing in hotels **
 										

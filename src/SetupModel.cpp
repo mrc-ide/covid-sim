@@ -324,18 +324,33 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
 
-	if ((P.CareHomePlaceType >= 0) && (P.CareHomeResidentMinimumAge < 1000))  // label care home residents as they don't have household contacts
-	{
-		for (int i = 0; i < P.PopSize; i++)
-			Hosts[i].care_home_resident = ((Hosts[i].PlaceLinks[P.CareHomePlaceType] >= 0) && (Hosts[i].age >= P.CareHomeResidentMinimumAge)) ? 1 : 0;
-	}
 
 	fprintf(stderr, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 
-	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
+	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = Hosts[i].care_home_resident = 0;
+
+	if ((P.CareHomePlaceType >= 0) && (P.CareHomeResidentMinimumAge < 1000))  // label care home residents as they don't have household contacts
+	{
+		double nstaff = 0, nres = 0;
+		for (int i = 0; i < P.PopSize; i++)
+			if (Hosts[i].PlaceLinks[P.CareHomePlaceType] >= 0)
+			{
+				if (Hosts[i].age >= P.CareHomeResidentMinimumAge)
+				{
+					Hosts[i].care_home_resident = 1;
+					nres++;
+				}
+				else
+					nstaff++;
+			}
+		P.CareHomePropResidents = (nres > 0) ? (nres / (nres + nstaff)) : 0.0;
+	}
+	else
+		P.CareHomePropResidents = 0.0;
+
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	if (P.DoPlaces)
@@ -498,8 +513,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	t2 = s = 0;
 	s3 = 1.0;
-#pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2) default(none) \
-		shared(P, Households, Hosts)
+#pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2) default(none) shared(P, Households, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.PopSize; i += P.NumThreads)
@@ -522,9 +536,17 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			if (P.DoHouseholds)
 			{
 				if (P.NoInfectiousnessSDinHH)
+				{
 					s2 = ((Hosts[i].infectiousness < 0) ? P.SymptInfectiousness : 1.0);
+				}
 				else
+				{
 					s2 = fabs(Hosts[i].infectiousness);
+				}
+
+				// Care home residents less likely to infect via "household" contacts. 
+				if (Hosts[i].care_home_resident) s2 *= P.CareHomeResidentHouseholdScaling;
+
 				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
 				for (int k = 0; k < l; k++) {
@@ -533,14 +555,24 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)];
+				for (int k = l; k < m; k++)
+				{
+					if ((Hosts[k].inf == InfStat_Susceptible) && (k != i))
+					{
+						s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+					}
+				}
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
-			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * P.TimeStep;
+
+			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
+			// but since the latter are a small proportion of the population, this is a minor issue
+			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * ((Hosts[i].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0) * P.TimeStep;
+
 			l = (int)(q / P.TimeStep);
 
-			int k;
-			for (k = 0; k < l; k++) t2 += s2 * P.infectiousness[k];
+			int k = l;
+			for (int k2 = 0; k2 < l; k++) t2 += s2 * P.infectiousness[k2];
 			s2 *= ((Hosts[i].infectiousness < 0) ? P.SymptSpatialContactRate : 1);
 			l = (int)Hosts[i].recovery_or_death_time;
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
@@ -554,8 +586,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		for (int j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
 			{
-#pragma omp parallel for private(d,q,s2,s3,t3,l,m) schedule(static,1000) reduction(+:t) default(none) \
-					shared(P, Hosts, Places, j)
+#pragma omp parallel for private(d,q,s2,s3,t3,l,m) schedule(static,1000) reduction(+:t) default(none) shared(P, Hosts, Places, j)
 				for (int i = 0; i < P.PopSize; i++)
 				{
 					int k = Hosts[i].PlaceLinks[j];
@@ -579,7 +610,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 						t3 = d;
 						x = P.PlaceTypePropBetweenGroupLinks[j] * s2 / ((double)Places[j][k].n);
-						d = 1.0; l = (int)(q / P.TimeStep);
+						// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
+						// calculation uses average proportion of care home "members" who are residents.
+						if (Hosts[i].care_home_resident) x *= (1.0 - P.CareHomePropResidents) + P.CareHomePropResidents * (P.CareHomeResidentGroupScaling * (((double)Places[j][k].n - 1) - s3) + s3) / ((double)Places[j][k].n - 1);
+						d = 1.0;
+						l = (int)(q / P.TimeStep);
 						for (m = 0; m < l; m++) {
 							double y = 1.0 - x * P.infectiousness[m];
 							d *= ((y < 0) ? 0 : y);
