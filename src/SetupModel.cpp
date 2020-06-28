@@ -491,7 +491,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	t2 = s = 0;
 	s3 = 1.0;
-
 #pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2) default(none) \
 		shared(P, Households, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
@@ -515,7 +514,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 			if (P.DoHouseholds)
 			{
-				s2 = P.TimeStep * P.HouseholdTrans * fabs(Hosts[i].infectiousness) * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
+				if (P.NoInfectiousnessSDinHH)
+					s2 = ((Hosts[i].infectiousness < 0) ? P.SymptInfectiousness : 1.0);
+				else
+					s2 = fabs(Hosts[i].infectiousness);
+				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
 				for (int k = 0; k < l; k++) {
 					double y = 1.0 - s2 * P.infectiousness[k];
