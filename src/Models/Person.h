@@ -30,7 +30,6 @@ struct Person
 	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
 	unsigned char age;
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 
