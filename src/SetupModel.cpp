@@ -323,13 +323,20 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
-	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
-	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
+
+	if ((P.CareHomePlaceType >= 0) && (P.CareHomeResidentMinimumAge < 1000))  // label care home residents as they don't have household contacts
+	{
+		for (int i = 0; i < P.PopSize; i++)
+			Hosts[i].care_home_resident = ((Hosts[i].PlaceLinks[P.CareHomePlaceType] >= 0) && (Hosts[i].age >= P.CareHomeResidentMinimumAge)) ? 1 : 0;
+	}
 
 	fprintf(stderr, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
+
+	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
+	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
 	if (P.DoPlaces)
 	{
