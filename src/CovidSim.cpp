@@ -166,12 +166,16 @@ int main(int argc, char* argv[])
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_integer_option("c", P.MaxNumThreads, "Number of threads to use");
 	args.add_integer_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
-	args.add_double_option("CLP1", P.clP[0], "Overwrites #1 wildcard in parameter file");
-	args.add_double_option("CLP2", P.clP[1], "Overwrites #2 wildcard in parameter file");
-	args.add_double_option("CLP3", P.clP[2], "Overwrites #3 wildcard in parameter file");
-	args.add_double_option("CLP4", P.clP[3], "Overwrites #4 wildcard in parameter file");
-	args.add_double_option("CLP5", P.clP[4], "Overwrites #5 wildcard in parameter file");
-	args.add_double_option("CLP6", P.clP[5], "Overwrites #6 wildcard in parameter file");
+	args.add_double_option("CLP0", P.clP[0], "Overwrites #0 wildcard in parameter file");
+	args.add_double_option("CLP1", P.clP[1], "Overwrites #1 wildcard in parameter file");
+	args.add_double_option("CLP2", P.clP[2], "Overwrites #2 wildcard in parameter file");
+	args.add_double_option("CLP3", P.clP[3], "Overwrites #3 wildcard in parameter file");
+	args.add_double_option("CLP4", P.clP[4], "Overwrites #4 wildcard in parameter file");
+	args.add_double_option("CLP5", P.clP[5], "Overwrites #5 wildcard in parameter file");
+	args.add_double_option("CLP6", P.clP[6], "Overwrites #6 wildcard in parameter file");
+	args.add_double_option("CLP7", P.clP[7], "Overwrites #7 wildcard in parameter file");
+	args.add_double_option("CLP8", P.clP[8], "Overwrites #8 wildcard in parameter file");
+	args.add_double_option("CLP9", P.clP[9], "Overwrites #9 wildcard in parameter file");
 	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
@@ -865,6 +869,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.DoAllInitialInfectioninSameLoc), 1, 1, 0)) P.DoAllInitialInfectioninSameLoc=0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Day of year of start of seeding", "%lf", (void*)&(P.InitialInfectionCalTime), 1, 1, 0)) P.InitialInfectionCalTime = -1;
 	if (P.DoAdUnits)
 	{
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.NumSeedLocations > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumSeedLocations, 1, 0))
@@ -4983,18 +4988,25 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	else	trigAlert = trigAlertCases;
 
 	double RatioPredictedObserved, DesiredAccuracy; // calibration variables.
-	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.Epidemic_StartDate_CalTime) && (P.ModelCalibIteration >= 2)))))
+	if (P.InitialInfectionCalTime > 0)
+	{
+		P.HolidaysStartDay_SimTime = -P.InitialInfectionCalTime;
+		P.DateTriggerReached_SimTime = P.Epidemic_StartDate_CalTime = P.Interventions_StartDate_CalTime - P.InitialInfectionCalTime;
+	}
+	if (((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) ||
+		((P.DoAlertTriggerAfterInterv) && (((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert) && (P.ModelCalibIteration < 2)) || ((t >= P.Epidemic_StartDate_CalTime) && ((P.ModelCalibIteration >= 2) || (P.InitialInfectionCalTime > 0))))))
 	{
 		if((!P.StopCalibration)&&(!InterruptRun))
 		{
-			if (P.DateTriggerReached_SimTime == 0) // i.e. if this is first time that calibration has been called for this realisation.
+			if ((P.DateTriggerReached_SimTime == 0) && (P.InitialInfectionCalTime <= 0)) // i.e. if this is first time that calibration has been called for this realisation.
 			{
 				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now (i.e. simulation time that trigger was reached)
 				if (P.DateTriggerReached_CalTime >= 0)
+				{
 					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between DateTriggerReached_SimTime and day of year interventions start.
+				}
 			}
-			if ((P.DateTriggerReached_CalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
+			if ((P.DateTriggerReached_CalTime >= 0) && (!P.DoAlertTriggerAfterInterv) && (P.InitialInfectionCalTime <= 0))
 			{
 				P.StopCalibration = 1;
 				InterruptRun = 1;
@@ -5008,29 +5020,46 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
 					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
-					if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
-						P.StopCalibration = 1;
-					else if (P.ModelCalibIteration == 0)
+					if (P.InitialInfectionCalTime > 0)
 					{
-						// rescale threshold
-						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
-						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
+						if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
+							P.StopCalibration = 1;
+						else if (P.ModelCalibIteration == 1)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.6);
+						else if (P.ModelCalibIteration == 2)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.5);
+						else if (P.ModelCalibIteration > 2)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.3 + 0.2 * ranf()); // include random number to prevent loops
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 < 2)) // on even iterations, adjust timings
+					else 
 					{
-						if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
+						if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
 						{
-							P.Epidemic_StartDate_CalTime--;
-							P.HolidaysStartDay_SimTime--;
+							P.StopCalibration = 1;
 						}
-						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
+						else if (P.ModelCalibIteration == 0)
 						{
-							P.Epidemic_StartDate_CalTime++;
-							P.HolidaysStartDay_SimTime++;
+							k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
+							if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
+						}
+						else if ((P.ModelCalibIteration >= 2) && (P.ModelCalibIteration %3 < 2))
+						{
+							if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
+							{
+								P.Epidemic_StartDate_CalTime--;
+								P.HolidaysStartDay_SimTime--;
+							}
+							else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
+							{
+								P.Epidemic_StartDate_CalTime++;
+								P.HolidaysStartDay_SimTime++;
+							}
+						}
+						else if ((P.ModelCalibIteration >= 2) && (P.ModelCalibIteration % 3 == 2))
+						{
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.3 * ranf()); // include random number to prevent loops
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))  // on odd iterations, adjust seeding.
-						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.3 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 
@@ -5518,18 +5547,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			if (NumItem == 1)
 			{
 				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-				if (match[0] == '#') {
-					int match_id = match[1] - '1';
-					if ((match_id >= 1) && (match_id <= 6))
-					{
-						FindFlag++;
-						if (n == 1)
-							* ((double*)ItemPtr) = P.clP[match_id];
-						else if (n == 2)
-							* ((int*)ItemPtr) = (int)P.clP[match_id];
-						else if (n == 3)
+				if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+				{
+					FindFlag++;
+					if (n == 1)
+						* ((double*)ItemPtr) = P.clP[(int) (match[1] - '0')];
+					else if (n == 2)
+						* ((int*)ItemPtr) = (int)P.clP[(int) (match[1] - '0')];
+					else if (n == 3)
 							sscanf(match, "%s", (char*)ItemPtr);
-					}
 				}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
@@ -5547,7 +5573,17 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+					{
+						FindFlag++;
+						if (n == 1)
+							*(((double*)ItemPtr) + CurPos + Offset) = P.clP[(int)(match[1] - '0')];
+						else if (n == 2)
+							*(((int*)ItemPtr) + CurPos + Offset) = (int)P.clP[(int)(match[1] - '0')];
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
@@ -5565,15 +5601,25 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 		else
 		{
 			for (j = 0; j < NumItem; j++)
-			{ //added these braces
+			{
 				for (i = 0; i < NumItem2; i++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset); //changed from [j+Offset]+i+Offset to +j+Offset+i, as ItemPtr isn't an array - 01/10: changed it back
+							*(((double**)ItemPtr)[j + Offset] + i + Offset) = P.clP[(int)(match[1] - '0')];
+						else if (n == 2)
+							*(((int**)ItemPtr)[j + Offset] + i + Offset) = (int)P.clP[(int)(match[1] - '0')];
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if ((match[0] != '[') && (!feof(dat)))
+					{
+						FindFlag++;
+						if (n == 1)
+							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
 						else
 							sscanf(match, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
 					}
@@ -5583,8 +5629,8 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 						j = NumItem;
 					}
 				}
-				//Offset=Offset+(NumItem2-1); //added this line to get the correct offset in address position when incrementing j
-			} //added these braces
+				
+			} 
 		}
 	}
 	//	fprintf(stderr,"%s\n",SItemName);
