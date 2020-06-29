@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "Update.h"
 #include "Model.h"
