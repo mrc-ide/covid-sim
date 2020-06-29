@@ -5477,8 +5477,7 @@ void CalcLikelihood(int run, char *DataFile, char *OutFileBase)
 	{
 		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2)) 
 		{
-			double ModelValueLast = -1.0;
-			double ModelValueSum = 0.0, DataSum = 0.0, ModelValueCount=0.0;
+			double ModelValueSum = 0.0;
 			for (int j = 0; j < nrows; j++)
 			{
 				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
