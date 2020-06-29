@@ -913,7 +913,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
-		if (State.cumDC >= P.PreControlClusterIdCaseThreshold) StateT[tn].cumDC++;
+		if (State.cumDC >= P.CaseOrDeathThresholdBeforeAlert) StateT[tn].cumDC++;
 		DoDetectedCase(ai, t, ts, tn);
 	}
 	StateT[tn].cumFC++;

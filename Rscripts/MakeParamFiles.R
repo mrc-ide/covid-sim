@@ -25,7 +25,32 @@ options("scipen" = 13) #### set high penalty for scientific display. (so e.g. 10
 
 OutputDir  = "." ## change as appropriate
 
-MakePreParamList = function(DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
+MakePreParamList = function(
+		
+		## calibration parameters
+		
+		#	Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
+		#	Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
+		#	Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+		#	Simulation time day 0 (i.e. t = 0 in runtime) is recorded in Cpp code as Epidemic_StartDate_CalTime.
+		#	Variables with _CalTime suffix refer to calendar time (relative to Calendar time Day 0). Variables with _SimTime suffix refer to simulation time.
+		#	Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
+		
+		Interventions_StartDate_CalTime = 76, 		# Calendar day interventions start, relative to Day 0 calendar time.
+		DateTriggerReached_CalTime		= 100, 		# Day of year trigger is reached (where trigger refers to either cumulative deaths or cumulative ICU admissions, absolute or per-capita etc.) 
+		TriggerAlertOnDeaths 			= 1, 		# (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration). 
+		DeathThresholdBeforeAlert 		= 10000, 	# Number of deaths accummulated before alert (used if TriggerAlertOnDeaths == 1)
+		CaseThresholdBeforeAlert 		= 0, 		# Number of detected cases needed before outbreak alert triggered  (used if TriggerAlertOnDeaths == 0)
+		DoAlertTriggerAfterInterv 		= 1, 		# Alert trigger starts after interventions, i.e. were there interventions before date specified in DateTriggerReached_CalTime / "Day of year trigger is reached"?
+		WindowToEvaluateTriggerAlert 	= 1000,		# Number of days to accummulate cases/deaths before alert
+		
+		DoPerCapitaTriggers = 0,	# Use cases per thousand threshold for area controls
+		DoGlobalTriggers 	= 1,	# Use global triggers for interventions
+		DoAdminTriggers 	= 0,	# Use admin unit triggers for interventions
+		DoICUTriggers 		= 1,	# Use ICU case triggers for interventions
+		
+		
+		DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
 		
 		Mean_MildToRecovery 				= 7       ,
 		Mean_ILIToRecovery 					= 7       ,
@@ -165,25 +190,31 @@ MakePreParamList = function(DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, Num
 			0.67732916	, 0.752886568	, 0.843151261, 0.895791527	, 0.955973422	, 1.026225109	, 1.110607115, 
 			1.216272375	, 1.336349102	, 1.487791911, 1.701882384	, 1.865779085	, 2.126940581	, 2.524164972)
 	PreParamList[["k of individual variation in infectiousness"]] = 1
-	PreParamList[["Use global triggers for interventions"]] = 1
-	PreParamList[["Use admin unit triggers for interventions"]] = 0
+	
+	# Trigger parameters
+	PreParamList[["Use global triggers for interventions"]] 				= DoGlobalTriggers
+	PreParamList[["Use admin unit triggers for interventions"]] 			= DoAdminTriggers
+	PreParamList[["Use ICU case triggers for interventions"]] 				= DoICUTriggers
+	PreParamList[["Use cases per thousand threshold for area controls"]]	= DoPerCapitaTriggers
+	
 	PreParamList[["Number of sampling intervals over which cumulative incidence measured for global trigger"]] = 1000
-	PreParamList[["Use cases per thousand threshold for area controls"]] = 0
 	PreParamList[["Divisor for per-capita global threshold (default 1000)"]] = 100000
 	PreParamList[["Divisor for per-capita area threshold (default 1000)"]] = 1000
-	PreParamList[["Trigger alert on deaths"]] = 1
-	PreParamList[["Number of deaths accummulated before alert"]] = 10000
-	PreParamList[["Number of days to accummulate cases/deaths before alert"]] = 100
-	PreParamList[["Day of year trigger is reached"]] = 100
-	PreParamList[["Alert trigger starts after interventions"]] = 1
-	PreParamList[["Day of year interventions start"]] = 76
+	
+	# calibration parameters
+	PreParamList[["Trigger alert on deaths"]] 											= TriggerAlertOnDeaths
+	PreParamList[["Number of deaths accummulated before alert"]] 						= DeathThresholdBeforeAlert
+	PreParamList[["Number of detected cases needed before outbreak alert triggered"]] 	= CaseThresholdBeforeAlert
+	PreParamList[["Day of year interventions start"]] 									= Interventions_StartDate_CalTime
+	PreParamList[["Day of year trigger is reached"]] 									= DateTriggerReached_CalTime  
+	PreParamList[["Number of days to accummulate cases/deaths before alert"]] 			= WindowToEvaluateTriggerAlert
+	PreParamList[["Alert trigger starts after interventions"]] 							= DoAlertTriggerAfterInterv
+	
+	
 	PreParamList[["Proportion of cases detected for treatment"]] = 1
-#	PreParamList[["Treatment trigger incidence per cell"]] = 100000
 	PreParamList[["Places close only once"]] = DoPlaceCloseOnceOnly
 	PreParamList[["Social distancing only once"]] = DoSocDistOnceOnly
-	PreParamList[["Use ICU case triggers for interventions"]] = 1
 	PreParamList[["Proportion of cases detected before outbreak alert"]] = 1
-	PreParamList[["Number of detected cases needed before outbreak alert triggered"]] = 0
 	PreParamList[["Number of realisations"]] = NumRealisations
 	PreParamList[["Number of non-extinct realisations"]] = NumNonExtinctRealisations
 	PreParamList[["Maximum number of cases defining small outbreak"]] = 10000
