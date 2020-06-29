@@ -5469,14 +5469,16 @@ void CalcLikelihood(int run, char *DataFile, char *OutFileBase)
 	}
 
 	// calculate likelihood function
-	double c, LL;
-	LL = 0.0;
+	double c, LL=0.0;
+	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; //clP[99] reserved for fitting overdispersion
 	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
 	int offset= (P.PreIntervIdCalTime > 0) ? ((int)(P.PreIntervIdCalTime - P.PreControlClusterIdTime)) : 0;
 	for (int i = 1; i < ncols;i++)
 	{
 		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2)) 
 		{
+			double ModelValueLast = -1.0;
+			double ModelValueSum = 0.0, DataSum = 0.0, ModelValueCount=0.0;
 			for (int j = 0; j < nrows; j++)
 			{
 				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
@@ -5491,14 +5493,48 @@ void CalcLikelihood(int run, char *DataFile, char *OutFileBase)
 						ModelValue = c * TimeSeries[day-offset].incDeath_ILI; // care home deaths (ILI) by date of death
 					//poisson LL with offset of 1 to avoid NaN at zero
 					double zero_offset = 1;
-					if (NegBinK >= 1000)
+					if (NegBinK < 0)  // use conditional likelihood (beta binomial posterior)
+					{
+						if (ModelValueLast >= 0)
+						{
+							double mv, mvl;
+							/*if (ModelValueLast > 0)
+							{
+								mv = ModelValue / ModelValueLast * Data[j - 1][i];
+								mvl = Data[j - 1][i];
+							}
+							else */
+							{
+								mv = ModelValue;
+								mvl = ModelValueLast;
+							}
+							LL += lgamma(Data[j][i] + mv + 1) - lgamma(Data[j][i] + 1) - lgamma(mv + 1);
+							//LL += lgamma(Data[j][i] + Data[j - 1][i]+1) + lgamma(mv + mvl + 3) + lgamma(Data[j][i] + mv + 1) + lgamma(Data[j - 1][i] + mvl + 3)
+							//	- lgamma(Data[j][i]+1) - lgamma(Data[j - 1][i] + 1) - lgamma(mv + 1) - lgamma(mvl + 2) - lgamma(Data[j][i] + Data[j - 1][i] + mv + mvl + 4);
+						}
+						ModelValueSum += ModelValue;
+						ModelValueLast = ModelValue;
+						ModelValueCount++;
+						DataSum += Data[j][i];
+					}
+					else if (NegBinK >= 10000)
 						//prob model and data from same underlying poisson
 						LL += lgamma(2 * (Data[j][i] + ModelValue) + 1) - lgamma(Data[j][i] + ModelValue + 1) - lgamma(Data[j][i] + 1) - lgamma(ModelValue + 1) - (3 * (Data[j][i] + ModelValue) + 1) * log(2);
 						//LL += -(ModelValue + zero_offset) - lgamma(Data[j][i] + 1+ zero_offset) + (Data[j][i]+ zero_offset) * log(ModelValue + zero_offset);
 					else
-					//neg bin LL with offset of 1 to avoid NaN at zero
-					LL+= lgamma(Data[j][i] + NegBinK)-lgamma(Data[j][i] + 1) - lgamma(NegBinK) + NegBinK*log(NegBinK/(NegBinK+ ModelValue + zero_offset))+ Data[j][i]*log((ModelValue+ zero_offset)/(NegBinK + ModelValue + zero_offset));
+					{
+						//neg bin LL (NegBinK=1 implies no over-dispersion. >1 implies more)
+						double knb = 1.0 + ModelValue / kp;
+						double pnb = kp / (1.0 + kp);
+						LL += lgamma(Data[j][i] + knb) - lgamma(Data[j][i] + 1) - lgamma(knb) + knb * log(1.0-pnb) + Data[j][i] * log(pnb);
+					}
 				}
+			}
+			if (NegBinK < 0)  // add neg bin likelihood for column total 
+			{
+				LL += lgamma(DataSum + 1) + lgamma(ModelValueSum + ModelValueCount) - lgamma(DataSum + ModelValueSum + ModelValueCount);
+				//LL+=-ModelValueSum - lgamma(DataSum + 1 ) + DataSum * log(ModelValueSum);
+				LL += lgamma(DataSum - NegBinK) - lgamma(DataSum + 1) - lgamma(-NegBinK) - NegBinK * log(-NegBinK / (-NegBinK + ModelValueSum)) + DataSum * log(ModelValueSum / (-NegBinK + ModelValueSum));
 			}
 		}
 		else if (ColTypes[i] == 3) //seroprevalence by date of sample

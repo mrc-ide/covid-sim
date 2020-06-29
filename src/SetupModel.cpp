@@ -545,6 +545,7 @@ int ReadFitIter(char* FitFile)
 	char FitFileIter[1024];
 
 	sprintf(FitFileIter, "%s.f%i.txt", FitFile, P.FitIter);
+	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
 	do
 	{
 		cl = ((double) clock()) / CLOCKS_PER_SEC;
