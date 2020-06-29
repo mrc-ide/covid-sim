@@ -382,9 +382,9 @@ int main(int argc, char* argv[])
 	sprintf(OutFileBaseF, "%s", OutFileBase);
 	do
 	{
+		P.FitIter++;
 		if (GotF)
 		{
-			P.FitIter++;
 			StopFit=ReadFitIter(FitFile);
 			if (!StopFit)
 			{
