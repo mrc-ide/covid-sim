@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include "Error.h"
 #include "Update.h"
 #include "Model.h"
 #include "ModelMacros.h"
@@ -1234,8 +1235,12 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
 									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat_Dead))
 									{
-										if (Hosts[l].absent_start_time > t_start) Hosts[l].absent_start_time = t_start;
-										if (Hosts[l].absent_stop_time < t_stop) Hosts[l].absent_stop_time = t_stop;
+										int index = StateT[tn].host_closure_queue_size;
+										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
+										StateT[tn].host_closure_queue[index].host_index = l;
+										StateT[tn].host_closure_queue[index].start_time = t_start;
+										StateT[tn].host_closure_queue[index].stop_time = t_stop;
+										StateT[tn].host_closure_queue_size++;
 										StateT[tn].cumAPA++;
 										f = 1;
 									}
@@ -1254,6 +1259,20 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	}
 }
 
+void UpdateHostClosure() {
+	for (int hcq_thread_no = 0; hcq_thread_no < P.NumThreads; hcq_thread_no++)
+	{
+		for (int host_closure = 0; host_closure < StateT[hcq_thread_no].host_closure_queue_size; host_closure++)
+		{
+			int host_index = StateT[hcq_thread_no].host_closure_queue[host_closure].host_index;
+			unsigned short t_start = StateT[hcq_thread_no].host_closure_queue[host_closure].start_time;
+			unsigned short t_stop = StateT[hcq_thread_no].host_closure_queue[host_closure].stop_time;
+			if (Hosts[host_index].absent_start_time > t_start) Hosts[host_index].absent_start_time = t_start;
+			if (Hosts[host_index].absent_stop_time < t_stop) Hosts[host_index].absent_stop_time = t_stop;
+		}
+		StateT[hcq_thread_no].host_closure_queue_size = 0;
+	}
+}
 
 void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 {

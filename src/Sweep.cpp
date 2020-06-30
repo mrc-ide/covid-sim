@@ -1995,7 +1995,7 @@ int TreatSweep(double t)
 						} while (f3);
 					}
 
-			}
+			} // End of bs loop, tn loop, and pragma.
 		for (int i = 0; i < P.NumThreads; i++)
 		{
 			State.cumT += StateT[i].cumT;
