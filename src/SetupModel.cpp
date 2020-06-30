@@ -1,15 +1,16 @@
-#include <limits.h>
-#include <stdio.h>
+#include <climits>
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
+#include <cstdio>
 #include <math.h>
 #include <time.h>
+
 #include "BinIO.h"
 #include "Error.h"
 #include "Rand.h"
 #include "Kernels.h"
+#include "Constants.h"
 #include "Dist.h"
-#include "MachineDefines.h"
 #include "Param.h"
 #include "SetupModel.h"
 #include "Model.h"

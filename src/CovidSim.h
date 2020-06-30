@@ -12,16 +12,15 @@
   #endif
 #endif
 
-#include "MachineDefines.h"
-
-#include <limits.h>
-#include <stdio.h>
+#include <climits>
+#include <cstdio>
 #include <cstdlib>
-#include <stddef.h>
+#include <cstddef>
+
 #include <math.h>
-#include <string.h>
-#include <signal.h>
-#include <time.h>
+#include <cstring>
+#include <csignal>
+#include <ctime>
 
 #include "Country.h"
 #include "Constants.h"
