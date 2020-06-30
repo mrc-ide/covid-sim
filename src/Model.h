@@ -59,8 +59,8 @@ struct Household
 {
 	int FirstPerson;
 	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
 	unsigned short int nhr;
+	float loc_x, loc_y;
 };
 
 /*
