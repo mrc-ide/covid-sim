@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
 
 #include "Constants.h"
 #include "Dist.h"

@@ -1,5 +1,5 @@
 #include <climits>
-#include <math.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstdio>
 
