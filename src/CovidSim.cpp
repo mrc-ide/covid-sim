@@ -663,8 +663,8 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 				else
 					P.DoAdunitBoundaries = 0;
 			}
-			free(AdunitNames);
-			free(AdunitNamesBuf);
+			Memory::xfree(AdunitNames);
+			Memory::xfree(AdunitNamesBuf);
 
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output incidence by administrative unit", "%i", (void*)&(P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*)&(P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
@@ -679,6 +679,7 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			}
 		}
 		else
+
 		{
 			P.DoAdunitBoundaries = P.DoAdunitBoundaryOutput = P.DoAdunitOutput = P.DoCorrectAdunitPop = P.DoSpecifyPop = 0;
 			P.AdunitLevel1Divisor = 1; P.AdunitLevel1Mask = 1000000000;
@@ -2446,7 +2447,7 @@ void ReadAirTravel(char* AirTravelFile)
 		}
 	}
 	fclose(dat);
-	free(buf);
+	Memory::xfree(buf);
 	fprintf(stderr, "\nAirport data read OK.\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
@@ -4143,8 +4144,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				fprintf(dat, "\n");
 			}
 			fclose(dat);
-			free(SARI_a); free(Critical_a); free(CritRecov_a);
-			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
+			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
+			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
 		if ((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
@@ -4266,8 +4267,8 @@ void SaveSummaryResults(void) //// calculates and saves summary results (called 
 				fprintf(dat, "\n");
 			}
 			fclose(dat);
-			free(SARI_a); free(Critical_a); free(CritRecov_a);
-			free(incSARI_a); free(incCritical_a); free(incCritRecov_a);
+			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
+			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
 	}
 
@@ -4430,10 +4431,10 @@ void LoadSnapshot(void)
 		Cells[i].cum_trans = Array_cum_trans[i];
 		Cells[i].tot_prob = Array_tot_prob[i];
 	}
-	free(Array_tot_prob);
-	free(Array_cum_trans);
-	free(Array_max_trans);
-	free(Array_InvCDF);
+	Memory::xfree(Array_tot_prob);
+	Memory::xfree(Array_cum_trans);
+	Memory::xfree(Array_max_trans);
+	Memory::xfree(Array_InvCDF);
 	fprintf(stderr, "\n");
 	fclose(dat);
 }
