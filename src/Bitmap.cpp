@@ -1,8 +1,9 @@
 #include <cerrno>
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include <cmath>
+#include <string>
 
 #include "BinIO.h"
 #include "Bitmap.h"
@@ -26,9 +27,6 @@ static CLSID  encoderClsid;
 #endif
 
 static unsigned char* bmf, *bmPixels, *bmp;
-// externs from CovidSim.cpp
-// TODO: move these to a header files
-extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
@@ -109,25 +107,28 @@ void CaptureBitmap()
 	}
 }
 
-void OutputBitmap(int tp)
+void OutputBitmap(int tp, std::string const& output_file_base)
 {
-	char buf[3000], OutF[3000];
+	char buf[3000];
 	int j = 0;
 	static int cn[4] = {0, 0, 0, 0};
 	const char *OutPrefix[4] = {"", "Mean.", "Min.", "Max."};
 
-	char *OutBaseName = strrchr(OutFile, '/');
-	char *OutBaseName2 = strrchr(OutFile, '\\');
-	if (OutBaseName2 != nullptr && (OutBaseName == nullptr || OutBaseName2 > OutBaseName)) {
-		OutBaseName = OutBaseName2;
+	// if the output_file_base has a forward or backwards slash, use that as the cutoff
+	// point for the leaf_name, otherwise keep the full output_file_base
+	auto slash_loc = output_file_base.find_last_of('/');
+	auto bslash_loc = output_file_base.find_last_of('\\');
+	if (bslash_loc != std::string::npos && (slash_loc == std::string::npos || bslash_loc > slash_loc)) {
+		slash_loc = bslash_loc;
 	}
-	if (OutBaseName == nullptr) {
-		OutBaseName = OutFile;
+	auto leaf_name = output_file_base;
+	if (slash_loc != std::string::npos) {
+		leaf_name = leaf_name.substr(slash_loc);
 	}
 
 	j = cn[tp];
 	cn[tp]++;
-	sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s%s", OutFile, OutPrefix[tp], OutBaseName);
+	auto OutF = output_file_base + ".ge" DIRECTORY_SEPARATOR + OutPrefix[tp] + leaf_name;
 
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
@@ -172,7 +173,7 @@ void OutputBitmap(int tp)
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png
-	  sprintf(buf, "%s.%05i.png", OutF, j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase,OutF,j+1);
+	  sprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
 	  mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
@@ -181,7 +182,7 @@ void OutputBitmap(int tp)
 #endif
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
-	  sprintf(buf, "%s.%05i.bmp", OutF, j);
+	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat;
 	  if (!(dat = fopen(buf, "wb"))) {
 	    char* errMsg = strerror(errno);
@@ -199,7 +200,7 @@ void OutputBitmap(int tp)
 	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
 	}
 }
-void InitBMHead()
+void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
@@ -280,7 +281,7 @@ void InitBMHead()
 #endif
 
 	char buf[1024+3];
-	sprintf(buf, "%s.ge", OutFileBase);
+	sprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else
