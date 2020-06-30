@@ -148,4 +148,10 @@ namespace Geometry {
 	Vector2<T>::operator Vector2<U>() const {
 		return Vector2<U>((U)this->x, (U)this->y);
 	}
+
+	Vector2<double> operator*(const Vector2<double> &left, const Vector2<float> &right);
+	Vector2<double> operator*(const Vector2<float> &left, const Vector2<double> &right);
+
+	Vector2<double> operator-(const Vector2<double> &left, const Vector2<int> &right);
+	Vector2<double> operator-(const Vector2<int> &left, const Vector2<double> &right);
 }
