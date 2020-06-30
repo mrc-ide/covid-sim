@@ -52,6 +52,9 @@ MakePreParamList = function(
 		
 		DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
 		
+		ProportionSymptomatic = c(0.25, 0.25, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50),
+		SymptInfectiousness = 8,
+		
 		Mean_MildToRecovery 				= 7       ,
 		Mean_ILIToRecovery 					= 7       ,
 		Mean_ILIToSARI 						= 5       ,
@@ -127,7 +130,9 @@ MakePreParamList = function(
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1
 	PreParamList[["Delay from end of latent period to start of symptoms"]] = 0.5 ## (assume average time to symptom onset is half a day)
-	PreParamList[["Proportion symptomatic by age group"]] = rep(0.66, NUM_AGE_GROUPS)
+	PreParamList[["Proportion symptomatic by age group"]] = ProportionSymptomatic
+	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = SymptInfectiousness
+	
 	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = 1.5
 	PreParamList[["Relative rate of random contacts if symptomatic"]] = 0.5
 	PreParamList[["Relative level of place attendance if symptomatic"]] = c(0.25, 0.25, 0.5, 0.5)
