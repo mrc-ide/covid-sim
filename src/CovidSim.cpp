@@ -2115,13 +2115,14 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 	{
 		for (i = 0; i <= 1000; i++)
 		{
-			asin2sqx[i] = asin(sqrt(((double)(i)) / 1000));
+			asin2sqx[i] = asin(sqrt(i / 1000.0));
 			asin2sqx[i] = asin2sqx[i] * asin2sqx[i];
 		}
-		for (t = 0; t <= 360; t++)
+		for (i = 0; i <= DEGREES_PER_TURN; i++)
 		{
-			sinx[(int)t] = sin(PI * t / 180);
-			cosx[(int)t] = cos(PI * t / 180);
+			t = PI * i / 180;
+			sinx[i] = sin(t);
+			cosx[i] = cos(t);
 		}
 	}
 	if (P.R0scale != 1.0)
