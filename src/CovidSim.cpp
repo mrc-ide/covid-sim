@@ -61,9 +61,6 @@ int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, 
 int GetInputParameter2all(FILE*, FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
-void SetICDF(double* icdf, double startValue);
-
-
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -111,8 +108,11 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
 
-/* default start value for icdf arrays */
-const int ICDF_START = 100;
+// default start value for icdf double arrays (was hardcoded as 100)
+const double ICDF_START = 100.0;
+
+void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
+	double start_value = ICDF_START);
 
 int main(int argc, char* argv[])
 {
@@ -1095,30 +1095,25 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 		}
 		s /= ((double)k);
 		for (i = 0; i <= k; i++) P.infectiousness[i] /= s;
-		for (i = 0; i <= CDF_RES; i++) P.infectious_icdf[i] = exp(-1.0);
+		P.infectious_icdf.assign_exponent(-1.0);
 	}
 	else
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf, CDF_RES + 1, 1, 0))
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectious period inverse CDF", "%lf", (void*)P.infectious_icdf.get_values(), CDF_RES + 1, 1, 0))
 		{
-			SetICDF(P.infectious_icdf, ICDF_START);
+			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
-		for (i = 0; i <= CDF_RES; i++) P.infectious_icdf[i] = exp(-P.infectious_icdf[i]);
+		P.infectious_icdf.assign_exponent();
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include latent period", "%i", (void*)&(P.DoLatent), 1, 1, 0)) P.DoLatent = 0;
 	if (P.DoLatent)
 	{
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*)&(P.LatentPeriod), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", "%lf", (void*)P.latent_icdf, CDF_RES + 1, 1, 0))
-		{
-			SetICDF(P.latent_icdf, 1e10);
-		}
-		for (i = 0; i <= CDF_RES; i++)
-			P.latent_icdf[i] = exp(-P.latent_icdf[i]);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) &(P.LatentPeriod), 1, 1, 0);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", &P.latent_icdf, 1e10);
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include symptoms", "%i", (void*)&(P.DoSymptoms), 1, 1, 0)) P.DoSymptoms = 0;
@@ -1241,32 +1236,18 @@ void ReadParams(char* ParamFile, char* PreParamFile)
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_SARIToDeath", "%lf", (void*)(P.Mean_SARIToDeath), NUM_AGE_GROUPS, 1, 0);
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_CriticalToDeath", "%lf", (void*)(P.Mean_CriticalToDeath), NUM_AGE_GROUPS, 1, 0);
 		}
-		//// Get ICDFs
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf"		, "%lf", (void*)P.MildToRecovery_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.MildToRecovery_icdf		, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf"		, "%lf", (void*)P.ILIToRecovery_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.ILIToRecovery_icdf		, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf"			, "%lf", (void*)P.ILIToDeath_icdf			, CDF_RES + 1, 1, 0))	SetICDF(P.ILIToDeath_icdf			, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf"		, "%lf", (void*)P.SARIToRecovery_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.SARIToRecovery_icdf		, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf"	, "%lf", (void*)P.CriticalToCritRecov_icdf	, CDF_RES + 1, 1, 0))	SetICDF(P.CriticalToCritRecov_icdf	, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf"	, "%lf", (void*)P.CritRecovToRecov_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.CritRecovToRecov_icdf		, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf"			, "%lf", (void*)P.ILIToSARI_icdf			, CDF_RES + 1, 1, 0))	SetICDF(P.ILIToSARI_icdf			, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf"		, "%lf", (void*)P.SARIToCritical_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.SARIToCritical_icdf		, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf"			, "%lf", (void*)P.SARIToDeath_icdf			, CDF_RES + 1, 1, 0))	SetICDF(P.SARIToDeath_icdf			, ICDF_START);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf"		, "%lf", (void*)P.CriticalToDeath_icdf		, CDF_RES + 1, 1, 0))	SetICDF(P.CriticalToDeath_icdf		, ICDF_START);
 
-		// exponentiate
-		for (int quantile = 0; quantile <= CDF_RES; quantile++)
-		{
-			P.MildToRecovery_icdf		[quantile]	= exp(- P.MildToRecovery_icdf		[quantile]);
-			P.ILIToRecovery_icdf		[quantile]	= exp(- P.ILIToRecovery_icdf		[quantile]);
-			P.ILIToDeath_icdf			[quantile]	= exp(- P.ILIToDeath_icdf			[quantile]);
-			P.ILIToSARI_icdf			[quantile]	= exp(- P.ILIToSARI_icdf			[quantile]);
-			P.SARIToRecovery_icdf		[quantile]	= exp(- P.SARIToRecovery_icdf		[quantile]);
-			P.SARIToDeath_icdf			[quantile]	= exp(- P.SARIToDeath_icdf			[quantile]);
-			P.SARIToCritical_icdf		[quantile]	= exp(- P.SARIToCritical_icdf		[quantile]);
-			P.CriticalToCritRecov_icdf	[quantile]	= exp(- P.CriticalToCritRecov_icdf	[quantile]);
-			P.CritRecovToRecov_icdf		[quantile]	= exp(- P.CritRecovToRecov_icdf		[quantile]);
-			P.CriticalToDeath_icdf		[quantile]	= exp(- P.CriticalToDeath_icdf		[quantile]);
-		}
+		//// Get InverseCDFs
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", &P.MildToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", &P.ILIToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", &P.ILIToDeath_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", &P.SARIToRecovery_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", &P.CriticalToCritRecov_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", &P.CritRecovToRecov_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", &P.ILIToSARI_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", &P.SARIToCritical_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
+		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -6083,14 +6064,14 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	return FindFlag;
 }
 
-/* helper function to set icdf arrays */
-void SetICDF(double* icdf, double startValue)
+
+void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
+	double start_value)
 {
-	icdf[CDF_RES] = startValue;
-	for (int i = 0; i < CDF_RES; i++)
-		icdf[i] = -log(1 - ((double)i) / CDF_RES);
+	if (!GetInputParameter2(param_file_dat, preparam_file_dat, icdf_name, "%lf", (void*)inverseCdf->get_values(), CDF_RES + 1, 1, 0))
+	{
+		inverseCdf->set_neg_log(start_value);
+	}
+	inverseCdf->assign_exponent();
 }
-
-
-
 

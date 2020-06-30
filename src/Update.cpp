@@ -15,7 +15,6 @@ using namespace Geometry;
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
 
-unsigned short int ChooseFromICDF(double *, double, int);
 Severity ChooseFinalDiseaseSeverity(int, int);
 
 // state transition helpers
@@ -473,7 +472,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
-			else							a->recovery_or_death_time = a->latent_time + ChooseFromICDF(P.infectious_icdf, P.InfectiousPeriod, tn);
+			else							a->recovery_or_death_time = a->latent_time + P.infectious_icdf.choose(P.InfectiousPeriod, tn, P.TimeStepsPerDay);
 		}
 		else
 		{
@@ -497,33 +496,33 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			}
 			//// choose events and event times
 			if (a->Severity_Final == Severity_Mild)
-				a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.MildToRecovery_icdf, P.Mean_MildToRecovery[age], tn);
+				a->recovery_or_death_time = CaseTime + P.MildToRecovery_icdf.choose(P.Mean_MildToRecovery[age], tn, P.TimeStepsPerDay);
 			else if (a->Severity_Final == Severity_Critical)
 			{
-				a->SARI_time = CaseTime+ ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
-				a->Critical_time = a->SARI_time	+ ChooseFromICDF(P.SARIToCritical_icdf, P.Mean_SARIToCritical[age], tn);
+				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
+				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time + ChooseFromICDF(P.CriticalToDeath_icdf, P.Mean_CriticalToDeath[age], tn);
+					a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
 				else
 				{
-					a->RecoveringFromCritical_time = a->Critical_time + ChooseFromICDF(P.CriticalToCritRecov_icdf, P.Mean_CriticalToCritRecov[age], tn);
-					a->recovery_or_death_time = a->RecoveringFromCritical_time + ChooseFromICDF(P.CritRecovToRecov_icdf, P.Mean_CritRecovToRecov[age], tn);
+					a->RecoveringFromCritical_time	= a->Critical_time					+ P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
+					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
 				}
 			}
 			else if (a->Severity_Final == Severity_SARI)
 			{
-				a->SARI_time = CaseTime + ChooseFromICDF(P.ILIToSARI_icdf, P.Mean_ILIToSARI[age], tn);
+				a->SARI_time = CaseTime + P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToDeath_icdf, P.Mean_SARIToDeath[age], tn);
+					a->recovery_or_death_time = a->SARI_time + P.SARIToDeath_icdf.choose(P.Mean_SARIToDeath[age], tn, P.TimeStepsPerDay);
 				else
-					a->recovery_or_death_time = a->SARI_time + ChooseFromICDF(P.SARIToRecovery_icdf, P.Mean_SARIToRecovery[age], tn);
+					a->recovery_or_death_time = a->SARI_time + P.SARIToRecovery_icdf.choose(P.Mean_SARIToRecovery[age], tn, P.TimeStepsPerDay);
 			}
 			else /*i.e. if Severity_Final == Severity_ILI*/
 			{
 				if (a->to_die)
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToDeath_icdf, P.Mean_ILIToDeath[age], tn);
+					a->recovery_or_death_time = CaseTime + P.ILIToDeath_icdf.choose(P.Mean_ILIToDeath[age], tn, P.TimeStepsPerDay);
 				else
-					a->recovery_or_death_time = CaseTime + ChooseFromICDF(P.ILIToRecovery_icdf, P.Mean_ILIToRecovery[age], tn);
+					a->recovery_or_death_time = CaseTime + P.ILIToRecovery_icdf.choose(P.Mean_ILIToRecovery[age], tn, P.TimeStepsPerDay);
 			}
 		}
 
@@ -1384,20 +1383,6 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup] + P.Prop_Critical_ByAge[AgeGroup]) DiseaseSeverity = Severity_Critical;
 	else DiseaseSeverity = Severity_Mild;
 	return DiseaseSeverity;
-}
-
-unsigned short int ChooseFromICDF(double *ICDF, double Mean, int tn)
-{
-	unsigned short int Value;
-	int i;
-	double q, ti;
-
-	i = (int)floor(q = ranf_mt(tn) * CDF_RES); //// note q defined here as well as i.
-	q -= ((double)i); //// remainder
-	ti = -Mean * log(q * ICDF[i + 1] + (1.0 - q) * ICDF[i]); //// weighted average (sort of) between quartile values from CDF_RES. logged as it was previously exponentiated in ReadParams. Minus as exp(-cdf) was done in ReadParaams. Sort of
-	Value = (unsigned short int) floor(0.5 + (ti * P.TimeStepsPerDay));
-
-	return Value;
 }
 
 void SusceptibleToRecovered(int cellIndex)
