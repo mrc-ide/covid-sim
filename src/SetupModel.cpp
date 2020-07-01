@@ -227,6 +227,54 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	TSVarNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMean = TSMeanE; TSVar = TSVarE;
 
+	if (P.DoAdUnits && P.OutputAdUnitAge)
+	{
+		State.prevInf_age_adunit = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
+		State.cumInf_age_adunit  = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			State.prevInf_age_adunit[AgeGroup] = (int*)Memory::xcalloc(P.NumAdunits, sizeof(int));
+			State.cumInf_age_adunit [AgeGroup] = (int*)Memory::xcalloc(P.NumAdunits, sizeof(int));
+		}
+
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
+		{
+			StateT[Thread].prevInf_age_adunit = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
+			StateT[Thread].cumInf_age_adunit  = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				StateT[Thread].prevInf_age_adunit[AgeGroup] = (int*)Memory::xcalloc(P.NumAdunits, sizeof(int));
+				StateT[Thread].cumInf_age_adunit [AgeGroup] = (int*)Memory::xcalloc(P.NumAdunits, sizeof(int));
+			}
+		}
+
+		for (int Time = 0; Time < P.NumSamples; Time++)
+		{
+			TimeSeries[Time].prevInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TimeSeries[Time].incInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TimeSeries[Time].cumInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanE [Time].prevInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanE [Time].incInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanE [Time].cumInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanNE[Time].prevInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanNE[Time].incInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+			TSMeanNE[Time].cumInf_age_adunit = (double**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(double*));
+
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			{
+				TimeSeries[Time].prevInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TimeSeries[Time].incInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TimeSeries[Time].cumInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanE[Time].prevInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanE[Time].incInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanE[Time].cumInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanNE[Time].prevInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanNE[Time].incInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+				TSMeanNE[Time].cumInf_age_adunit[AgeGroup] = (double*)Memory::xcalloc(P.NumAdunits, sizeof(double));
+			}
+		}
+	}
+
 	//added memory allocation and initialisation of infection event log, if DoRecordInfEvents is set to 1: ggilani - 10/10/2014
 	if (P.DoRecordInfEvents)
 	{
@@ -545,9 +593,9 @@ int ReadFitIter(std::string const& FitFile)
 	FILE* dat;
 	int i,n,cl_index[100];
 	double cl,cl2;
-	
+
 	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter);
-	
+
 	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
 	do
 	{
@@ -613,7 +661,7 @@ void InitTransmissionCoeffs(void)
 					s2 = ((Hosts[i].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
 				else
 					s2 = fabs(Hosts[i].infectiousness);
-				// Care home residents less likely to infect via "household" contacts. 
+				// Care home residents less likely to infect via "household" contacts.
 				if (Hosts[i].care_home_resident) s2 *= P.CareHomeResidentHouseholdScaling;
 				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
@@ -2153,7 +2201,7 @@ void AssignPeopleToPlaces()
 									if (mcell_country[ic] == host_country)
 									{
 										auto const& cur_cell = Mcells[ic];
-										auto const place_type_count = cur_cell.np[tp]; 
+										auto const place_type_count = cur_cell.np[tp];
 										for (cnt = 0; cnt < place_type_count; cnt++)
 										{
 											auto const place_idx = cur_cell.places[tp][cnt];
