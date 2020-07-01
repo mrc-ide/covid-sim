@@ -2,6 +2,7 @@
 #define COVIDSIM_PARAM_FILE_HPP_INCLUDED_
 
 #include <cstddef>
+#include <cstdint>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -31,50 +32,74 @@ public:
 	ParamReader(std::string const& param_file, std::string const& preparam_file, std::string const& admin_file);
 
 	/**
-	 * Extract a single numeric value or assign the default to `output`.
+	 * Extract a single 32-bit integer value or assign the default to `output`.
 	 */
-	template<typename T>
-	bool extract(std::string const& param, T& output, T default_value);
+	bool extract_int(std::string const& param, int32_t& output, int32_t default_value);
 
 	/**
-	 * Extract and assign a single numeric value to `output` or exit the program.
+	 * Extract a single double value or assign the default to `output`.
 	 */
-	template<typename T>
-	void extract_or_exit(std::string const& param, T& output);
+	bool extract_double(std::string const& param, double& output, double default_value);
 
 	/**
-	 * Extract multiple numeric values to `N` numbers in `output`, return false otherwise.
+	 * Extract and assign a single 32-bit integer value to `output` or exit the program.
 	 */
-	template<typename T>
-	bool extract_multiple_no_default(std::string const& param, T* output, std::size_t N);
+	void extract_int_or_exit(std::string const& param, int32_t& output);
 
 	/**
-	 * Extract and assign multiple numeric values to `N` numbers in `output` or exit the program.
+	 * Extract and assign a single double value to `output` or exit the program.
 	 */
-	template<typename T>
-	void extract_multiple_or_exit(std::string const& param, T* output, std::size_t N);
+	void extract_double_or_exit(std::string const& param, double& output);
 
 	/**
-	 * Extract multiple numeric values or assign the default to `N` numbers in `output`.
+	 * Extract multiple 32-bit integer values to `N` numbers in `output`. 
 	 */
-	template<typename T>
-	bool extract_multiple(std::string const& param, T* output, std::size_t N, T default_value);
+	bool extract_ints_no_default(std::string const& param, int* output, std::size_t N);
 
 	/**
-	 * Conditionally extract multiple numeric values or assign the default to `N` numbers in `output`.
+	 * Extract multiple double values to `N` numbers in `output`. 
 	 */
-	template<typename T>
-	bool cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value);
+	bool extract_doubles_no_default(std::string const& param, double* output, std::size_t N);
+
+	/**
+	 * Extract and assign multiple 32-bit integer values to `N` numbers in `output` or exit the program.
+	 */
+	void extract_ints_or_exit(std::string const& param, int32_t* output, std::size_t N);
+
+	/**
+	 * Extract and assign multiple double values to `N` numbers in `output` or exit the program.
+	 */
+	void extract_doubles_or_exit(std::string const& param, double* output, std::size_t N);
+
+	/**
+	 * Extract multiple 32-bit integer values or assign the default to `N` numbers in `output`.
+	 */
+	bool extract_ints(std::string const& param, int32_t* output, std::size_t N, int32_t default_value);
+
+	/**
+	 * Extract multiple double values or assign the default to `N` numbers in `output`.
+	 */
+	bool extract_doubles(std::string const& param, double* output, std::size_t N, double default_value);
+
+	/**
+	 * Conditionally extract multiple 32-bit integer values or assign the default to `N` numbers in `output`.
+	 */
+	bool cond_extract_ints(bool conditional, std::string const& param, int32_t* output, std::size_t N, int32_t default_value);
+
+	/**
+	 * Conditionally extract multiple double values or assign the default to `N` numbers in `output`.
+	 */
+	bool cond_extract_doubles(bool conditional, std::string const& param, double* output, std::size_t N, double default_value);
 
 	/**
 	 * Extract exactly `N` strings into `output`, return false otherwise.
 	 */
-	bool extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N);
+	bool extract_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N);
 	
 	/**
 	 * Extract exactly `N` strings and add them to `output` or exit the program. 
 	 */
-	void extract_multiple_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N);
+	void extract_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N);
 
 	/**
 	 * Extract a matrix of strings with `num_cols` columns per row and add them to `output` or exit the program. 
@@ -91,13 +116,6 @@ private:
 	 * Open and reads in argument-value pairs from `param_file` into `m_param_value_map`.
 	 */
 	void parse_param_file(std::string const& param_file);
-
-	/**
-	 * Extracts the next value from `stream` into the output variable using the
-	 * numeric limits of the `output` variable's type.
-	 */
-	template<typename T>
-	bool raw_extract(std::istringstream& stream, T& output);
 
 	std::unordered_map<std::string, std::string> m_param_value_map;
 };

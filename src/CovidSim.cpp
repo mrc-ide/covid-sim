@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 							"timestep interval when a snapshot should be saved and <S> is the "
 							"filename in which to save the snapshot");
 		}
-		parse_double(input.substr(0, sep), P.SnapshotSaveTime);
+		parse_double_or_exit(input.substr(0, sep), P.SnapshotSaveTime);
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
 	};
 
@@ -462,75 +462,75 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.FitIter == 0)
 	{
 		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
-		params.extract("Longitude cut line", P.LongitudeCutLine, -360.0);
-		params.extract_or_exit("Update timestep", P.TimeStep);
-		params.extract_or_exit("Sampling timestep", P.SampleStep);
+		params.extract_double("Longitude cut line", P.LongitudeCutLine, -360.0);
+		params.extract_double_or_exit("Update timestep", P.TimeStep);
+		params.extract_double_or_exit("Sampling timestep", P.SampleStep);
 		if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
 		t = ceil(P.SampleStep / P.TimeStep - 1e-6);
 		P.UpdatesPerSample = (int)t;
 		P.TimeStep = P.SampleStep / t;
 		P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
 		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
-		params.extract_or_exit("Sampling time", P.SampleTime);
+		params.extract_double_or_exit("Sampling time", P.SampleTime);
 		P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
-		params.extract_or_exit("Population size", P.PopSize);
+		params.extract_int_or_exit("Population size", P.PopSize);
 		if (P.NumRealisations == 0)
 		{
-			params.extract_or_exit("Number of realisations", P.NumRealisations);
-			params.extract("Number of non-extinct realisations", P.NumNonExtinctRealisations, P.NumRealisations);
+			params.extract_int_or_exit("Number of realisations", P.NumRealisations);
+			params.extract_int("Number of non-extinct realisations", P.NumNonExtinctRealisations, P.NumRealisations);
 		}
 		else
 		{
 			P.NumNonExtinctRealisations = P.NumRealisations;
 		}
-		params.extract("Maximum number of cases defining small outbreak", P.SmallEpidemicCases, -1);
+		params.extract_int("Maximum number of cases defining small outbreak", P.SmallEpidemicCases, -1);
 
 		P.NC = -1;
-		params.extract_or_exit("Number of micro-cells per spatial cell width", P.NMCL);
+		params.extract_int_or_exit("Number of micro-cells per spatial cell width", P.NMCL);
 		//added parameter to reset seeds after every run
-		params.extract("Reset seeds for every run", P.ResetSeeds, 0);
+		params.extract_int("Reset seeds for every run", P.ResetSeeds, 0);
 		if (P.ResetSeeds)
 		{
-			params.extract("Keep same seeds for every run", P.KeepSameSeeds, 0); //added this to control which seeds are used: ggilani 27/11/19
+			params.extract_int("Keep same seeds for every run", P.KeepSameSeeds, 0); //added this to control which seeds are used: ggilani 27/11/19
 		}
-		params.extract("Reset seeds after intervention", P.ResetSeedsPostIntervention, 0);
+		params.extract_int("Reset seeds after intervention", P.ResetSeedsPostIntervention, 0);
 		if (P.ResetSeedsPostIntervention)
 		{
-			params.extract("Time to reset seeds after intervention", P.TimeToResetSeeds, 1000000);
+			params.extract_int("Time to reset seeds after intervention", P.TimeToResetSeeds, 1000000);
 		}
-		params.extract("Include households", P.DoHouseholds, 1);
+		params.extract_int("Include households", P.DoHouseholds, 1);
 
-		params.extract("Kernel resolution", P.KernelLookup.size_, 4000000);
+		params.extract_int("Kernel resolution", P.KernelLookup.size_, 4000000);
 		if (P.KernelLookup.size_ < 2000000)
 		{
 			ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.KernelLookup.size_);
 		}
-		params.extract("Kernel higher resolution factor", P.KernelLookup.expansion_factor_, P.KernelLookup.size_ / 1600);
+		params.extract_int("Kernel higher resolution factor", P.KernelLookup.expansion_factor_, P.KernelLookup.size_ / 1600);
 		if (P.KernelLookup.expansion_factor_ < 1 || P.KernelLookup.expansion_factor_ >= P.KernelLookup.size_)
 		{
 			ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.KernelLookup.size_, P.KernelLookup.expansion_factor_);
 		}
 	}
-	params.extract("OutputAge", P.OutputAge, 1);								//// ON  by default.
-	params.extract("OutputSeverity", P.OutputSeverity, 1);						//// ON  by default.
-	params.extract("OutputSeverityAdminUnit", P.OutputSeverityAdminUnit, 1);	//// ON  by default.
-	params.extract("OutputSeverityAge", P.OutputSeverityAge, 1);				//// ON  by default.
-	params.extract("OutputAdUnitAge", P.OutputAdUnitAge, 0);					//// OFF by default.
-	params.extract("OutputR0", P.OutputR0, 0);				    				//// OFF by default.
-	params.extract("OutputControls",  P.OutputControls, 0);		    			//// OFF by default.
-	params.extract("OutputCountry", P.OutputCountry, 0);		    			//// OFF by default.
-	params.extract("OutputAdUnitVar",  P.OutputAdUnitVar, 0);		    		//// OFF by default.
-	params.extract("OutputHousehold", P.OutputHousehold, 0);		    		//// OFF by default.
-	params.extract("OutputInfType",  P.OutputInfType, 0);		    			//// OFF by default.
-	params.extract("OutputNonSeverity",  P.OutputNonSeverity, 0);				//// OFF by default.
-	params.extract("OutputNonSummaryResults", P.OutputNonSummaryResults, 0);	//// OFF by default.
+	params.extract_int("OutputAge", P.OutputAge, 1);								//// ON  by default.
+	params.extract_int("OutputSeverity", P.OutputSeverity, 1);						//// ON  by default.
+	params.extract_int("OutputSeverityAdminUnit", P.OutputSeverityAdminUnit, 1);	//// ON  by default.
+	params.extract_int("OutputSeverityAge", P.OutputSeverityAge, 1);				//// ON  by default.
+	params.extract_int("OutputAdUnitAge", P.OutputAdUnitAge, 0);					//// OFF by default.
+	params.extract_int("OutputR0", P.OutputR0, 0);				    				//// OFF by default.
+	params.extract_int("OutputControls",  P.OutputControls, 0);		    			//// OFF by default.
+	params.extract_int("OutputCountry", P.OutputCountry, 0);		    			//// OFF by default.
+	params.extract_int("OutputAdUnitVar",  P.OutputAdUnitVar, 0);		    		//// OFF by default.
+	params.extract_int("OutputHousehold", P.OutputHousehold, 0);		    		//// OFF by default.
+	params.extract_int("OutputInfType",  P.OutputInfType, 0);		    			//// OFF by default.
+	params.extract_int("OutputNonSeverity",  P.OutputNonSeverity, 0);				//// OFF by default.
+	params.extract_int("OutputNonSummaryResults", P.OutputNonSummaryResults, 0);	//// OFF by default.
 
 	if (P.DoHouseholds)
 	{
-		params.extract_multiple_or_exit("Household size distribution", P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE);
-		params.extract_or_exit("Household attack rate", P.HouseholdTrans);
-		params.extract_or_exit("Household transmission denominator power", P.HouseholdTransPow);
-		params.extract("Correct age distribution after household allocation to exactly match specified demography", P.DoCorrectAgeDist, 0);
+		params.extract_doubles_or_exit("Household size distribution", P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE);
+		params.extract_double_or_exit("Household attack rate", P.HouseholdTrans);
+		params.extract_double_or_exit("Household transmission denominator power", P.HouseholdTransPow);
+		params.extract_int("Correct age distribution after household allocation to exactly match specified demography", P.DoCorrectAgeDist, 0);
 	}
 	else
 	{
@@ -547,8 +547,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HouseholdDenomLookup[0] = 1.0;
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
 		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(i + 1)), P.HouseholdTransPow);
-		params.extract("Include administrative units within countries", P.DoAdUnits, 1);
-		params.extract("Divisor for countries", P.CountryDivisor, 1);
+		params.extract_int("Include administrative units within countries", P.DoAdUnits, 1);
+		params.extract_int("Divisor for countries", P.CountryDivisor, 1);
 		if (P.DoAdUnits)
 		{
 			std::vector<std::vector<std::string>> AdunitNames;
@@ -557,15 +557,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			{
 				P.AdunitLevel1Lookup[i] = -1;
 			}
-			params.extract("Divisor for level 1 administrative units", P.AdunitLevel1Divisor, 1);
-			params.extract("Mask for level 1 administrative units", P.AdunitLevel1Mask, 1000000000);
+			params.extract_int("Divisor for level 1 administrative units", P.AdunitLevel1Divisor, 1);
+			params.extract_int("Mask for level 1 administrative units", P.AdunitLevel1Mask, 1000000000);
 			params.extract_string_matrix_or_exit("Codes and country/province names for admin units", AdunitNames, 3);
-			params.extract("Number of countries to include", nc, 0);
+			params.extract_int("Number of countries to include", nc, 0);
 			if (!AdunitNames.empty() && (nc > 0))
 			{
 				P.DoAdunitBoundaries = (nc > 0);
 				nc = abs(nc);
-				params.extract_multiple_strings_or_exit("List of names of countries to include", CountryNames, nc);
+				params.extract_strings_or_exit("List of names of countries to include", CountryNames, nc);
 				P.NumAdunits = 0;
 				for (auto const& adunit_param : AdunitNames)
 				{
@@ -588,13 +588,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			}
 			else
 			{
-				params.extract("Number of level 1 administrative units to include", P.NumAdunits, 0);
+				params.extract_int("Number of level 1 administrative units to include", P.NumAdunits, 0);
 				if (P.NumAdunits > 0)
 				{
 					P.DoAdunitBoundaries = 1;
 					if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
 					std::vector<std::string> AdunitListNames;
-					params.extract_multiple_strings_or_exit("List of level 1 administrative units to include", AdunitListNames, P.NumAdunits);
+					params.extract_strings_or_exit("List of level 1 administrative units to include", AdunitListNames, P.NumAdunits);
 					for (i = 0; i < P.NumAdunits; i++)
 					{
 						auto it = std::find_if(AdunitNames.cbegin(), AdunitNames.cend(),
@@ -618,16 +618,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.DoAdunitBoundaries = 0;
 			}
 
-			params.extract("Output incidence by administrative unit", P.DoAdunitOutput, 0);
-			params.extract("Draw administrative unit boundaries on maps", P.DoAdunitBoundaryOutput, 0);
-			params.extract("Correct administrative unit populations", P.DoCorrectAdunitPop, 0);
-			params.extract("Fix population size at specified value", P.DoSpecifyPop, 0);
+			params.extract_int("Output incidence by administrative unit", P.DoAdunitOutput, 0);
+			params.extract_int("Draw administrative unit boundaries on maps", P.DoAdunitBoundaryOutput, 0);
+			params.extract_int("Correct administrative unit populations", P.DoCorrectAdunitPop, 0);
+			params.extract_int("Fix population size at specified value", P.DoSpecifyPop, 0);
 			fprintf(stderr, "Using %i administrative units\n", P.NumAdunits);
-			params.extract("Divisor for administrative unit codes for boundary plotting on bitmaps", P.AdunitBitmapDivisor, 1);
-			params.extract("Only output household to place distance distribution for one administrative unit", P.DoOutputPlaceDistForOneAdunit, 0);
+			params.extract_int("Divisor for administrative unit codes for boundary plotting on bitmaps", P.AdunitBitmapDivisor, 1);
+			params.extract_int("Only output household to place distance distribution for one administrative unit", P.DoOutputPlaceDistForOneAdunit, 0);
 			if (P.DoOutputPlaceDistForOneAdunit)
 			{
-				if (!params.extract("Administrative unit for which household to place distance distribution to be output", P.OutputPlaceDistAdunit, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
+				if (!params.extract_int("Administrative unit for which household to place distance distribution to be output", P.OutputPlaceDistAdunit, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
 			}
 		}
 		else
@@ -638,7 +638,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 	}
 
-	params.extract("Include age", P.DoAge, 1);
+	params.extract_int("Include age", P.DoAge, 1);
 	if (!P.DoAge)
 	{
 		for (i = 0; i < NUM_AGE_GROUPS; i++) {
@@ -651,18 +651,18 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	else
 	{
 
-		params.extract("Initial immunity acts as partial immunity", P.DoPartialImmunity, 1);
+		params.extract_int("Initial immunity acts as partial immunity", P.DoPartialImmunity, 1);
 		if ((P.DoHouseholds) && (!P.DoPartialImmunity))
 		{
-			params.extract("Initial immunity applied to all household members", P.DoWholeHouseholdImmunity, 0);
+			params.extract_int("Initial immunity applied to all household members", P.DoWholeHouseholdImmunity, 0);
 		}
 		else
 			P.DoWholeHouseholdImmunity = 0;
-		params.extract_multiple("Initial immunity profile by age", P.InitialImmunity, NUM_AGE_GROUPS, 0.0);
-		params.extract_multiple("Relative spatial contact rates by age", P.RelativeSpatialContact, NUM_AGE_GROUPS, 1.0);
-		params.extract_multiple("Age-dependent infectiousness", P.AgeInfectiousness, NUM_AGE_GROUPS, 1.0);
-		params.extract_multiple("Age-dependent susceptibility", P.AgeSusceptibility, NUM_AGE_GROUPS, 1.0);
-		params.extract_multiple_or_exit("Age distribution of population", P.PropAgeGroup[0], NUM_AGE_GROUPS);
+		params.extract_doubles("Initial immunity profile by age", P.InitialImmunity, NUM_AGE_GROUPS, 0.0);
+		params.extract_doubles("Relative spatial contact rates by age", P.RelativeSpatialContact, NUM_AGE_GROUPS, 1.0);
+		params.extract_doubles("Age-dependent infectiousness", P.AgeInfectiousness, NUM_AGE_GROUPS, 1.0);
+		params.extract_doubles("Age-dependent susceptibility", P.AgeSusceptibility, NUM_AGE_GROUPS, 1.0);
+		params.extract_doubles_or_exit("Age distribution of population", P.PropAgeGroup[0], NUM_AGE_GROUPS);
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 			t += P.PropAgeGroup[0][i];
@@ -675,7 +675,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.AgeSusceptibility[i] /= t;
 		AgeSuscScale = t;
 		if (P.DoHouseholds) P.HouseholdTrans *= AgeSuscScale;
-		params.extract_multiple("Relative travel rates by age", P.RelativeTravelRate, NUM_AGE_GROUPS, 1.0);
+		params.extract_doubles("Relative travel rates by age", P.RelativeTravelRate, NUM_AGE_GROUPS, 1.0);
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "WAIFW matrix", "%lf", (void*)P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0))
 		{
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -713,30 +713,30 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	if (P.FitIter == 0)
 	{
-		params.extract("Include spatial transmission", P.DoSpatial, 1);
-		params.extract_or_exit("Kernel type", P.MoveKernel.type_);
-		params.extract_or_exit("Kernel scale", P.MoveKernel.scale_);
+		params.extract_int("Include spatial transmission", P.DoSpatial, 1);
+		params.extract_int_or_exit("Kernel type", P.MoveKernel.type_);
+		params.extract_double_or_exit("Kernel scale", P.MoveKernel.scale_);
 		if (P.KernelOffsetScale != 1)
 		{
 			P.MoveKernel.scale_ *= P.KernelOffsetScale;
 		}
-		params.extract("Kernel 3rd param", P.MoveKernel.p3_, 0.0);
-		params.extract("Kernel 4th param", P.MoveKernel.p4_, 0.0);
-		params.extract("Kernel Shape", P.MoveKernel.shape_, 1.0);
+		params.extract_double("Kernel 3rd param", P.MoveKernel.p3_, 0.0);
+		params.extract_double("Kernel 4th param", P.MoveKernel.p4_, 0.0);
+		params.extract_double("Kernel Shape", P.MoveKernel.shape_, 1.0);
 		if (P.KernelPowerScale != 1)
 		{
 			P.MoveKernel.shape_ *= P.KernelPowerScale;
 		}
-		params.extract("Airport Kernel Type", P.AirportKernel.type_, P.MoveKernel.type_);
-		params.extract("Airport Kernel Scale", P.AirportKernel.scale_, P.MoveKernel.scale_);
-		params.extract("Airport Kernel Shape", P.AirportKernel.shape_, P.MoveKernel.shape_);
-		params.extract("Airport Kernel 3rd param", P.AirportKernel.p3_, P.MoveKernel.p3_);
-		params.extract("Airport Kernel 4th param", P.AirportKernel.p4_, P.MoveKernel.p4_);
+		params.extract_int("Airport Kernel Type", P.AirportKernel.type_, P.MoveKernel.type_);
+		params.extract_double("Airport Kernel Scale", P.AirportKernel.scale_, P.MoveKernel.scale_);
+		params.extract_double("Airport Kernel Shape", P.AirportKernel.shape_, P.MoveKernel.shape_);
+		params.extract_double("Airport Kernel 3rd param", P.AirportKernel.p3_, P.MoveKernel.p3_);
+		params.extract_double("Airport Kernel 4th param", P.AirportKernel.p4_, P.MoveKernel.p4_);
 
-		params.extract("Include places", P.DoPlaces, 1);
+		params.extract_int("Include places", P.DoPlaces, 1);
 		if (P.DoPlaces)
 		{
-			params.extract("Number of types of places", P.PlaceTypeNum, 0);
+			params.extract_int("Number of types of places", P.PlaceTypeNum, 0);
 			if (P.PlaceTypeNum == 0) P.DoPlaces = P.DoAirports = 0;
 		}
 		else
@@ -744,22 +744,22 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	if (P.DoPlaces)
 	{
-		params.extract("Scaling of household contacts for care home residents", P.CareHomeResidentHouseholdScaling, 1.0);
-		params.extract("Scaling of spatial contacts for care home residents", P.CareHomeResidentSpatialScaling, 1.0);
-		params.extract("Scaling of between group (home) contacts for care home residents", P.CareHomeResidentPlaceScaling, 1.0);
-		params.extract("Scaling of within group (home) contacts for care home workers", P.CareHomeWorkerGroupScaling, 1.0);
-		params.extract("Relative probability that care home residents are hospitalised", P.CareHomeRelProbHosp, 1.0);
+		params.extract_double("Scaling of household contacts for care home residents", P.CareHomeResidentHouseholdScaling, 1.0);
+		params.extract_double("Scaling of spatial contacts for care home residents", P.CareHomeResidentSpatialScaling, 1.0);
+		params.extract_double("Scaling of between group (home) contacts for care home residents", P.CareHomeResidentPlaceScaling, 1.0);
+		params.extract_double("Scaling of within group (home) contacts for care home workers", P.CareHomeWorkerGroupScaling, 1.0);
+		params.extract_double("Relative probability that care home residents are hospitalised", P.CareHomeRelProbHosp, 1.0);
 
 		if (P.FitIter == 0)
 		{
 			if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
-			params.extract("Place type number for care homes", P.CareHomePlaceType, -1);
-			params.extract("Allow initial infections to be in care homes", P.CareHomeAllowInitialInfections, 0);
-			params.extract("Minimum age of care home residents", P.CareHomeResidentMinimumAge, 1000);
+			params.extract_int("Place type number for care homes", P.CareHomePlaceType, -1);
+			params.extract_int("Allow initial infections to be in care homes", P.CareHomeAllowInitialInfections, 0);
+			params.extract_int("Minimum age of care home residents", P.CareHomeResidentMinimumAge, 1000);
 
-			params.extract_multiple_or_exit("Minimum age for age group 1 in place types", P.PlaceTypeAgeMin, P.PlaceTypeNum);
-			params.extract_multiple_or_exit("Maximum age for age group 1 in place types", P.PlaceTypeAgeMax, P.PlaceTypeNum);
-			params.extract_multiple_or_exit("Proportion of age group 1 in place types", P.PlaceTypePropAgeGroup, P.PlaceTypeNum);
+			params.extract_ints_or_exit("Minimum age for age group 1 in place types", P.PlaceTypeAgeMin, P.PlaceTypeNum);
+			params.extract_ints_or_exit("Maximum age for age group 1 in place types", P.PlaceTypeAgeMax, P.PlaceTypeNum);
+			params.extract_doubles_or_exit("Proportion of age group 1 in place types", P.PlaceTypePropAgeGroup, P.PlaceTypeNum);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 2 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup2), P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -771,8 +771,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			}
 			else
 			{
-				params.extract_multiple_or_exit("Minimum age for age group 2 in place types", P.PlaceTypeAgeMin2, P.PlaceTypeNum);
-				params.extract_multiple_or_exit("Maximum age for age group 2 in place types", P.PlaceTypeAgeMax2, P.PlaceTypeNum);
+				params.extract_ints_or_exit("Minimum age for age group 2 in place types", P.PlaceTypeAgeMin2, P.PlaceTypeNum);
+				params.extract_ints_or_exit("Maximum age for age group 2 in place types", P.PlaceTypeAgeMax2, P.PlaceTypeNum);
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 3 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup3), P.PlaceTypeNum, 1, 0))
 			{
@@ -785,8 +785,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			}
 			else
 			{
-				params.extract_multiple_or_exit("Minimum age for age group 3 in place types", P.PlaceTypeAgeMin3, P.PlaceTypeNum);
-				params.extract_multiple_or_exit("Maximum age for age group 3 in place types", P.PlaceTypeAgeMax3, P.PlaceTypeNum);
+				params.extract_ints_or_exit("Minimum age for age group 3 in place types", P.PlaceTypeAgeMin3, P.PlaceTypeNum);
+				params.extract_ints_or_exit("Maximum age for age group 3 in place types", P.PlaceTypeAgeMax3, P.PlaceTypeNum);
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel shape params for place types", "%lf", (void*)&(P.PlaceTypeKernelShape), P.PlaceTypeNum, 1, 0))
 			{
@@ -797,7 +797,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				}
 			}
 			else
-				params.extract_multiple_or_exit("Kernel scale params for place types", P.PlaceTypeKernelScale, P.PlaceTypeNum);
+				params.extract_doubles_or_exit("Kernel scale params for place types", P.PlaceTypeKernelScale, P.PlaceTypeNum);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param for place types", "%lf", (void*)&(P.PlaceTypeKernelP3), P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -807,14 +807,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				}
 			}
 			else
-				params.extract_multiple_or_exit("Kernel 4th param for place types", P.PlaceTypeKernelP4, P.PlaceTypeNum);
-			params.extract_multiple("Number of closest places people pick from (0=all) for place types", P.PlaceTypeNearestNeighb, P.PlaceTypeNum, 0);
+				params.extract_doubles_or_exit("Kernel 4th param for place types", P.PlaceTypeKernelP4, P.PlaceTypeNum);
+			params.extract_ints("Number of closest places people pick from (0=all) for place types", P.PlaceTypeNearestNeighb, P.PlaceTypeNum, 0);
 			if (P.DoAdUnits)
 			{
-				params.extract_multiple("Degree to which crossing administrative unit boundaries to go to places is inhibited", P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0.0);
+				params.extract_doubles("Degree to which crossing administrative unit boundaries to go to places is inhibited", P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0.0);
 			}
 
-			params.extract("Include air travel", P.DoAirports, 0);
+			params.extract_int("Include air travel", P.DoAirports, 0);
 			if (!P.DoAirports)
 			{
 				// Airports disabled => all places are not to do with airports, and we
@@ -826,8 +826,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			{
 				// When airports are activated we must have at least one airport place
 				// // and a hotel type.
-				params.extract_or_exit("Number of non-airport places", P.PlaceTypeNoAirNum);
-				params.extract_or_exit("Hotel place type", P.HotelPlaceType);
+				params.extract_int_or_exit("Number of non-airport places", P.PlaceTypeNoAirNum);
+				params.extract_int_or_exit("Hotel place type", P.HotelPlaceType);
 				if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
 					ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 				}
@@ -835,15 +835,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
 				}
 
-				params.extract("Scaling factor for input file to convert to daily traffic", P.AirportTrafficScale, 1.0);
-				params.extract("Proportion of hotel attendees who are local", P.HotelPropLocal, 0.0);
-				if (!params.extract_multiple_no_default("Distribution of duration of air journeys", P.JourneyDurationDistrib, MAX_TRAVEL_TIME))
+				params.extract_double("Scaling factor for input file to convert to daily traffic", P.AirportTrafficScale, 1.0);
+				params.extract_double("Proportion of hotel attendees who are local", P.HotelPropLocal, 0.0);
+				if (!params.extract_doubles_no_default("Distribution of duration of air journeys", P.JourneyDurationDistrib, MAX_TRAVEL_TIME))
 				{
 					P.JourneyDurationDistrib[0] = 1;
 					for (i = 0; i < MAX_TRAVEL_TIME; i++)
 						P.JourneyDurationDistrib[i] = 0;
 				}
-				if (!params.extract_multiple_no_default("Distribution of duration of local journeys", P.LocalJourneyDurationDistrib, MAX_TRAVEL_TIME))
+				if (!params.extract_doubles_no_default("Distribution of duration of local journeys", P.LocalJourneyDurationDistrib, MAX_TRAVEL_TIME))
 				{
 					P.LocalJourneyDurationDistrib[0] = 1;
 					for (i = 0; i < MAX_TRAVEL_TIME; i++)
@@ -870,15 +870,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.InvLocalJourneyDurationDistrib[i] = j2;
 				}
 			}
-			params.extract_multiple_or_exit("Mean size of place types", P.PlaceTypeMeanSize, P.PlaceTypeNum);
-			params.extract_multiple_or_exit("Param 1 of place group size distribution", P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum);
-			params.extract_multiple("Power of place size distribution", P.PlaceTypeSizePower, P.PlaceTypeNum, 0.0);
+			params.extract_doubles_or_exit("Mean size of place types", P.PlaceTypeMeanSize, P.PlaceTypeNum);
+			params.extract_doubles_or_exit("Param 1 of place group size distribution", P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum);
+			params.extract_doubles("Power of place size distribution", P.PlaceTypeSizePower, P.PlaceTypeNum, 0.0);
 			//added to enable lognormal distribution - ggilani 09/02/17
-			params.extract_multiple("Standard deviation of place size distribution", P.PlaceTypeSizeSD, P.PlaceTypeNum, 0.0);
-			params.extract_multiple("Offset of place size distribution", P.PlaceTypeSizeOffset, P.PlaceTypeNum, 0.0);
-			params.extract_multiple("Maximum of place size distribution", P.PlaceTypeSizeMax, P.PlaceTypeNum, 1e20);
-			params.extract_multiple("Minimum of place size distribution", P.PlaceTypeSizeMin, P.PlaceTypeNum, 1.0);
-			params.extract_multiple("Kernel type for place types", P.PlaceTypeKernelType, P.PlaceTypeNum, P.MoveKernel.type_);
+			params.extract_doubles("Standard deviation of place size distribution", P.PlaceTypeSizeSD, P.PlaceTypeNum, 0.0);
+			params.extract_doubles("Offset of place size distribution", P.PlaceTypeSizeOffset, P.PlaceTypeNum, 0.0);
+			params.extract_doubles("Maximum of place size distribution", P.PlaceTypeSizeMax, P.PlaceTypeNum, 1e20);
+			params.extract_doubles("Minimum of place size distribution", P.PlaceTypeSizeMin, P.PlaceTypeNum, 1.0);
+			params.extract_ints("Kernel type for place types", P.PlaceTypeKernelType, P.PlaceTypeNum, P.MoveKernel.type_);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
@@ -888,11 +888,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
 
-		params.extract_multiple_or_exit("Proportion of between group place links", P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum);
-		params.extract_multiple_or_exit("Relative transmission rates for place types", P.PlaceTypeTrans, P.PlaceTypeNum);
+		params.extract_doubles_or_exit("Proportion of between group place links", P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum);
+		params.extract_doubles_or_exit("Relative transmission rates for place types", P.PlaceTypeTrans, P.PlaceTypeNum);
 		for (i = 0; i < P.PlaceTypeNum; i++) P.PlaceTypeTrans[i] *= AgeSuscScale;
 	}
-	if (!params.extract_multiple("Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1.0))
+	if (!params.extract_doubles("Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1.0))
 	{
 		P.DoSeasonality = 0;
 	}
@@ -907,19 +907,19 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (i = 0; i < DAYS_PER_YEAR; i++)
 			P.Seasonality[i] /= s;
 	}
-	params.extract("Number of seed locations", P.NumSeedLocations, 1);
+	params.extract_int("Number of seed locations", P.NumSeedLocations, 1);
 	if (P.NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
 	{
 		fprintf(stderr, "Too many seed locations\n");
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
-	params.extract_multiple_or_exit("Initial number of infecteds", P.NumInitialInfections, P.NumSeedLocations);
+	params.extract_ints_or_exit("Initial number of infecteds", P.NumInitialInfections, P.NumSeedLocations);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
-	params.extract("Minimum population in microcell of initial infection", P.MinPopDensForInitialInfection, 0);
-	params.extract("Maximum population in microcell of initial infection", P.MaxPopDensForInitialInfection, 10000000);
-	params.extract("Maximum age of initial infections", P.MaxAgeForInitialInfection, 1000);
-	params.extract("Randomise initial infection location", P.DoRandomInitialInfectionLoc, 1);
-	params.extract("All initial infections located in same microcell", P.DoAllInitialInfectioninSameLoc, 0);
+	params.extract_int("Minimum population in microcell of initial infection", P.MinPopDensForInitialInfection, 0);
+	params.extract_int("Maximum population in microcell of initial infection", P.MaxPopDensForInitialInfection, 10000000);
+	params.extract_int("Maximum age of initial infections", P.MaxAgeForInitialInfection, 1000);
+	params.extract_int("Randomise initial infection location", P.DoRandomInitialInfectionLoc, 1);
+	params.extract_int("All initial infections located in same microcell", P.DoAllInitialInfectioninSameLoc, 0);
 	if (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Day of year of start of seeding", "%lf", (void*)&(P.InitialInfectionCalTime), 1, 1, 0))
 	{
 		if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of infection seeding", "%lf", (void*)&(P.SeedingScaling), 1, 1, 0))
@@ -941,7 +941,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (P.DoAdUnits)
 		{
 			std::vector<std::string> AdunitSeedLocationIds;
-			if (params.extract_multiple_strings_no_default("Administrative unit to seed initial infection into", AdunitSeedLocationIds, P.NumSeedLocations))
+			if (params.extract_strings_no_default("Administrative unit to seed initial infection into", AdunitSeedLocationIds, P.NumSeedLocations))
 				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
 			else
 				for (i = 0; i < P.NumSeedLocations; i++)
@@ -953,7 +953,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.InitialInfectionsAdminUnit[i] = k;
 					P.InitialInfectionsAdminUnitId[i]=P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
 				}
-			params.extract_multiple("Administrative unit seeding weights", P.InitialInfectionsAdminUnitWeight, P.NumSeedLocations, 1.0);
+			params.extract_doubles("Administrative unit seeding weights", P.InitialInfectionsAdminUnitWeight, P.NumSeedLocations, 1.0);
 			s = 0;
 			for (i = 0; i < P.NumSeedLocations; i++) s += P.InitialInfectionsAdminUnitWeight[i];
 			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] /= s;
@@ -963,17 +963,17 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
 		}
 	}
-	params.extract("Initial rate of importation of infections", P.InfectionImportRate1, 0.0);
-	params.extract("Changed rate of importation of infections", P.InfectionImportRate2, 0.0);
-	params.extract("Time when infection rate changes", P.InfectionImportChangeTime, 1e10);
-	params.extract("Imports via air travel", P.DoImportsViaAirports, 0);
-	params.extract("Length of importation time profile provided", P.DurImportTimeProfile, 0);
+	params.extract_double("Initial rate of importation of infections", P.InfectionImportRate1, 0.0);
+	params.extract_double("Changed rate of importation of infections", P.InfectionImportRate2, 0.0);
+	params.extract_double("Time when infection rate changes", P.InfectionImportChangeTime, 1e10);
+	params.extract_int("Imports via air travel", P.DoImportsViaAirports, 0);
+	params.extract_int("Length of importation time profile provided", P.DurImportTimeProfile, 0);
 	if (P.DurImportTimeProfile > 0)
 	{
 		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
-		params.extract_multiple_or_exit("Daily importation time profile", P.ImportInfectionTimeProfile, P.DurImportTimeProfile);
+		params.extract_doubles_or_exit("Daily importation time profile", P.ImportInfectionTimeProfile, P.DurImportTimeProfile);
 	}
-	params.extract_or_exit("Reproduction number", P.R0);
+	params.extract_double_or_exit("Reproduction number", P.R0);
 	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Beta for spatial transmission", "%lf", (void*)&(P.LocalBeta), 1, 1, 0))
 		P.FixLocalBeta = 1;
 	else
@@ -981,16 +981,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.LocalBeta = -1.0;
 		P.FixLocalBeta = 0;
 	}
-	params.extract_or_exit("Infectious period", P.InfectiousPeriod);
-	params.extract("SD of individual variation in susceptibility", P.SusceptibilitySD, 0.0);
-	params.extract("SD of individual variation in infectiousness", P.InfectiousnessSD, 0.0);
-	if (params.extract("k of individual variation in infectiousness", s, 0.0)) P.InfectiousnessSD = 1.0 / sqrt(s);
-	params.extract("k does not apply in households", P.NoInfectiousnessSDinHH, 0);
-	params.extract("Model time varying infectiousness", P.DoInfectiousnessProfile, 0);
-	params.extract("Power of scaling of spatial R0 with density", P.R0DensityScalePower, 0.0);
+	params.extract_double_or_exit("Infectious period", P.InfectiousPeriod);
+	params.extract_double("SD of individual variation in susceptibility", P.SusceptibilitySD, 0.0);
+	params.extract_double("SD of individual variation in infectiousness", P.InfectiousnessSD, 0.0);
+	if (params.extract_double("k of individual variation in infectiousness", s, 0.0)) P.InfectiousnessSD = 1.0 / sqrt(s);
+	params.extract_int("k does not apply in households", P.NoInfectiousnessSDinHH, 0);
+	params.extract_int("Model time varying infectiousness", P.DoInfectiousnessProfile, 0);
+	params.extract_double("Power of scaling of spatial R0 with density", P.R0DensityScalePower, 0.0);
 	if (P.DoInfectiousnessProfile)
 	{
-		params.extract_multiple("Infectiousness profile", P.infectious_prof, INFPROF_RES, 1.0);
+		params.extract_doubles("Infectiousness profile", P.infectious_prof, INFPROF_RES, 1.0);
 		k = (int)ceil(P.InfectiousPeriod / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		s = 0;
@@ -1012,7 +1012,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	else
 	{
-		if (!params.extract_multiple_no_default("Infectious period inverse CDF", P.infectious_icdf.get_values(), CDF_RES + 1))
+		if (!params.extract_doubles_no_default("Infectious period inverse CDF", P.infectious_icdf.get_values(), CDF_RES + 1))
 		{
 			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
@@ -1022,14 +1022,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.infectiousness[k] = 0;
 		P.infectious_icdf.assign_exponent();
 	}
-	params.extract("Include latent period", P.DoLatent, 0);
+	params.extract_int("Include latent period", P.DoLatent, 0);
 	if (P.DoLatent)
 	{
-		params.extract_or_exit("Latent period", P.LatentPeriod);
+		params.extract_double_or_exit("Latent period", P.LatentPeriod);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", &P.latent_icdf, 1e10);
 	}
 
-	params.extract("Include symptoms", P.DoSymptoms, 0);
+	params.extract_int("Include symptoms", P.DoSymptoms, 0);
 	if (!P.DoSymptoms)
 	{
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1041,21 +1041,21 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	else
 	{
 		if (P.DoAge)
-			params.extract_multiple_or_exit("Proportion symptomatic by age group", P.ProportionSymptomatic, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Proportion symptomatic by age group", P.ProportionSymptomatic, NUM_AGE_GROUPS);
 		else
 		{
-			params.extract_or_exit("Proportion symptomatic", P.ProportionSymptomatic[0]);
+			params.extract_double_or_exit("Proportion symptomatic", P.ProportionSymptomatic[0]);
 			for (i = 1; i < NUM_AGE_GROUPS; i++)
 				P.ProportionSymptomatic[i] = P.ProportionSymptomatic[0];
 		}
-		params.extract_or_exit("Delay from end of latent period to start of symptoms", P.LatentToSymptDelay);
-		params.extract_or_exit("Relative rate of random contacts if symptomatic", P.SymptSpatialContactRate);
-		params.extract("Symptomatic infectiousness relative to asymptomatic", P.SymptInfectiousness, 1.0);
-		params.extract("Asymptomatic infectiousness relative to symptomatic", P.AsymptInfectiousness, 1.0);
-		params.extract("Model symptomatic withdrawal to home as true absenteeism", P.DoRealSymptWithdrawal, 0);
+		params.extract_double_or_exit("Delay from end of latent period to start of symptoms", P.LatentToSymptDelay);
+		params.extract_double_or_exit("Relative rate of random contacts if symptomatic", P.SymptSpatialContactRate);
+		params.extract_double("Symptomatic infectiousness relative to asymptomatic", P.SymptInfectiousness, 1.0);
+		params.extract_double("Asymptomatic infectiousness relative to symptomatic", P.AsymptInfectiousness, 1.0);
+		params.extract_int("Model symptomatic withdrawal to home as true absenteeism", P.DoRealSymptWithdrawal, 0);
 		if (P.DoPlaces)
 		{
-			params.extract_multiple_or_exit("Relative level of place attendance if symptomatic", P.SymptPlaceTypeContactRate, P.PlaceTypeNum);
+			params.extract_doubles_or_exit("Relative level of place attendance if symptomatic", P.SymptPlaceTypeContactRate, P.PlaceTypeNum);
 			if (P.DoRealSymptWithdrawal)
 			{
 				for (j = 0; j < NUM_PLACE_TYPES; j++)
@@ -1067,14 +1067,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			else
 				for (j = 0; j < NUM_PLACE_TYPES; j++) P.SymptPlaceTypeWithdrawalProp[j] = 0.0;
 		}
-		params.extract("Maximum age of child at home for whom one adult also stays at home", P.CaseAbsentChildAgeCutoff, 0);
-		params.extract("Proportion of children at home for whom one adult also stays at home", P.CaseAbsentChildPropAdultCarers, 0.0);
-		params.extract("Place close round household", P.PlaceCloseRoundHousehold, 1);
-		params.extract("Absenteeism place closure", P.AbsenteeismPlaceClosure, 0);
+		params.extract_int("Maximum age of child at home for whom one adult also stays at home", P.CaseAbsentChildAgeCutoff, 0);
+		params.extract_double("Proportion of children at home for whom one adult also stays at home", P.CaseAbsentChildPropAdultCarers, 0.0);
+		params.extract_int("Place close round household", P.PlaceCloseRoundHousehold, 1);
+		params.extract_int("Absenteeism place closure", P.AbsenteeismPlaceClosure, 0);
 		if (P.AbsenteeismPlaceClosure)
 		{
 			P.CaseAbsenteeismDelay = 0;  // Set to zero for tracking absenteeism
-			params.extract("Max absent time", P.MaxAbsentTime, MAX_ABSENT_TIME);
+			params.extract_int("Max absent time", P.MaxAbsentTime, MAX_ABSENT_TIME);
 			if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
 			{
 				ERR_CRITICAL_FMT("[Max absent time] out of range (%d), should be in range [0, %d]", P.MaxAbsentTime, MAX_ABSENT_TIME);
@@ -1082,44 +1082,44 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			params.extract("Delay in starting place absenteeism for cases who withdraw", P.CaseAbsenteeismDelay, 0.0);
+			params.extract_double("Delay in starting place absenteeism for cases who withdraw", P.CaseAbsenteeismDelay, 0.0);
 			P.MaxAbsentTime = 0; // Not used when !P.AbsenteeismPlaceClosure
 		}
-		params.extract("Duration of place absenteeism for cases who withdraw", P.CaseAbsenteeismDuration, 7.0);
+		params.extract_double("Duration of place absenteeism for cases who withdraw", P.CaseAbsenteeismDuration, 7.0);
 
-		params.extract("False positive rate", P.FalsePositiveRate, 0.0);
-		params.extract("False positive per capita incidence", P.FalsePositivePerCapitaIncidence, 0.0);
-		params.extract_multiple("False positive relative incidence by age", P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1.0);
+		params.extract_double("False positive rate", P.FalsePositiveRate, 0.0);
+		params.extract_double("False positive per capita incidence", P.FalsePositivePerCapitaIncidence, 0.0);
+		params.extract_doubles("False positive relative incidence by age", P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1.0);
 	}
 
-	params.extract("Maximum sensitivity of serology assay", P.SeroConvMaxSens, 1.0);
-	params.extract("Seroconversion model parameter 1", P.SeroConvP1, 14.0);
-	params.extract("Seroconversion model parameter 2", P.SeroConvP2, 3.0);
-	params.extract("Specificity of serology assay", P.SeroConvSpec, 1.0);
-	params.extract("Scaling of modelled infection prevalence to match surveys", P.InfPrevSurveyScale, 1.0);
+	params.extract_double("Maximum sensitivity of serology assay", P.SeroConvMaxSens, 1.0);
+	params.extract_double("Seroconversion model parameter 1", P.SeroConvP1, 14.0);
+	params.extract_double("Seroconversion model parameter 2", P.SeroConvP2, 3.0);
+	params.extract_double("Specificity of serology assay", P.SeroConvSpec, 1.0);
+	params.extract_double("Scaling of modelled infection prevalence to match surveys", P.InfPrevSurveyScale, 1.0);
 
-	params.extract("Do Severity Analysis", P.DoSeverity, 0);
+	params.extract_int("Do Severity Analysis", P.DoSeverity, 0);
 	if (P.DoSeverity)
 	{
-		params.extract("Factor to scale IFR", P.ScaleIFR, 1.0);
+		params.extract_double("Factor to scale IFR", P.ScaleIFR, 1.0);
 		//// Means for icdf's.
-		params.extract("MeanTimeToTest", P.Mean_TimeToTest, 0.0);
-		params.extract("MeanTimeToTestOffset", P.Mean_TimeToTestOffset, 1.0);
-		params.extract("MeanTimeToTestCriticalOffset", P.Mean_TimeToTestCriticalOffset, 1.0);
-		params.extract("MeanTimeToTestCritRecovOffset", P.Mean_TimeToTestCritRecovOffset, 1.0);
-		params.extract("Age dependent severity delays", i, 0);
+		params.extract_double("MeanTimeToTest", P.Mean_TimeToTest, 0.0);
+		params.extract_double("MeanTimeToTestOffset", P.Mean_TimeToTestOffset, 1.0);
+		params.extract_double("MeanTimeToTestCriticalOffset", P.Mean_TimeToTestCriticalOffset, 1.0);
+		params.extract_double("MeanTimeToTestCritRecovOffset", P.Mean_TimeToTestCritRecovOffset, 1.0);
+		params.extract_int("Age dependent severity delays", i, 0);
 		if (!i)
 		{
-			params.extract_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery[0]);
-			params.extract_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery[0]);
-			params.extract_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery[0]);
-			params.extract_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov[0]);
-			params.extract_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov[0]);
-			params.extract_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI[0]);
-			params.extract("Mean_ILIToDeath", P.Mean_ILIToDeath[0], 7.0);
-			params.extract_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical[0]);
-			params.extract_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath[0]);
-			params.extract_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath[0]);
+			params.extract_double_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery[0]);
+			params.extract_double_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery[0]);
+			params.extract_double_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery[0]);
+			params.extract_double_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov[0]);
+			params.extract_double_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov[0]);
+			params.extract_double_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI[0]);
+			params.extract_double("Mean_ILIToDeath", P.Mean_ILIToDeath[0], 7.0);
+			params.extract_double_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical[0]);
+			params.extract_double_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath[0]);
+			params.extract_double_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath[0]);
 			for (int AgeGroup = 1; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
 				P.Mean_MildToRecovery		[AgeGroup] = P.Mean_MildToRecovery		[0];
@@ -1136,16 +1136,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			params.extract_multiple_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI, NUM_AGE_GROUPS);
-			params.extract_multiple("Mean_ILIToDeath", P.Mean_ILIToDeath, NUM_AGE_GROUPS, 7.0);
-			params.extract_multiple_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath, NUM_AGE_GROUPS);
-			params.extract_multiple_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_MildToRecovery", P.Mean_MildToRecovery, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_ILIToRecovery", P.Mean_ILIToRecovery, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_SARIToRecovery", P.Mean_SARIToRecovery, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_CriticalToCritRecov", P.Mean_CriticalToCritRecov, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_CritRecovToRecov", P.Mean_CritRecovToRecov, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_ILIToSARI", P.Mean_ILIToSARI, NUM_AGE_GROUPS);
+			params.extract_doubles("Mean_ILIToDeath", P.Mean_ILIToDeath, NUM_AGE_GROUPS, 7.0);
+			params.extract_doubles_or_exit("Mean_SARIToCritical", P.Mean_SARIToCritical, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_SARIToDeath", P.Mean_SARIToDeath, NUM_AGE_GROUPS);
+			params.extract_doubles_or_exit("Mean_CriticalToDeath", P.Mean_CriticalToDeath, NUM_AGE_GROUPS);
 		}
 
 		//// Get InverseCDFs
@@ -1160,13 +1160,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
-		params.extract_multiple("Prop_Mild_ByAge", P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5);
-		params.extract_multiple("Prop_ILI_ByAge", P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3);
-		params.extract_multiple("Prop_SARI_ByAge", P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 0.15);
-		params.extract_multiple("Prop_Critical_ByAge", P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 0.05);
-		params.extract_multiple("CFR_SARI_ByAge", P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.50);
-		params.extract_multiple("CFR_Critical_ByAge", P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.50);
-		params.extract_multiple("CFR_ILI_ByAge", P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 0.00);
+		params.extract_doubles("Prop_Mild_ByAge", P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5);
+		params.extract_doubles("Prop_ILI_ByAge", P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3);
+		params.extract_doubles("Prop_SARI_ByAge", P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 0.15);
+		params.extract_doubles("Prop_Critical_ByAge", P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 0.05);
+		params.extract_doubles("CFR_SARI_ByAge", P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.50);
+		params.extract_doubles("CFR_Critical_ByAge", P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.50);
+		params.extract_doubles("CFR_ILI_ByAge", P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 0.00);
 
 		//Add param to allow severity to be uniformly scaled up or down.
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1188,34 +1188,34 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.SpatialBoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
 			P.SpatialBoundingBox.top_right()   = Geometry::Vector2d(1.0, 1.0);
 		}
-		params.extract("Grid size", P.in_cells_.width, 1.0 / 120.0);
-		params.extract("Use long/lat coord system", P.DoUTM_coords, 1);
-		params.extract("Bitmap scale", P.BitmapScale, 1.0);
-		params.extract("Bitmap y:x aspect scaling", P.BitmapAspectScale, 1.0);
-		params.extract("Bitmap movie frame interval", P.BitmapMovieFrame, 250);
-		params.extract("Output bitmap", P.OutputBitmap, 0);
-		params.extract("Output bitmap detected", P.OutputBitmapDetected, 0);
-		params.extract("Output immunity on bitmap", P.DoImmuneBitmap, 0);
-		params.extract("Output infection tree", P.DoInfectionTree, 0);
-		params.extract("Do one generation", P.DoOneGen, 0);
-		params.extract("Output every realisation", P.OutputEveryRealisation, 0);
-		params.extract("Maximum number to sample for correlations", P.MaxCorrSample, 1000000000);
-		params.extract("Assume SI model", P.DoSI, 0);
-		params.extract("Assume periodic boundary conditions", P.DoPeriodicBoundaries, 0);
-		params.extract("Only output non-extinct realisations", P.OutputOnlyNonExtinct, 0);
+		params.extract_double("Grid size", P.in_cells_.width, 1.0 / 120.0);
+		params.extract_int("Use long/lat coord system", P.DoUTM_coords, 1);
+		params.extract_double("Bitmap scale", P.BitmapScale, 1.0);
+		params.extract_double("Bitmap y:x aspect scaling", P.BitmapAspectScale, 1.0);
+		params.extract_int("Bitmap movie frame interval", P.BitmapMovieFrame, 250);
+		params.extract_int("Output bitmap", P.OutputBitmap, 0);
+		params.extract_int("Output bitmap detected", P.OutputBitmapDetected, 0);
+		params.extract_int("Output immunity on bitmap", P.DoImmuneBitmap, 0);
+		params.extract_int("Output infection tree", P.DoInfectionTree, 0);
+		params.extract_int("Do one generation", P.DoOneGen, 0);
+		params.extract_int("Output every realisation", P.OutputEveryRealisation, 0);
+		params.extract_int("Maximum number to sample for correlations", P.MaxCorrSample, 1000000000);
+		params.extract_int("Assume SI model", P.DoSI, 0);
+		params.extract_int("Assume periodic boundary conditions", P.DoPeriodicBoundaries, 0);
+		params.extract_int("Only output non-extinct realisations", P.OutputOnlyNonExtinct, 0);
 
-		params.extract("Use cases per thousand threshold for area controls", P.DoPerCapitaTriggers, 0);
-		params.extract("Use global triggers for interventions", P.DoGlobalTriggers, 0);
-		params.extract("Use admin unit triggers for interventions", P.DoAdminTriggers, 0);
-		params.extract("Use ICU case triggers for interventions", P.DoICUTriggers, 0);
+		params.extract_int("Use cases per thousand threshold for area controls", P.DoPerCapitaTriggers, 0);
+		params.extract_int("Use global triggers for interventions", P.DoGlobalTriggers, 0);
+		params.extract_int("Use admin unit triggers for interventions", P.DoAdminTriggers, 0);
+		params.extract_int("Use ICU case triggers for interventions", P.DoICUTriggers, 0);
 		if (P.DoGlobalTriggers)  P.DoAdminTriggers = 0;
-		params.extract("Divisor for per-capita area threshold (default 1000)", P.IncThreshPop, 1000);
-		params.extract("Divisor for per-capita global threshold (default 1000)", P.GlobalIncThreshPop, 1000);
+		params.extract_int("Divisor for per-capita area threshold (default 1000)", P.IncThreshPop, 1000);
+		params.extract_int("Divisor for per-capita global threshold (default 1000)", P.GlobalIncThreshPop, 1000);
 
-		params.extract("Number of sampling intervals over which cumulative incidence measured for global trigger", P.TriggersSamplingInterval, 10000000);
-		params.extract("Proportion of cases detected for treatment", P.PostAlertControlPropCasesId, 1.0);
-		params.extract("Proportion of cases detected before outbreak alert", P.PreAlertControlPropCasesId, 1.0);
-		params.extract("Trigger alert on deaths", P.TriggerAlertOnDeaths, 0);
+		params.extract_int("Number of sampling intervals over which cumulative incidence measured for global trigger", P.TriggersSamplingInterval, 10000000);
+		params.extract_double("Proportion of cases detected for treatment", P.PostAlertControlPropCasesId, 1.0);
+		params.extract_double("Proportion of cases detected before outbreak alert", P.PreAlertControlPropCasesId, 1.0);
+		params.extract_int("Trigger alert on deaths", P.TriggerAlertOnDeaths, 0);
 	}
 	if (P.TriggerAlertOnDeaths)
 	{
@@ -1223,15 +1223,15 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	else
 	{
-		params.extract("Number of detected cases needed before outbreak alert triggered", P.CaseOrDeathThresholdBeforeAlert, 0);
+		params.extract_int("Number of detected cases needed before outbreak alert triggered", P.CaseOrDeathThresholdBeforeAlert, 0);
 	}
 
 	if (P.CaseOrDeathThresholdBeforeAlert_CommandLine > 0) P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_CommandLine;
-	params.extract("Alert trigger starts after interventions", P.DoAlertTriggerAfterInterv, 0);
-	params.extract("Day of year trigger is reached", P.DateTriggerReached_CalTime, -1.0);
+	params.extract_int("Alert trigger starts after interventions", P.DoAlertTriggerAfterInterv, 0);
+	params.extract_double("Day of year trigger is reached", P.DateTriggerReached_CalTime, -1.0);
 	if (P.DoAlertTriggerAfterInterv)
 	{
-		params.extract_or_exit("Day of year interventions start", P.Interventions_StartDate_CalTime);
+		params.extract_double_or_exit("Day of year interventions start", P.Interventions_StartDate_CalTime);
 		if (P.DateTriggerReached_CalTime <= P.Interventions_StartDate_CalTime)
 			P.DoAlertTriggerAfterInterv = 0;
 		else
@@ -1250,47 +1250,47 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
 	}
 
-	params.extract("Number of days to accummulate cases/deaths before alert", P.WindowToEvaluateTriggerAlert, 1000);
+	params.extract_int("Number of days to accummulate cases/deaths before alert", P.WindowToEvaluateTriggerAlert, 1000);
 
-	params.extract("Only treat mixing groups within places", P.DoPlaceGroupTreat, 0);
+	params.extract_int("Only treat mixing groups within places", P.DoPlaceGroupTreat, 0);
 
-	params.extract("Treatment trigger incidence per cell", P.TreatCellIncThresh, 1000000000.0);
-	params.extract("Case isolation trigger incidence per cell", P.CaseIsolation_CellIncThresh, P.TreatCellIncThresh);
-	params.extract("Household quarantine trigger incidence per cell", P.HHQuar_CellIncThresh, P.TreatCellIncThresh);
+	params.extract_double("Treatment trigger incidence per cell", P.TreatCellIncThresh, 1000000000.0);
+	params.extract_double("Case isolation trigger incidence per cell", P.CaseIsolation_CellIncThresh, P.TreatCellIncThresh);
+	params.extract_double("Household quarantine trigger incidence per cell", P.HHQuar_CellIncThresh, P.TreatCellIncThresh);
 
-	params.extract("Relative susceptibility of treated individual", P.TreatSuscDrop, 1.0);
-	params.extract("Relative infectiousness of treated individual", P.TreatInfDrop, 1.0);
-	params.extract("Proportion of symptomatic cases resulting in death prevented by treatment", P.TreatDeathDrop, 0.0);
-	params.extract("Proportion of symptomatic cases prevented by treatment", P.TreatSympDrop, 0.0);
-	params.extract("Delay to treat cell", P.TreatDelayMean, 0.0);
-	params.extract("Duration of course of treatment", P.TreatCaseCourseLength, 5.0);
-	params.extract("Duration of course of prophylaxis", P.TreatProphCourseLength, 10.0);
-	params.extract("Proportion of detected cases treated", P.TreatPropCases, 1.0);
+	params.extract_double("Relative susceptibility of treated individual", P.TreatSuscDrop, 1.0);
+	params.extract_double("Relative infectiousness of treated individual", P.TreatInfDrop, 1.0);
+	params.extract_double("Proportion of symptomatic cases resulting in death prevented by treatment", P.TreatDeathDrop, 0.0);
+	params.extract_double("Proportion of symptomatic cases prevented by treatment", P.TreatSympDrop, 0.0);
+	params.extract_double("Delay to treat cell", P.TreatDelayMean, 0.0);
+	params.extract_double("Duration of course of treatment", P.TreatCaseCourseLength, 5.0);
+	params.extract_double("Duration of course of prophylaxis", P.TreatProphCourseLength, 10.0);
+	params.extract_double("Proportion of detected cases treated", P.TreatPropCases, 1.0);
 	if (P.DoHouseholds)
 	{
-		params.extract("Proportion of households of cases treated", P.TreatPropCaseHouseholds, 0.0);
-		params.extract("Duration of household prophylaxis policy", P.TreatHouseholdsDuration, USHRT_MAX / P.TimeStepsPerDay);
+		params.extract_double("Proportion of households of cases treated", P.TreatPropCaseHouseholds, 0.0);
+		params.extract_double("Duration of household prophylaxis policy", P.TreatHouseholdsDuration, USHRT_MAX / P.TimeStepsPerDay);
 	}
-	params.extract("Proportion treated", P.TreatPropRadial, 1.0);
-	params.extract("Proportion treated in radial prophylaxis", P.TreatPropRadial, 1.0);
-	params.extract("Treatment radius", P.TreatRadius, 0.0);
-	params.extract("Duration of place/geographic prophylaxis policy", P.TreatPlaceGeogDuration, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Treatment start time", P.TreatTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Proportion treated", P.TreatPropRadial, 1.0);
+	params.extract_double("Proportion treated in radial prophylaxis", P.TreatPropRadial, 1.0);
+	params.extract_double("Treatment radius", P.TreatRadius, 0.0);
+	params.extract_double("Duration of place/geographic prophylaxis policy", P.TreatPlaceGeogDuration, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Treatment start time", P.TreatTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
 	if (P.DoPlaces)
 	{
-		params.extract_multiple("Proportion of places treated after case detected", P.TreatPlaceProbCaseId, P.PlaceTypeNum, 0.0);
-		params.extract_multiple("Proportion of people treated in targeted places", P.TreatPlaceTotalProp, P.PlaceTypeNum, 0.0);
+		params.extract_doubles("Proportion of places treated after case detected", P.TreatPlaceProbCaseId, P.PlaceTypeNum, 0.0);
+		params.extract_doubles("Proportion of people treated in targeted places", P.TreatPlaceTotalProp, P.PlaceTypeNum, 0.0);
 	}
-	params.extract("Maximum number of doses available", P.TreatMaxCoursesBase, 1e20);
-	params.extract("Start time of additional treatment production", P.TreatNewCoursesStartTime, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Rate of additional treatment production (courses per day)", P.TreatNewCoursesRate, 0.0);
-	params.extract("Maximum number of people targeted with radial prophylaxis per case", P.TreatMaxCoursesPerCase, 1000000000);
+	params.extract_double("Maximum number of doses available", P.TreatMaxCoursesBase, 1e20);
+	params.extract_double("Start time of additional treatment production", P.TreatNewCoursesStartTime, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Rate of additional treatment production (courses per day)", P.TreatNewCoursesRate, 0.0);
+	params.extract_int("Maximum number of people targeted with radial prophylaxis per case", P.TreatMaxCoursesPerCase, 1000000000);
 
 
 	if (P.DoAdUnits)
 	{
-		params.extract("Treat administrative units rather than rings", P.TreatByAdminUnit, 0);
-		params.extract("Administrative unit divisor for treatment", P.TreatAdminUnitDivisor, 1);
+		params.extract_int("Treat administrative units rather than rings", P.TreatByAdminUnit, 0);
+		params.extract_int("Administrative unit divisor for treatment", P.TreatAdminUnitDivisor, 1);
 		if ((P.TreatAdminUnitDivisor == 0) || (P.TreatByAdminUnit == 0)) { P.TreatByAdminUnit = 0; P.TreatAdminUnitDivisor = 1; }
 	}
 	else
@@ -1298,46 +1298,46 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.TreatAdminUnitDivisor = 1; P.TreatByAdminUnit = 0;
 	}
 
-	params.extract("Vaccination trigger incidence per cell", P.VaccCellIncThresh, 1000000000.0);
-	params.extract("Relative susceptibility of vaccinated individual", P.VaccSuscDrop, 1.0);
-	params.extract("Relative susceptibility of individual vaccinated after switch time", P.VaccSuscDrop2, 1.0);
-	params.extract("Switch time at which vaccine efficacy increases", P.VaccTimeEfficacySwitch, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Decay rate of vaccine efficacy (per year)", P.VaccEfficacyDecay, 0.0);
+	params.extract_double("Vaccination trigger incidence per cell", P.VaccCellIncThresh, 1000000000.0);
+	params.extract_double("Relative susceptibility of vaccinated individual", P.VaccSuscDrop, 1.0);
+	params.extract_double("Relative susceptibility of individual vaccinated after switch time", P.VaccSuscDrop2, 1.0);
+	params.extract_double("Switch time at which vaccine efficacy increases", P.VaccTimeEfficacySwitch, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Decay rate of vaccine efficacy (per year)", P.VaccEfficacyDecay, 0.0);
 	P.VaccEfficacyDecay /= DAYS_PER_YEAR;
-	params.extract("Relative infectiousness of vaccinated individual", P.VaccInfDrop, 1.0);
-	params.extract("Proportion of symptomatic cases resulting in death prevented by vaccination", P.VaccMortDrop, 0.0);
-	params.extract("Proportion of symptomatic cases prevented by vaccination", P.VaccSympDrop, 0.0);
-	params.extract("Delay to vaccinate", P.VaccDelayMean, 0.0);
+	params.extract_double("Relative infectiousness of vaccinated individual", P.VaccInfDrop, 1.0);
+	params.extract_double("Proportion of symptomatic cases resulting in death prevented by vaccination", P.VaccMortDrop, 0.0);
+	params.extract_double("Proportion of symptomatic cases prevented by vaccination", P.VaccSympDrop, 0.0);
+	params.extract_double("Delay to vaccinate", P.VaccDelayMean, 0.0);
 
-	params.extract("Delay from vaccination to full protection", P.VaccTimeToEfficacy, 0.0);
+	params.extract_double("Delay from vaccination to full protection", P.VaccTimeToEfficacy, 0.0);
 
-	params.extract("Years between rounds of vaccination", P.VaccCampaignInterval, 1e10);
-	params.extract("Max vaccine doses per day", P.VaccDosePerDay, -1);
+	params.extract_double("Years between rounds of vaccination", P.VaccCampaignInterval, 1e10);
+	params.extract_int("Max vaccine doses per day", P.VaccDosePerDay, -1);
 	P.VaccCampaignInterval *= DAYS_PER_YEAR;
-	params.extract("Maximum number of rounds of vaccination", P.VaccMaxRounds, 1);
+	params.extract_int("Maximum number of rounds of vaccination", P.VaccMaxRounds, 1);
 	if (P.DoHouseholds)
 	{
-		params.extract("Proportion of households of cases vaccinated", P.VaccPropCaseHouseholds, 0.0);
-		params.extract("Duration of household vaccination policy", P.VaccHouseholdsDuration, USHRT_MAX / P.TimeStepsPerDay);
+		params.extract_double("Proportion of households of cases vaccinated", P.VaccPropCaseHouseholds, 0.0);
+		params.extract_double("Duration of household vaccination policy", P.VaccHouseholdsDuration, USHRT_MAX / P.TimeStepsPerDay);
 	}
 
-	params.extract("Vaccination start time", P.VaccTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Proportion of population vaccinated", P.VaccProp, 0.0);
-	params.extract("Time taken to reach max vaccination coverage (in years)", P.VaccCoverageIncreasePeriod, 0.0);
+	params.extract_double("Vaccination start time", P.VaccTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Proportion of population vaccinated", P.VaccProp, 0.0);
+	params.extract_double("Time taken to reach max vaccination coverage (in years)", P.VaccCoverageIncreasePeriod, 0.0);
 	P.VaccCoverageIncreasePeriod *= DAYS_PER_YEAR;
-	params.extract("Time to start geographic vaccination", P.VaccTimeStartGeo, 1e10);
-	params.extract("Vaccination radius", P.VaccRadius, 0.0);
-	params.extract("Minimum radius from case to vaccinate", P.VaccMinRadius, 0.0);
-	params.extract("Maximum number of vaccine courses available", P.VaccMaxCoursesBase, 1e20);
-	params.extract("Start time of additional vaccine production", P.VaccNewCoursesStartTime, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("End time of additional vaccine production", P.VaccNewCoursesEndTime, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Rate of additional vaccine production (courses per day)", P.VaccNewCoursesRate, 0.0);
-	params.extract("Apply mass rather than reactive vaccination", P.DoMassVacc, 0);
-	if (!params.extract_multiple_no_default("Priority age range for mass vaccination", P.VaccPriorityGroupAge, 2)) { P.VaccPriorityGroupAge[0] = 1; P.VaccPriorityGroupAge[1] = 0; }
+	params.extract_double("Time to start geographic vaccination", P.VaccTimeStartGeo, 1e10);
+	params.extract_double("Vaccination radius", P.VaccRadius, 0.0);
+	params.extract_double("Minimum radius from case to vaccinate", P.VaccMinRadius, 0.0);
+	params.extract_double("Maximum number of vaccine courses available", P.VaccMaxCoursesBase, 1e20);
+	params.extract_double("Start time of additional vaccine production", P.VaccNewCoursesStartTime, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("End time of additional vaccine production", P.VaccNewCoursesEndTime, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Rate of additional vaccine production (courses per day)", P.VaccNewCoursesRate, 0.0);
+	params.extract_int("Apply mass rather than reactive vaccination", P.DoMassVacc, 0);
+	if (!params.extract_ints_no_default("Priority age range for mass vaccination", P.VaccPriorityGroupAge, 2)) { P.VaccPriorityGroupAge[0] = 1; P.VaccPriorityGroupAge[1] = 0; }
 	if (P.DoAdUnits)
 	{
-		params.extract("Vaccinate administrative units rather than rings", P.VaccByAdminUnit, 0);
-		params.extract("Administrative unit divisor for vaccination", P.VaccAdminUnitDivisor, 1);
+		params.extract_int("Vaccinate administrative units rather than rings", P.VaccByAdminUnit, 0);
+		params.extract_int("Administrative unit divisor for vaccination", P.VaccAdminUnitDivisor, 1);
 		if ((P.VaccAdminUnitDivisor == 0) || (P.VaccByAdminUnit == 0)) P.VaccAdminUnitDivisor = 1;
 	}
 	else
@@ -1345,19 +1345,19 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.VaccAdminUnitDivisor = 1; P.VaccByAdminUnit = 0;
 	}
 
-	params.extract("Movement restrictions trigger incidence per cell", P.MoveRestrCellIncThresh, 1000000000);
-	params.extract("Delay to start movement restrictions", P.MoveDelayMean, 0.0);
-	params.extract("Duration of movement restrictions", P.MoveRestrDuration, 7.0);
-	params.extract("Residual movements after restrictions", P.MoveRestrEffect, 0.0);
-	params.extract("Minimum radius of movement restrictions", P.MoveRestrRadius, 0.0);
-	params.extract("Movement restrictions start time", P.MoveRestrTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Impose blanket movement restrictions", P.DoBlanketMoveRestr, 0);
-	params.extract("Movement restrictions only once", P.DoMoveRestrOnceOnly, 0);
+	params.extract_int("Movement restrictions trigger incidence per cell", P.MoveRestrCellIncThresh, 1000000000);
+	params.extract_double("Delay to start movement restrictions", P.MoveDelayMean, 0.0);
+	params.extract_double("Duration of movement restrictions", P.MoveRestrDuration, 7.0);
+	params.extract_double("Residual movements after restrictions", P.MoveRestrEffect, 0.0);
+	params.extract_double("Minimum radius of movement restrictions", P.MoveRestrRadius, 0.0);
+	params.extract_double("Movement restrictions start time", P.MoveRestrTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_int("Impose blanket movement restrictions", P.DoBlanketMoveRestr, 0);
+	params.extract_int("Movement restrictions only once", P.DoMoveRestrOnceOnly, 0);
 	if (P.DoMoveRestrOnceOnly) P.DoMoveRestrOnceOnly = 4;
 	if (P.DoAdUnits)
 	{
-		params.extract("Movement restrictions in administrative units rather than rings", P.MoveRestrByAdminUnit, 0);
-		params.extract("Administrative unit divisor for movement restrictions", P.MoveRestrAdminUnitDivisor, 1);
+		params.extract_int("Movement restrictions in administrative units rather than rings", P.MoveRestrByAdminUnit, 0);
+		params.extract_int("Administrative unit divisor for movement restrictions", P.MoveRestrAdminUnitDivisor, 1);
 		if ((P.MoveRestrAdminUnitDivisor == 0) || (P.MoveRestrByAdminUnit == 0)) P.MoveRestrAdminUnitDivisor = 1;
 	}
 	else
@@ -1366,7 +1366,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 
 	//Intervention delays and durations by admin unit: ggilani 16/03/20
-	params.extract("Include intervention delays by admin unit", P.DoInterventionDelaysByAdUnit, 0);
+	params.extract_int("Include intervention delays by admin unit", P.DoInterventionDelaysByAdUnit, 0);
 	if (P.DoInterventionDelaysByAdUnit)
 	{
 		//Set up arrays to temporarily store parameters per admin unit
@@ -1379,14 +1379,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		double AdunitDurationCaseIsolation	[MAX_ADUNITS];
 		double AdunitDurationPlaceClose		[MAX_ADUNITS];
 
-		params.extract_multiple("Delay to social distancing by admin unit"		, AdunitDelayToSocialDistance	, P.NumAdunits, 0.0);
-		params.extract_multiple("Delay to household quarantine by admin unit"	, AdunitDelayToHQuarantine		, P.NumAdunits, 0.0);
-		params.extract_multiple("Delay to case isolation by admin unit"			, AdunitDelayToCaseIsolation	, P.NumAdunits, 0.0);
-		params.extract_multiple("Delay to place closure by admin unit"			, AdunitDelayToPlaceClose		, P.NumAdunits, 0.0);
-		params.extract_multiple("Duration of social distancing by admin unit"	, AdunitDurationSocialDistance	, P.NumAdunits, 0.0);
-		params.extract_multiple("Duration of household quarantine by admin unit", AdunitDurationHQuarantine		, P.NumAdunits, 0.0);
-		params.extract_multiple("Duration of case isolation by admin unit"		, AdunitDurationCaseIsolation	, P.NumAdunits, 0.0);
-		params.extract_multiple("Duration of place closure by admin unit"		, AdunitDurationPlaceClose		, P.NumAdunits, 0.0);
+		params.extract_doubles("Delay to social distancing by admin unit"		, AdunitDelayToSocialDistance	, P.NumAdunits, 0.0);
+		params.extract_doubles("Delay to household quarantine by admin unit"	, AdunitDelayToHQuarantine		, P.NumAdunits, 0.0);
+		params.extract_doubles("Delay to case isolation by admin unit"			, AdunitDelayToCaseIsolation	, P.NumAdunits, 0.0);
+		params.extract_doubles("Delay to place closure by admin unit"			, AdunitDelayToPlaceClose		, P.NumAdunits, 0.0);
+		params.extract_doubles("Duration of social distancing by admin unit"	, AdunitDurationSocialDistance	, P.NumAdunits, 0.0);
+		params.extract_doubles("Duration of household quarantine by admin unit", AdunitDurationHQuarantine		, P.NumAdunits, 0.0);
+		params.extract_doubles("Duration of case isolation by admin unit"		, AdunitDurationCaseIsolation	, P.NumAdunits, 0.0);
+		params.extract_doubles("Duration of place closure by admin unit"		, AdunitDurationPlaceClose		, P.NumAdunits, 0.0);
 
 		for (i = 0; i < P.NumAdunits; i++)
 		{
@@ -1406,62 +1406,62 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 	//New code for digital contact tracing - ggilani: 09/03/20
-	params.extract("Include digital contact tracing", P.DoDigitalContactTracing, 0);
+	params.extract_int("Include digital contact tracing", P.DoDigitalContactTracing, 0);
 	if (P.DoDigitalContactTracing)
 	{
-		params.extract("Digital contact tracing trigger incidence per cell", P.DigitalContactTracing_CellIncThresh, 1000000000.0);
+		params.extract_double("Digital contact tracing trigger incidence per cell", P.DigitalContactTracing_CellIncThresh, 1000000000.0);
 
-		params.extract("Proportion of population or households covered by digital contact tracing", P.PropPopUsingDigitalContactTracing, 1.0);
-		params.extract_multiple("Proportion of smartphone users by age", P.ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1.0);
+		params.extract_double("Proportion of population or households covered by digital contact tracing", P.PropPopUsingDigitalContactTracing, 1.0);
+		params.extract_doubles("Proportion of smartphone users by age", P.ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1.0);
 		if (P.DoPlaces)
 		{
-			params.extract("Cluster digital app clusters by household", P.ClusterDigitalContactUsers, 0); // by default, don't cluster by location
+			params.extract_int("Cluster digital app clusters by household", P.ClusterDigitalContactUsers, 0); // by default, don't cluster by location
 		}
 		else
 		{
 			P.ClusterDigitalContactUsers = 0;
 		}
-		params.extract("Proportion of digital contacts who self-isolate", P.ProportionDigitalContactsIsolate, 0.0);
-		params.extract("Maximum number of contacts to trace per index case", P.MaxDigitalContactsToTrace, MAX_CONTACTS);
-		params.extract("Delay between isolation of index case and contacts", P.DigitalContactTracingDelay, P.TimeStep);
+		params.extract_double("Proportion of digital contacts who self-isolate", P.ProportionDigitalContactsIsolate, 0.0);
+		params.extract_int("Maximum number of contacts to trace per index case", P.MaxDigitalContactsToTrace, MAX_CONTACTS);
+		params.extract_double("Delay between isolation of index case and contacts", P.DigitalContactTracingDelay, P.TimeStep);
 		//we really need one timestep between to make sure contact is not processed before index
 		if (P.DigitalContactTracingDelay == 0) P.DigitalContactTracingDelay = P.TimeStep;
-		params.extract("Length of self-isolation for digital contacts", P.LengthDigitalContactIsolation, 0.0);
-		params.extract("Spatial scaling factor - digital contact tracing", P.ScalingFactorSpatialDigitalContacts, 1.0);
-		params.extract("Place scaling factor - digital contact tracing", P.ScalingFactorPlaceDigitalContacts, 1.0);
-		params.extract("Digital contact tracing start time", P.DigitalContactTracingTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-		params.extract("Duration of digital contact tracing policy", P.DigitalContactTracingPolicyDuration, 7.0);
-		params.extract("Output digital contact tracing", P.OutputDigitalContactTracing, 0);
-		params.extract("Output digital contact distribution", P.OutputDigitalContactDist, 0);
+		params.extract_double("Length of self-isolation for digital contacts", P.LengthDigitalContactIsolation, 0.0);
+		params.extract_double("Spatial scaling factor - digital contact tracing", P.ScalingFactorSpatialDigitalContacts, 1.0);
+		params.extract_double("Place scaling factor - digital contact tracing", P.ScalingFactorPlaceDigitalContacts, 1.0);
+		params.extract_double("Digital contact tracing start time", P.DigitalContactTracingTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+		params.extract_double("Duration of digital contact tracing policy", P.DigitalContactTracingPolicyDuration, 7.0);
+		params.extract_int("Output digital contact tracing", P.OutputDigitalContactTracing, 0);
+		params.extract_int("Output digital contact distribution", P.OutputDigitalContactDist, 0);
 
 		if (P.DoInterventionDelaysByAdUnit)
 		{
 			double AdunitDelayToDCT[MAX_ADUNITS];
 			double AdunitDurationDCT[MAX_ADUNITS];
 
-			params.extract_multiple("Delay to digital contact tracing by admin unit", AdunitDelayToDCT, P.NumAdunits, 0.0);
-			params.extract_multiple("Duration of digital contact tracing by admin unit", AdunitDurationDCT, P.NumAdunits, 0.0);
+			params.extract_doubles("Delay to digital contact tracing by admin unit", AdunitDelayToDCT, P.NumAdunits, 0.0);
+			params.extract_doubles("Duration of digital contact tracing by admin unit", AdunitDurationDCT, P.NumAdunits, 0.0);
 			for (i = 0; i < P.NumAdunits; i++)
 			{
 				AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
 				AdUnits[i].DCTDuration = AdunitDurationDCT[i];
 			}
 		}
-		params.extract("Isolate index cases in digital contact tracing", P.DCTIsolateIndexCases, 1);
-		params.extract("Residual contacts after digital contact tracing isolation", P.DCTCaseIsolationEffectiveness, P.CaseIsolationEffectiveness);
-		params.extract("Residual household contacts after digital contact tracing isolation", P.DCTCaseIsolationHouseEffectiveness, P.CaseIsolationHouseEffectiveness);
+		params.extract_int("Isolate index cases in digital contact tracing", P.DCTIsolateIndexCases, 1);
+		params.extract_double("Residual contacts after digital contact tracing isolation", P.DCTCaseIsolationEffectiveness, P.CaseIsolationEffectiveness);
+		params.extract_double("Residual household contacts after digital contact tracing isolation", P.DCTCaseIsolationHouseEffectiveness, P.CaseIsolationHouseEffectiveness);
 		//initialise total number of users to 0
 		P.NDigitalContactUsers = 0;
 		P.NDigitalHouseholdUsers = 0;
 
-		params.extract("Delay between symptom onset and isolation for index case", P.DelayFromIndexCaseDetectionToDCTIsolation, 0.0);
-		params.extract("Test index cases and contacts", P.DoDCTTest, 0);
-		params.extract("Delay to test index case", P.DelayToTestIndexCase, 1.0);
-		params.extract("Delay to test DCT contacts", P.DelayToTestDCTContacts, 7.0);
-		params.extract("Testing specificity - DCT", P.SpecificityDCT, 1.0);
-		params.extract("Testing sensitivity - DCT", P.SensitivityDCT, 1.0);
-		params.extract("Find contacts of digital contacts", P.FindContactsOfDCTContacts, 0);
-		params.extract("Remove contacts of a negative index case", P.RemoveContactsOfNegativeIndexCase, 0);
+		params.extract_double("Delay between symptom onset and isolation for index case", P.DelayFromIndexCaseDetectionToDCTIsolation, 0.0);
+		params.extract_int("Test index cases and contacts", P.DoDCTTest, 0);
+		params.extract_double("Delay to test index case", P.DelayToTestIndexCase, 1.0);
+		params.extract_double("Delay to test DCT contacts", P.DelayToTestDCTContacts, 7.0);
+		params.extract_double("Testing specificity - DCT", P.SpecificityDCT, 1.0);
+		params.extract_double("Testing sensitivity - DCT", P.SensitivityDCT, 1.0);
+		params.extract_int("Find contacts of digital contacts", P.FindContactsOfDCTContacts, 0);
+		params.extract_int("Remove contacts of a negative index case", P.RemoveContactsOfNegativeIndexCase, 0);
 	}
 	else
 	{
@@ -1476,52 +1476,52 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 
-	params.extract("Trigger incidence per cell for place closure", P.PlaceCloseCellIncThresh1, 1000000000);
-	params.extract("Trigger incidence per cell for second place closure", P.PlaceCloseCellIncThresh2, 1000000000);
+	params.extract_int("Trigger incidence per cell for place closure", P.PlaceCloseCellIncThresh1, 1000000000);
+	params.extract_int("Trigger incidence per cell for second place closure", P.PlaceCloseCellIncThresh2, 1000000000);
 	if (P.PlaceCloseCellIncThresh1 < 0) P.PlaceCloseCellIncThresh1 = 1000000000;
 	if (P.PlaceCloseCellIncThresh2 < 0) P.PlaceCloseCellIncThresh2 = 1000000000;
-	params.extract("Trigger incidence per cell for end of place closure", P.PlaceCloseCellIncStopThresh, 0);
-	params.extract("Delay to start place closure", P.PlaceCloseDelayMean, 0.0);
-	params.extract("Duration of place closure", P.PlaceCloseDurationBase, 7.0);
-	params.extract("Duration of second place closure", P.PlaceCloseDuration2, 7.0);
+	params.extract_int("Trigger incidence per cell for end of place closure", P.PlaceCloseCellIncStopThresh, 0);
+	params.extract_double("Delay to start place closure", P.PlaceCloseDelayMean, 0.0);
+	params.extract_double("Duration of place closure", P.PlaceCloseDurationBase, 7.0);
+	params.extract_double("Duration of second place closure", P.PlaceCloseDuration2, 7.0);
 	if (P.DoPlaces)
 	{
-		params.extract_multiple("Proportion of places remaining open after closure by place type", P.PlaceCloseEffect, P.PlaceTypeNum, 1.0);
-		params.extract_multiple("Proportional attendance after closure by place type", P.PlaceClosePropAttending, P.PlaceTypeNum, 0.0);
+		params.extract_doubles("Proportion of places remaining open after closure by place type", P.PlaceCloseEffect, P.PlaceTypeNum, 1.0);
+		params.extract_doubles("Proportional attendance after closure by place type", P.PlaceClosePropAttending, P.PlaceTypeNum, 0.0);
 	}
 	if (P.DoHouseholds)
-		params.extract("Relative household contact rate after closure", P.PlaceCloseHouseholdRelContact, 1.0);
-	params.extract("Relative spatial contact rate after closure", P.PlaceCloseSpatialRelContact, 1.0);
+		params.extract_double("Relative household contact rate after closure", P.PlaceCloseHouseholdRelContact, 1.0);
+	params.extract_double("Relative spatial contact rate after closure", P.PlaceCloseSpatialRelContact, 1.0);
 
-	params.extract("Include holidays", P.DoHolidays, 0);
+	params.extract_int("Include holidays", P.DoHolidays, 0);
 	if (P.DoHolidays)
 	{
-		params.extract_multiple("Proportion of places remaining open during holidays by place type", P.HolidayEffect, P.PlaceTypeNum, 1.0);
-		params.extract("Number of holidays", P.NumHolidays, 0);
+		params.extract_doubles("Proportion of places remaining open during holidays by place type", P.HolidayEffect, P.PlaceTypeNum, 1.0);
+		params.extract_int("Number of holidays", P.NumHolidays, 0);
 		if (P.NumHolidays > DAYS_PER_YEAR) P.NumHolidays = DAYS_PER_YEAR;
 		if (P.NumHolidays > 0)
 		{
-			params.extract_multiple_or_exit("Holiday start times", P.HolidayStartTime, P.NumHolidays);
-			params.extract_multiple_or_exit("Holiday durations", P.HolidayDuration, P.NumHolidays);
+			params.extract_doubles_or_exit("Holiday start times", P.HolidayStartTime, P.NumHolidays);
+			params.extract_doubles_or_exit("Holiday durations", P.HolidayDuration, P.NumHolidays);
 		}
 	}
 	else
 		P.NumHolidays = 0;
-	params.extract("Minimum radius for place closure", P.PlaceCloseRadius, 0.0);
-	params.extract("Place closure start time", P.PlaceCloseTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Place closure second start time", P.PlaceCloseTimeStartBase2, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Places close only once", P.DoPlaceCloseOnceOnly, 0);
+	params.extract_double("Minimum radius for place closure", P.PlaceCloseRadius, 0.0);
+	params.extract_double("Place closure start time", P.PlaceCloseTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Place closure second start time", P.PlaceCloseTimeStartBase2, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_int("Places close only once", P.DoPlaceCloseOnceOnly, 0);
 	if (P.DoPlaceCloseOnceOnly) P.DoPlaceCloseOnceOnly = 4;
-	params.extract("Place closure incidence threshold", P.PlaceCloseIncTrig1, 1);
-	params.extract("Place closure second incidence threshold", P.PlaceCloseIncTrig2, P.PlaceCloseIncTrig1);
-	params.extract("Place closure fractional incidence threshold", P.PlaceCloseFracIncTrig, 0.0);
+	params.extract_int("Place closure incidence threshold", P.PlaceCloseIncTrig1, 1);
+	params.extract_int("Place closure second incidence threshold", P.PlaceCloseIncTrig2, P.PlaceCloseIncTrig1);
+	params.extract_double("Place closure fractional incidence threshold", P.PlaceCloseFracIncTrig, 0.0);
 	if ((P.DoAdUnits) && (P.DoPlaces))
 	{
-		params.extract("Place closure in administrative units rather than rings", P.PlaceCloseByAdminUnit, 0);
-		params.extract("Administrative unit divisor for place closure", P.PlaceCloseAdminUnitDivisor, 1);
-		params.extract_multiple("Place types to close for admin unit closure (0/1 array)", P.PlaceCloseAdunitPlaceTypes, P.PlaceTypeNum, 0);
-		params.extract("Cumulative proportion of place members needing to become sick for admin unit closure", P.PlaceCloseCasePropThresh, 2.0);
-		params.extract("Proportion of places in admin unit needing to pass threshold for place closure", P.PlaceCloseAdunitPropThresh, 2.0);
+		params.extract_int("Place closure in administrative units rather than rings", P.PlaceCloseByAdminUnit, 0);
+		params.extract_int("Administrative unit divisor for place closure", P.PlaceCloseAdminUnitDivisor, 1);
+		params.extract_ints("Place types to close for admin unit closure (0/1 array)", P.PlaceCloseAdunitPlaceTypes, P.PlaceTypeNum, 0);
+		params.extract_double("Cumulative proportion of place members needing to become sick for admin unit closure", P.PlaceCloseCasePropThresh, 2.0);
+		params.extract_double("Proportion of places in admin unit needing to pass threshold for place closure", P.PlaceCloseAdunitPropThresh, 2.0);
 		if ((P.PlaceCloseAdminUnitDivisor < 1) || (P.PlaceCloseByAdminUnit == 0)) P.PlaceCloseAdminUnitDivisor = 1;
 	}
 	else
@@ -1533,46 +1533,46 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	///// **** SOCIAL DISTANCING
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-	params.extract("Trigger incidence per cell for social distancing", P.SocDistCellIncThresh, 1000000000);
-	params.extract("Trigger incidence per cell for end of social distancing", P.SocDistCellIncStopThresh, 0);
-	params.extract("Duration of social distancing", P.SocDistDuration, 7.0);
-	params.extract("Duration of social distancing after change", P.SocDistDuration2, 7.0);
+	params.extract_int("Trigger incidence per cell for social distancing", P.SocDistCellIncThresh, 1000000000);
+	params.extract_int("Trigger incidence per cell for end of social distancing", P.SocDistCellIncStopThresh, 0);
+	params.extract_double("Duration of social distancing", P.SocDistDuration, 7.0);
+	params.extract_double("Duration of social distancing after change", P.SocDistDuration2, 7.0);
 	if (P.DoPlaces)
 	{
-		params.extract_multiple("Relative place contact rate given social distancing by place type", P.SocDistPlaceEffect, P.PlaceTypeNum, 1.0);
-		params.extract_multiple("Relative place contact rate given enhanced social distancing by place type", P.EnhancedSocDistPlaceEffect, P.PlaceTypeNum, 1.0);
-		if (!params.extract_multiple("Relative place contact rate given social distancing by place type after change", P.SocDistPlaceEffect2, P.PlaceTypeNum, 0.0))
+		params.extract_doubles("Relative place contact rate given social distancing by place type", P.SocDistPlaceEffect, P.PlaceTypeNum, 1.0);
+		params.extract_doubles("Relative place contact rate given enhanced social distancing by place type", P.EnhancedSocDistPlaceEffect, P.PlaceTypeNum, 1.0);
+		if (!params.extract_doubles("Relative place contact rate given social distancing by place type after change", P.SocDistPlaceEffect2, P.PlaceTypeNum, 0.0))
 			for (i = 0; i < NUM_PLACE_TYPES; i++) P.SocDistPlaceEffect2[i] = P.SocDistPlaceEffect[i];
-		if (!params.extract_multiple("Relative place contact rate given enhanced social distancing by place type after change", P.EnhancedSocDistPlaceEffect2, P.PlaceTypeNum, 0.0))
+		if (!params.extract_doubles("Relative place contact rate given enhanced social distancing by place type after change", P.EnhancedSocDistPlaceEffect2, P.PlaceTypeNum, 0.0))
 			for (i = 0; i < NUM_PLACE_TYPES; i++) P.EnhancedSocDistPlaceEffect2[i] = P.EnhancedSocDistPlaceEffect[i];
 	}
 	if (P.DoHouseholds)
 	{
-		params.extract("Relative household contact rate given social distancing", P.SocDistHouseholdEffect, 1.0);
-		params.extract("Relative household contact rate given enhanced social distancing", P.EnhancedSocDistHouseholdEffect, 1.0);
-		params.extract("Relative household contact rate given social distancing  after change", P.SocDistHouseholdEffect2, P.SocDistHouseholdEffect);
-		params.extract("Relative household contact rate given enhanced social distancing after change", P.EnhancedSocDistHouseholdEffect2, P.EnhancedSocDistHouseholdEffect);
-		params.extract("Cluster compliance with enhanced social distancing by household", P.EnhancedSocDistClusterByHousehold, 0);
+		params.extract_double("Relative household contact rate given social distancing", P.SocDistHouseholdEffect, 1.0);
+		params.extract_double("Relative household contact rate given enhanced social distancing", P.EnhancedSocDistHouseholdEffect, 1.0);
+		params.extract_double("Relative household contact rate given social distancing  after change", P.SocDistHouseholdEffect2, P.SocDistHouseholdEffect);
+		params.extract_double("Relative household contact rate given enhanced social distancing after change", P.EnhancedSocDistHouseholdEffect2, P.EnhancedSocDistHouseholdEffect);
+		params.extract_int("Cluster compliance with enhanced social distancing by household", P.EnhancedSocDistClusterByHousehold, 0);
 	}
 	else
 		P.EnhancedSocDistClusterByHousehold = 0;
-	params.extract("Relative spatial contact rate given social distancing", P.SocDistSpatialEffect, 1.0);
-	params.extract("Relative spatial contact rate given social distancing after change", P.SocDistSpatialEffect2, P.SocDistSpatialEffect);
-	params.extract("Minimum radius for social distancing", P.SocDistRadius, 0.0);
-	params.extract("Social distancing start time", P.SocDistTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Delay for change in effectiveness of social distancing", P.SocDistChangeDelay, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Proportion compliant with enhanced social distancing", t, 0.0);
-	params.extract_multiple("Proportion compliant with enhanced social distancing by age group", P.EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, t);
-	params.extract("Relative spatial contact rate given enhanced social distancing", P.EnhancedSocDistSpatialEffect, 1.0);
-	params.extract("Relative spatial contact rate given enhanced social distancing after change", P.EnhancedSocDistSpatialEffect2, P.EnhancedSocDistSpatialEffect);
+	params.extract_double("Relative spatial contact rate given social distancing", P.SocDistSpatialEffect, 1.0);
+	params.extract_double("Relative spatial contact rate given social distancing after change", P.SocDistSpatialEffect2, P.SocDistSpatialEffect);
+	params.extract_double("Minimum radius for social distancing", P.SocDistRadius, 0.0);
+	params.extract_double("Social distancing start time", P.SocDistTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Delay for change in effectiveness of social distancing", P.SocDistChangeDelay, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Proportion compliant with enhanced social distancing", t, 0.0);
+	params.extract_doubles("Proportion compliant with enhanced social distancing by age group", P.EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, t);
+	params.extract_double("Relative spatial contact rate given enhanced social distancing", P.EnhancedSocDistSpatialEffect, 1.0);
+	params.extract_double("Relative spatial contact rate given enhanced social distancing after change", P.EnhancedSocDistSpatialEffect2, P.EnhancedSocDistSpatialEffect);
 
-	params.extract("Social distancing only once", P.DoSocDistOnceOnly, 0);
+	params.extract_int("Social distancing only once", P.DoSocDistOnceOnly, 0);
 	if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4;
 
-	params.extract("Airport closure effectiveness", P.AirportCloseEffectiveness, 0.0);
+	params.extract_double("Airport closure effectiveness", P.AirportCloseEffectiveness, 0.0);
 	P.AirportCloseEffectiveness = 1.0 - P.AirportCloseEffectiveness;
-	params.extract("Airport closure start time", P.AirportCloseTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Airport closure duration", P.AirportCloseDuration, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Airport closure start time", P.AirportCloseTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Airport closure duration", P.AirportCloseDuration, USHRT_MAX / P.TimeStepsPerDay);
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** HOUSEHOLD QUARANTINE
@@ -1580,38 +1580,38 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	if (P.DoHouseholds)
 	{
-		params.extract("Retrigger household quarantine with each new case in quarantine window", P.DoHQretrigger, 0);
-		params.extract("Household quarantine start time", P.HQuarantineTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-		params.extract("Delay to start household quarantine", P.HQuarantineDelay, 0.0);
-		params.extract("Length of time households are quarantined", P.HQuarantineHouseDuration, 0.0);
-		params.extract("Duration of household quarantine policy", P.HQuarantinePolicyDuration, USHRT_MAX / P.TimeStepsPerDay);
-		params.extract("Relative household contact rate after quarantine", P.HQuarantineHouseEffect, 1.0);
+		params.extract_int("Retrigger household quarantine with each new case in quarantine window", P.DoHQretrigger, 0);
+		params.extract_double("Household quarantine start time", P.HQuarantineTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+		params.extract_double("Delay to start household quarantine", P.HQuarantineDelay, 0.0);
+		params.extract_double("Length of time households are quarantined", P.HQuarantineHouseDuration, 0.0);
+		params.extract_double("Duration of household quarantine policy", P.HQuarantinePolicyDuration, USHRT_MAX / P.TimeStepsPerDay);
+		params.extract_double("Relative household contact rate after quarantine", P.HQuarantineHouseEffect, 1.0);
 		if (P.DoPlaces)
 		{
-			params.extract_multiple("Residual place contacts after household quarantine by place type", P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1.0);
+			params.extract_doubles("Residual place contacts after household quarantine by place type", P.HQuarantinePlaceEffect, P.PlaceTypeNum, 1.0);
 		}
-		params.extract("Residual spatial contacts after household quarantine", P.HQuarantineSpatialEffect, 1.0);
-		params.extract("Household level compliance with quarantine", P.HQuarantinePropHouseCompliant, 1.0);
-		params.extract("Individual level compliance with quarantine", P.HQuarantinePropIndivCompliant, 1.0);
+		params.extract_double("Residual spatial contacts after household quarantine", P.HQuarantineSpatialEffect, 1.0);
+		params.extract_double("Household level compliance with quarantine", P.HQuarantinePropHouseCompliant, 1.0);
+		params.extract_double("Individual level compliance with quarantine", P.HQuarantinePropIndivCompliant, 1.0);
 	}
 	else
 		P.HQuarantineTimeStartBase = 1e10;
-	params.extract("Case isolation start time", P.CaseIsolationTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-	params.extract("Proportion of detected cases isolated", P.CaseIsolationProp, 0.0);
-	params.extract("Delay to start case isolation", P.CaseIsolationDelay, 0.0);
-	params.extract("Duration of case isolation", P.CaseIsolationDuration, 0.0);
-	params.extract("Duration of case isolation policy", P.CaseIsolationPolicyDuration, 1e10);
-	params.extract("Residual contacts after case isolation", P.CaseIsolationEffectiveness, 1.0);
+	params.extract_double("Case isolation start time", P.CaseIsolationTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+	params.extract_double("Proportion of detected cases isolated", P.CaseIsolationProp, 0.0);
+	params.extract_double("Delay to start case isolation", P.CaseIsolationDelay, 0.0);
+	params.extract_double("Duration of case isolation", P.CaseIsolationDuration, 0.0);
+	params.extract_double("Duration of case isolation policy", P.CaseIsolationPolicyDuration, 1e10);
+	params.extract_double("Residual contacts after case isolation", P.CaseIsolationEffectiveness, 1.0);
 	if (P.DoHouseholds)
 	{
-		params.extract("Residual household contacts after case isolation", P.CaseIsolationHouseEffectiveness, P.CaseIsolationEffectiveness);
+		params.extract_double("Residual household contacts after case isolation", P.CaseIsolationHouseEffectiveness, P.CaseIsolationEffectiveness);
 	}
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-	params.extract("Vary efficacies over time", P.VaryEfficaciesOverTime, 0);
+	params.extract_int("Vary efficacies over time", P.VaryEfficaciesOverTime, 0);
 	//// **** number of change times
 	if (!P.VaryEfficaciesOverTime)
 	{
@@ -1623,11 +1623,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	else
 	{
-		params.extract("Number of change times for levels of social distancing"			, P.Num_SD_ChangeTimes, 1);
-		params.extract("Number of change times for levels of case isolation"			, P.Num_CI_ChangeTimes, 1);
-		params.extract("Number of change times for levels of household quarantine"		, P.Num_HQ_ChangeTimes, 1);
-		params.extract("Number of change times for levels of place closure"				, P.Num_PC_ChangeTimes, 1);
-		params.extract("Number of change times for levels of digital contact tracing"	, P.Num_DCT_ChangeTimes, 1);
+		params.extract_int("Number of change times for levels of social distancing"			, P.Num_SD_ChangeTimes, 1);
+		params.extract_int("Number of change times for levels of case isolation"			, P.Num_CI_ChangeTimes, 1);
+		params.extract_int("Number of change times for levels of household quarantine"		, P.Num_HQ_ChangeTimes, 1);
+		params.extract_int("Number of change times for levels of place closure"				, P.Num_PC_ChangeTimes, 1);
+		params.extract_int("Number of change times for levels of digital contact tracing"	, P.Num_DCT_ChangeTimes, 1);
 	}
 
 	//// **** change times:
@@ -1646,11 +1646,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.DCT_ChangeTimes	[ChangeTime] = 1e10;
 	}
 	//// Get real values from (pre)param file
-	params.extract_multiple_no_default("Change times for levels of social distancing", P.SD_ChangeTimes, P.Num_SD_ChangeTimes);
-	params.extract_multiple_no_default("Change times for levels of case isolation", P.CI_ChangeTimes, P.Num_CI_ChangeTimes);
-	params.extract_multiple_no_default("Change times for levels of household quarantine", P.HQ_ChangeTimes, P.Num_HQ_ChangeTimes);
-	params.extract_multiple_no_default("Change times for levels of place closure", P.PC_ChangeTimes, P.Num_PC_ChangeTimes);
-	params.extract_multiple_no_default("Change times for levels of digital contact tracing", P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes);
+	params.extract_doubles_no_default("Change times for levels of social distancing", P.SD_ChangeTimes, P.Num_SD_ChangeTimes);
+	params.extract_doubles_no_default("Change times for levels of case isolation", P.CI_ChangeTimes, P.Num_CI_ChangeTimes);
+	params.extract_doubles_no_default("Change times for levels of household quarantine", P.HQ_ChangeTimes, P.Num_HQ_ChangeTimes);
+	params.extract_doubles_no_default("Change times for levels of place closure", P.PC_ChangeTimes, P.Num_PC_ChangeTimes);
+	params.extract_doubles_no_default("Change times for levels of digital contact tracing", P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes);
 
 	// initialize to zero (regardless of whether doing places or households).
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
@@ -1692,22 +1692,22 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	//// **** "efficacies": by default, initialize to values read in previously.
 	///// spatial contact rates rates over time (and place too for CI and DCT)
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given social distancing", P.SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistSpatialEffect);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given enhanced social distancing", P.Enhanced_SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistSpatialEffect);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual contacts after case isolation over time", P.CI_SpatialAndPlaceEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationEffectiveness);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual spatial contacts over time after household quarantine", P.HQ_SpatialEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineSpatialEffect);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time after place closure", P.PC_SpatialEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseSpatialRelContact);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual contacts after digital contact tracing isolation over time", P.DCT_SpatialAndPlaceEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationEffectiveness);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given social distancing", P.SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistSpatialEffect);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time given enhanced social distancing", P.Enhanced_SD_SpatialEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistSpatialEffect);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Residual contacts after case isolation over time", P.CI_SpatialAndPlaceEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationEffectiveness);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Residual spatial contacts over time after household quarantine", P.HQ_SpatialEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineSpatialEffect);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative spatial contact rates over time after place closure", P.PC_SpatialEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseSpatialRelContact);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Residual contacts after digital contact tracing isolation over time", P.DCT_SpatialAndPlaceEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationEffectiveness);
 
 	///// Household contact rates over time
 	if (P.DoHouseholds)
 	{
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time given social distancing", P.SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistHouseholdEffect);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time given enhanced social distancing", P.Enhanced_SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistHouseholdEffect);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual household contacts after case isolation over time", P.CI_HouseholdEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationHouseEffectiveness);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time after quarantine", P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineHouseEffect);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Relative household contact rates over time after place closure", P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseHouseholdRelContact);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Residual household contacts after digital contact tracing isolation over time", P.DCT_HouseholdEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationHouseEffectiveness);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative household contact rates over time given social distancing", P.SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.SocDistHouseholdEffect);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative household contact rates over time given enhanced social distancing", P.Enhanced_SD_HouseholdEffects_OverTime, P.Num_SD_ChangeTimes, P.EnhancedSocDistHouseholdEffect);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Residual household contacts after case isolation over time", P.CI_HouseholdEffects_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationHouseEffectiveness);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative household contact rates over time after quarantine", P.HQ_HouseholdEffects_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantineHouseEffect);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Relative household contact rates over time after place closure", P.PC_HouseholdEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseHouseholdRelContact);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Residual household contacts after digital contact tracing isolation over time", P.DCT_HouseholdEffects_OverTime, P.Num_DCT_ChangeTimes, P.DCTCaseIsolationHouseEffectiveness);
 	}
 
 	///// place contact rates over time
@@ -1745,26 +1745,26 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 
 	//// ****  compliance
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Proportion of detected cases isolated over time", P.CI_Prop_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationProp);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Individual level compliance with quarantine over time", P.HQ_Individual_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropIndivCompliant);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Household level compliance with quarantine over time", P.HQ_Household_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropHouseCompliant);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Proportion of digital contacts who self-isolate over time", P.DCT_Prop_OverTime, P.Num_DCT_ChangeTimes, P.ProportionDigitalContactsIsolate);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Maximum number of contacts to trace per index case over time", P.DCT_MaxToTrace_OverTime, P.Num_DCT_ChangeTimes, P.MaxDigitalContactsToTrace);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Proportion of detected cases isolated over time", P.CI_Prop_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolationProp);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Individual level compliance with quarantine over time", P.HQ_Individual_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropIndivCompliant);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Household level compliance with quarantine over time", P.HQ_Household_PropComply_OverTime, P.Num_HQ_ChangeTimes, P.HQuarantinePropHouseCompliant);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Proportion of digital contacts who self-isolate over time", P.DCT_Prop_OverTime, P.Num_DCT_ChangeTimes, P.ProportionDigitalContactsIsolate);
+	params.cond_extract_ints(P.VaryEfficaciesOverTime, "Maximum number of contacts to trace per index case over time", P.DCT_MaxToTrace_OverTime, P.Num_DCT_ChangeTimes, P.MaxDigitalContactsToTrace);
 
 	//// ****  thresholds
 	if (P.DoPlaces)
 	{
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Place closure incidence threshold over time", P.PC_IncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseIncTrig1);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Place closure fractional incidence threshold over time", P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseFracIncTrig);
-		params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Trigger incidence per cell for place closure over time", P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseCellIncThresh1);
+		params.cond_extract_ints(P.VaryEfficaciesOverTime, "Place closure incidence threshold over time", P.PC_IncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseIncTrig1);
+		params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Place closure fractional incidence threshold over time", P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseFracIncTrig);
+		params.cond_extract_ints(P.VaryEfficaciesOverTime, "Trigger incidence per cell for place closure over time", P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseCellIncThresh1);
 		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) if(P.PC_CellIncThresh_OverTime[ChangeTime]<0) P.PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
 	}
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Household quarantine trigger incidence per cell over time", P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes, P.HHQuar_CellIncThresh);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Case isolation trigger incidence per cell over time", P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolation_CellIncThresh);
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Trigger incidence per cell for social distancing over time", P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes, P.SocDistCellIncThresh);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Household quarantine trigger incidence per cell over time", P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes, P.HHQuar_CellIncThresh);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Case isolation trigger incidence per cell over time", P.CI_CellIncThresh_OverTime, P.Num_CI_ChangeTimes, P.CaseIsolation_CellIncThresh);
+	params.cond_extract_ints(P.VaryEfficaciesOverTime, "Trigger incidence per cell for social distancing over time", P.SD_CellIncThresh_OverTime, P.Num_SD_ChangeTimes, P.SocDistCellIncThresh);
 
 	//// **** Durations (later add Case isolation and Household quarantine)
-	params.cond_extract_multiple(P.VaryEfficaciesOverTime, "Duration of place closure over time", P.PC_Durs_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseDurationBase);
+	params.cond_extract_doubles(P.VaryEfficaciesOverTime, "Duration of place closure over time", P.PC_Durs_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseDurationBase);
 
 	//// Guards: make unused change values in array equal to final used value
 	if (P.VaryEfficaciesOverTime)
@@ -1838,18 +1838,18 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (P.DoPlaces)
 		{
-			params.extract("Number of key workers randomly distributed in the population", P.KeyWorkerPopNum, 0);
-			params.extract_multiple("Number of key workers in different places by place type", P.KeyWorkerPlaceNum, P.PlaceTypeNum, 0);
-			params.extract_multiple("Proportion of staff who are key workers per chosen place by place type", P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1.0);
-			params.extract("Trigger incidence per cell for key worker prophylaxis", P.KeyWorkerProphCellIncThresh, 1000000000);
-			params.extract("Key worker prophylaxis start time", P.KeyWorkerProphTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
-			params.extract("Duration of key worker prophylaxis", P.KeyWorkerProphDuration, 0.0);
-			params.extract("Time interval from start of key worker prophylaxis before policy restarted", P.KeyWorkerProphRenewalDuration, P.KeyWorkerProphDuration);
+			params.extract_int("Number of key workers randomly distributed in the population", P.KeyWorkerPopNum, 0);
+			params.extract_ints("Number of key workers in different places by place type", P.KeyWorkerPlaceNum, P.PlaceTypeNum, 0);
+			params.extract_doubles("Proportion of staff who are key workers per chosen place by place type", P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1.0);
+			params.extract_int("Trigger incidence per cell for key worker prophylaxis", P.KeyWorkerProphCellIncThresh, 1000000000);
+			params.extract_double("Key worker prophylaxis start time", P.KeyWorkerProphTimeStartBase, USHRT_MAX / P.TimeStepsPerDay);
+			params.extract_double("Duration of key worker prophylaxis", P.KeyWorkerProphDuration, 0.0);
+			params.extract_double("Time interval from start of key worker prophylaxis before policy restarted", P.KeyWorkerProphRenewalDuration, P.KeyWorkerProphDuration);
 			if (P.DoHouseholds)
 			{
-				params.extract("Proportion of key workers whose households are also treated as key workers", P.KeyWorkerHouseProp, 0.0);
+				params.extract_double("Proportion of key workers whose households are also treated as key workers", P.KeyWorkerHouseProp, 0.0);
 			}
-			params.extract("Minimum radius for key worker prophylaxis", P.KeyWorkerProphRadius, 0.0);
+			params.extract_double("Minimum radius for key worker prophylaxis", P.KeyWorkerProphRadius, 0.0);
 		}
 		else
 		{
@@ -1858,49 +1858,49 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 
 		//Added this to parameter list so that recording infection events (and the number to record) can easily be turned off and on: ggilani - 10/10/2014
-		params.extract("Record infection events", P.DoRecordInfEvents, 0);
+		params.extract_int("Record infection events", P.DoRecordInfEvents, 0);
 		if (P.DoRecordInfEvents)
 		{
-			params.extract("Max number of infection events to record", P.MaxInfEvents, 1000);
-			params.extract("Record infection events per run", P.RecordInfEventsPerRun, 0);
+			params.extract_int("Max number of infection events to record", P.MaxInfEvents, 1000);
+			params.extract_int("Record infection events per run", P.RecordInfEventsPerRun, 0);
 		}
 		else
 		{
 			P.MaxInfEvents = 0;
 		}
 		//Include a limit to the number of infections to simulate, if this happens before time runs out
-		params.extract("Limit number of infections", P.LimitNumInfections, 0);
+		params.extract_int("Limit number of infections", P.LimitNumInfections, 0);
 		if (P.LimitNumInfections)
 		{
-			params.extract("Max number of infections", P.MaxNumInfections, 60000);
+			params.extract_int("Max number of infections", P.MaxNumInfections, 60000);
 		}
 		//Add origin-destination matrix parameter
-		params.extract("Output origin destination matrix", P.DoOriginDestinationMatrix, 0);
+		params.extract_int("Output origin destination matrix", P.DoOriginDestinationMatrix, 0);
 
-		params.extract("Mean child age gap", P.MeanChildAgeGap, 2);
-		params.extract("Min adult age", P.MinAdultAge, 19);
-		params.extract("Max MF partner age gap", P.MaxMFPartnerAgeGap, 5);
-		params.extract("Max FM partner age gap", P.MaxFMPartnerAgeGap, 5);
-		params.extract("Min parent age gap",  P.MinParentAgeGap, 19);
-		params.extract("Max parent age gap", P.MaxParentAgeGap, 44);
-		params.extract("Max child age", P.MaxChildAge, 20);
-		params.extract("One Child Two Pers Prob", P.OneChildTwoPersProb, 0.08);
-		params.extract("Two Child Three Pers Prob", P.TwoChildThreePersProb, 0.11);
-		params.extract("One Pers House Prob Old", P.OnePersHouseProbOld, 0.5);
-		params.extract("Two Pers House Prob Old", P.TwoPersHouseProbOld, 0.5);
-		params.extract("One Pers House Prob Young", P.OnePersHouseProbYoung, 0.23);
-		params.extract("Two Pers House Prob Young", P.TwoPersHouseProbYoung, 0.23);
-		params.extract("One Child Prob Youngest Child Under Five", P.OneChildProbYoungestChildUnderFive, 0.5);
-		params.extract("Two Children Prob Youngest Under Five", P.TwoChildrenProbYoungestUnderFive, 0.0);
-		params.extract("Prob Youngest Child Under Five", P.ProbYoungestChildUnderFive, 0.0);
-		params.extract("Zero Child Three Pers Prob", P.ZeroChildThreePersProb, 0.25);
-		params.extract("One Child Four Pers Prob", P.OneChildFourPersProb, 0.2);
-		params.extract("Young And Single Slope", P.YoungAndSingleSlope, 0.7);
-		params.extract("Young And Single", P.YoungAndSingle, 36);
-		params.extract("No Child Pers Age", P.NoChildPersAge, 44);
-		params.extract("Old Pers Age", P.OldPersAge, 60);
-		params.extract("Three Child Five Pers Prob", P.ThreeChildFivePersProb, 0.5);
-		params.extract("Older Gen Gap", P.OlderGenGap, 19);
+		params.extract_int("Mean child age gap", P.MeanChildAgeGap, 2);
+		params.extract_int("Min adult age", P.MinAdultAge, 19);
+		params.extract_int("Max MF partner age gap", P.MaxMFPartnerAgeGap, 5);
+		params.extract_int("Max FM partner age gap", P.MaxFMPartnerAgeGap, 5);
+		params.extract_int("Min parent age gap",  P.MinParentAgeGap, 19);
+		params.extract_int("Max parent age gap", P.MaxParentAgeGap, 44);
+		params.extract_int("Max child age", P.MaxChildAge, 20);
+		params.extract_double("One Child Two Pers Prob", P.OneChildTwoPersProb, 0.08);
+		params.extract_double("Two Child Three Pers Prob", P.TwoChildThreePersProb, 0.11);
+		params.extract_double("One Pers House Prob Old", P.OnePersHouseProbOld, 0.5);
+		params.extract_double("Two Pers House Prob Old", P.TwoPersHouseProbOld, 0.5);
+		params.extract_double("One Pers House Prob Young", P.OnePersHouseProbYoung, 0.23);
+		params.extract_double("Two Pers House Prob Young", P.TwoPersHouseProbYoung, 0.23);
+		params.extract_double("One Child Prob Youngest Child Under Five", P.OneChildProbYoungestChildUnderFive, 0.5);
+		params.extract_double("Two Children Prob Youngest Under Five", P.TwoChildrenProbYoungestUnderFive, 0.0);
+		params.extract_double("Prob Youngest Child Under Five", P.ProbYoungestChildUnderFive, 0.0);
+		params.extract_double("Zero Child Three Pers Prob", P.ZeroChildThreePersProb, 0.25);
+		params.extract_double("One Child Four Pers Prob", P.OneChildFourPersProb, 0.2);
+		params.extract_double("Young And Single Slope", P.YoungAndSingleSlope, 0.7);
+		params.extract_int("Young And Single", P.YoungAndSingle, 36);
+		params.extract_int("No Child Pers Age", P.NoChildPersAge, 44);
+		params.extract_int("Old Pers Age", P.OldPersAge, 60);
+		params.extract_double("Three Child Five Pers Prob", P.ThreeChildFivePersProb, 0.5);
+		params.extract_int("Older Gen Gap", P.OlderGenGap, 19);
 	}
 	// Close input files.
 	fclose(ParamFile_dat);

@@ -21,11 +21,15 @@ void parse_string(std::string const& input, std::string& output);
 /**
  * Parses and checks if the input string is an integer.
  */
-void parse_integer(std::string const& input, int& output);
+bool parse_integer_no_default(std::string const& input, int& output);
+bool parse_integer(std::string const& input, int& output, int default_value);
+void parse_integer_or_exit(std::string const& input, int& output);
 
 /**
  * Parses and checks if the input string is an double.
  */
-void parse_double(std::string const& input, double& output);
+bool parse_double_no_default(std::string const& input, double& output);
+bool parse_double(std::string const& input, double& output, double default_value);
+void parse_double_or_exit(std::string const& input, double& output);
 
 #endif

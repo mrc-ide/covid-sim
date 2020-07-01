@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <functional>
 #include <fstream>
 #include <iostream>
@@ -8,7 +9,9 @@
 #include <sstream>
 #include <string>
 
+#include "Error.h"
 #include "ParamFile.h"
+#include "Parsers.h"
 
 // ltrim(), rtrim(), and trim() are from a highly up voted answer on StackOverflow
 // https://stackoverflow.com/a/217605
@@ -43,36 +46,7 @@ ParamReader::ParamReader(std::string const& param_file, std::string const& prepa
 	parse_param_file(admin_file);
 }
 
-template<typename T>
-bool ParamReader::raw_extract(std::istringstream& stream, T& output)
-{
-	static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
-				  "Integral or floating point required.");
-
-	stream >> output;
-	if (stream.fail())
-    {
-		if (output == std::numeric_limits<T>::max())
-        {
-			std::cerr << "OVERFLOW: detected a number larger than " << std::numeric_limits<T>::max()
-					  << " when parsing " << stream.str() << std::endl;
-		}
-		else if (output == std::numeric_limits<T>::min())
-        {
-			std::cerr << "UNDERFLOW: detected a number smaller than " << std::numeric_limits<T>::min()
-					  << " when parsing " << stream.str() << std::endl;
-		}
-		else
-        {
-			std::cerr << "ERROR: Expected integral type, got " << stream.str() << std::endl;
-		}
-		return false;
-	}
-	return true;
-}
-
-template<typename T>
-bool ParamReader::extract(std::string const& param, T& output, T default_value)
+bool ParamReader::extract_int(std::string const& param, int32_t& output, int32_t default_value)
 {
 	if (!exists(param))
 	{
@@ -81,23 +55,40 @@ bool ParamReader::extract(std::string const& param, T& output, T default_value)
 		return false;
 	}
 
-	std::istringstream iss(m_param_value_map[param]);
-	return raw_extract(iss, output);
+	parse_integer(m_param_value_map[param], output, default_value);
+	return true;
 }
 
-template<typename T>
-void ParamReader::extract_or_exit(std::string const& param, T& output)
+bool ParamReader::extract_double(std::string const& param, double& output, double default_value)
+{
+	if (!exists(param))
+	{
+		std::cout << "Using default value: " << default_value << std::endl;
+		output = default_value;
+		return false;
+	}
+
+	parse_double(m_param_value_map[param], output, default_value);
+	return true;
+}
+
+void ParamReader::extract_int_or_exit(std::string const& param, int& output)
 {
 	if (!exists(param))
 		std::exit(1);
 
-	std::istringstream iss(m_param_value_map[param]);
-	if (!raw_extract(iss, output))
-		std::exit(1);
+	parse_integer_or_exit(m_param_value_map[param], output);
 }
 
-template<typename T>
-bool ParamReader::extract_multiple_no_default(std::string const& param, T* output, std::size_t N)
+void ParamReader::extract_double_or_exit(std::string const& param, double& output)
+{
+	if (!exists(param))
+		std::exit(1);
+
+	parse_double_or_exit(m_param_value_map[param], output);
+}
+
+bool ParamReader::extract_ints_no_default(std::string const& param, int32_t* output, std::size_t N)
 {
 	if (!exists(param))
 		return false;
@@ -105,27 +96,55 @@ bool ParamReader::extract_multiple_no_default(std::string const& param, T* outpu
 	std::istringstream iss(m_param_value_map[param]);
 	for (auto i = 0; i < N; i++)
 	{
-		if (!raw_extract(iss, output[i]))
+		std::string token;
+		iss >> token;
+		if (iss.fail())
 		{
-			std::cerr << "ERROR: Got " << i << " out of " << N << " parameters for "
-					  << param << std::endl;
-			return false;
+			ERR_CRITICAL_FMT("ERROR: Only got %d out of expected %zu values in line (%s)"
+							" for parameter %s\n", i, N, iss.str().c_str(), param.c_str());
 		}
+		if (!parse_integer_no_default(token, output[i]))
+			return false;
 	}
 	return true;
 }
 
-template<typename T>
-void ParamReader::extract_multiple_or_exit(std::string const& param, T* output, std::size_t N)
+bool ParamReader::extract_doubles_no_default(std::string const& param, double* output, std::size_t N)
 {
-	if (extract_multiple_no_default(param, output, N) == false)
+	if (!exists(param))
+		return false;
+
+	std::istringstream iss(m_param_value_map[param]);
+	for (auto i = 0; i < N; i++)
+	{
+		std::string token;
+		iss >> token;
+		if (iss.fail())
+		{
+			ERR_CRITICAL_FMT("ERROR: Only got %d out of expected %zu values in line (%s)"
+							" for parameter %s\n", i, N, iss.str().c_str(), param.c_str());
+		}
+		if (!parse_double_no_default(token, output[i]))
+			return false;
+	}
+	return true;
+}
+
+void ParamReader::extract_ints_or_exit(std::string const& param, int32_t* output, std::size_t N)
+{
+	if (extract_ints_no_default(param, output, N) == false)
 		std::exit(1);
 }
 
-template<typename T>
-bool ParamReader::extract_multiple(std::string const& param, T* output, std::size_t N, T default_value)
+void ParamReader::extract_doubles_or_exit(std::string const& param, double* output, std::size_t N)
 {
-	if (extract_multiple_no_default(param, output, N) == false)
+	if (extract_doubles_no_default(param, output, N) == false)
+		std::exit(1);
+}
+
+bool ParamReader::extract_ints(std::string const& param, int32_t* output, std::size_t N, int32_t default_value)
+{
+	if (extract_ints_no_default(param, output, N) == false)
 	{
 		std::cerr << "Using default value: " << default_value << std::endl;
 		std::fill_n(output, N, default_value);
@@ -134,16 +153,34 @@ bool ParamReader::extract_multiple(std::string const& param, T* output, std::siz
 	return true;
 }
 
-template<typename T>
-bool ParamReader::cond_extract_multiple(bool conditional, std::string const& param, T* output, std::size_t N, T default_value)
+bool ParamReader::extract_doubles(std::string const& param, double* output, std::size_t N, double default_value)
+{
+	if (extract_doubles_no_default(param, output, N) == false)
+	{
+		std::cerr << "Using default value: " << default_value << std::endl;
+		std::fill_n(output, N, default_value);
+		return false;
+	}
+	return true;
+}
+
+bool ParamReader::cond_extract_ints(bool conditional, std::string const& param, int32_t* output, std::size_t N, int32_t default_value)
 {
 	if (conditional)
-		return extract_multiple(param, output, N, default_value);
+		return extract_ints(param, output, N, default_value);
 	std::fill_n(output, N, default_value);
 	return true;
 }
 
-bool ParamReader::extract_multiple_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N)
+bool ParamReader::cond_extract_doubles(bool conditional, std::string const& param, double* output, std::size_t N, double default_value)
+{
+	if (conditional)
+		return extract_doubles(param, output, N, default_value);
+	std::fill_n(output, N, default_value);
+	return true;
+}
+
+bool ParamReader::extract_strings_no_default(std::string const& param, std::vector<std::string>& output, std::size_t N)
 {
 	if (!exists(param))
 		return false;
@@ -163,9 +200,9 @@ bool ParamReader::extract_multiple_strings_no_default(std::string const& param, 
 	return true;
 }
 
-void ParamReader::extract_multiple_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N)
+void ParamReader::extract_strings_or_exit(std::string const& param, std::vector<std::string>& output, std::size_t N)
 {
-	if (!extract_multiple_strings_no_default(param, output, N))
+	if (!extract_strings_no_default(param, output, N))
 		std::exit(1);
 }
 
@@ -198,21 +235,6 @@ void ParamReader::extract_string_matrix_or_exit(std::string const& param, std::v
 		output.push_back(std::move(new_row));
 	}
 }
-
-// Explicit template instantiations for the linker
-// https://stackoverflow.com/questions/2351148/explicit-template-instantiation-when-is-it-used
-template bool ParamReader::extract<double>(std::string const&, double&, double);
-template bool ParamReader::extract<int>(std::string const&, int&, int);
-template void ParamReader::extract_or_exit<double>(std::string const&, double&);
-template void ParamReader::extract_or_exit<int>(std::string const&, int&);
-template bool ParamReader::extract_multiple<double>(std::string const&, double*, std::size_t, double);
-template bool ParamReader::extract_multiple<int>(std::string const&, int*, std::size_t, int);
-template bool ParamReader::cond_extract_multiple<double>(bool, std::string const&, double*, std::size_t, double);
-template bool ParamReader::cond_extract_multiple<int>(bool, std::string const&, int*, std::size_t, int);
-template bool ParamReader::extract_multiple_no_default<double>(std::string const&, double*, std::size_t);
-template bool ParamReader::extract_multiple_no_default<int>(std::string const&, int*, std::size_t);
-template void ParamReader::extract_multiple_or_exit<double>(std::string const&, double*, std::size_t);
-template void ParamReader::extract_multiple_or_exit<int>(std::string const&, int*, std::size_t);
 
 bool ParamReader::exists(std::string const& param)
 {

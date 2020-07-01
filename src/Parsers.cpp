@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <string>
 
@@ -32,7 +33,7 @@ void parse_string(std::string const& input, std::string& output)
 	output = input;
 }
 
-void parse_integer(std::string const& input, int& output)
+bool parse_integer_no_default(std::string const& input, int32_t& output)
 {
 	try
 	{
@@ -40,21 +41,42 @@ void parse_integer(std::string const& input, int& output)
 		output = std::stoi(input, &pos);
 		if (pos != input.size())
 		{
-			ERR_CRITICAL_FMT("Detected invalid characters after parsed integer: %s\n", input.c_str());
+			std::cerr << "Detected invalid characters after parsed integer: " << input << std::endl;
+            return false;
 		}
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected integer got %s\n", input.c_str());
+		std::cerr << "EINVAL: Expected integer got %s" << input << std::endl;
+        return false;
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %d to %d. Got %s\n",
-						std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), input.c_str());
+		std::cerr << "ERANGE: Input integer is out of range. Expected " << std::numeric_limits<int>::min()
+                    << " to " << std::numeric_limits<int>::max() << ". Got " << input << std::endl;
+        return false;
 	}
+    return true;
 }
 
-void parse_double(std::string const& input, double& output)
+bool parse_integer(std::string const& input, int32_t& output, int32_t default_value)
+{
+    if (!parse_integer_no_default(input, output))
+    {
+        std::cerr << "Using default value: " << default_value << std::endl;
+        output = default_value;
+        return false;
+    }
+    return true;
+}
+
+void parse_integer_or_exit(std::string const& input, int32_t& output)
+{
+    if (!parse_integer_no_default(input, output))
+        std::exit(1);
+}
+
+bool parse_double_no_default(std::string const& input, double& output)
 {
 	try
 	{
@@ -62,16 +84,37 @@ void parse_double(std::string const& input, double& output)
 		output = std::stod(input, &pos);
 		if (pos != input.size())
 		{
-			ERR_CRITICAL_FMT("Detected invalid characters after parsed double: %s\n", input.c_str());
+			std::cerr << "Detected invalid characters after parsed double: " << input << std::endl;
+            return false;
 		}
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected double got %s\n", input.c_str());
+		std::cerr << "EINVAL: Expected double got %s" << input << std::endl;
+        return false;
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %.4e to %.4e. Got %s\n",
-						std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), input.c_str());
+		std::cerr << "ERANGE: Input integer is out of range. Expected " << std::numeric_limits<int>::min()
+                    << " to " << std::numeric_limits<int>::max() << ". Got " << input << std::endl;
+        return false;
 	}
+    return true;
+}
+
+bool parse_double(std::string const& input, double& output, double default_value)
+{
+    if (!parse_double_no_default(input, output))
+    {
+        std::cerr << "Using default value: " << default_value << std::endl;
+        output = default_value;
+        return false;
+    }
+    return true;
+}
+
+void parse_double_or_exit(std::string const& input, double& output)
+{
+    if (!parse_double_no_default(input, output))
+        std::exit(1);
 }

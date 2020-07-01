@@ -23,12 +23,12 @@ void CmdLineArgs::add_custom_option(std::string const& option, ParserFn func, st
 
 void CmdLineArgs::add_double_option(std::string const& option, double& output, std::string const& doc)
 {
-	add_custom_option(option, std::bind(parse_double, std::placeholders::_1, std::ref(output)), doc);
+	add_custom_option(option, std::bind(parse_double_or_exit, std::placeholders::_1, std::ref(output)), doc);
 }
 
 void CmdLineArgs::add_integer_option(std::string const& option, int& output, std::string const& doc)
 {
-	add_custom_option(option, std::bind(parse_integer, std::placeholders::_1, std::ref(output)), doc);
+	add_custom_option(option, std::bind(parse_integer_or_exit, std::placeholders::_1, std::ref(output)), doc);
 }
 
 void CmdLineArgs::add_string_option(std::string const& option, StringParserFn func, std::string& output, std::string const& doc)
@@ -56,10 +56,10 @@ void CmdLineArgs::parse(int argc, char* argv[], Param& P)
 
 	// Get seeds.
 	int i = argc - 4;
-	parse_integer(argv[i], P.setupSeed1);
-	parse_integer(argv[i+1], P.setupSeed2);
-	parse_integer(argv[i+2], P.runSeed1);
-	parse_integer(argv[i+3], P.runSeed2);
+	parse_integer_or_exit(argv[i], P.setupSeed1);
+	parse_integer_or_exit(argv[i+1], P.setupSeed2);
+	parse_integer_or_exit(argv[i+2], P.runSeed1);
+	parse_integer_or_exit(argv[i+3], P.runSeed2);
 
 	for (i = 1; i < argc - 4; i++)
 	{
