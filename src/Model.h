@@ -304,8 +304,8 @@ extern AdminUnit AdUnits[MAX_ADUNITS];
 
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
-//// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-extern Results* TimeSeries, *TSMean, *TSVar, *TSMeanNE, *TSVarNE, *TSMeanE, *TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+//// TSMean and TSVar are the mean and variance of non-extinct time series.
+extern Results* TimeSeries, *TSMean, *TSVar; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 
 extern Airport* Airports;
 extern Events* InfEventLog;
