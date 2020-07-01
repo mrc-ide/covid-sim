@@ -54,7 +54,7 @@ void InitModel(int); //adding run number as a parameter for event log: ggilani -
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 int RunModel(int, std::string const&, std::string const&, std::string const&);
 
-void SaveDistribs(void);
+void SaveDistribs(std::string const&);
 void SaveOriginDestMatrix(std::string const&); //added function to save origin destination matrix so it can be done separately to the main results: ggilani - 13/02/15
 void SaveResults(std::string const&);
 void SaveSummaryResults(std::string const&);
