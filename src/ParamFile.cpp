@@ -100,11 +100,16 @@ bool ParamReader::extract_ints_no_default(std::string const& param, int32_t* out
 		iss >> token;
 		if (iss.fail())
 		{
-			ERR_CRITICAL_FMT("ERROR: Only got %d out of expected %zu values in line (%s)"
-							" for parameter %s\n", i, N, iss.str().c_str(), param.c_str());
+			std::cerr << "ERROR: Only got " << i << " out of expected " << N << " integers in line ("
+					<< iss.str() << ") for parameter \"" << param << "\"" << std::endl;
+			return false;
 		}
 		if (!parse_integer_no_default(token, output[i]))
+		{
+			std::cerr << "Error parsing integer for param \"" << param << "\"" << std::endl;
 			return false;
+		}
+			
 	}
 	return true;
 }
@@ -121,11 +126,15 @@ bool ParamReader::extract_doubles_no_default(std::string const& param, double* o
 		iss >> token;
 		if (iss.fail())
 		{
-			ERR_CRITICAL_FMT("ERROR: Only got %d out of expected %zu values in line (%s)"
-							" for parameter %s\n", i, N, iss.str().c_str(), param.c_str());
+			std::cerr << "ERROR: Only got " << i << " out of expected " << N << " doubles in line ("
+					<< iss.str() << ") for parameter \"" << param << "\"" << std::endl;
+			return false;
 		}
 		if (!parse_double_no_default(token, output[i]))
+		{
+			std::cerr << "Error parsing double for param \"" << param << "\"" << std::endl;
 			return false;
+		}
 	}
 	return true;
 }
@@ -192,7 +201,8 @@ bool ParamReader::extract_strings_no_default(std::string const& param, std::vect
 		iss >> token;
 		if (iss.fail())
 		{
-			std::cerr << "ERROR: Only got " << i << " out of " << N << " parameters for " << param << std::endl;
+			std::cerr << "ERROR: Only got " << i << " out of expected " << N << " strings in line ("
+					<< iss.str() << ") for " << param << std::endl;
 			return false;
 		}
 		output.push_back(std::move(token));
