@@ -61,16 +61,16 @@ void CaptureBitmap()
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
-				if ((i < P.NMC - 1) && (i / P.get_number_of_micro_cells_high() == (i + 1) / P.get_number_of_micro_cells_high()) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
+				if ((i < P.NMC - 1) && (i / P.total_microcells_high_ == (i + 1) / P.total_microcells_high_) && (Mcells[i + 1].n > 0) && ((mcell_country[i] != mcell_country[i + 1])
 					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + 1].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i > 0) && (i / P.get_number_of_micro_cells_high() == (i - 1) / P.get_number_of_micro_cells_high()) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
-				if ((i < P.NMC - P.get_number_of_micro_cells_high()) && (Mcells[i + P.get_number_of_micro_cells_high()].n > 0) && ((Mcells[i].country != Mcells[i + P.get_number_of_micro_cells_high()].country)
-					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.get_number_of_micro_cells_high()].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
+				if ((i > 0) && (i / P.total_microcells_high_ == (i - 1) / P.total_microcells_high_) && (Mcells[i - 1].n > 0) && (mcell_country[i] != mcell_country[i - 1])) f = 1;
+				if ((i < P.NMC - P.total_microcells_high_) && (Mcells[i + P.total_microcells_high_].n > 0) && ((mcell_country[i] != mcell_country[i + P.total_microcells_high_])
+					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.total_microcells_high_].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
+				if ((i >= P.total_microcells_high_) && (Mcells[i - P.total_microcells_high_].n > 0) && (mcell_country[i] != mcell_country[i - P.total_microcells_high_])) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scale.x) - P.bmin.x;
-					y = (int)(P.in_microcells_.height * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scale.y) - P.bmin.y;
+					x = (int)(P.in_microcells_.width * (((double)(i / P.total_microcells_high_)) + 0.5) * P.scale.x) - P.bmin.x;
+					y = (int)(P.in_microcells_.height * (((double)(i % P.total_microcells_high_)) + 0.5) * P.scale.y) - P.bmin.y;
 					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 					{
 						j = y * bmh->width + x;

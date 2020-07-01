@@ -16,7 +16,6 @@ struct Microcell
 	*/
 	int n /*Number of people in microcell*/, adunit;
 	int* members;
-	unsigned short int country;
 
 	int* places[NUM_PLACE_TYPES];
 	unsigned short int np[NUM_PLACE_TYPES];

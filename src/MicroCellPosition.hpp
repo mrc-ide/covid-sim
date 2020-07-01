@@ -1,13 +1,22 @@
 #pragma once
 
 #include "Direction.hpp"
+#include "Error.h"
 
-class MicroCellPosition {
-public:
+struct MicroCellPosition
+{
 	int x;
 	int y;
 
-	MicroCellPosition operator+(Direction direction) const;
-	MicroCellPosition& operator+=(Direction direction);
+	inline MicroCellPosition& operator+=(Direction direction)
+	{
+		switch (direction) {
+			case Right: this->x += 1; break;
+			case Up: this->y -= 1; break;
+			case Left: this->x -= 1; break;
+			case Down: this->y += 1; break;
+			default: ERR_CRITICAL("Unknown direction");
+		}
+		return *this;
+	}
 };
-
