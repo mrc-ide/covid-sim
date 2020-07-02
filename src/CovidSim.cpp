@@ -89,8 +89,8 @@ Place** Places;
 AdminUnit AdUnits[MAX_ADUNITS];
 //// Time Series defs:
 //// TimeSeries is an array of type results, used to store (unsurprisingly) a time series of every quantity in results. Mostly used in RecordSample.
-//// TSMeanNE and TSVarNE are the mean and variance of non-extinct time series. TSMeanE and TSVarE are the mean and variance of extinct time series. TSMean and TSVar are pointers that point to either extinct or non-extinct.
-Results* TimeSeries, * TSMean, * TSVar, * TSMeanNE, * TSVarNE, * TSMeanE, * TSVarE; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
+//// TSMean and TSVar are the mean and variance of non-extinct time series.
+Results* TimeSeries, * TSMean, * TSVar; //// TimeSeries used in RecordSample, RecordInfTypes, SaveResults. TSMean and TSVar
 Airport* Airports;
 BitmapHeader* bmh;
 //added declaration of pointer to events log: ggilani - 10/10/2014
@@ -351,15 +351,11 @@ int main(int argc, char* argv[])
 	}
 
 	P.NRactual = P.NRactNE;
-	TSMean = TSMeanNE; TSVar = TSVarNE;
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
 	{
 		SaveEvents(output_file_base);
 	}
 	SaveSummaryResults(output_file_base + ".avNE");
-	P.NRactual = P.NRactE;
-	TSMean = TSMeanE; TSVar = TSVarE;
-	//SaveSummaryResults(output_file_base + ".avE");
 
 	Bitmap_Finalise();
 
@@ -5138,7 +5134,6 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 
 	if (P.OutputBitmap >= 1)
 	{
-		TSMean = TSMeanNE; TSVar = TSVarNE;
 		CaptureBitmap	();
 		OutputBitmap	(0, output_file_base);
 	}
@@ -5263,14 +5258,17 @@ void RecordInfTypes(void)
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
 	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
+	PeakHeightSum += s;
+	PeakHeightSS += s * s;
+	PeakTimeSum += t;
+	PeakTimeSS += t * t;
+
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
-		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
+		P.NRactE++;
+		return;
 	}
-	else
-	{
-		TSMean = TSMeanNE; TSVar = TSVarNE; P.NRactNE++;
-	}
+	P.NRactNE++;
 	lc = -k;
 
 	// This calculates sum and sum of squares of entire TimeSeries array
@@ -5301,10 +5299,6 @@ void RecordInfTypes(void)
 		}
 		TSMean[n].t += ((double) n )* P.SampleStep;
 	}
-	PeakHeightSum += s;
-	PeakHeightSS += s * s;
-	PeakTimeSum += t;
-	PeakTimeSS += t * t;
 }
 
 

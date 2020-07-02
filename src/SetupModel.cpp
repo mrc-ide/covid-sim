@@ -221,23 +221,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-	TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-	TSVarE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-	TSMeanNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-	TSVarNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
-	TSMean = TSMeanE; TSVar = TSVarE;
-	///// This loops over index l twice just to reset the pointer TSMean from TSMeanE to TSMeanNE (same for TSVar).
-	int num_in_results = sizeof(Results) / sizeof(double);
-	for (l = 0; l < 2; l++)
-	{
-		for (int i = 0; i < P.NumSamples; i++)
-		{
-			double *ts_mean = (double *)&TSMean[i];
-			double *ts_var = (double *)&TSVar[i];
-			for (int j = 0; j < num_in_results; j++) ts_mean[j] = ts_var[j] = 0.0;
-		}
-		TSMean = TSMeanNE; TSVar = TSVarNE;
-	}
+	TSMean = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
+	TSVar = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
@@ -268,24 +253,18 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			TimeSeries[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
 			TimeSeries[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
 			TimeSeries[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanE [Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanE [Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanE [Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanNE[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanNE[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
-			TSMeanNE[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMean[Time].prevInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMean[Time].incInf_age_adunit = new double* [NUM_AGE_GROUPS]();
+			TSMean[Time].cumInf_age_adunit = new double* [NUM_AGE_GROUPS]();
 
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
 				TimeSeries[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
 				TimeSeries[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
 				TimeSeries[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanNE[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanNE[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
-				TSMeanNE[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMean[Time].prevInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMean[Time].incInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
+				TSMean[Time].cumInf_age_adunit[AgeGroup] = new double[P.NumAdunits]();
 			}
 		}
 	}
@@ -612,7 +591,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		fprintf(stderr, "Reset spatial R0 to 0\n");
 	}
 	fprintf(stderr, "LocalBeta = %lg\n", P.LocalBeta);
-	TSMean = TSMeanNE; TSVar = TSVarNE;
 	fprintf(stderr, "Calculated approx cell probabilities\n");
 	for (int i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] = 0;
 	for (int i = 0; i < MAX_COUNTRIES; i++) infcountry_av[i] = infcountry_num[i] = 0;
