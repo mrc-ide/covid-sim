@@ -110,8 +110,7 @@ double KernelLookup::num(double r2) const
 	double t = r2 / delta_;
 	if (t > size_)
 	{
-		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, delta_, t);
-		Messages::out(Messages::Error) << "r too large in NumKernel\n";
+		Messages::out(Messages::Error) << "r too large in NumKernel: " << r2 << " " << delta_ << " " << t << "\n";
 	}
 
 	double s = t * expansion_factor_;

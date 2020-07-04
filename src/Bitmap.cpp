@@ -135,7 +135,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
 	  using namespace Magick;
-	  fprintf(stderr, "\noutputing ImageMagick stuff");
+	  Messages::out(Messages::Info) << "\noutputing ImageMagick stuff";
 	  sprintf(buf, "%s.bmp", OutF);
 	  if (!(dat = fopen(buf, "wb"))) Messages::out(Messages::Error) << "Unable to open bitmap file\n";
 	  fprintf(dat, "BM");
@@ -178,7 +178,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
 #else
-	  fprintf(stderr, "Do not know how to output PNG\n");
+	  Messages::out(Messages::Info) << "Do not know how to output PNG\n";
 #endif
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
@@ -197,14 +197,14 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	}
 	else
 	{
-	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
+    Messages::out(Messages::Error) << "Unknown Bitmap format: " << (int)P.BitmapFormat << "\n";
 	}
 }
 void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
-	fprintf(stderr, "Initialising bitmap\n");
+	Messages::out(Messages::Info) << "Initialising bitmap\n";
 	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
@@ -283,9 +283,9 @@ void InitBMHead(std::string const& out_file_base)
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
-	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(CreateDirectory(buf, NULL))) Messages::out(Messages::Warning) << "Unable to create directory " << buf << "\n";
 #else
-	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) Messages::out(Messages::Warning) << "Unable to create directory " << "\n";
 #endif
 }
 

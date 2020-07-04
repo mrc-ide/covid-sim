@@ -44,7 +44,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.DoBin = -1;
 	if (!density_file.empty())
 	{
-		fprintf(stderr, "Scanning population density file\n");
+		Messages::out(Messages::Info) << "Scanning population density file\n";
 		if (!(dat = fopen(density_file.c_str(), "rb")))
     {
       Messages::out(Messages::Error) << "Unable to open density file\n";
@@ -90,7 +90,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
 					if (l / P.CountryDivisor != i2)
 					{
-						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
+            Messages::out(Messages::Debug) << x << " " << y << " " << t << " " << i2 << " " << l << "\n";
 					}
 				}
 				else {
@@ -138,7 +138,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				t = BF[rn].pop;
 				int i2 = BF[rn].cnt;
 				l = BF[rn].ad;
-				//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
+        Messages::out(Messages::Debug) << x << " " << y << " " << t << " " << l << "\t";
 
 				m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.AdunitLevel1Lookup[m] >= 0)
@@ -171,9 +171,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[0] + P.in_degrees_.width;
 		P.SpatialBoundingBox[3] = P.SpatialBoundingBox[1] + P.in_degrees_.height;
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n", P.SpatialBoundingBox[0], P.SpatialBoundingBox[1], P.SpatialBoundingBox[2], P.SpatialBoundingBox[3]);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
-		fprintf(stderr, "Population size = %i \n", P.PopSize);
+    Messages::out(Messages::Info) << "Adjusted bounding box = (" <<
+      P.SpatialBoundingBox[0] << ", " << P.SpatialBoundingBox[1] << ") - (" <<
+      P.SpatialBoundingBox[2] << ", " << P.SpatialBoundingBox[3] << ")\n";
+    Messages::out(Messages::Info) << "Number of cells = " << P.NC << " (" << P.ncw << " x " << P.nch << ")\n";
+    Messages::out(Messages::Info) << "Population size = " << P.PopSize << " \n";
 		if (P.in_degrees_.width > 180) {
       Messages::out(Messages::Warning) << "Width of bounding box > 180 degrees.  Results may be inaccurate.\n";
 		}
@@ -187,18 +189,18 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	{
 		P.ncw = P.nch = (int)sqrt((double)P.NC);
 		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
+    Messages::out(Messages::Info) << "Number of cells adjusted to be " << P.NC << " (" << P.ncw << "^2)\n";
 		s = floor(sqrt((double)P.PopSize));
 		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0;
 		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = s;
 		P.PopSize = (int)(s * s);
-		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
+    Messages::out(Messages::Info) << "Population size adjusted to be " << P.PopSize << " (" << s << "^2)\n";
 		P.in_degrees_.width = P.in_degrees_.height = s;
 		P.in_cells_.width = P.in_degrees_.width / ((double)P.ncw);
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
 	}
 	P.NMC = P.NMCL * P.NMCL * P.NC;
-	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
+  Messages::out(Messages::Info) << "Number of microcells = " << P.NMC << "\n";
 	P.scale.x = P.BitmapScale;
 	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
 	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox[2] - P.BoundingBox[0]) * P.scale.x);
@@ -207,7 +209,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox[3] - P.BoundingBox[1]) * P.scale.y);
 	P.b.height += (4 - P.b.height % 4) % 4;
 	P.bheight2 = P.b.height + 20; // space for colour legend
-	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
+  Messages::out(Messages::Info) << "Bitmap width = " << P.b.width << "\n";
+  Messages::out(Messages::Info) << "Bitmap height = " << P.b.height << "\n";
 	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox[0] * P.scale.x);
 	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox[1] * P.scale.y);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);
@@ -225,10 +228,14 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
 	P.KernelLookup.setup(t);
-	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
-	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
-		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
-		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
+  Messages::out(Messages::Debug) << "** " << P.DoUTM_coords << " " <<
+    P.SpatialBoundingBox[0] << " " << P.SpatialBoundingBox[1] << " " <<
+    P.SpatialBoundingBox[2] << " " << P.SpatialBoundingBox[3] << "\n";
+  Messages::out(Messages::Info) << "Coords xmcell = " <<
+		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2))
+    << " m   ymcell = " <<
+		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height))
+    << " m\n";
 	t2 = 0.0;
 
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
@@ -312,7 +319,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 	if(P.OutputNonSeverity) SaveAgeDistrib(out_file_base);
 
-	fprintf(stderr, "Initialising places...\n");
+	Messages::out(Messages::Info) << "Initialising places...\n";
 	if (P.DoPlaces)
 	{
 		if (!load_network_file.empty())
@@ -339,7 +346,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = 0;
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 
-	fprintf(stderr, "Initialising kernel...\n");
+	Messages::out(Messages::Info) << "Initialising kernel...\n";
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
@@ -380,7 +387,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				for (int i2 = 0; (m < P.KeyWorkerPlaceNum[j]) && (i2 < Places[j][k].n); i2++)
 				{
 					int i = Places[j][k].members[i2];
-					if ((i < 0) || (i >= P.PopSize)) fprintf(stderr, "## %i # ", i);
+					if ((i < 0) || (i >= P.PopSize)) Messages::out(Messages::Info) << "## " << i << " # ";
 					if ((Hosts[i].keyworker) || (ranf_mt(0) >= P.KeyWorkerPropInKeyPlaces[j]))
 						l++;
 					else
@@ -402,7 +409,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 			}
 		}
-		if (P.KeyWorkerNum > 0) fprintf(stderr, "%i key workers selected in total\n", P.KeyWorkerNum);
+		if (P.KeyWorkerNum > 0) Messages::out(Messages::Info) << P.KeyWorkerNum << " key workers selected in total\n";
 		if (P.DoAdUnits)
 		{
 			for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].NP = 0;
@@ -414,7 +421,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 		}
 	}
-	fprintf(stderr, "Places intialised.\n");
+	Messages::out(Messages::Info) << "Places intialised.\n";
 
 	//Set up the population for digital contact tracing here... - ggilani 09/03/20
 	if (P.DoDigitalContactTracing)
@@ -458,8 +465,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 			P.NDigitalContactUsers = l;
 			P.NDigitalHouseholdUsers = m;
-			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NH);
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+      Messages::out(Messages::Info) << "Number of digital contact tracing households: " << P.NDigitalHouseholdUsers << ", out of total number of households: " << P.NH << "\n";
+      Messages::out(Messages::Info) << "Number of digital contact tracing users: " << P.NDigitalContactUsers << ", out of population size: " << P.PopSize << "\n";
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
 		{
@@ -482,7 +489,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 			}
 			P.NDigitalContactUsers = l;
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+      Messages::out(Messages::Info) << "Number of digital contact tracing users: " << P.NDigitalContactUsers << ", out of population size: " << P.PopSize << "\n";
 		}
 	}
 
@@ -494,7 +501,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.R0 *= P.R0scale;
 		for (int j = 0; j < P.PlaceTypeNum; j++)
 			P.PlaceTypeTrans[j] *= P.R0scale;
-		fprintf(stderr, "Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
+    Messages::out(Messages::Info) << "Rescaled transmission coefficients by factor of " << P.R0scale << "\n";
 	}
 	t = s = t2 = 0;
 	for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
@@ -551,7 +558,9 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	t2 *= (s3 / ((double)P.PopSize));
 	s /= ((double)P.PopSize);
-	fprintf(stderr, "Household mean size=%lg\nHousehold R0=%lg\n", t, P.R0household = s);
+  P.R0household = s;
+  Messages::out(Messages::Info) << "Household mean size=" << t << "\n";
+  Messages::out(Messages::Info) << "Household R0=" << P.R0household << "\n";
 	t = 0;
 	if (P.DoPlaces)
 		for (int j = 0; j < P.PlaceTypeNum; j++)
@@ -596,7 +605,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 						t += (1 - t3 * d) * s3 + (1 - d) * (((double)(Places[j][k].n - 1)) - s3);
 					}
 				}
-				fprintf(stderr, "%lg  ", t / ((double)P.PopSize));
+        Messages::out(Messages::Info) << t / ((double)P.PopSize) << "  ";
 			}
 	{
 		double recovery_time_days = 0;
@@ -612,8 +621,12 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		t /= ((double)P.PopSize);
 		recovery_time_days /= ((double)P.PopSize);
 		recovery_time_timesteps /= ((double)P.PopSize);
-		fprintf(stderr, "R0 for places = %lg\nR0 for random spatial = %lg\nOverall R0=%lg\n", P.R0places = t, P.R0spatial = P.R0 - s - t, P.R0);
-		fprintf(stderr, "Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
+    P.R0places = t;
+    P.R0spatial = P.R0 - s - t;
+    Messages::out(Messages::Info) << "R0 for places = " << P.R0places << "\n";
+    Messages::out(Messages::Info) << "R0 for random spatial = " << P.R0spatial << "\n";
+    Messages::out(Messages::Info) << "Overall R0=" << P.R0 << "\n";
+    Messages::out(Messages::Info) << "Mean infectious period (sampled) = " << recovery_time_days << " (" << recovery_time_timesteps << ")\n";
 	}
 	if (P.DoSI)
 		P.LocalBeta = (P.R0 / t2 - s - t);
@@ -622,11 +635,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if ((P.LocalBeta < 0) || (!P.DoSpatial))
 	{
 		P.LocalBeta = P.R0spatial = 0;
-		fprintf(stderr, "Reset spatial R0 to 0\n");
+		Messages::out(Messages::Info) << "Reset spatial R0 to 0\n";
 	}
-	fprintf(stderr, "LocalBeta = %lg\n", P.LocalBeta);
+  Messages::out(Messages::Info) << "LocalBeta = " << P.LocalBeta << "\n";
 	TSMean = TSMeanNE; TSVar = TSVarNE;
-	fprintf(stderr, "Calculated approx cell probabilities\n");
+	Messages::out(Messages::Info) << "Calculated approx cell probabilities\n";
 	for (int i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] = 0;
 	for (int i = 0; i < MAX_COUNTRIES; i++) infcountry_av[i] = infcountry_num[i] = 0;
 	for (int i = 0; i < MAX_SEC_REC; i++)
@@ -678,7 +691,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 		}
 		State.n_mvacc = queueIndex;
-		fprintf(stderr, "Number to be vaccinated=%i\n", State.n_mvacc);
+    Messages::out(Messages::Info) << "Number to be vaccinated=" << State.n_mvacc << "\n";
 		for (int i = 0; i < 2; i++)
 		{
 			for (int j = 0; j < vaccineCount; j++)
@@ -696,23 +709,23 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				State.mvacc_queue[l] = m;
 			}
 		}
-		fprintf(stderr, "Configured mass vaccination queue.\n");
+		Messages::out(Messages::Info) << "Configured mass vaccination queue.\n";
 	}
 	PeakHeightSum = PeakHeightSS = PeakTimeSum = PeakTimeSS = 0;
 	int i = (P.ncw / 2) * P.nch + P.nch / 2;
 	int j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
-	fprintf(stderr, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+  Messages::out(Messages::Info) << "UTM dist horiz=" << sqrt(dist2_cc(Cells + i, Cells + j)) << " " << sqrt(dist2_cc(Cells + j, Cells + i)) << "\n";
 	j = (P.ncw / 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+  Messages::out(Messages::Info) << "UTM dist vert=" << sqrt(dist2_cc(Cells + i, Cells + j)) << " " << sqrt(dist2_cc(Cells + j, Cells + i)) << "\n";
 	j = (P.ncw / 2 + 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist diag=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+  Messages::out(Messages::Info) << "UTM dist diag=" << sqrt(dist2_cc(Cells + i, Cells + j)) << " " << sqrt(dist2_cc(Cells + j, Cells + i)) << "\n";
 
 	//if(P.OutputBitmap)
 	//{
 	//	CaptureBitmap();
 	//	OutputBitmap(0);
 	//}
-	fprintf(stderr, "Model configuration complete.\n");
+	Messages::out(Messages::Info) << "Model configuration complete.\n";
 }
 
 void SetupPopulation(std::string const& density_file, std::string const& out_density_file, std::string const& school_file, std::string const& reg_demog_file)
@@ -748,7 +761,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		if(!(dat2=fopen("EnvTest.txt","w"))) Messages::out(Messages::Error) << "Unable to open test file\n";
-		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
+    Messages::out(Messages::Info) << "Density file contains " << P.BinFileLen << " datapoints.\n";
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			int k;
@@ -806,12 +819,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					mr++;
 					mcell_dens[l] += t;
 					mcell_country[l] = country;
-					//fprintf(stderr,"mcell %i, country %i, pop %lg\n",l,country,t);
+          Messages::out(Messages::Debug) << "mcell " << l << ", country " << country << ", pop " << t << "\n";;
 					mcell_num[l]++;
 					if (P.DoAdUnits)
 					{
 						mcell_adunits[l] = P.AdunitLevel1Lookup[m];
-						if (mcell_adunits[l] < 0) fprintf(stderr, "Microcell %i has adunits<0\n", l);
+						if (mcell_adunits[l] < 0) Messages::out(Messages::Warning) << "Microcell " << l << " has adunits<0\n";
 						P.PopByAdunit[P.AdunitLevel1Lookup[m]][0] += t;
 					}
 					else
@@ -825,7 +838,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		}
 		//		fclose(dat2);
-		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
+    Messages::out(Messages::Info) << mr << " valid microcells read from density file.\n";
 		if (!out_density_file.empty() && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
@@ -838,7 +851,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
 				BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 				BF = (BinFile*)BinFileBuf;
-				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
+        Messages::out(Messages::Info) << "Binary density file should contain " << P.BinFileLen << " microcells.\n";
 				rn = 0;
 				for (l = 0; l < P.NMC; l++)
 					if (mcell_adunits[l] >= 0)
@@ -861,13 +874,13 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
       }
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
-			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
+      Messages::out(Messages::Info) << "Saving population density file with NC=" << P.BinFileLen << "...\n";
 			fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
 			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
 		Memory::xfree(BinFileBuf);
-		fprintf(stderr, "Population files read.\n");
+		Messages::out(Messages::Info) << "Population files read.\n";
 		maxd = 0;
 		for (int i = 0; i < P.NMC; i++)
 		{
@@ -1002,7 +1015,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if ((P.DoAdUnits) && !reg_demog_file.empty() && (P.DoCorrectAdunitPop))
 	{
 		for (int i = 0; i < P.NumAdunits; i++)
-			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
+			Messages::out(Messages::Info) << i << "\t" << (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor << "\t" << P.PropAgeGroup[i][0] << "\t" << P.HouseholdSizeDistrib[i][0] << "\n";
 		maxd = 0;
 		for (int i = 0; i < P.NMC; i++)
 		{
@@ -1010,7 +1023,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
             {
 				if (mcell_adunits[i] < 0)
         {
-          Messages::out(Messages::Error) << ("Cell %i has adunits < 0 (indexing PopByAdunit)\n", i);
+          Messages::out(Messages::Error) << "Cell " << i << " has adunits < 0 (indexing PopByAdunit)\n";
         }
 				mcell_dens[i] *= P.PopByAdunit[mcell_adunits[i]][1] / (1e-10 + P.PopByAdunit[mcell_adunits[i]][0]);
             }
@@ -1021,7 +1034,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			t += P.PopByAdunit[i][1];
 		int i = P.PopSize;
 		P.PopSize = (int)t;
-		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
+    Messages::out(Messages::Info) << "Population size reset from " << i << " to " << P.PopSize << "\n";
 	}
 	t = 1.0;
 	for (int i = m = 0; i < (P.NMC - 1); i++)
@@ -1075,10 +1088,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		if (Cells[i].n > 0) P.NCP++;
 	}
-	fprintf(stderr, "Number of hosts assigned = %i\n", j2);
+  Messages::out(Messages::Info) << "Number of hosts assigned = " << j2 << "\n";
 	if (!P.DoAdUnits) P.AdunitLevel1Lookup[0] = 0;
-	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
-	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
+  Messages::out(Messages::Info) << "Number of cells with non-zero population = " << P.NCP << "\n";
+  Messages::out(Messages::Info) << "Number of microcells with non-zero population = " << P.NMCP << "\n";
 
 	CellLookup = (Cell **)Memory::xcalloc(P.NCP, sizeof(Cell*));
 	State.CellSuscMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
@@ -1091,11 +1104,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			Cells[j].susceptible = State.CellSuscMemberArray + susceptibleAccumulator;
 			susceptibleAccumulator += Cells[j].n;
 		}
-	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
+	if (i2 > P.NCP) Messages::out(Messages::Warning) << "Over-run on CellLookup array NCP=" << P.NCP << " i2=" << i2 << "\n";
 	i2 = 0;
 
 	Hosts = (Person*)Memory::xcalloc(P.PopSize, sizeof(Person));
-	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
+  Messages::out(Messages::Info) << "sizeof(Person)=" << sizeof(Person) << "\n";
 	for (int i = 0; i < P.NCP; i++)
 	{
 		Cell *c = CellLookup[i];
@@ -1111,7 +1124,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Cells[i].cumTC = 0;
 		for (j = 0; j < Cells[i].n; j++) Cells[i].members[j] = -1;
 	}
-	fprintf(stderr, "Cells assigned\n");
+	Messages::out(Messages::Info) << "Cells assigned\n";
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NH = 0;
 	int numberOfPeople = 0;
@@ -1131,7 +1144,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			denom_household[m]++;
 			for (i2 = 0; i2 < m; i2++)
 			{
-				//				fprintf(stderr,"%i ",i+i2);
+        Messages::out(Messages::Debug) << numberOfPeople + i2;
 				Hosts[numberOfPeople + i2].listpos = m; //used temporarily to store household size
 				Mcells[j].members[k + i2] = numberOfPeople + i2;
 				Cells[l].susceptible[Cells[l].cumTC] = numberOfPeople + i2;
@@ -1147,11 +1160,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	Households = (Household*)Memory::xcalloc(P.NH, sizeof(Household));
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
-	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
+	if (P.DoHouseholds) Messages::out(Messages::Info) << "Household sizes assigned to " << numberOfPeople << " people\n";
 
-	FILE* stderr_shared = stderr;
+  auto& cerr_shared = std::cerr;
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
-		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, reg_demog_file, stderr_shared)
+		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, reg_demog_file, cerr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
 		{
@@ -1161,7 +1174,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
       {
-        Messages::out(Messages::Progress) << j << "=" << Mcells[j].n << " (" << Mcells[j].adunit
+        Messages::out(Messages::Progress, cerr_shared) << j << "=" << Mcells[j].n << " (" << Mcells[j].adunit
           << " " << (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor << "\r";
       }
 			for (int k = 0; k < Mcells[j].n;)
@@ -1241,9 +1254,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				AgeDistCorrB[i][j] /= AgeDistAd[i][j];
 			}
 			// output problematic adjustments (these should be 0.0f)
-			//fprintf(stderr, "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
-			//fprintf(stderr, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
-			//fprintf(stderr, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
+      Messages::out(Messages::Debug) << "AgeDistCorrB[" << i << "][0] = " << AgeDistCorrB[i][0] << "\n"; // push down from youngest age group
+      Messages::out(Messages::Debug) << "AgeDistCorrF[" << i << "][NUM_AGE_GROUPS - 1] = " << AgeDistCorrF[i][NUM_AGE_GROUPS - 1] << "\n"; // push up from oldest age group
+      Messages::out(Messages::Debug) << "AgeDistCorrB[" << i << "][NUM_AGE_GROUPS] = " << AgeDistCorrB[i][NUM_AGE_GROUPS] << "\n"; // push down from oldest age group + 1
 		}
 
 		// make age adjustments to population
@@ -1279,7 +1292,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 		AgeDist[HOST_AGE_GROUP(i)]++;
 	}
-	fprintf(stderr, "Ages/households assigned\n");
+	Messages::out(Messages::Info) << "Ages/households assigned\n";
 
 	if (!P.DoRandomInitialInfectionLoc)
 	{
@@ -1312,12 +1325,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
       Messages::out(Messages::Error) << "Too few people in seed microcell to start epidemic with required number of initial infections.\n";
     }
 	}
-	fprintf(stderr, "Checking cells...\n");
+	Messages::out(Messages::Info) << "Checking cells...\n";
 	maxd = ((double)P.PopSize);
 	last_i = 0;
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0) last_i = i;
-	fprintf(stderr, "Allocating place/age groups...\n");
+	Messages::out(Messages::Info) << "Allocating place/age groups...\n";
 	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 	{
 		for (l = 0; l < P.PlaceTypeNum; l++)
@@ -1339,8 +1352,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for(l=0;l<P.PlaceTypeNum;l++)
 			{
 			for(k=0;k<NUM_AGE_GROUPS*AGE_GROUP_WIDTH;k++)
-				fprintf(stderr, "%i:%lg ",k,PropPlaces[k][l]);
-			fprintf(stderr,"\n");
+      Messages::out(Messages::Info) << k << ":" << k,PropPlaces[k][l] << "\n";
 			}
 	*/
 	/*	if((P.DoAdUnits)&&(P.DoAdunitDemog))
@@ -1353,7 +1365,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
 	if (!school_file.empty() && (P.DoPlaces))
 	{
-		fprintf(stderr, "Reading school file\n");
+		Messages::out(Messages::Info) << "Reading school file\n";
 		if (!(dat = fopen(school_file.c_str(), "rb")))
     {
       Messages::out(Messages::Error) << "Unable to open school file\n";
@@ -1392,7 +1404,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		}
 		fclose(dat);
-		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
+    Messages::out(Messages::Info) << P.Nplace[j] << "%i schools read (" << mr << " in empty cells)      \n";
 		for (int i = 0; i < P.NMC; i++)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
@@ -1411,7 +1423,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Mcells[k].places[j][Mcells[k].np[j]++] = i;
 				s += (double)Places[j][i].n;
 			}
-			fprintf(stderr, "School type %i: capacity=%lg demand=%lg\n", j, s, t);
+      Messages::out(Messages::Info) << "School type " << j << ": capacity=" << s << " demand=" << t << "\n";
 			t /= s;
 			for (int i = 0; i < P.Nplace[j]; i++)
 				Places[j][i].n = (int)ceil(((double)Places[j][i].n) * t);
@@ -1419,11 +1431,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Configuring places...\n");
+		Messages::out(Messages::Info) << "Configuring places...\n";
 
-		FILE* stderr_shared = stderr;
+    auto& cerr_shared = std::cerr;
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
-			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, stderr_shared)
+			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, cerr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
 			{
@@ -1432,7 +1444,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				for (int i = 0; i < P.PopSize; i++)
 					t += PropPlaces[HOST_AGE_YEAR(i)][j2];
 				P.Nplace[j2] = (int)ceil(t / P.PlaceTypeMeanSize[j2]);
-				fprintf(stderr_shared, "[%i:%i %g] ", j2, P.Nplace[j2], t);
+        Messages::out(Messages::Info, cerr_shared) << "[" << j2 << ":" << P.Nplace[j2] << " " << t << "] ";
 				Places[j2] = (Place*)Memory::xcalloc(P.Nplace[j2], sizeof(Place));
 				t = 1.0;
 				int k;
@@ -1477,8 +1489,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 /*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
 			for (i =0; i < P.NMC; i++)
 				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
-					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
-*/		fprintf(stderr, "Places assigned\n");
+        Messages::out(Messages::Debug) << "\n##~ " << i << " " << j2 << " " <<  Mcells[i].np[j2] << "\n";
+*/		Messages::out(Messages::Info) << "Places assigned\n";
 	}
 	l = 0;
 	for (j = 0; j < P.NC; j++)
@@ -1537,8 +1549,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Cells[i].S = Cells[i].n;
 		Cells[i].L = Cells[i].I = 0;
 	}
-	fprintf(stderr, "Allocated cell and host memory\n");
-	fprintf(stderr, "Assigned hosts to cells\n");
+	Messages::out(Messages::Info) << "Allocated cell and host memory\n";
+	Messages::out(Messages::Info) << "Assigned hosts to cells\n";
 
 }
 void SetupAirports(void)
@@ -1547,7 +1559,7 @@ void SetupAirports(void)
 	double x, y, t, tmin;
 	IndexList* base, *cur;
 
-	fprintf(stderr, "Assigning airports to microcells\n");
+	Messages::out(Messages::Info) << "Assigning airports to microcells\n";
 	// Convince static analysers that values are set correctly:
 	assert(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum);
 
@@ -1565,13 +1577,13 @@ void SetupAirports(void)
 			cur += NNA;
 		}
 
-	FILE* stderr_shared = stderr;
+  auto& cerr_shared = std::cerr;
 #pragma omp parallel for private(k,l,x,y,t,tmin) schedule(static,10000) default(none) \
-		shared(P, Airports, Mcells, stderr_shared)
+		shared(P, Airports, Mcells, cerr_shared)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
+			if (i % 10000 == 0) Messages::out(Messages::Progress, cerr_shared) << "\n" << i << "           ";
 			x = (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.width;
 			y = (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.in_microcells_.height;
 			k = l = 0;
@@ -1604,7 +1616,7 @@ void SetupAirports(void)
 				Airports[Mcells[i].AirportList[j].id].num_mcell++;
 		}
 	cur = Airports[0].DestMcells;
-	fprintf(stderr, "Microcell airport lists collated.\n");
+	Messages::out(Messages::Info) << "Microcell airport lists collated.\n";
 	for (int i = 0; i < P.Nairports; i++)
 	{
 		Airports[i].DestMcells = cur;
@@ -1612,11 +1624,11 @@ void SetupAirports(void)
 		Airports[i].num_mcell = 0;
 	}
 #pragma omp parallel for private(k,l,t,tmin) schedule(static,10000) default(none) \
-		shared(P, Airports, Mcells, stderr_shared)
+		shared(P, Airports, Mcells, cerr_shared)
 	for (int i = 0; i < P.NMC; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
+			if (i % 10000 == 0) Messages::out(Messages::Progress, cerr_shared) << "\n" << i << "           ";
 			t = 0;
 			for (int j = 0; j < NNA; j++)
 			{
@@ -1634,7 +1646,7 @@ void SetupAirports(void)
 				tmin = Mcells[i].AirportList[j].prob;
 			}
 		}
-	fprintf(stderr, "Airport microcell lists collated.\n");
+	Messages::out(Messages::Info) << "Airport microcell lists collated.\n";
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
@@ -1656,22 +1668,22 @@ void SetupAirports(void)
 				l += Mcells[Airports[i].DestMcells[j].id].np[P.HotelPlaceType];
 			if (l < 10)
 			{
-				fprintf(stderr, "(%i ", l);
+        Messages::out(Messages::Info) << "(" << l << " ";
 				l = 0;
 				for (int j = 0; j < Airports[i].num_mcell; j++)
 					l += Mcells[Airports[i].DestMcells[j].id].n;
-				fprintf(stderr, "%i %i) ", Airports[i].num_mcell, l);
+        Messages::out(Messages::Info) << Airports[i].num_mcell << " " << l << ") ";
 			}
 		}
-	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
+	Messages::out(Messages::Info) << "\nInitialising hotel to airport lookup tables\n";
 	Memory::xfree(base);
-#pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) shared(P, Airports, Places, stderr_shared)
+#pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) shared(P, Airports, Places, cerr_shared)
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
 			m = (int)(Airports[i].total_traffic / HOTELS_PER_1000PASSENGER / 1000);
 			if (m < MIN_HOTELS_PER_AIRPORT) m = MIN_HOTELS_PER_AIRPORT;
-			fprintf(stderr_shared, "\n%i    ", i);
+      Messages::out(Messages::Progress, cerr_shared) << "\n" << i << "    ";
 			tmin = MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL * 0.75;
 			do
 			{
@@ -1682,7 +1694,7 @@ void SetupAirports(void)
 						Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
-			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
+			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) Messages::out(Messages::Warning, cerr_shared) << "*** " << i << " : " << sqrt(tmin) << " " << Airports[i].num_place << " ***\n";
 			Airports[i].DestPlaces = (IndexList*)Memory::xcalloc(Airports[i].num_place, sizeof(IndexList));
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
@@ -1713,7 +1725,7 @@ void SetupAirports(void)
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
-	fprintf(stderr, "\nAirport initialisation completed successfully\n");
+	Messages::out(Messages::Info) << "\nAirport initialisation completed successfully\n";
 }
 
 const double PROP_OTHER_PARENT_AWAY = 0.0;
@@ -1901,7 +1913,7 @@ void AssignPeopleToPlaces()
 
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Assigning people to places....\n");
+		Messages::out(Messages::Info) << "Assigning people to places....\n";
 		for (int i = 0; i < P.NC; i++)
 		{
 			Cells[i].infected = Cells[i].susceptible;
@@ -2008,7 +2020,7 @@ void AssignPeopleToPlaces()
 				if (tp < P.nsp)
 				{
 					t = ((double)m) / ((double)P.Nplace[tp]);
-					fprintf(stderr, "Adjusting place weights by cell (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
+          Messages::out(Messages::Info) << "Adjusting place weights by cell (Capacity=" << m << " Demand=" << cnt << "  Av place size=" << t << ")\n";
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
@@ -2062,7 +2074,8 @@ void AssignPeopleToPlaces()
 							f2 += Cells[k].S; f3++;
 							if (Cells[k].R == 0) f4 += Cells[k].S;
 						}
-					fprintf(stderr, "Demand in cells with no places=%i in %i cells\nDemand in cells with no places <=1 cell away=%i\n", f2, f3, f4);
+          Messages::out(Messages::Info) << "Demand in cells with no places=" << f2 << " in " << f3 << " cells\n";
+          Messages::out(Messages::Info) << "Demand in cells with no places <=1 cell away=" << f4 << "\n";
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
@@ -2078,7 +2091,7 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.NC; i++) Cells[i].L = Cells[i].I = Cells[i].R = 0;
 				}
 				t = ((double)m) / ((double)P.Nplace[tp]);
-				fprintf(stderr, "Adjusting place weights (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
+        Messages::out(Messages::Info) << "Adjusting place weights (Capacity=" << m << " Demand=" << cnt << "  Av place size=" << t << ")\n";
 				for (int i = m = 0; i < P.Nplace[tp]; i++)
 				{
 					s = ((double)Places[tp][i].treat_end_time) * 43 / 40 - 1;
@@ -2141,7 +2154,7 @@ void AssignPeopleToPlaces()
 				CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
 				UpdateProbs(1);
 				ca = 0;
-				fprintf(stderr, "Allocating people to place type %i\n", tp);
+        Messages::out(Messages::Info) << "Allocating people to place type " << tp << "\n";
 				a = cnt;
 				nt = P.NumThreads;
 				nn = P.PlaceTypeNearestNeighb[tp];
@@ -2172,7 +2185,7 @@ void AssignPeopleToPlaces()
 									{
 										for (cnt = 0; cnt < Mcells[ic].np[tp]; cnt++)
 										{
-											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+											if (Mcells[ic].places[tp][cnt] >= P.Nplace[tp]) Messages::out(Messages::Warning) << "#" << tp << " " << ic << " " << cnt << "  ";
 											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
 												Places[tp][Mcells[ic].places[tp][cnt]].loc.x, Places[tp][Mcells[ic].places[tp][cnt]].loc.y);
 											s = P.KernelLookup.num(t);
@@ -2230,7 +2243,7 @@ void AssignPeopleToPlaces()
 							}
 
 							s = 0;
-							if (k > nn) fprintf(stderr, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
+							if (k > nn) Messages::out(Messages::Info) << "*** k>P.PlaceTypeNearestNeighb[tp] ***\n";
 							if (k == 0)
 							{
                 Messages::out(Messages::Progress) << "# " << i << " " << j << "     \r";
@@ -2253,7 +2266,7 @@ void AssignPeopleToPlaces()
 											Places[tp][Hosts[i].PlaceLinks[tp]].treat_end_time--;
 									}
 									if (!f) Hosts[i].PlaceLinks[tp] = -1;
-									if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr, "@%i %i %i  ", tp, i, j);
+									if (NearestPlaces[tn][i2] >= P.Nplace[tp]) Messages::out(Messages::Warning) << "@" << tp << " " << i << " " << j << "  ";
 								}
 							}
 						}
@@ -2312,8 +2325,7 @@ void AssignPeopleToPlaces()
 									} while (j < 0);
 									if (j >= P.Nplace[tp])
 									{
-										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
-                    Messages::out(Messages::Error) << "Out of bounds place link\n";
+                    Messages::out(Messages::Error) << "Out of bounds place link: " << k << " " << tp << ": " << j << " " << P.Nplace[tp] << "\n";
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
 									s = ((double)ct->S) / ((double)ct->S0) * P.KernelLookup.num(t) / Cells[i].max_trans[l];
@@ -2339,7 +2351,7 @@ void AssignPeopleToPlaces()
 						}
 					}
 				}
-				fprintf(stderr, "%i hosts assigned to placetype %i\n", ca, tp);
+        Messages::out(Messages::Info) << ca << " hosts assigned to placetype " << tp << "\n";
 				Memory::xfree(PeopleArray);
 				for (int i = 0; i < P.Nplace[tp]; i++)
 				{
@@ -2368,7 +2380,7 @@ void StratifyPlaces(void)
 {
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Initialising groups in places\n");
+		Messages::out(Messages::Info) << "Initialising groups in places\n";
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, Hosts)
 		for (int i = 0; i < P.PopSize; i++)
@@ -2473,7 +2485,7 @@ void StratifyPlaces(void)
 				}
 			}
 		}
-		fprintf(stderr, "Groups initialised\n");
+		Messages::out(Messages::Info) << "Groups initialised\n";
 		/*		s2=t2=0;
 				for(j=0;j<P.PlaceTypeNum;j++)
 					{
@@ -2487,14 +2499,14 @@ void StratifyPlaces(void)
 							}
 					s2+=s;
 					t2+=t;
-					fprintf(stderr,"Mean group size for place type %i = %lg\n",j,t/s);
+          Messages::out(Messages::Info) << "Mean group size for place type " << j << " = " << t / s << "\n";
 					}
 				t=0;
 				for(i=0;i<P.PopSize;i++)
 					for(j=0;j<P.PlaceTypeNum;j++)
 						if(Hosts[i].PlaceLinks[j]>=0)
 							t+=(double) Places[j][Hosts[i].PlaceLinks[j]].group_size[Hosts[i].PlaceGroupLinks[j]];
-				fprintf(stderr,"Overall mean group size = %lg (%lg)\n",t/((double) P.PopSize),t2/s2);
+        Messages::out(Messages::Info) << "Overall mean group size = " << t / ((double)P.PopSize) << " (" << t2 / s2 << ")\n";
 		*/
 	}
 }
@@ -2543,8 +2555,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 				Hosts[i2].PlaceLinks[m] = netbuf[n + m];
 				if (Hosts[i2].PlaceLinks[m] >= P.Nplace[m])
 				{
-					fprintf(stderr, "*%i %i: %i %i\n", i2, m, Hosts[i2].PlaceLinks[m], P.Nplace[m]);
-					Messages::out(Messages::Error) << "Out of bounds place link\n";
+					Messages::out(Messages::Error) << "Out of bounds place link: " << i2 << " " << m << ": " << Hosts[i2].PlaceLinks[m] << " " << P.Nplace[m] << "\n";
 				}
 			}
 			i2++;
@@ -2557,7 +2568,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 			if((i+1)%100000==0) Messages::out(Messages::Progress) << i + 1 << " loaded            \r";
 			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
 			}
-	*/	fprintf(stderr, "\n");
+	*/	Messages::out(Messages::Info) << "\n";
 	fclose(dat);
 }
 
@@ -2585,13 +2596,12 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 			for (j = 0; j < npt; j++)
 				if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 				{
-					fprintf(stderr, "*%i %i: %i %i\n", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
-					Messages::out(Messages::Error) << "Out of bounds place link\n";
+					Messages::out(Messages::Error) << "Out of bounds place link: " << i << " " << j << ": " << Hosts[i].PlaceLinks[j] << " " << P.Nplace[j] << "\n";
 				}
 		}
 	}
 
-	fprintf(stderr, "\n");
+	Messages::out(Messages::Info) << "\n";
 	fflush(dat);
 	fclose(dat);
 }

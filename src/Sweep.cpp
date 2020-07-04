@@ -28,9 +28,9 @@ void TravelReturnSweep(double t)
 		nr = ner = 0;
 		int floorOfTime = (int)floor(t);
 		l = 1 + floorOfTime % MAX_TRAVEL_TIME;
-		FILE* stderr_shared = stderr;
+    auto& cerr_shared = std::cerr;
 #pragma omp parallel for reduction(+:nr, ner) schedule(static, 1) default(none) \
-			shared(P, Places, Hosts, l, stderr_shared)
+			shared(P, Places, Hosts, l, cerr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 		{
 			for (int j = tn; j < P.Nplace[P.HotelPlaceType]; j += P.NumThreads)
@@ -43,9 +43,9 @@ void TravelReturnSweep(double t)
 					{
 						n--;
 						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.PopSize))
-													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
+													{Messages::out(Messages::Debug, cerr_shared) << "### " << j << " " << k << " " << n << " " << Places[P.HotelPlaceType][j].members[n] << "\n";ner++;}
 												else if((k<0)||(k>n))
-													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
+													{Messages::out(Messages::Debug, cerr_shared) << "@ " << j << " " << k << " " << n << " " << Places[P.HotelPlaceType][j].members[n]) << "\n";ner++;}
 												else
 						*/
 						if (k != n)
@@ -55,7 +55,8 @@ void TravelReturnSweep(double t)
 						nr++;
 						if (Hosts[i].PlaceLinks[P.HotelPlaceType] != j)
 						{
-							ner++; fprintf(stderr_shared, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
+							ner++;
+              Messages::out(Messages::Warning, cerr_shared) << "(" << j << " " << Hosts[i].PlaceLinks[P.HotelPlaceType] << ")\n";
 						}
 						Hosts[i].PlaceLinks[P.HotelPlaceType] = -1;
 						Hosts[i].Travelling = 0;
@@ -64,7 +65,7 @@ void TravelReturnSweep(double t)
 				Places[P.HotelPlaceType][j].n = n;
 			}
 		}
-		fprintf(stderr, " d=%i e=%i>", nr, ner);
+    Messages::out(Messages::Info) << " d=" << nr << " e=" << ner << ">";
 	}
 }
 
@@ -184,7 +185,7 @@ void TravelDepartSweep(double t)
 							j++;
 					}
 				}
-		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
+    Messages::out(Messages::Info) << "<ar=" << nad << " as=" << nsk;
 		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
 #pragma omp parallel for reduction(+:nld,nsk) schedule(static,1) default(none) \
@@ -264,7 +265,7 @@ void TravelDepartSweep(double t)
 					} while (f);
 				}
 			}
-		fprintf(stderr, " l=%i ls=%i ", nld, nsk);
+    Messages::out(Messages::Info) << "  l=" << nld << " ls=" << nsk << " ";
 	}
 }
 
@@ -316,10 +317,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	// Establish if movement restrictions are in place on current day - store in bm, 0:false, 1:true
 	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	// File for storing error reports
-	FILE* stderr_shared = stderr;
+  auto& cerr_shared = std::cerr;
 
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr_shared)
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, cerr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -500,7 +501,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									// if infectiousness is < 0, we have an error - end the program
 									if (s4_scaled < 0)
 									{
-										fprintf(stderr_shared, "@@@ %lg\n", s4_scaled);
+                    Messages::out(Messages::Warning, cerr_shared) << "@@@ " << s4_scaled << "\n";
 										exit(1);
 									}
 									// else if infectiousness == 1 (should never be more than 1 due to capping above)
@@ -551,7 +552,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 												else
 												{
-													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+                          Messages::out(Messages::Warning, cerr_shared) << "No more space in queue! Thread: " << tn << " AdUnit: " << ad << "\n";
 												}
 											}
 										}// digital contact tracing queue
@@ -617,7 +618,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									// s3_scales shouldn't be less than 0 so generate error if it is
 									if (s3_scaled < 0)
 									{
-                    Messages::out(Messages::Error) << "@@@ " << s3 << "\n";
+                    Messages::out(Messages::Error, cerr_shared) << "@@@ " << s3 << "\n";
 									}
 									// if s3_scaled >=1, everyone in the hotel is a potential infectee
 									else if (s3_scaled >= 1)
@@ -658,7 +659,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 												else
 												{
-													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+                          Messages::out(Messages::Warning, cerr_shared) << "No more space in queue! Thread: " << tn << "AdUnit: " << ad << "\n";
 												}
 											}
 										}
@@ -900,7 +901,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 											else
 											{
-												fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+                        Messages::out(Messages::Warning, cerr_shared) << "No more space in queue! Thread: " << tn << "AdUnit: " << ad << "\n";
 											}
 										}
 									}
@@ -986,7 +987,7 @@ void IncubRecoverySweep(double t, int run)
 			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
 			if ((t + P.TimeStep >= ht) && (t < ht))
 			{
-//				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
+//				Messages::out(Messages::Debug) << "Holiday " << i << " t=" << t << "\n");
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
 #pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
@@ -1089,9 +1090,9 @@ void DigitalContactTracingSweep(double t)
 	//find current time step
 	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
-	FILE* stderr_shared = stderr;
+  auto& cerr_shared = std::cerr;
 #pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, P, AdUnits, StateT, Hosts, ts, stderr_shared)
+		shared(t, P, AdUnits, StateT, Hosts, ts, cerr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -1228,8 +1229,8 @@ void DigitalContactTracingSweep(double t)
 								}
 								else
 								{
-									fprintf(stderr_shared, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, AdUnits[i].n);
-									fprintf(stderr_shared, "Error!\n");
+                  Messages::out(Messages::Warning, cerr_shared) << "No more space in queue! AdUnit: " << i << ", ndct=" << AdUnits[i].ndct << ", max queue length: " << AdUnits[i].n << "\n";
+                  Messages::out(Messages::Warning, cerr_shared) << "Error!\n";
 									k++;
 								}
 							}
@@ -1462,13 +1463,14 @@ int TreatSweep(double t)
 						for (int m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
 						{
 							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.PopSize-1))
-															fprintf(stderr,"\n*** npq=%i gn=%i h=%i m=%i j=%i l=%i f=%i s=%i n=%i ***\n",
-																StateT[i].np_queue[j],
-																Places[j][l].n,
-																Places[j][l].members[m],
-																m,j,l,f,
-																(int) Places[j][l].group_start[f],
-																(int) Places[j][l].group_size[f]);
+                              Messages::out(Messages::Debug)
+																<< "\n** npq = " << StateT[i].np_queue[j]
+																<< " gn = " << Places[j][l].n
+																<< " h = " << Places[j][l].members[m]
+																<< " m = " << m << " j = " << j << " l = " << l << " f = " << f
+																<< " s = " << Places[j][l].group_start[f]
+																<< " n = " << Places[j][l].group_size[f])
+                                << " ***\n";
 														else
 							*/
 							if ((!HOST_TO_BE_TREATED(Places[j][l].members[m])) && ((P.TreatPlaceTotalProp[j] == 1) || (ranf_mt(i) < P.TreatPlaceTotalProp[j])))

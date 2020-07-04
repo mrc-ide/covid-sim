@@ -195,20 +195,20 @@ int main(int argc, char* argv[])
     // Check if S and L options were both specified (can only be one)
 	if (!save_network_file.empty() && !load_network_file.empty())
 	{
-		std::cerr << "Specifying both /L and /S is not allowed" << std::endl;
+    Messages::out(Messages::Warning) << "Specifying both /L and /S is not allowed\n";
 		args.print_detailed_help_and_exit();
 	}
 
 	// Check if P or O were not specified
 	if (param_file.empty() || output_file_base.empty())
 	{
-		std::cerr << "Missing /P and /O arguments which are required" << std::endl;
+    Messages::out(Messages::Warning) << "Missing /P and /O arguments which are required\n";
 		args.print_detailed_help_and_exit();
 	}
 
-	std::cerr << "Param=" << param_file << "\nOut=" << output_file_base << "\nDens=" << density_file << std::endl;
-	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
-	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
+  Messages::out(Messages::Info) << "Param=" << param_file << "\nOut=" << output_file_base << "\nDens=" << density_file << "\n";
+	Messages::out(Messages::Info) << "Bitmap Format = " << (P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp") << "\n";
+  Messages::out(Messages::Info) << "sizeof(int)=" << sizeof(int) << " sizeof(long)=" << sizeof(long) << " sizeof(float)=" << sizeof(float) << " sizeof(double)=" << sizeof(double) << " sizeof(unsigned short int)=" << sizeof(unsigned short int) << " sizeof(int *)=" << sizeof(int*) <<"\n";
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** SET UP OMP / THREADS
@@ -219,17 +219,16 @@ int main(int argc, char* argv[])
 	if ((P.MaxNumThreads > 0) && (P.MaxNumThreads < P.NumThreads)) P.NumThreads = P.MaxNumThreads;
 	if (P.NumThreads > MAX_NUM_THREADS)
 	{
-		fprintf(stderr, "Assigned number of threads (%d) > MAX_NUM_THREADS (%d)\n", P.NumThreads, MAX_NUM_THREADS);
+    Messages::out(Messages::Warning) << "Assigned number of threads (" << P.NumThreads << ") > MAX_NUM_THREADS (" << MAX_NUM_THREADS << ")\n";
 		P.NumThreads = MAX_NUM_THREADS;
 	}
-	fprintf(stderr, "Using %d threads\n", P.NumThreads);
+  Messages::out(Messages::Info) << "Using " << P.NumThreads << " threads\n";
 	omp_set_num_threads(P.NumThreads);
 
 #pragma omp parallel default(shared)
 	{
-		fprintf(stderr, "Thread %i initialised\n", omp_get_thread_num());
+    Messages::out(Messages::Info) << "Thread " << omp_get_thread_num() << " initialised\n";
 	}
-	/* fprintf(stderr,"int=%i\tfloat=%i\tdouble=%i\tint *=%i\n",(int) sizeof(int),(int) sizeof(float),(int) sizeof(double),(int) sizeof(int *));	*/
 #else
 	P.NumThreads = 1;
 #endif
@@ -264,7 +263,7 @@ int main(int argc, char* argv[])
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
-	fprintf(stderr, "Model setup in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
+  Messages::out(Messages::Warning) << "Model setup in " << ((double)(clock() - cl) / CLOCKS_PER_SEC) << " seconds\n";
 
 	//print out number of calls to random number generator
 
@@ -280,7 +279,7 @@ int main(int argc, char* argv[])
 		if (P.NumRealisations > 1)
 		{
 			run_output_file_base = output_file_base + "." + std::to_string(i);
-			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+      Messages::out(Messages::Info) << "Realisation " << i + 1 << " of " << P.NumRealisations << "  (time=" << ((double)(clock() - cl)) / CLOCKS_PER_SEC << " nr_ne=" << P.NRactNE << ")\n";
 		}
 		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
 		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
@@ -361,9 +360,9 @@ int main(int argc, char* argv[])
 
 	Bitmap_Finalise();
 
-	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
-	fprintf(stderr, "Model finished\n");
+  Messages::out(Messages::Info) << "Extinction in " << P.NRactE << " out of " << P.NRactNE + P.NRactE << " runs\n";
+  Messages::out(Messages::Info) << "Model ran in " << ((double)(clock() - cl)) / CLOCKS_PER_SEC << " seconds\n";
+	Messages::out(Messages::Info) << "Model finished\n";
 }
 
 void parse_bmp_option(std::string const& input) {
@@ -417,7 +416,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.UpdatesPerSample = (int)t;
 	P.TimeStep = P.SampleStep / t;
 	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
+  Messages::out(Messages::Info) << "Update step = " << P.TimeStep << "\n";
+  Messages::out(Messages::Info) << "Sampling step = " << P.SampleStep << "\n";
+  Messages::out(Messages::Info) << "Updates per sample = " << P.UpdatesPerSample << "\n";
+  Messages::out(Messages::Info) << "Time steps per day = " << P.TimeStepsPerDay << "\n";
 	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
 	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
@@ -521,7 +523,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 						P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
 						if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
 						if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
-						//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
+            Messages::out(Messages::Debug) << AdUnits[P.NumAdunits].id << " " << AdUnits[P.NumAdunits].cnt_name << " " << AdUnits[P.NumAdunits].ad_name << " ## ";
 						P.NumAdunits++;
 					}
 		}
@@ -564,7 +566,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*) & (P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct administrative unit populations", "%i", (void*) & (P.DoCorrectAdunitPop), 1, 1, 0)) P.DoCorrectAdunitPop = 0;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Fix population size at specified value", "%i", (void*) & (P.DoSpecifyPop), 1, 1, 0)) P.DoSpecifyPop = 0;
-		fprintf(stderr, "Using %i administrative units\n", P.NumAdunits);
+    Messages::out(Messages::Info) << "Using " << P.NumAdunits << " administrative units\n";
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for administrative unit codes for boundary plotting on bitmaps", "%i", (void*) & (P.AdunitBitmapDivisor), 1, 1, 0)) P.AdunitBitmapDivisor = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output household to place distance distribution for one administrative unit", "%i", (void*) & (P.DoOutputPlaceDistForOneAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
 		if (P.DoOutputPlaceDistForOneAdunit)
@@ -794,7 +796,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				P.MeanJourneyTime += ((double)(i)) * P.JourneyDurationDistrib[i];
 				P.MeanLocalJourneyTime += ((double)(i)) * P.LocalJourneyDurationDistrib[i];
 			}
-			fprintf(stderr, "Mean duration of local journeys = %lf days\n", P.MeanLocalJourneyTime);
+      Messages::out(Messages::Info) << "Mean duration of local journeys = " << P.MeanLocalJourneyTime << " days\n";
 			for (i = 1; i < MAX_TRAVEL_TIME; i++)
 			{
 				P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
@@ -854,7 +856,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of seed locations", "%i", (void*) & (P.NumSeedLocations), 1, 1, 0)) P.NumSeedLocations = 1;
 	if (P.NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
 	{
-		fprintf(stderr, "Too many seed locations\n");
+		Messages::out(Messages::Info) << "Too many seed locations\n";
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
@@ -885,7 +887,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		s=0;
 		for(i = 0; i < P.NumSeedLocations; i++) s+=P.InitialInfectionsAdminUnitWeight[i];
 		for(i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i]/=s;
-	//	for (i = 0; i < P.NumSeedLocations; i++) fprintf(stderr, "## %i %s %i %i %lf\n",i, AdUnits[P.InitialInfectionsAdminUnitId[i]].ad_name, P.InitialInfectionsAdminUnitId[i], P.InitialInfectionsAdminUnit[i], P.InitialInfectionsAdminUnitWeight[i]);
+	//	for (i = 0; i < P.NumSeedLocations; i++) Messages::out(Messages::Debug) << "## " << i << "  " << AdUnits[P.InitialInfectionsAdminUnitId[i]].ad_name << " " << P.InitialInfectionsAdminUnitId[i] << " " << P.InitialInfectionsAdminUnit[i] << " " << P.InitialInfectionsAdminUnitWeight[i] << "\n";
 	}
 	else
 	{
@@ -1941,7 +1943,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			cosx[i] = cos(t);
 		}
 	}
-	fprintf(stderr, "Parameters read\n");
+	Messages::out(Messages::Info) << "Parameters read\n";
 }
 void ReadInterventions(std::string const& IntFile)
 {
@@ -1951,7 +1953,7 @@ void ReadInterventions(std::string const& IntFile)
 	char buf[65536], txt[65536];
 	Intervention CurInterv;
 
-	fprintf(stderr, "Reading intervention file.\n");
+	Messages::out(Messages::Info) << "Reading intervention file.\n";
 	if (!(dat = fopen(IntFile.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open intervention file\n";
 	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
         Messages::out(Messages::Error) << "fscanf failed in ReadInterventions\n";
@@ -2147,7 +2149,7 @@ void ReadInterventions(std::string const& IntFile)
 		}
 	}
 	if (strcmp(txt, "/InterventionSettings") != 0) Messages::out(Messages::Error) << "Intervention has no top level closure.\n";
-	fprintf(stderr, "%i interventions read\n", ni);
+  Messages::out(Messages::Info) << ni << " interventions read\n";
 	fclose(dat);
 }
 int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Value, int ResetFilePos)
@@ -2175,7 +2177,7 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
             Messages::out(Messages::Error) << "fscanf failed in GetXMLNode\n";
         }
 		if (strlen(buf) < 2048) strcpy(Value, buf);
-		//		fprintf(stderr,"# %s=%s\n",NodeName,Value);
+		//		Messages::out(Messages::Debug) << "# " << NodeNmae << "=" << Value << "\n";
 		if(fscanf(dat, "<%[^>]", buf) != 1) {
       Messages::out(Messages::Error) << "fscanf failed in GetXMLNode\n";
     }
@@ -2196,7 +2198,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	std::string outname;
 	FILE* dat;
 
-	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
+	Messages::out(Messages::Info) << "Reading airport data...\nAirports with no connections = ";
 	if (!(dat = fopen(air_travel_file.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open airport file\n";
 	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
         Messages::out(Messages::Error) << "fscanf failed in void ReadAirTravel\n";
@@ -2248,17 +2250,17 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		else
 		{
 			if (Airports[i].total_traffic > 0)
-				fprintf(stderr, "#%i# ", i);
+				Messages::out(Messages::Info) << "#" << i << "# ";
 			else
-				fprintf(stderr, "%i ", i);
+				Messages::out(Messages::Info) << i << " ";
 		}
 	}
 	fclose(dat);
 	Memory::xfree(buf);
-	fprintf(stderr, "\nAirport data read OK.\n");
+	Messages::out(Messages::Info) << "\nAirport data read OK.\n";
 	for (i = 0; i < P.Nairports; i++)
 	{
-		/*		fprintf(stderr,"(%f %i|",Airports[i].total_traffic,Airports[i].num_connected);
+		/*		Messages::out(Messages::Debug) << "(" << Airports[i].total_traffic << " " Airports[i].num_connected) << "|";
 		*/		t = 0; k = 0;
 	for (j = Airports[i].num_connected - 1; j >= 0; j--)
 	{
@@ -2277,7 +2279,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		else if (Airports[i].prop_traffic[j] > 0)
 			k = 1;
 	}
-	/*		fprintf(stderr,"%f %i ",t,k);
+	/*		Messages::out(Messages::Debug) << t << " " << k << " ";
 	*/		t = 1.0f - t;
 	if (k)
 	{
@@ -2291,7 +2293,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		for (j = 0; j < Airports[i].num_connected; j++)
 			Airports[i].prop_traffic[j] /= t2;
 		/*			if((Airports[i].num_connected>0)&&(Airports[i].prop_traffic[Airports[i].num_connected-1]!=1))
-						fprintf(stderr,"<%f> ",Airports[i].prop_traffic[Airports[i].num_connected-1]);
+            Messages::out(Messages::Debug) << "<" << Airports[i].prop_traffic[Airports[i].num_connected-1] << "> ";
 		*/
 	}
 	else
@@ -2308,10 +2310,10 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		}
 		Airports[i].Inv_prop_traffic[128] = Airports[i].num_connected - 1;
 	}
-	/*		fprintf(stderr,"%f) ",Airports[i].total_traffic);
+	/*		Messages::out(Messages::Debug) << Airports[i].total_traffic << ") ";
 	*/
 	}
-	fprintf(stderr, "Airport data clipped OK.\n");
+	Messages::out(Messages::Info) << "Airport data clipped OK.\n";
 	for (i = 0; i < MAX_DIST; i++) AirTravelDist[i] = 0;
 	for (i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
@@ -2321,7 +2323,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 				k = (int)Airports[i].conn_airports[j];
 				traf = floor(sqrt(dist2_raw(Airports[i].loc.x, Airports[i].loc.y, Airports[k].loc.x, Airports[k].loc.y)) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
-				//fprintf(stderr,"%(%i) ",l);
+				//Messages::out(Messages::Debug) << "%(" << l <<") ";
 				if (l < MAX_DIST)
 					AirTravelDist[l] += Airports[i].total_traffic * Airports[i].prop_traffic[j];
 			}
@@ -2696,7 +2698,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
 	if (!P.StopCalibration) P.DateTriggerReached_SimTime = 0;
 
-	fprintf(stderr, "Finished InitModel.\n");
+	Messages::out(Messages::Info) << "Finished InitModel.\n";
 }
 
 void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int run) //adding run number to pass it to event log
@@ -2752,7 +2754,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				{
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
-					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
+					//Messages::out(Messages::Debug) << AdUnits[Mcells[j].adunit].id) << " ";
 				} while ((Mcells[j].n < NumSeedingInfections_byLocation[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
@@ -2790,7 +2792,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				{
 					l = (int)(ranf() * ((double)P.PopSize));
 					j = Hosts[l].mcell;
-					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
+					//Messages::out(Messages::Debug) << "@@ " << AdUnits[Mcells[j].adunit].id << " " << (AdUnits[Mcells[j].adunit].id / P.CountryDivisor)) << " ";
 				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
 					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
 					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
@@ -2817,7 +2819,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 			}
 		}
 	}
-	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
+	if (m > 0) Messages::out(Messages::Info) << "### Seeding error ###\n";
 }
 
 
@@ -2830,7 +2832,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	int continueEvents = 1;
 
 
-/*	fprintf(stderr, "Checking consistency of initial state...\n");
+/*	Messages::out(Messages::Info) << "Checking consistency of initial state...\n";
 	int i, i2, k2;
 	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
 	{
@@ -2858,7 +2860,12 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		else
 			fs2++;
 	}
-	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
+  Messages::out(Messages::Warning) << "\nsusceptibles = " << j << "\n";
+  Messages::out(Messages::Warning) << "incorrect listpos = " << k << "\n";
+  Messages::out(Messages::Warning) << "hosts not found in cell list = " << NumSeedingInfections << "\n";
+  Messages::out(Messages::Warning) << "incorrect cell refs = " << fs2 << "\n";
+  Messages::out(Messages::Warning) << "incorrect positioning in cell susc list = " << i2 << "\n";
+  Messages::out(Messages::Warning) << "wrong cell totals = " << k2 << "\n";
 */
 	InterruptRun = 0;
 	lcI = 1;
@@ -2964,7 +2971,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		}
 	}
 	if (!InterruptRun) RecordSample(t, P.NumSamples - 1, output_file_base);
-	fprintf(stderr, "\nEnd of run\n");
+	Messages::out(Messages::Info) << "\nEnd of run\n";
 	t2 = t + P.SampleTime;
 //	if(!InterruptRun)
 	while (fs)
@@ -2972,7 +2979,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		fs = TreatSweep(t2);
 		t2 += P.SampleStep;
 	}
-	//	fprintf(stderr,"End RunModel\n");
+	//	Messages::out(Messages::Info) << "End RunModel\n";
 	if (P.DoAirports)
 	{
 		t2 = t;
@@ -2981,7 +2988,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	}
 /*	if (!InterruptRun)
 	{
-		fprintf(stderr, "Checking consistency of final state...\n");
+		Messages::out(Messages::Info) << "Checking consistency of final state...\n";
 		int i, i2, k2;
 		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
 		{
@@ -3009,7 +3016,12 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 			else
 				fs2++;
 		}
-		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
+    Messages::out(Messages::Warning) << "\nsusceptibles = " << j << "\n";
+    Messages::out(Messages::Warning) << "incorrect listpos = " << k << "\n";
+    Messages::out(Messages::Warning) << "hosts not found in cell list = " << NumSeedingInfections << "\n";
+    Messages::out(Messages::Warning) << "incorrect cell refs = " << fs2 << "\n";
+    Messages::out(Messages::Warning) << "incorrect positioning in cell susc list = " << i2 << "\n";
+    Messages::out(Messages::Warning) << "wrong cell totals = " << k2 << "\n";
 	}
 */
 	if(!InterruptRun) RecordInfTypes();
@@ -3033,7 +3045,7 @@ void SaveDistribs(std::string const& output_file_base)
 				for (i = 0; i < P.PopSize; i++)
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
-						fprintf(stderr, "*%i %i: %i %i", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
+						Messages::out(Messages::Warning) << "*" << i << " " << j << ": " << Hosts[i].PlaceLinks[j] << " " << P.Nplace[j] << "\n";
 					else if (Hosts[i].PlaceLinks[j] >= 0)
 						Places[j][Hosts[i].PlaceLinks[j]].n++;
 				}
@@ -3046,7 +3058,7 @@ void SaveDistribs(std::string const& output_file_base)
 				if ((j != P.HotelPlaceType) && (Hosts[i].PlaceLinks[j] >= 0))
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
-						fprintf(stderr, "*%i %i: %i ", i, j, Hosts[i].PlaceLinks[j]);
+						Messages::out(Messages::Warning) << "*" << i << " " << j << ": " << Hosts[i].PlaceLinks[j] << "\n";
 					else if ((!P.DoOutputPlaceDistForOneAdunit) ||
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
@@ -4167,7 +4179,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
 	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) Messages::out(Messages::Error) << "Unable to open snapshot file\n";
-	fprintf(stderr, "Loading snapshot.");
+	Messages::out(Messages::Info) << "Loading snapshot.";
 	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
 	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
 	Array_cum_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
@@ -4191,26 +4203,26 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) Messages::out(Messages::Error) << "Incorrect TimeStep in snapshot file.\n";
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)& CellSuscMemberArray, sizeof(int*), 1, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
 	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
+	Messages::out(Messages::Info) << ".";
 	for (i = 0; i < P.NC; i++)
 	{
 		if (Cells[i].n > 0)
@@ -4237,7 +4249,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	Memory::xfree(Array_cum_trans);
 	Memory::xfree(Array_max_trans);
 	Memory::xfree(Array_InvCDF);
-	fprintf(stderr, "\n");
+	Messages::out(Messages::Info) << "\n";
 	fclose(dat);
 }
 
@@ -4249,44 +4261,44 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	if (!(dat = fopen(snapshot_save_file.c_str(), "wb"))) Messages::out(Messages::Error) << "Unable to open snapshot file\n";
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.NC), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.TimeStep), sizeof(double), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 
 	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 
 	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 	fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, "## %i\n", i++);
+  Messages::out(Messages::Progress) << "## " << i++ << "\n";
 
 	fclose(dat);
 }
@@ -4454,7 +4466,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants.
 				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
 					P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime]; // -1;
-				//fprintf(stderr, "\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
+				//Messages::out(Messages::Debug) << \nt=" << t << ", n=" << ChangeTime << " (" << P.Num_PC_ChangeTimes << ")  PlaceCloseDuration = " << P.PlaceCloseDuration << "  (" << P.PC_ChangeTimes[ChangeTime + 1] << ")\n";
 			}
 	}
 
@@ -4553,7 +4565,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	cumD = D;
 	//cumD = 0;
 	N = S + L + I + R + D;
-	if (N != P.PopSize) fprintf(stderr, "## %i #\n", P.PopSize - N);
+	if (N != P.PopSize) Messages::out(Messages::Warning) << "## " << P.PopSize - N << " people with unaccounted state #\n";
 	State.sumRad2 = 0;
 	for (j = 0; j < P.NumThreads; j++)
 	{
@@ -4642,7 +4654,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 		TimeSeries[n].meanTG = P.TimeStep * ((double)cumTG) / ((double)nTG);
 		TimeSeries[n].meanSI = P.TimeStep * ((double)cumSI) / ((double)nTG);
 	}
-	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
+	//Messages::out(Messages::Debug) << "\ncumD=" << cumD << " last_cumD=" << State.cumD << " incD=" << TimeSeries[n].incD << "\n"
 	//incidence per country
 	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
 	if (P.DoICUTriggers)
@@ -5007,8 +5019,8 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 					RatioPredictedObserved = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					DesiredAccuracy = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
-					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
+          Messages::out(Messages::Progress) << "\n** " << P.ModelCalibIteration << " " << t << " " << P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime << " | " << P.HolidaysStartDay_SimTime << " / " << RatioPredictedObserved << " \t";
+          Messages::out(Messages::Progress) << "| " << trigAlert << " " << trigAlertCases << " " << P.AlertTriggerAfterIntervThreshold << " " << P.CaseOrDeathThresholdBeforeAlert << " -> ";
 					if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
 						P.StopCalibration = 1;
 					else if (P.ModelCalibIteration == 0)
@@ -5033,9 +5045,9 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))  // on odd iterations, adjust seeding.
 						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
-					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
+          Messages::out(Messages::Info) << P.CaseOrDeathThresholdBeforeAlert << " : " << P.SeedingScaling << "\n";
 
-					if(P.StopCalibration)	fprintf(stderr, "Calibration ended.\n");
+					if(P.StopCalibration)	Messages::out(Messages::Info) << "Calibration ended.\n";
 					else					InterruptRun = 1;
 				}
 				else	P.StopCalibration = 1;
@@ -5130,7 +5142,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
 			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
 		{
-			fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t);
+      Messages::out(Messages::Info) << "\nSecond place closure period (t=" << t << ")\n";
 			P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
 			P.PlaceCloseDuration = P.PlaceCloseDuration2;
 			P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
@@ -5264,7 +5276,7 @@ void RecordInfTypes(void)
 	}
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
-	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
+  Messages::out(Messages::Info) << "extinct=" << TimeSeries[P.NumSamples - 1].extinct << "(" << P.NumSamples - 1 << ")\n";
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
@@ -5595,7 +5607,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { Messages::out(Messages::Error) << "fscanf failed for " << SItemName << "%s\n"; }
+					if(fscanf(dat, "%s", match) != 1) { Messages::out(Messages::Error) << "fscanf failed for " << SItemName << "\n"; }
 					if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
@@ -5636,7 +5648,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			} //added these braces
 		}
 	}
-	//	fprintf(stderr,"%s\n",SItemName);
+	//	Messages::out(Messages::Debug) << SItemName << "\n";
 	return FindFlag;
 }
 

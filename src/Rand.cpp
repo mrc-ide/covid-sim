@@ -101,10 +101,11 @@ int32_t mltmod(int32_t a, int32_t s, int32_t m)
 		  machine. On a different machine recompute H
 	*/
 	if (a <= 0 || a >= m || s <= 0 || s >= m) {
-		fputs(" a, m, s out of order in mltmod - ABORT!\n", stderr);
-		fprintf(stderr, " a = %12d s = %12d m = %12d\n", a, s, m);
-		fputs(" mltmod requires: 0 < a < m; 0 < s < m\n", stderr);
-		exit(1);
+    Messages::out(Messages::Error) <<
+      " a, m, s out of order in mltmod - ABORT!\n"
+      << " a = " << a << " s = " << s << " m = " << m << "\n"
+      << " mltmod requires: 0 < a < m; 0 < s < m\n";
+    exit(1);
 	}
 
 	if (a < h) {
@@ -1175,7 +1176,7 @@ void SampleWithoutReplacement(int tn, int k, int n)
 	}
 	else
 	{
-		/* fprintf(stderr,"@%i %i:",k,n); */
+		/* Messages::out(Messages::Debug) << "@" << k << " " << n << ":"; */
 		t = (double)k;
 		r = sqrt(t);
 		a = sqrt(log(1 + t / 2 * PI));
@@ -1232,9 +1233,9 @@ void SampleWithoutReplacement(int tn, int k, int n)
 	*/
 	/*	if(k>2)
 			{
-			fprintf(stderr,"(%i) ",q);
-			for(i=0;i<q;i++) fprintf(stderr,"%i ",SamplingQueue[tn][i]);
-			fprintf(stderr,"\n");
+      Messages::out(Messages::Debug) << "(" << q << ") ";
+			for(i=0;i<q;i++) Messages::out(Messages::Debug) << SamplingQueue[tn][i] << " ";
+			Messages::out(Messages::Debug) << "\n";
 			}
 	*/	while (q > k)
 	{
