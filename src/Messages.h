@@ -40,7 +40,7 @@ namespace Messages
     Debug = 4,        ///< Debug messages
 
     DefaultAbort = 0, ///< Default highest type to abort after printing
-    Default = 3       ///< Default highest type to show.
+    Default = 2       ///< Default highest type to show.
   };
   USING_ENUM(Type);
 
@@ -56,7 +56,7 @@ namespace Messages
    * implementation class.  When the shared pointer count goes down to zero we
    * check to see if we should abort and do the abort then.
    */
-  class OptStream
+  class out
   {
   private:
     /** Internal implementation class. */
@@ -108,9 +108,11 @@ namespace Messages
      *  \param do_output Output messages?
      *  \param do_abort  Abort once output is complete?
      *  \param os        Stream to output to (default stderr)
+     *
+     * Constructor is private - use OptStream::get() to get
      */
-    explicit OptStream(bool do_output = true, bool do_abort = true, std::ostream& os = std::cerr) noexcept
-      : impl_(std::make_shared<Impl>(do_output, do_abort, os))
+    explicit out(Type type, std::ostream& os = std::cerr) noexcept
+      : impl_(std::make_shared<Impl>(type <= level_, type <= abort_level_, os))
     { }
 
     /// \brief Are we doing output?
@@ -118,15 +120,6 @@ namespace Messages
 
     /// \brief Get the stream
     std::ostream& os() { return impl_->os(); }
-
-    /** \brief       Start outputting
-     *  \param  type Message type
-     *  \return      Stream to ouput to.
-     */
-    static OptStream get(Type type)
-    {
-      return OptStream(type <= level_, type <= abort_level_);
-    }
 
     /** \brief       Set output level
      *  \param level Level
@@ -146,8 +139,8 @@ namespace Messages
     static void set_abort_level(Type level) { abort_level_ = level; }
 
   private:
-    static Type level_;         ///< Print level
-    static Type abort_level_;   ///< Abort level
+    static Type level_;            ///< Print level
+    static Type abort_level_;      ///< Abort level
 
     std::shared_ptr<Impl> impl_;  ///< Shared pointer to implementation
   };
@@ -158,7 +151,7 @@ namespace Messages
    *  \return    Output stream
    */
   template<typename T>
-  OptStream operator<<(OptStream os, T t)
+  out operator<<(out os, T t)
   {
     if (os.do_output())
     {
@@ -167,23 +160,35 @@ namespace Messages
     return os;
   }
 
+#if 0
   /** \brief        Get the output stream
    *  \param  level Message level
-   *  \retrun       Output stream
+   *  \param  os    Stream to use for output
+   *  \return       Output stream
    */
-  inline OptStream out(Type level)
+  inline OptStream out(Type level, std::ostream& os)
   {
-    OptStream os = OptStream::get(level);
+    OptStream opts(level, os);
     switch (level)
     {
-      case Error: os << "ERROR: "; break;
-      case Warning: os << "WARNING: "; break;
-      case Debug: os << "DEBUG: "; break;
+      case Error: opts << "ERROR: "; break;
+      case Warning: opts << "WARNING: "; break;
+      case Debug: opts << "DEBUG: "; break;
       default: break;
     }
 
-    return os;
+    return opts;
   }
+
+  /** \brief        Get the output stream
+   *  \param  level Message level
+   *  \return       Output stream
+   */
+  inline OptStream out(Type level)
+  {
+    return out(level, std::cerr);
+  }
+#endif
 } // namespace Messages
 
 #endif // COVIDSIM_MESSAGES_H_INCLUDED_
