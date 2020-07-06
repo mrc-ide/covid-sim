@@ -26,6 +26,13 @@ bool parse_integer(std::string const& input, int& output, int default_value);
 void parse_integer_or_exit(std::string const& input, int& output);
 
 /**
+ * Parses and checks if the input string is an integer.
+ */
+bool parse_bool_no_default(std::string const& input, bool& output);
+bool parse_bool(std::string const& input, bool& output, bool default_value);
+void parse_bool_or_exit(std::string const& input, bool& output);
+
+/**
  * Parses and checks if the input string is an double.
  */
 bool parse_double_no_default(std::string const& input, double& output);

@@ -78,6 +78,52 @@ void parse_integer_or_exit(std::string const& input, int32_t& output)
         std::exit(1);
 }
 
+bool parse_bool_no_default(std::string const& input, bool& output)
+{
+	int32_t tmp = 0;
+	if (input == "true")
+	{
+		output = true;
+	}
+	else if (input == "false")
+	{
+		output = false;
+	}
+	else if (parse_integer_no_default(input, tmp))
+	{
+		if (tmp == 0) output = false;
+		else if (tmp == 1) output = true;
+		else
+		{
+			std::cerr << "WARNING: boolean value (" << input << ") was not 0 or 1. Defaulting to true" << std::endl;
+			output = true;
+		}
+	}
+	else
+	{
+		std::cerr << "Unable to parse boolean value from line (" << input << ")" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool parse_bool(std::string const& input, bool& output, bool default_value)
+{
+	if (!parse_bool_no_default(input, output))
+	{
+		std::cerr << "Using default value: " << default_value << std::endl;
+		output = default_value;
+		return false;
+	}
+	return true;
+}
+
+void parse_bool_or_exit(std::string const& input, bool& output)
+{
+	if (!parse_bool_no_default(input, output))
+		std::exit(1);
+}
+
 bool parse_double_no_default(std::string const& input, double& output)
 {
 	try
