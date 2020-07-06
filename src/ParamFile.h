@@ -121,7 +121,7 @@ private:
 	 */
 	void parse_param_file(std::string const& param_file);
 
-	std::unordered_map<std::string, std::string> m_param_value_map;
+	std::unordered_map<std::string, std::string> param_value_map_;
 };
 
 #endif // COVIDSIM_PARAM_FILE_H_INCLUDED_

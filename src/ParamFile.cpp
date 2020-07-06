@@ -56,7 +56,7 @@ bool ParamReader::extract_int(std::string const& param, int32_t& output, int32_t
 		return false;
 	}
 
-	parse_integer(m_param_value_map[param], output, default_value);
+	parse_integer(param_value_map_[param], output, default_value);
 	return true;
 }
 
@@ -69,7 +69,7 @@ bool ParamReader::extract_double(std::string const& param, double& output, doubl
 		return false;
 	}
 
-	parse_double(m_param_value_map[param], output, default_value);
+	parse_double(param_value_map_[param], output, default_value);
 	return true;
 }
 
@@ -78,7 +78,7 @@ void ParamReader::extract_int_or_exit(std::string const& param, int& output)
 	if (!exists(param))
 		std::exit(1);
 
-	parse_integer_or_exit(m_param_value_map[param], output);
+	parse_integer_or_exit(param_value_map_[param], output);
 }
 
 void ParamReader::extract_double_or_exit(std::string const& param, double& output)
@@ -86,7 +86,7 @@ void ParamReader::extract_double_or_exit(std::string const& param, double& outpu
 	if (!exists(param))
 		std::exit(1);
 
-	parse_double_or_exit(m_param_value_map[param], output);
+	parse_double_or_exit(param_value_map_[param], output);
 }
 
 bool ParamReader::extract_ints_no_default(std::string const& param, int32_t* output, std::size_t N)
@@ -94,7 +94,7 @@ bool ParamReader::extract_ints_no_default(std::string const& param, int32_t* out
 	if (!exists(param))
 		return false;
 
-	std::istringstream iss(m_param_value_map[param]);
+	std::istringstream iss(param_value_map_[param]);
 	for (auto i = 0; i < N; i++)
 	{
 		std::string token;
@@ -120,7 +120,7 @@ bool ParamReader::extract_doubles_no_default(std::string const& param, double* o
 	if (!exists(param))
 		return false;
 
-	std::istringstream iss(m_param_value_map[param]);
+	std::istringstream iss(param_value_map_[param]);
 	for (auto i = 0; i < N; i++)
 	{
 		std::string token;
@@ -195,7 +195,7 @@ bool ParamReader::extract_strings_no_default(std::string const& param, std::vect
 	if (!exists(param))
 		return false;
 
-	std::istringstream iss(m_param_value_map[param]);
+	std::istringstream iss(param_value_map_[param]);
 	std::string token;
 	for (auto i = 0; i < N; i++)
 	{
@@ -223,7 +223,7 @@ void ParamReader::extract_string_matrix_or_exit(std::string const& param, std::v
 		std::exit(1);
 
 	// iterate over every row of the matrix
-	std::istringstream matrix(m_param_value_map[param]);
+	std::istringstream matrix(param_value_map_[param]);
 	std::istringstream line_stream;
 	for (std::string line; std::getline(matrix, line);)
 	{
@@ -258,8 +258,8 @@ void ParamReader::extract_inverse_cdf(std::string const& param, InverseCdf& inve
 
 bool ParamReader::exists(std::string const& param)
 {
-	auto it = m_param_value_map.find(param);
-	if (it == m_param_value_map.cend())
+	auto it = param_value_map_.find(param);
+	if (it == param_value_map_.cend())
 	{
 		std::cout << "ERROR: Parameter \"" << param << "\" not found." << std::endl;
 		return false;
@@ -313,8 +313,8 @@ void ParamReader::parse_param_file(std::string const& param_file)
 			}
 
 			// store the parameter name and value for later use by ReadParams()
-			auto it = m_param_value_map.find(param_line);
-			if (it != m_param_value_map.cend())
+			auto it = param_value_map_.find(param_line);
+			if (it != param_value_map_.cend())
 			{
 				std::cerr << "OVERRIDE: Param file (\"" << param_file << "\") is updating Key:["
 						  << param_line << "]" << " Value:[" << value_line << "]" << std::endl;
@@ -322,7 +322,7 @@ void ParamReader::parse_param_file(std::string const& param_file)
 			}
 			else
 			{
-				m_param_value_map.emplace(param_line, value_line);
+				param_value_map_.emplace(param_line, value_line);
 			}
 		}
 	}
