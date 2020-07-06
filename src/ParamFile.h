@@ -1,5 +1,5 @@
-#ifndef COVIDSIM_PARAM_FILE_HPP_INCLUDED_
-#define COVIDSIM_PARAM_FILE_HPP_INCLUDED_
+#ifndef COVIDSIM_PARAM_FILE_H_INCLUDED_
+#define COVIDSIM_PARAM_FILE_H_INCLUDED_
 
 #include <cstddef>
 #include <cstdint>
@@ -124,4 +124,4 @@ private:
 	std::unordered_map<std::string, std::string> m_param_value_map;
 };
 
-#endif // COVIDSIM_PARAM_FILE_HPP_INCLUDED_
+#endif // COVIDSIM_PARAM_FILE_H_INCLUDED_
