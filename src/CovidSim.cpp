@@ -73,7 +73,6 @@ void CalcOriginDestMatrix_adunit(void); //added function to calculate origin des
 
 int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter2(FILE*, FILE*, const char*, const char*, void*, int, int, int);
-int GetInputParameter2all(FILE*, FILE*, FILE*, const char*, const char*, void*, int, int, int);
 int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -5638,20 +5637,6 @@ int GetInputParameter2(FILE* dat, FILE* dat2, const char* SItemName, const char*
 	if (dat2) FindFlag = GetInputParameter3(dat2, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
 	if (!FindFlag)
 		FindFlag = GetInputParameter3(dat, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
-	return FindFlag;
-}
-
-int GetInputParameter2all(FILE* dat, FILE* dat2, FILE* dat3, const char* SItemName, const char* ItemType, void* ItemPtr, int NumItem, int NumItem2, int Offset)
-{
-	int FindFlag = 0;
-
-	if (dat3) FindFlag = GetInputParameter3(dat3, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
-	if (!FindFlag)
-	{
-		if (dat2) FindFlag = GetInputParameter3(dat2, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
-		if ((!FindFlag)&&(dat))
-			FindFlag = GetInputParameter3(dat, SItemName, ItemType, ItemPtr, NumItem, NumItem2, Offset);
-	}
 	return FindFlag;
 }
 
