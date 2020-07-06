@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Error.h"
+#include "InverseCdf.h"
 #include "ParamFile.h"
 #include "Parsers.h"
 
@@ -244,6 +245,15 @@ void ParamReader::extract_string_matrix_or_exit(std::string const& param, std::v
 		}
 		output.push_back(std::move(new_row));
 	}
+}
+
+void ParamReader::extract_inverse_cdf(std::string const& param, InverseCdf& inverse_cdf, double start_value)
+{
+	if (!extract_doubles_no_default(param, inverse_cdf.get_values(), CDF_RES + 1))
+	{
+		inverse_cdf.set_neg_log(start_value);
+	}
+	inverse_cdf.assign_exponent();
 }
 
 bool ParamReader::exists(std::string const& param)

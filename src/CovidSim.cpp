@@ -123,11 +123,6 @@ int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPE
 const int MAXINTFILE = 10;
 std::vector<std::string> InterventionFiles;
 
-// default start value for icdf double arrays (was hardcoded as 100)
-const double ICDF_START = 100.0;
-
-void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf, double start_value = ICDF_START);
-
 int main(int argc, char* argv[])
 {
 	///// Flags to ensure various parameters have been read; set to false as default.
@@ -1014,7 +1009,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (!params.extract_doubles_no_default("Infectious period inverse CDF", P.infectious_icdf.get_values(), CDF_RES + 1))
 		{
-			P.infectious_icdf.set_neg_log(ICDF_START);
+			P.infectious_icdf.set_neg_log(InverseCdf::start_value_);
 		}
 		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
@@ -1026,7 +1021,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.DoLatent)
 	{
 		params.extract_double_or_exit("Latent period", P.LatentPeriod);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", &P.latent_icdf, 1e10);
+		params.extract_inverse_cdf("Latent period inverse CDF", P.latent_icdf, 1e10);
 	}
 
 	params.extract_int("Include symptoms", P.DoSymptoms, 0);
@@ -1149,16 +1144,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 
 		//// Get InverseCDFs
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "MildToRecovery_icdf", &P.MildToRecovery_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToRecovery_icdf", &P.ILIToRecovery_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToDeath_icdf", &P.ILIToDeath_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToRecovery_icdf", &P.SARIToRecovery_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToCritRecov_icdf", &P.CriticalToCritRecov_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CritRecovToRecov_icdf", &P.CritRecovToRecov_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "ILIToSARI_icdf", &P.ILIToSARI_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToCritical_icdf", &P.SARIToCritical_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
-		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
+		params.extract_inverse_cdf("MildToRecovery_icdf", P.MildToRecovery_icdf);
+		params.extract_inverse_cdf("ILIToRecovery_icdf", P.ILIToRecovery_icdf);
+		params.extract_inverse_cdf("ILIToDeath_icdf", P.ILIToDeath_icdf);
+		params.extract_inverse_cdf("SARIToRecovery_icdf", P.SARIToRecovery_icdf);
+		params.extract_inverse_cdf("CriticalToCritRecov_icdf", P.CriticalToCritRecov_icdf);
+		params.extract_inverse_cdf("CritRecovToRecov_icdf", P.CritRecovToRecov_icdf);
+		params.extract_inverse_cdf("ILIToSARI_icdf", P.ILIToSARI_icdf);
+		params.extract_inverse_cdf("SARIToCritical_icdf", P.SARIToCritical_icdf);
+		params.extract_inverse_cdf("SARIToDeath_icdf", P.SARIToDeath_icdf);
+		params.extract_inverse_cdf("CriticalToDeath_icdf", P.CriticalToDeath_icdf);
 
 		params.extract_doubles("Prop_Mild_ByAge", P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5);
 		params.extract_doubles("Prop_ILI_ByAge", P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3);
@@ -5873,15 +5868,4 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 	}
 	//	fprintf(stderr,"%s\n",SItemName);
 	return FindFlag;
-}
-
-
-void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
-	double start_value)
-{
-	if (!GetInputParameter2(param_file_dat, preparam_file_dat, icdf_name, "%lf", (void*)inverseCdf->get_values(), CDF_RES + 1, 1, 0))
-	{
-		inverseCdf->set_neg_log(start_value);
-	}
-	inverseCdf->assign_exponent();
 }

@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "InverseCdf.h"
+
 /**
  * Class to handle reading and extracting values out of input parameter files
  * (e.g. pre-param.txt, param.txt, admin-params.txt) in a clean, type-safe, and
@@ -105,6 +107,8 @@ public:
 	 * Extract a matrix of strings with `num_cols` columns per row and add them to `output` or exit the program. 
 	 */
 	void extract_string_matrix_or_exit(std::string const& param, std::vector<std::vector<std::string>>& output, std::size_t num_cols);
+
+	void extract_inverse_cdf(std::string const& param, InverseCdf& inverse_cdf, double start_value=InverseCdf::start_value_);
 
 private:
 	/**
