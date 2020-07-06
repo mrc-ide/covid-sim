@@ -79,7 +79,8 @@ int GetInputParameter3(FILE*, const char*, const char*, void*, int, int, int);
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 
-Param P;
+// use value initializer so that ReadParams() doesn't need to explicitly initialize everything to 0 
+Param P = {};
 Person* Hosts;
 std::vector<PersonQuarantine> HostsQuarantine;
 Household* Households;
@@ -547,10 +548,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		{
 			std::vector<std::vector<std::string>> AdunitNames;
 
-			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
-			{
-				P.AdunitLevel1Lookup[i] = -1;
-			}
+			std::fill_n(P.AdunitLevel1Lookup, ADUNIT_LOOKUP_SIZE, -1);
 			params.extract_int("Divisor for level 1 administrative units", P.AdunitLevel1Divisor, 1);
 			params.extract_int("Mask for level 1 administrative units", P.AdunitLevel1Mask, 1000000000);
 			params.extract_string_matrix_or_exit("Codes and country/province names for admin units", AdunitNames, 3);
@@ -886,11 +884,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		params.extract_doubles_or_exit("Relative transmission rates for place types", P.PlaceTypeTrans, P.PlaceTypeNum);
 		for (i = 0; i < P.PlaceTypeNum; i++) P.PlaceTypeTrans[i] *= AgeSuscScale;
 	}
-	if (!params.extract_doubles("Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1.0))
-	{
-		P.DoSeasonality = 0;
-	}
-	else
+	if (params.extract_doubles("Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1.0))
 	{
 		P.DoSeasonality = 1;
 		s = 0;
@@ -936,7 +930,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		{
 			std::vector<std::string> AdunitSeedLocationIds;
 			if (params.extract_strings_no_default("Administrative unit to seed initial infection into", AdunitSeedLocationIds, P.NumSeedLocations))
-				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+				std::fill_n(P.InitialInfectionsAdminUnit, P.NumSeedLocations, 0);
 			else
 				for (i = 0; i < P.NumSeedLocations; i++)
 				{
@@ -954,7 +948,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+			std::fill_n(P.InitialInfectionsAdminUnit, P.NumSeedLocations, 0);
 		}
 	}
 	params.extract_double("Initial rate of importation of infections", P.InfectionImportRate1, 0.0);
@@ -989,7 +983,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		s = 0;
 		P.infectious_prof[INFPROF_RES] = 0;
-		for (i = 0; i < MAX_INFECTIOUS_STEPS; i++)	P.infectiousness[i] = 0;
 		for (i = 0; i < k; i++)
 		{
 			t = (((double)i) * P.TimeStep / P.InfectiousPeriod * INFPROF_RES);
@@ -1058,8 +1051,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.SymptPlaceTypeContactRate[j] = 1.0;
 				}
 			}
-			else
-				for (j = 0; j < NUM_PLACE_TYPES; j++) P.SymptPlaceTypeWithdrawalProp[j] = 0.0;
 		}
 		params.extract_int("Maximum age of child at home for whom one adult also stays at home", P.CaseAbsentChildAgeCutoff, 0);
 		params.extract_double("Proportion of children at home for whom one adult also stays at home", P.CaseAbsentChildPropAdultCarers, 0.0);
@@ -1645,44 +1636,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	params.extract_doubles_no_default("Change times for levels of household quarantine", P.HQ_ChangeTimes, P.Num_HQ_ChangeTimes);
 	params.extract_doubles_no_default("Change times for levels of place closure", P.PC_ChangeTimes, P.Num_PC_ChangeTimes);
 	params.extract_doubles_no_default("Change times for levels of digital contact tracing", P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes);
-
-	// initialize to zero (regardless of whether doing places or households).
-	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
-	{
-		//// **** "efficacies"
-		//// spatial
-		P.SD_SpatialEffects_OverTime				[ChangeTime] = 0;
-		P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime] = 0;
-		P.CI_SpatialAndPlaceEffects_OverTime		[ChangeTime] = 0;
-		P.HQ_SpatialEffects_OverTime				[ChangeTime] = 0;
-		P.PC_SpatialEffects_OverTime				[ChangeTime] = 0;
-		P.DCT_SpatialAndPlaceEffects_OverTime		[ChangeTime] = 0;
-
-		//// Household
-		P.SD_HouseholdEffects_OverTime			[ChangeTime] = 0;
-		P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime] = 0;
-		P.CI_HouseholdEffects_OverTime			[ChangeTime] = 0;
-		P.HQ_HouseholdEffects_OverTime			[ChangeTime] = 0;
-		P.PC_HouseholdEffects_OverTime			[ChangeTime] = 0;
-		P.DCT_HouseholdEffects_OverTime			[ChangeTime] = 0;
-
-		//// place
-		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
-		{
-			P.SD_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
-			P.Enhanced_SD_PlaceEffects_OverTime	[ChangeTime][PlaceType] = 0;
-			P.HQ_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
-			P.PC_PlaceEffects_OverTime			[ChangeTime][PlaceType] = 0;
-		}
-		P.PC_Durs_OverTime[ChangeTime] = 0;
-
-		//// **** compliance
-		P.CI_Prop_OverTime					[ChangeTime] = 0;
-		P.HQ_Individual_PropComply_OverTime	[ChangeTime] = 0;
-		P.HQ_Household_PropComply_OverTime	[ChangeTime] = 0;
-		P.DCT_Prop_OverTime					[ChangeTime] = 0;
-	}
-
 
 	//// **** "efficacies": by default, initialize to values read in previously.
 	///// spatial contact rates rates over time (and place too for CI and DCT)
