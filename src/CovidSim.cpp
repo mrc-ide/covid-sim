@@ -532,8 +532,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HouseholdTrans = 0.0;
 		P.HouseholdTransPow = 1.0;
 		P.HouseholdSizeDistrib[0][0] = 1.0;
-		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-			P.HouseholdSizeDistrib[0][i] = 0;
 	}
 	if (P.FitIter == 0)
 	{
@@ -618,15 +616,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			params.extract_int("Divisor for administrative unit codes for boundary plotting on bitmaps", P.AdunitBitmapDivisor, 1);
 			params.extract_int("Only output household to place distance distribution for one administrative unit", P.DoOutputPlaceDistForOneAdunit, 0);
 			if (P.DoOutputPlaceDistForOneAdunit)
-			{
-				if (!params.extract_int("Administrative unit for which household to place distance distribution to be output", P.OutputPlaceDistAdunit, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
-			}
+				if (!params.extract_int("Administrative unit for which household to place distance distribution to be output", P.OutputPlaceDistAdunit, 0))
+					P.DoOutputPlaceDistForOneAdunit = 0;
 		}
 		else
 		{
-			P.DoAdunitBoundaries = P.DoAdunitBoundaryOutput = P.DoAdunitOutput = P.DoCorrectAdunitPop = P.DoSpecifyPop = 0;
-			P.AdunitLevel1Divisor = 1; P.AdunitLevel1Mask = 1000000000;
-			P.AdunitBitmapDivisor = P.AdunitLevel1Divisor;
+			P.AdunitBitmapDivisor = P.AdunitLevel1Divisor = 1;
+			P.AdunitLevel1Mask = 1000000000;
 		}
 	}
 
@@ -635,7 +631,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		for (i = 0; i < NUM_AGE_GROUPS; i++) {
 			P.PropAgeGroup[0][i] = 1.0 / NUM_AGE_GROUPS;
-			P.InitialImmunity[i] = 0;
 			P.AgeInfectiousness[i] = P.AgeSusceptibility[i] = 1;
 			P.RelativeSpatialContact[i] = P.RelativeTravelRate[i] = 1.0;
 		}
@@ -644,12 +639,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 
 		params.extract_int("Initial immunity acts as partial immunity", P.DoPartialImmunity, 1);
-		if ((P.DoHouseholds) && (!P.DoPartialImmunity))
+		if (P.DoHouseholds && !P.DoPartialImmunity)
 		{
 			params.extract_int("Initial immunity applied to all household members", P.DoWholeHouseholdImmunity, 0);
 		}
-		else
-			P.DoWholeHouseholdImmunity = 0;
 		params.extract_doubles("Initial immunity profile by age", P.InitialImmunity, NUM_AGE_GROUPS, 0.0);
 		params.extract_doubles("Relative spatial contact rates by age", P.RelativeSpatialContact, NUM_AGE_GROUPS, 1.0);
 		params.extract_doubles("Age-dependent infectiousness", P.AgeInfectiousness, NUM_AGE_GROUPS, 1.0);
@@ -1019,11 +1012,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	params.extract_int("Include symptoms", P.DoSymptoms, 0);
 	if (!P.DoSymptoms)
 	{
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			P.ProportionSymptomatic[i] = 0;
-		P.FalsePositiveRate = 0;
 		P.SymptInfectiousness = P.AsymptInfectiousness = 1.0;
-		P.LatentToSymptDelay = 0;
 	}
 	else
 	{
