@@ -39,6 +39,11 @@ public:
 	bool extract_int(std::string const& param, int32_t& output, int32_t default_value);
 
 	/**
+	 * Extract a single boolean value or assign the default to `output`.
+	 */
+	bool extract_bool(std::string const& param, bool& output, bool default_value);
+
+	/**
 	 * Extract a single double value or assign the default to `output`.
 	 */
 	bool extract_double(std::string const& param, double& output, double default_value);

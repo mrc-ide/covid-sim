@@ -60,6 +60,19 @@ bool ParamReader::extract_int(std::string const& param, int32_t& output, int32_t
 	return true;
 }
 
+bool ParamReader::extract_bool(std::string const& param, bool& output, bool default_value)
+{
+	if (!exists(param))
+	{
+		std::cout << "Using default value: " << default_value << std::endl;
+		output = default_value;
+		return false;
+	}
+
+	parse_bool(param_value_map_[param], output, default_value);
+	return true;
+}
+
 bool ParamReader::extract_double(std::string const& param, double& output, double default_value)
 {
 	if (!exists(param))
