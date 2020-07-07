@@ -616,6 +616,7 @@ int ReadFitIter(std::string const& FitFile)
 		for (i = 0; i < n; i++) fscanf(dat, "%i", &(cl_index[i]));
 		for (i = 0; i < n; i++) fscanf(dat, "%lg", &P.clP[cl_index[i]]);
 	}
+	fclose(dat);
 	return (n > 0) ? 0 : 1;
 }
 
@@ -633,7 +634,8 @@ void InitTransmissionCoeffs(void)
 	fprintf(stderr, "Household mean size=%lg\n", t);
 	t2 = s = 0;
 	s3 = 1.0;
-#pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2) default(none) shared(P, Households, Hosts)
+	double shd = 0.0;
+#pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2,shd) default(none) shared(P, Households, Hosts)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.PopSize; i += P.NumThreads)
@@ -672,9 +674,10 @@ void InitTransmissionCoeffs(void)
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
 				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+				shd += (double)(Households[Hosts[i].hh].nhr - 1);
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
-			// Care home residents less likely to infect via "spatial contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
+			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * ((Hosts[i].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0) * P.TimeStep;
 			l = (int)(q / P.TimeStep);
@@ -686,6 +689,7 @@ void InitTransmissionCoeffs(void)
 		}
 	}
 	t2 *= (s3 / ((double)P.PopSize));
+	fprintf(stderr, "Household SAR=%lg\n", s / shd);
 	s /= ((double)P.PopSize);
 	fprintf(stderr, "Household R0=%lg\n", P.R0household = s);
 	t = 0;

@@ -136,10 +136,10 @@ int main(int argc, char* argv[])
 	std::string ad_unit_file, out_density_file, output_file_base;
 	std::string snapshot_load_file, snapshot_save_file;
 	
-	int StopFit, GotDT;
+	int StopFit, GotDT, GotFI;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	int GotNR = GotDT = 0;
+	int GotNR = GotDT = GotFI = 0;
 
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_string_option("DT", parse_read_file, data_file, "Likelihood data file");
 	args.add_string_option("F", parse_read_file, fit_file, "Fitting file");
+	args.add_integer_option("FI", GotFI, "Initial MCMC iteration");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
@@ -307,6 +308,13 @@ int main(int argc, char* argv[])
 		P.FitIter++;
 		if (!fit_file.empty())
 		{
+			if (GotFI)
+			{
+				P.FitIter = GotFI;
+				GotFI = 0;
+				P.nextRunSeed1 = P.runSeed1;
+				P.nextRunSeed2 = P.runSeed2;
+			}
 			StopFit = ReadFitIter(fit_file);
 			if (!StopFit)
 			{
@@ -502,20 +510,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include households", "%i", (void*)&(P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge", "%i", (void*)&(P.OutputAge), 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverity", "%i", (void*)&(P.OutputSeverity), 1, 1, 0)) P.OutputSeverity = 1;	//// ON  by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit", "%i", (void*)&(P.OutputSeverityAdminUnit), 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge", "%i", (void*)&(P.OutputSeverityAge), 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge", "%i", (void*)&(P.OutputAdUnitAge), 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0", "%i", (void*)&(P.OutputR0), 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls", "%i", (void*)&(P.OutputControls), 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry", "%i", (void*)&(P.OutputCountry), 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitVar", "%i", (void*)&(P.OutputAdUnitVar), 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputHousehold", "%i", (void*)&(P.OutputHousehold), 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType", "%i", (void*)&(P.OutputInfType), 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity", "%i", (void*)&(P.OutputNonSeverity), 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults", "%i", (void*)&(P.OutputNonSummaryResults), 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
-	
+
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.KernelLookup.size_, 1, 1, 0)) P.KernelLookup.size_ = 4000000;
 		if (P.KernelLookup.size_ < 2000000)
 		{
@@ -527,6 +522,20 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.KernelLookup.size_, P.KernelLookup.expansion_factor_);
 		}
 	}
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge", "%i", (void*)&(P.OutputAge), 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverity", "%i", (void*)&(P.OutputSeverity), 1, 1, 0)) P.OutputSeverity = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit", "%i", (void*)&(P.OutputSeverityAdminUnit), 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge", "%i", (void*)&(P.OutputSeverityAge), 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge", "%i", (void*)&(P.OutputAdUnitAge), 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0", "%i", (void*)&(P.OutputR0), 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls", "%i", (void*)&(P.OutputControls), 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry", "%i", (void*)&(P.OutputCountry), 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitVar", "%i", (void*)&(P.OutputAdUnitVar), 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputHousehold", "%i", (void*)&(P.OutputHousehold), 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType", "%i", (void*)&(P.OutputInfType), 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity", "%i", (void*)&(P.OutputNonSeverity), 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults", "%i", (void*)&(P.OutputNonSummaryResults), 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
+
 	if (P.DoHouseholds)
 	{
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Household size distribution", "%lf", (void*)P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, 1, 0);
@@ -2032,8 +2041,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	// Close input files.
 	fclose(ParamFile_dat);
-	if (PreParamFile_dat != NULL) fclose(PreParamFile_dat);
-	if (ParamFile_dat != AdminFile_dat && AdminFile_dat != NULL) fclose(AdminFile_dat);
+	fclose(PreParamFile_dat);
+	fclose(AdminFile_dat);
 
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
@@ -3593,6 +3602,7 @@ void SaveResults(std::string const& output_file_base)
 					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
+		fclose(dat);
 	}
 }
 
@@ -4261,6 +4271,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
+		fclose(dat);
 	}
 
 }
@@ -5384,7 +5395,6 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				ColTypes[i] = 6;
 				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
 			}
-			fprintf(stderr, "## %i %s\n", ColTypes[i], FieldName);
 		}
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
