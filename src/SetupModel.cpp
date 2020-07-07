@@ -594,8 +594,7 @@ int ReadFitIter(std::string const& FitFile)
 	int i,n,cl_index[100];
 	double cl,cl2;
 
-	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter);
-
+	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter) + ".txt";
 	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
 	do
 	{

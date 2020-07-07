@@ -136,10 +136,10 @@ int main(int argc, char* argv[])
 	std::string ad_unit_file, out_density_file, output_file_base;
 	std::string snapshot_load_file, snapshot_save_file;
 	
-	int StopFit, GotDT, GotFI;
+	int StopFit, GotFI;
 
 	///// Flags to ensure various parameters have been read; set to false as default.
-	int GotNR = GotDT = GotFI = 0;
+	int GotNR = GotFI = 0;
 
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
 	args.add_string_option("DT", parse_read_file, data_file, "Likelihood data file");
-	args.add_string_option("F", parse_read_file, fit_file, "Fitting file");
+	args.add_string_option("F", parse_string, fit_file, "Fitting file");
 	args.add_integer_option("FI", GotFI, "Initial MCMC iteration");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 	args.add_string_option("LS", parse_read_file, snapshot_load_file, "Snapshot file to load");
 	args.add_string_option("M", parse_write_dir, out_density_file, "Output density file");
 	args.add_integer_option("NR", GotNR, "Number of realisations");
-	args.add_string_option("O", parse_write_dir, output_file_base, "Output file path prefix");
+	args.add_string_option("O", parse_string, output_file_base, "Output file path prefix");
 	args.add_string_option("P", parse_read_file, param_file, "Parameter file");
 	args.add_string_option("PP", parse_read_file, pre_param_file, "Pre-Parameter file");
 	args.add_double_option("R", P.R0scale, "R0 scaling");
@@ -373,7 +373,7 @@ int main(int argc, char* argv[])
 					ContCalib = RunModel(i, snapshot_save_file, snapshot_load_file, output_file_base);
 				}
 				while (ContCalib);
-				if (GotDT) CalcLikelihood(i, data_file, output_file_base);
+				if (!data_file.empty()) CalcLikelihood(i, data_file, output_file_base);
 				if (P.OutputNonSummaryResults)
 				{
 					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
@@ -1141,8 +1141,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum sensitivity of serology assay", "%lf", (void*)&(P.SeroConvMaxSens), 1, 1, 0)) P.SeroConvMaxSens = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Mean time from infection to seroconversion", "%lf", (void*)&(P.SeroConvTime), 1, 1, 0)) P.SeroConvTime = 14.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power in time to seroconversion function", "%lf", (void*)&(P.SeroConvPow), 1, 1, 0)) P.SeroConvPow = 3.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 1", "%lf", (void*)&(P.SeroConvP1), 1, 1, 0)) P.SeroConvP1 = 14.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 2", "%lf", (void*)&(P.SeroConvP2), 1, 1, 0)) P.SeroConvP2 = 3.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Specificity of serology assay", "%lf", (void*)&(P.SeroConvSpec), 1, 1, 0)) P.SeroConvSpec = 1.0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of modelled infection prevalence to match surveys", "%lf", (void*)&(P.InfPrevSurveyScale), 1, 1, 0)) P.InfPrevSurveyScale = 1.0;
 
@@ -5459,7 +5459,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 					double ModelValue;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
-						double prob_seroconvert = P.SeroConvMaxSens/(1.0+pow(P.SeroConvTime/((double)(day - k)),P.SeroConvPow));
+						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*(exp(-((double)(day - k))*P.SeroConvP1) + exp(-((double)(day - k))*P.SeroConvP2)));
 						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
 					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);

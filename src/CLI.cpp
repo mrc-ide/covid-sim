@@ -10,6 +10,11 @@
 #include "Error.h"
 #include "Param.h"
 
+void parse_string(std::string const& input, std::string& output)
+{
+	output = input;
+}
+
 void parse_read_file(std::string const& input, std::string& output)
 {
 	// check to see if the file exists and error out if it doesn't

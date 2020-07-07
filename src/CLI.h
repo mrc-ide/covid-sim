@@ -23,6 +23,11 @@ void parse_read_file(std::string const& input, std::string& output);
 void parse_write_dir(std::string const& input, std::string& output);
 
 /**
+ *  handles general string.
+ */
+void parse_string(std::string const& input, std::string& output);
+
+/**
  * Parses and checks if the input string is an integer.
  */
 void parse_integer(std::string const& input, int& output);
