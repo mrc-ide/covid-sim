@@ -34,7 +34,7 @@ void* Memory::xcalloc(std::size_t nelem, std::size_t elsize) noexcept
   /* Ensure we're going to allocate some memory.  */
   if (elsize == 0 || nelem == 0)
   {
-    std::fprintf(stderr, "WARNING: xcalloc called with nelem = %zu and elsize = %zu.\n", nelem, elsize);
+    //std::fprintf(stderr, "WARNING: xcalloc called with nelem = %zu and elsize = %zu.\n", nelem, elsize);
     /* Memory we allocate shouldn't be used - so just set it to the smallest
      * amount possible.  */
     elsize = 1;

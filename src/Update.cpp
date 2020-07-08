@@ -415,8 +415,10 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
+		{
 			a->inf = InfStat_InfectiousAsymptomaticNotCase;
-
+			a->infectiousness *= (float) P.AsymptInfectiousness;
+		}
 		if (!P.DoSeverity || a->inf == InfStat_InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
@@ -430,11 +432,18 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (	((a->Severity_Final == Severity::Critical)	&& (ranf_mt(tn) < P.CFR_Critical_ByAge	[age]))		||
-					((a->Severity_Final == Severity::SARI	)	&& (ranf_mt(tn) < P.CFR_SARI_ByAge		[age]))		||
-					((a->Severity_Final == Severity::ILI		)	&& (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]))		)
+			if (((a->Severity_Final == Severity::Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age])) ||
+					((a->Severity_Final == Severity::SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age])) ||
+					((a->Severity_Final == Severity::ILI) && (ranf_mt(tn) < P.CFR_ILI_ByAge[age])))
 				a->to_die = 1;
-
+			if ((a->care_home_resident) && ((a->Severity_Final == Severity::Critical) || (a->Severity_Final == Severity::SARI))&&(ranf_mt(tn)>P.CareHomeRelProbHosp))
+			{
+				// care home residents who weren't hospitalised but would otherwise have needed critical care will all die
+				//if (a->Severity_Final == Severity_Critical)	a->to_die = 1;
+				a->to_die = 1;
+				// change final severity to ILI (meaning not hospitalised), but leave to_die flag
+				a->Severity_Final = Severity::ILI;
+			}
 			//// choose events and event times
 			if (a->Severity_Final == Severity::Mild)
       {
@@ -445,7 +454,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
 				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time					+ P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
+					a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
 				else
 				{
 					a->RecoveringFromCritical_time	= a->Critical_time					+ P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
@@ -527,7 +536,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 					{
 						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
 						{
-#pragma omp critical (place_trig)
+#pragma omp atomic
 							Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig++;
 						}
 					}
@@ -787,7 +796,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 				{
-					if ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j]))
+					if ((!Hosts[ai].care_home_resident) && ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j])))
 					{
 						a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
 						a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
@@ -867,7 +876,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
-		if ((!P.DoEarlyCaseDiagnosis) || (State.cumDC >= P.CaseOrDeathThresholdBeforeAlert)) StateT[tn].cumDC++;
+		if (State.cumDC >= P.CaseOrDeathThresholdBeforeAlert) StateT[tn].cumDC++;
 		DoDetectedCase(ai, t, ts, tn);
 	}
 	StateT[tn].cumFC++;
@@ -1008,7 +1017,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 		if (P.DoAdUnits)	StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
-#pragma omp critical (tot_treat)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
@@ -1036,7 +1045,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker] += nc;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 		if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit] += nc;
-#pragma omp critical (tot_treat)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
@@ -1257,10 +1266,10 @@ void DoVacc(int ai, unsigned short int ts)
 
 	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-#pragma omp critical (state_cumV)
 	if (State.cumV < P.VaccMaxCourses)
 	{
 		cumV_OK = true;
+#pragma omp atomic
 		State.cumV++;
 	}
 	if (cumV_OK)
@@ -1269,10 +1278,10 @@ void DoVacc(int ai, unsigned short int ts)
 
 		if (P.VaccDosePerDay >= 0)
 		{
-#pragma omp critical (state_cumV_daily)
+#pragma omp atomic
 			State.cumV_daily++;
 		}
-#pragma omp critical (tot_vacc)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
@@ -1296,10 +1305,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 
 	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat_InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat_Dead_WasAsymp))
 		return;
-#pragma omp critical (state_cumVG)
 	if (State.cumVG < P.VaccMaxCourses)
 	{
 		cumVG_OK = true;
+#pragma omp atomic
 		State.cumVG++;
 	}
 	if (cumVG_OK)
@@ -1307,10 +1316,10 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Hosts[ai].vacc_start_time = ts;
 		if (P.VaccDosePerDay >= 0)
 		{
-#pragma omp critical (state_cumV_daily)
+#pragma omp atomic
 			State.cumVG_daily++;
 		}
-#pragma omp critical (tot_vacc)
+#pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{

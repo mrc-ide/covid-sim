@@ -38,8 +38,10 @@ struct Param
 	CovidSim::TBD1::KernelStruct MoveKernel;
 	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
-	int DoBin;
-	double SnapshotSaveTime, SnapshotLoadTime, clP[6];
+	int DoBin, DoSaveSnapshot, DoLoadSnapshot,FitIter;
+	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
+	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
+	void *clP_ptr[100][MAX_CLP_COPIES];
 	int NC; // Number of cells
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
@@ -67,42 +69,28 @@ struct Param
 	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
-	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection;
-	int DoAge, DoSymptoms, IncThreshPop, GlobalIncThreshPop;
+	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection, MaxAgeForInitialInfection;
+	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
 	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
-	int DoAirports, Nairports, Air_popscale, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoEarlyCaseDiagnosis;
+	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoInterventionFile;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
+	int FixLocalBeta;
 	int32_t setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
 	int32_t runSeed1, runSeed2; // RNG seeds from the command line, used to initialise the RNG for running the model
 	int32_t nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
 	int32_t nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
 	int OutputBitmap; // Whether to output a bitmap
-	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], TimeStepsPerDay;
-	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
-	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
-
-	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
-	InverseCdf latent_icdf, infectious_icdf;
-	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
-	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, CriticalToDeath_icdf;
-
-	/// means for above icdf's.
-	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS];
-	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
-	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
-	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
-	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
+	int ts_age;
+	int DoSeverity; // Non-zero (true) if severity analysis should be done
 
 	double TimeStep; // The length of a time step, in days
 	double SampleTime; // The number of days to run for
 	double SampleStep; // The length of a sampling step, in days
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
-	int ts_age;
-	int DoSeverity; // Non-zero (true) if severity analysis should be done
-
+	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
+	
 	/// Number of pixels per degree in bitmap output
 	Geometry::Vector2<double> scale;
 
@@ -114,15 +102,25 @@ struct Param
 
 	/// Size of spatial domain in microcells
 	Geometry::Size<double> in_microcells_;
+	
+	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime, TimeStepsPerDay;
+	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
+	double SeroConvMaxSens, SeroConvP1, SeroConvP2, SeroConvSpec, InfPrevSurveyScale;
+	
 	double AirportTrafficScale;
+
 	double R0, R0scale, LocalBeta;
 	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
+	InverseCdf latent_icdf, infectious_icdf;
+	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
-	double SusceptibilitySD,InfectiousnessSD, R0DensityScalePower;
-	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness;
+	double SusceptibilitySD, InfectiousnessSD, R0DensityScalePower;
+	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
+	int CareHomePlaceType, CareHomeResidentMinimumAge, CareHomeAllowInitialInfections;
+	double CareHomeResidentHouseholdScaling, CareHomeResidentSpatialScaling, CareHomeWorkerGroupScaling, CareHomeResidentPlaceScaling, CareHomeRelProbHosp, CareHomePropResidents;
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];
@@ -130,10 +128,13 @@ struct Param
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
+
+
+	int NoInfectiousnessSDinHH; // Default 0 
 	int PlaceCloseRoundHousehold; // Default 1 (close places around a household), 0 (off)
 	int AbsenteeismPlaceClosure; // Default 0 (off), 1 (on) track place closures in more detail
 	int MaxAbsentTime; // In days.  Max number of days absent, range [0, MAX_ABSENT_TIME].  Default 0 if !P.AbsenteeismPlaceClosure, otherwise MAX_ABSENT_TIME
-	int InvJourneyDurationDistrib[1025], InvLocalJourneyDurationDistrib[1026];
+	int InvJourneyDurationDistrib[1025], InvLocalJourneyDurationDistrib[1025];
 	double HouseholdTrans, HouseholdSizeDistrib[MAX_ADUNITS][MAX_HOUSEHOLD_SIZE], HouseholdTransPow;
 	double HouseholdDenomLookup[MAX_HOUSEHOLD_SIZE];
 	int PlaceTypeAgeMin[NUM_PLACE_TYPES], PlaceTypeAgeMax[NUM_PLACE_TYPES], PlaceTypeMaxAgeRead[NUM_PLACE_TYPES];
@@ -144,11 +145,24 @@ struct Param
 	double PlaceTypePropAgeGroup3[NUM_PLACE_TYPES], PlaceTypeKernelShape[NUM_PLACE_TYPES], PlaceTypeKernelScale[NUM_PLACE_TYPES];
 	double PlaceTypeKernelP3[NUM_PLACE_TYPES], PlaceTypeKernelP4[NUM_PLACE_TYPES], PlaceTypeTrans[NUM_PLACE_TYPES];
 	double PlaceTypeMeanSize[NUM_PLACE_TYPES], PlaceTypePropBetweenGroupLinks[NUM_PLACE_TYPES], PlaceTypeSizeSD[NUM_PLACE_TYPES]; //added PlaceTypeSizeSD for lognormal distribution - ggilani 09/02/17
-	double PlaceTypeSizePower[NUM_PLACE_TYPES], PlaceTypeSizeOffset[NUM_PLACE_TYPES], PlaceTypeSizeMax[NUM_PLACE_TYPES];
+	double PlaceTypeSizePower[NUM_PLACE_TYPES], PlaceTypeSizeOffset[NUM_PLACE_TYPES], PlaceTypeSizeMax[NUM_PLACE_TYPES], PlaceTypeSizeMin[NUM_PLACE_TYPES];
 	double PlaceTypeGroupSizeParam1[NUM_PLACE_TYPES], PlaceExclusivityMatrix[NUM_PLACE_TYPES * NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [NUM_PLACE_TYPES][NUM_PLACE_TYPES]
 	double PropAgeGroup[MAX_ADUNITS][NUM_AGE_GROUPS], PopByAdunit[MAX_ADUNITS][2];
 	double InvLifeExpecDist[MAX_ADUNITS][1001];
 
+	double ScaleIFR;
+
+	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
+	
+	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
+	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, CriticalToDeath_icdf;
+	/// means for above icdf's.
+	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS];
+	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
+	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
+	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
+	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
+	
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceClosePropAttending[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
@@ -255,6 +269,8 @@ struct Param
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
 
+	int DoNoCalibration, CaseOrDeathThresholdBeforeAlert_CommandLine;
+
 	/**< CALIBRATION PARAMETERS
 		Params below govern how epidemic is calibrated.
 		Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
@@ -318,7 +334,8 @@ struct Param
 	int DoInterventionDelaysByAdUnit;
 
 
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults, OutputAdUnitAge;
+	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity;
+	int OutputSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults, OutputAdUnitAge;
 
 	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
 	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult

@@ -3,6 +3,10 @@
 
 #include <string>
 
+int ReadFitIter(std::string const&);
+void ResetTimeSeries(void);
+void InitTransmissionCoeffs(void);
+
 /**
  * Initialize and set up model functions before running the simulation.
  *
@@ -47,6 +51,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 /**
  * Initialize airports by assigning them to microcells and mapping to hotels.
  */
+
 void SetupAirports(void);
 
 /**

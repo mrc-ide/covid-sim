@@ -10,6 +10,11 @@
 #include "Error.h"
 #include "Param.h"
 
+void parse_string(std::string const& input, std::string& output)
+{
+	output = input;
+}
+
 void parse_read_file(std::string const& input, std::string& output)
 {
 	// check to see if the file exists and error out if it doesn't
@@ -173,11 +178,26 @@ Optional arguments:
 
 void CmdLineArgs::print_help()
 {
+	// Wes: Temporary hack to reduce the number of /CLP: on the help text.
+	int clp_flag = 0;
+	const std::string CLP = "CLP";
 	std::stringstream ss;
+
 	ss << "CovidSim";
 	for (auto const& it : option_map_)
 	{
-		ss << " [/" << it.first << ']';
+		std::string option = it.first;
+		std::string option_first_3 = option.substr(0, 3);
+
+		if (option_first_3.compare(CLP) == 0) {
+			if (clp_flag == 0) {
+				ss << " [/CLP:00] .. [/CLP:99]";
+				clp_flag = 1;
+			}
+		}
+		else {
+			ss << " [/" << option << ']';
+		}
 	}
 	std::cerr << ss.str() << ' ' << USAGE << std::endl;
 }

@@ -54,7 +54,7 @@ void InitModel(int); //adding run number as a parameter for event log: ggilani -
 void SeedInfection(double, int*, int, int); //adding run number as a parameter for event log: ggilani - 15/10/2014
 int RunModel(int, std::string const&, std::string const&, std::string const&);
 
-void SaveDistribs(void);
+void SaveDistribs(std::string const&);
 void SaveOriginDestMatrix(std::string const&); //added function to save origin destination matrix so it can be done separately to the main results: ggilani - 13/02/15
 void SaveResults(std::string const&);
 void SaveSummaryResults(std::string const&);
@@ -63,8 +63,10 @@ void SaveEvents(std::string const&); //added this function to save infection eve
 void LoadSnapshot(std::string const&);
 void SaveSnapshot(std::string const&);
 void RecordInfTypes(void);
-void RecordSample(double, int, std::string const&);
 
+void RecordSample(double, int, std::string const&);
+void CalibrationThresholdCheck(double, int);
+void CalcLikelihood(int, std::string const&, std::string const&);
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
 
 int GetInputParameter(FILE*, FILE*, const char*, const char*, void*, int, int, int);
@@ -122,16 +124,23 @@ std::vector<std::string> InterventionFiles;
 // default start value for icdf double arrays (was hardcoded as 100)
 const double ICDF_START = 100.0;
 
-void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf,
-	double start_value = ICDF_START);
+void GetInverseCdf(FILE* param_file_dat, FILE* preparam_file_dat, const char* icdf_name, InverseCdf* inverseCdf, double start_value = ICDF_START);
 
 int main(int argc, char* argv[])
 {
-	std::string ad_unit_file, air_travel_file, density_file, load_network_file, out_density_file;
-	std::string output_file_base, param_file, pre_param_file, reg_demog_file, save_network_file, school_file;
-	int GotNR = 0;
-
+	///// Flags to ensure various parameters have been read; set to false as default.
+	std::string pre_param_file, param_file, density_file, load_network_file, save_network_file, air_travel_file, school_file;
+	std::string reg_demog_file, fit_file, data_file;
+	std::string ad_unit_file, out_density_file, output_file_base;
 	std::string snapshot_load_file, snapshot_save_file;
+
+	int StopFit = 0;
+	///// Flags to ensure various parameters have been read; set to false as default.
+	int GotNR = 0;
+	int	GotFI = 0;
+
+	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
+	P.FitIter = 0;
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
 		if (sep == std::string::npos) {
@@ -154,11 +163,12 @@ int main(int argc, char* argv[])
 
 	// Set parameter defaults - read them in after
 	P.PlaceCloseIndepThresh = P.MaxNumThreads = 0;
-	P.CaseOrDeathThresholdBeforeAlert = 0;
+	P.CaseOrDeathThresholdBeforeAlert_CommandLine = 0;
 	P.R0scale = 1.0;
 	// added this so that kernel parameters are only changed if input from
 	// the command line: ggilani - 15/10/2014
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
+	P.DoLoadSnapshot = 0;
 
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
@@ -166,14 +176,28 @@ int main(int argc, char* argv[])
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_integer_option("c", P.MaxNumThreads, "Number of threads to use");
 	args.add_integer_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
-	args.add_double_option("CLP1", P.clP[0], "Overwrites #1 wildcard in parameter file");
-	args.add_double_option("CLP2", P.clP[1], "Overwrites #2 wildcard in parameter file");
-	args.add_double_option("CLP3", P.clP[2], "Overwrites #3 wildcard in parameter file");
-	args.add_double_option("CLP4", P.clP[3], "Overwrites #4 wildcard in parameter file");
-	args.add_double_option("CLP5", P.clP[4], "Overwrites #5 wildcard in parameter file");
-	args.add_double_option("CLP6", P.clP[5], "Overwrites #6 wildcard in parameter file");
+
+	/* Wes: Need to allow /CLPxx up to 99. I'll do this naively for now and prevent the help text from
+			looking overly verybose. To satisfiy all behaviour, /CLP0: to /CLP9: should do the
+			same as /CLP00: to /CLP09: - both valid, as are /CLP10: to /CLP99:
+			I am not going to address here what happens if you specify both /CLP05: and /CLP5:
+	*/
+
+	for (int i = 0; i <= 99; i++) {
+		std::string param = "CLP" + std::to_string(i);
+		std::string description = "Overwrites #" + std::to_string(i) + " wildcard in parameter file";
+		args.add_double_option(param, P.clP[i], description);
+		if (i < 10) {
+			param = "CLP0" + std::to_string(i);
+			args.add_double_option(param, P.clP[i], description);
+		}
+	}
+
 	args.add_string_option("d", parse_read_file, reg_demog_file, "Regional demography file");
 	args.add_string_option("D", parse_read_file, density_file, "Population density file");
+	args.add_string_option("DT", parse_read_file, data_file, "Likelihood data file");
+	args.add_string_option("F", parse_string, fit_file, "Fitting file");
+	args.add_integer_option("FI", GotFI, "Initial MCMC iteration");
 	args.add_custom_option("I", parse_intervention_file_option, "Intervention file");
 	// added Kernel Power and Offset scaling so that it can easily
 	// be altered from the command line in order to vary the kernel
@@ -184,14 +208,14 @@ int main(int argc, char* argv[])
 	args.add_string_option("LS", parse_read_file, snapshot_load_file, "Snapshot file to load");
 	args.add_string_option("M", parse_write_dir, out_density_file, "Output density file");
 	args.add_integer_option("NR", GotNR, "Number of realisations");
-	args.add_string_option("O", parse_write_dir, output_file_base, "Output file path prefix");
+	args.add_string_option("O", parse_string, output_file_base, "Output file path prefix");
 	args.add_string_option("P", parse_read_file, param_file, "Parameter file");
 	args.add_string_option("PP", parse_read_file, pre_param_file, "Pre-Parameter file");
 	args.add_double_option("R", P.R0scale, "R0 scaling");
 	args.add_string_option("s", parse_read_file, school_file, "School file");
 	args.add_string_option("S", parse_write_dir, save_network_file, "Network file to save");
 	args.add_custom_option("SS", parse_snapshot_save_option, "Interval and file to save snapshots [double,string]");
-	args.add_integer_option("T", P.CaseOrDeathThresholdBeforeAlert, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
+	args.add_integer_option("T", P.CaseOrDeathThresholdBeforeAlert_CommandLine, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
     // Check if S and L options were both specified (can only be one)
@@ -244,7 +268,6 @@ int main(int argc, char* argv[])
 	//// **** READ IN PARAMETERS, DATA ETC.
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-
 	P.NumRealisations = GotNR;
 	ReadParams(param_file, pre_param_file, ad_unit_file);
 	if (P.DoAirports)
@@ -261,111 +284,138 @@ int main(int argc, char* argv[])
 
 	///// initialize model (for all realisations).
 	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file, output_file_base);
-
+	InitTransmissionCoeffs();
 	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
 	fprintf(stderr, "Model setup in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
 
-	//print out number of calls to random number generator
+
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 
-	P.NRactE = P.NRactNE = 0;
-	auto run_output_file_base = output_file_base;
-	for (int i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
-	{
-		if (P.NumRealisations > 1)
-		{
-			run_output_file_base = output_file_base + "." + std::to_string(i);
-			fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
-		}
-		P.StopCalibration = P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
-		P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
-		P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
-		P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
-		///// Set and save seeds
-		if (i == 0 || (P.ResetSeeds && P.KeepSameSeeds))
-		{
-			P.nextRunSeed1 = P.runSeed1;
-			P.nextRunSeed2 = P.runSeed2;
-		}
-		if (P.ResetSeeds) {
-			//save these seeds to file
-			SaveRandomSeeds(run_output_file_base);
-		}
-		// Now that we have set P.nextRunSeed* ready for the run, we need to save the values in case
-		// we need to reinitialise the RNG after the run is interrupted.
-		int32_t thisRunSeed1 = P.nextRunSeed1;
-		int32_t thisRunSeed2 = P.nextRunSeed2;
-//		if (i == 0 || P.ResetSeeds)
-			setall(&P.nextRunSeed1, &P.nextRunSeed2);
 
-		///// initialize model (for this realisation).
-		InitModel(i); //passing run number into RunModel so we can save run number in the infection event log: ggilani - 15/10/2014
-		if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
-		int ModelCalibLoop = 0;
-		while (RunModel(i, snapshot_save_file, snapshot_load_file, run_output_file_base))
-		{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-			if ((P.ModelCalibIteration == 10) && (ModelCalibLoop < 3))
-			{
-				thisRunSeed1 = P.nextRunSeed1;
-				thisRunSeed2 = P.nextRunSeed2;
-				setall(&P.nextRunSeed1, &P.nextRunSeed2);
-				P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
-				P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
-				P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
-				P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
-				ModelCalibLoop++;
-			}
-			else
-			{
-				int32_t tmp1 = thisRunSeed1;
-				int32_t tmp2 = thisRunSeed2;
-				setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
-			}
-			InitModel(i);
-		}
-		if (P.OutputNonSummaryResults)
+	std::string output_file_base_f = output_file_base; // output_file_base_f remembers the original, as output_file_base changes with fitting.
+	std::string output_file; // Historically, this was global, and was used for all save...(void) type functions.
+
+	do
+	{
+		P.FitIter++;
+		if (!fit_file.empty())
 		{
-			if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
+			if (GotFI)
 			{
-				SaveResults(run_output_file_base);
+				P.FitIter = GotFI;
+				GotFI = 0;
+				P.nextRunSeed1 = P.runSeed1;
+				P.nextRunSeed2 = P.runSeed2;
+			}
+			StopFit = ReadFitIter(fit_file);
+			if (!StopFit)
+			{
+				ReadParams(param_file, pre_param_file, ad_unit_file);
+				if (!P.FixLocalBeta) InitTransmissionCoeffs();
+				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter);
 			}
 		}
-		if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 1))
+		else
+			StopFit = 1;
+		if ((fit_file.empty()) || (!StopFit))
 		{
-			SaveEvents(run_output_file_base);
+			P.NRactE = P.NRactNE = 0;
+			ResetTimeSeries();
+			for (int i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
+			{
+				if (P.NumRealisations > 1)
+				{
+					output_file = output_file_base + "." + std::to_string(i);
+					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+				}
+				///// Set and save seeds
+				if (((i == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
+				{
+					P.nextRunSeed1 = P.runSeed1;
+					P.nextRunSeed2 = P.runSeed2;
+				}
+				if (P.ResetSeeds) {
+					//save these seeds to file
+					SaveRandomSeeds(output_file);
+				}
+				int32_t thisRunSeed1, thisRunSeed2;
+				int ContCalib, ModelCalibLoop = 0;
+				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop =  0;
+				do
+				{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
+					if ((P.ModelCalibIteration%14 == 0) && (ModelCalibLoop < 4))
+					{
+						thisRunSeed1 = P.nextRunSeed1;
+						thisRunSeed2 = P.nextRunSeed2;
+						setall(&P.nextRunSeed1, &P.nextRunSeed2);
+						P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
+						P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
+						if (!P.DoNoCalibration) P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
+						P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
+						ModelCalibLoop++;
+					}
+					else
+					{
+						int32_t tmp1 = thisRunSeed1;
+						int32_t tmp2 = thisRunSeed2;
+						setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
+					}
+					InitModel(i);
+					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
+					ContCalib = RunModel(i, snapshot_save_file, snapshot_load_file, output_file_base);
+				}
+				while (ContCalib);
+				if (!data_file.empty()) CalcLikelihood(i, data_file, output_file_base);
+				if (P.OutputNonSummaryResults)
+				{
+					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
+					{
+						SaveResults(output_file);
+					}
+				}
+				if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 1))
+				{
+					SaveEvents(output_file);
+				}
+			}
+			output_file = output_file_base + ".avNE";
+			SaveSummaryResults(output_file);
+
+			//Calculate origin destination matrix if needed
+			if ((P.DoAdUnits) && (P.DoOriginDestinationMatrix))
+			{
+				CalcOriginDestMatrix_adunit();
+				SaveOriginDestMatrix(output_file);
+			}
+
+			P.NRactual = P.NRactNE;
+			TSMean = TSMeanNE; TSVar = TSVarNE;
+			if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
+			{
+				SaveEvents(output_file);
+			}
+
+			SaveSummaryResults(output_file);
+			P.NRactual = P.NRactE;
+			//TSMean = TSMeanE; TSVar = TSVarE;
+			//sprintf(OutFile, "%s.avE", OutFileBase);
+			//SaveSummaryResults();
+
+			Bitmap_Finalise();
+
+			fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
+			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
+			fprintf(stderr, "Model finished\n");
 		}
 	}
-
-	//Calculate origin destination matrix if needed
-	if ((P.DoAdUnits) && (P.DoOriginDestinationMatrix))
-	{
-		CalcOriginDestMatrix_adunit();
-		SaveOriginDestMatrix(output_file_base);
-	}
-
-	P.NRactual = P.NRactNE;
-	TSMean = TSMeanNE; TSVar = TSVarNE;
-	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
-	{
-		SaveEvents(output_file_base);
-	}
-	SaveSummaryResults(output_file_base + ".avNE");
-	P.NRactual = P.NRactE;
-	TSMean = TSMeanE; TSVar = TSVarE;
-	//SaveSummaryResults(output_file_base + ".avE");
-
-	Bitmap_Finalise();
-
-	fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-	fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
-	fprintf(stderr, "Model finished\n");
+	while (!StopFit);
 }
 
 void parse_bmp_option(std::string const& input) {
@@ -394,88 +444,100 @@ void parse_intervention_file_option(std::string const& input) {
 	InterventionFiles.emplace_back(output);
 }
 
-void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& ad_unit_file)
+void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile)
 {
 	FILE* ParamFile_dat, * PreParamFile_dat, * AdminFile_dat;
 	double s, t, AgeSuscScale;
 	int i, j, j1, j2, k, f, nc, na;
 	char CountryNameBuf[128 * MAX_COUNTRIES], AdunitListNamesBuf[128 * MAX_ADUNITS];
+	char* CountryNames[MAX_COUNTRIES], * AdunitListNames[MAX_ADUNITS];
 
-	char* CountryNames[MAX_COUNTRIES];
-	for (i = 0; i < MAX_COUNTRIES; i++) { CountryNames[i] = CountryNameBuf + 128 * i; CountryNames[i][0] = 0; }
-	char* AdunitListNames[MAX_ADUNITS];
-	for (i = 0; i < MAX_ADUNITS; i++) { AdunitListNames[i] = AdunitListNamesBuf + 128 * i; AdunitListNames[i][0] = 0; }
+	AgeSuscScale = 1.0;
 	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
 	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
-	if (!(AdminFile_dat = fopen(ad_unit_file.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
-	if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
-		P.LongitudeCutLine = -360.0;
-	}
-	AgeSuscScale = 1.0;
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*)&(P.TimeStep), 1, 1, 0);
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.SampleStep), 1, 1, 0);
-	if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
-	t = ceil(P.SampleStep / P.TimeStep - 1e-6);
-	P.UpdatesPerSample = (int)t;
-	P.TimeStep = P.SampleStep / t;
-	P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-	fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
-	P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
-	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
-	if (P.NumRealisations == 0)
-		{
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of realisations", "%i", (void*)&(P.NumRealisations), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of non-extinct realisations", "%i", (void*)&(P.NumNonExtinctRealisations), 1, 1, 0)) P.NumNonExtinctRealisations = P.NumRealisations;
+	if (!(AdminFile_dat = fopen(AdUnitFile.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
+
+	if (P.FitIter == 0)
+	{
+		for (i = 0; i < MAX_COUNTRIES; i++) {
+			CountryNames[i] = CountryNameBuf + 128 * i;
+			CountryNames[i][0] = 0;
 		}
-	else
-		P.NumNonExtinctRealisations = P.NumRealisations;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
+		for (i = 0; i < MAX_ADUNITS; i++) {
+			AdunitListNames[i] = AdunitListNamesBuf + 128 * i;
+			AdunitListNames[i][0] = 0;
+		}
+		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
+		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
+			P.LongitudeCutLine = -360.0;
+		}
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*)&(P.TimeStep), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.SampleStep), 1, 1, 0);
+		if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
+		t = ceil(P.SampleStep / P.TimeStep - 1e-6);
+		P.UpdatesPerSample = (int)t;
+		P.TimeStep = P.SampleStep / t;
+		P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
+		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
+		P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
+		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
+		if (P.NumRealisations == 0)
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of realisations", "%i", (void*)&(P.NumRealisations), 1, 1, 0);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of non-extinct realisations", "%i", (void*)&(P.NumNonExtinctRealisations), 1, 1, 0)) P.NumNonExtinctRealisations = P.NumRealisations;
+		}
+		else
+		{
+			P.NumNonExtinctRealisations = P.NumRealisations;
+		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-	P.NC = -1;
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*) & (P.NMCL), 1, 1, 0);
-	//added parameter to reset seeds after every run
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*) & (P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
-	if (P.ResetSeeds)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Keep same seeds for every run", "%i", (void*) & (P.KeepSameSeeds), 1, 1, 0)) P.KeepSameSeeds = 0; //added this to control which seeds are used: ggilani 27/11/19
-	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds after intervention", "%i", (void*) & (P.ResetSeedsPostIntervention), 1, 1, 0)) P.ResetSeedsPostIntervention = 0;
-	if (P.ResetSeedsPostIntervention)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time to reset seeds after intervention", "%i", (void*) & (P.TimeToResetSeeds), 1, 1, 0)) P.TimeToResetSeeds = 1000000;
-	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include households", "%i", (void*) & (P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
+		P.NC = -1;
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*)&(P.NMCL), 1, 1, 0);
+		//added parameter to reset seeds after every run
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*)&(P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
+		if (P.ResetSeeds)
+		{
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Keep same seeds for every run", "%i", (void*)&(P.KeepSameSeeds), 1, 1, 0)) P.KeepSameSeeds = 0; //added this to control which seeds are used: ggilani 27/11/19
+		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds after intervention", "%i", (void*)&(P.ResetSeedsPostIntervention), 1, 1, 0)) P.ResetSeedsPostIntervention = 0;
+		if (P.ResetSeedsPostIntervention)
+		{
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time to reset seeds after intervention", "%i", (void*)&(P.TimeToResetSeeds), 1, 1, 0)) P.TimeToResetSeeds = 1000000;
+		}
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include households", "%i", (void*)&(P.DoHouseholds), 1, 1, 0)) P.DoHouseholds = 1;
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge"				, "%i", (void*) & (P.OutputAge)					, 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit"	, "%i", (void*) & (P.OutputSeverityAdminUnit)	, 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge"		, "%i", (void*) & (P.OutputSeverityAge)			, 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
-  	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge"			, "%i", (void*) & (P.OutputAdUnitAge)			, 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0"					, "%i", (void*) & (P.OutputR0)					, 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls"			, "%i", (void*) & (P.OutputControls)			, 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry"			, "%i", (void*) & (P.OutputCountry)				, 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitVar"			, "%i", (void*) & (P.OutputAdUnitVar)			, 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputHousehold"			, "%i", (void*) & (P.OutputHousehold)			, 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType"			, "%i", (void*) & (P.OutputInfType)				, 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity"		, "%i", (void*) & (P.OutputNonSeverity)			, 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults"	, "%i", (void*) & (P.OutputNonSummaryResults)	, 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
-
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.KernelLookup.size_, 1, 1, 0)) P.KernelLookup.size_ = 4000000;
-	if (P.KernelLookup.size_ < 2000000)
-	{
-		ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.KernelLookup.size_);
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel resolution", "%i", (void*)&P.KernelLookup.size_, 1, 1, 0)) P.KernelLookup.size_ = 4000000;
+		if (P.KernelLookup.size_ < 2000000)
+		{
+			ERR_CRITICAL_FMT("[Kernel resolution] needs to be at least 2000000 - not %d", P.KernelLookup.size_);
+		}
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.KernelLookup.expansion_factor_, 1, 1, 0)) P.KernelLookup.expansion_factor_ = P.KernelLookup.size_ / 1600;
+		if (P.KernelLookup.expansion_factor_ < 1 || P.KernelLookup.expansion_factor_ >= P.KernelLookup.size_)
+		{
+			ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.KernelLookup.size_, P.KernelLookup.expansion_factor_);
+		}
 	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel higher resolution factor", "%i", (void*)&P.KernelLookup.expansion_factor_, 1, 1, 0)) P.KernelLookup.expansion_factor_ = P.KernelLookup.size_ / 1600;
-	if (P.KernelLookup.expansion_factor_ < 1 || P.KernelLookup.expansion_factor_ >= P.KernelLookup.size_)
-	{
-		ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P.NKR = %d) - not %d", P.KernelLookup.size_, P.KernelLookup.expansion_factor_);
-	}
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAge", "%i", (void*)&(P.OutputAge), 1, 1, 0)) P.OutputAge = 1;				//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverity", "%i", (void*)&(P.OutputSeverity), 1, 1, 0)) P.OutputSeverity = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAdminUnit", "%i", (void*)&(P.OutputSeverityAdminUnit), 1, 1, 0)) P.OutputSeverityAdminUnit = 1;	//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputSeverityAge", "%i", (void*)&(P.OutputSeverityAge), 1, 1, 0)) P.OutputSeverityAge = 1;		//// ON  by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitAge", "%i", (void*)&(P.OutputAdUnitAge), 1, 1, 0)) P.OutputAdUnitAge = 0;			//// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputR0", "%i", (void*)&(P.OutputR0), 1, 1, 0)) P.OutputR0 = 0;				    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputControls", "%i", (void*)&(P.OutputControls), 1, 1, 0)) P.OutputControls = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputCountry", "%i", (void*)&(P.OutputCountry), 1, 1, 0)) P.OutputCountry = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputAdUnitVar", "%i", (void*)&(P.OutputAdUnitVar), 1, 1, 0)) P.OutputAdUnitVar = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputHousehold", "%i", (void*)&(P.OutputHousehold), 1, 1, 0)) P.OutputHousehold = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputInfType", "%i", (void*)&(P.OutputInfType), 1, 1, 0)) P.OutputInfType = 0;		    //// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSeverity", "%i", (void*)&(P.OutputNonSeverity), 1, 1, 0)) P.OutputNonSeverity = 0;		//// OFF by default.
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "OutputNonSummaryResults", "%i", (void*)&(P.OutputNonSummaryResults), 1, 1, 0)) P.OutputNonSummaryResults = 0;	//// OFF by default.
 
 	if (P.DoHouseholds)
 	{
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Household size distribution", "%lf", (void*)P.HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household attack rate", "%lf", (void*) & (P.HouseholdTrans), 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household transmission denominator power", "%lf", (void*) & (P.HouseholdTransPow), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household attack rate", "%lf", (void*)&(P.HouseholdTrans), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Household transmission denominator power", "%lf", (void*)&(P.HouseholdTransPow), 1, 1, 0);
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct age distribution after household allocation to exactly match specified demography", "%i", (void*)&(P.DoCorrectAgeDist), 1, 1, 0)) P.DoCorrectAgeDist = 0;
 	}
 	else
@@ -486,102 +548,107 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
 			P.HouseholdSizeDistrib[0][i] = 0;
 	}
-	for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-		P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
-	for (i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
-		P.HouseholdDenomLookup[i] = 1 / pow(((double)(i + 1)), P.HouseholdTransPow);
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include administrative units within countries", "%i", (void*) & (P.DoAdUnits), 1, 1, 0)) P.DoAdUnits = 1;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*) & (P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
-	if (P.DoAdUnits)
+	if (P.FitIter == 0)
 	{
-		char** AdunitNames, * AdunitNamesBuf;
-		AdunitNames = (char**)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE, sizeof(char*));
-		AdunitNamesBuf = (char*)Memory::xcalloc(3 * ADUNIT_LOOKUP_SIZE * 360, sizeof(char));
+		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
+		P.HouseholdDenomLookup[0] = 1.0;
+		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(i + 1)), P.HouseholdTransPow);
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include administrative units within countries", "%i", (void*)&(P.DoAdUnits), 1, 1, 0)) P.DoAdUnits = 1;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
+		if (P.DoAdUnits)
+		{
+			char** AdunitNames, * AdunitNamesBuf;
+			if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+			if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
 
-		for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
-		{
-			P.AdunitLevel1Lookup[i] = -1;
-			AdunitNames[3 * i] = AdunitNamesBuf + 3 * i * 360;
-			AdunitNames[3 * i + 1] = AdunitNamesBuf + 3 * i * 360 + 60;
-			AdunitNames[3 * i + 2] = AdunitNamesBuf + 3 * i * 360 + 160;
-		}
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Divisor), 1, 1, 0)) P.AdunitLevel1Divisor = 1;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Mask for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Mask), 1, 1, 0)) P.AdunitLevel1Mask = 1000000000;
-		na = (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Codes and country/province names for admin units", "%s", (void*)AdunitNames, 3 * ADUNIT_LOOKUP_SIZE, 1, 0)) / 3;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of countries to include", "%i", (void*)&nc, 1, 1, 0)) nc = 0;
-		if ((na > 0) && (nc>0))
-		{
-			P.DoAdunitBoundaries = (nc > 0);
-			nc = abs(nc);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of names of countries to include", "%s", (nc > 1) ? ((void*)CountryNames) : ((void*)CountryNames[0]), nc, 1, 0);
-			P.NumAdunits = 0;
-			for (i = 0; i < na; i++)
-				for (j = 0; j < nc; j++)
-					if ((AdunitNames[3 * i + 1][0]) && (!strcmp(AdunitNames[3 * i + 1], CountryNames[j])) && (atoi(AdunitNames[3 * i]) != 0))
-					{
-						AdUnits[P.NumAdunits].id = atoi(AdunitNames[3 * i]);
-						P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
-						if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
-						if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
-						//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
-						P.NumAdunits++;
-					}
-		}
-		else
-		{
-			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of level 1 administrative units to include", "%i", (void*) & (P.NumAdunits), 1, 1, 0)) P.NumAdunits = 0;
-			if (P.NumAdunits > 0)
+			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
-				P.DoAdunitBoundaries = 1;
-				if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
-				GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of level 1 administrative units to include", "%s", (P.NumAdunits > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumAdunits, 1, 0);
-				na = P.NumAdunits;
-				for (i = 0; i < P.NumAdunits; i++)
-				{
-					f = 0;
-					if (na > 0)
-					{
-						for (j = 0; (j < na) && (!f); j++) f = (!strcmp(AdunitNames[3 * j + 2], AdunitListNames[i]));
-						if(f) k = atoi(AdunitNames[3 * (j-1)]);
-					}
-					if ((na == 0) || (!f)) k = atoi(AdunitListNames[i]);
-					AdUnits[i].id = k;
-					P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = i;
-					for (j = 0; j < na; j++)
-						if (atoi(AdunitNames[3 * j]) == k)
+				P.AdunitLevel1Lookup[i] = -1;
+				AdunitNames[3 * i] = AdunitNamesBuf + 3 * i * 360;
+				AdunitNames[3 * i + 1] = AdunitNamesBuf + 3 * i * 360 + 60;
+				AdunitNames[3 * i + 2] = AdunitNamesBuf + 3 * i * 360 + 160;
+			}
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Divisor), 1, 1, 0)) P.AdunitLevel1Divisor = 1;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Mask for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Mask), 1, 1, 0)) P.AdunitLevel1Mask = 1000000000;
+			na = (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Codes and country/province names for admin units", "%s", (void*)AdunitNames, 3 * ADUNIT_LOOKUP_SIZE, 1, 0)) / 3;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of countries to include", "%i", (void*)&nc, 1, 1, 0)) nc = 0;
+			if ((na > 0) && (nc > 0))
+			{
+				P.DoAdunitBoundaries = (nc > 0);
+				nc = abs(nc);
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of names of countries to include", "%s", (nc > 1) ? ((void*)CountryNames) : ((void*)CountryNames[0]), nc, 1, 0);
+				P.NumAdunits = 0;
+				for (i = 0; i < na; i++)
+					for (j = 0; j < nc; j++)
+						if ((AdunitNames[3 * i + 1][0]) && (!strcmp(AdunitNames[3 * i + 1], CountryNames[j])) && (atoi(AdunitNames[3 * i]) != 0))
 						{
-							if (strlen(AdunitNames[3 * j + 1]) < 100) strcpy(AdUnits[i].cnt_name, AdunitNames[3 * j + 1]);
-							if (strlen(AdunitNames[3 * j + 2]) < 200) strcpy(AdUnits[i].ad_name, AdunitNames[3 * j + 2]);
-							j = na;
+							AdUnits[P.NumAdunits].id = atoi(AdunitNames[3 * i]);
+							P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
+							if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
+							if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
+							//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
+							P.NumAdunits++;
 						}
-				}
 			}
 			else
-				P.DoAdunitBoundaries = 0;
-		}
-    Memory::xfree(AdunitNames);
-    Memory::xfree(AdunitNamesBuf);
+			{
+				if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of level 1 administrative units to include", "%i", (void*)&(P.NumAdunits), 1, 1, 0)) P.NumAdunits = 0;
+				if (P.NumAdunits > 0)
+				{
+					P.DoAdunitBoundaries = 1;
+					if (P.NumAdunits > MAX_ADUNITS) ERR_CRITICAL("MAX_ADUNITS too small.\n");
+					GetInputParameter(PreParamFile_dat, AdminFile_dat, "List of level 1 administrative units to include", "%s", (P.NumAdunits > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumAdunits, 1, 0);
+					na = P.NumAdunits;
+					for (i = 0; i < P.NumAdunits; i++)
+					{
+						f = 0;
+						if (na > 0)
+						{
+							for (j = 0; (j < na) && (!f); j++) f = (!strcmp(AdunitNames[3 * j + 2], AdunitListNames[i]));
+							if (f) k = atoi(AdunitNames[3 * (j - 1)]);
+						}
+						if ((na == 0) || (!f)) k = atoi(AdunitListNames[i]);
+						AdUnits[i].id = k;
+						P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = i;
+						for (j = 0; j < na; j++)
+							if (atoi(AdunitNames[3 * j]) == k)
+							{
+								if (strlen(AdunitNames[3 * j + 1]) < 100) strcpy(AdUnits[i].cnt_name, AdunitNames[3 * j + 1]);
+								if (strlen(AdunitNames[3 * j + 2]) < 200) strcpy(AdUnits[i].ad_name, AdunitNames[3 * j + 2]);
+								j = na;
+							}
+					}
+				}
+				else
+					P.DoAdunitBoundaries = 0;
+			}
+			Memory::xfree(AdunitNames);
+			Memory::xfree(AdunitNamesBuf);
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output incidence by administrative unit", "%i", (void*) & (P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*) & (P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct administrative unit populations", "%i", (void*) & (P.DoCorrectAdunitPop), 1, 1, 0)) P.DoCorrectAdunitPop = 0;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Fix population size at specified value", "%i", (void*) & (P.DoSpecifyPop), 1, 1, 0)) P.DoSpecifyPop = 0;
-		fprintf(stderr, "Using %i administrative units\n", P.NumAdunits);
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for administrative unit codes for boundary plotting on bitmaps", "%i", (void*) & (P.AdunitBitmapDivisor), 1, 1, 0)) P.AdunitBitmapDivisor = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output household to place distance distribution for one administrative unit", "%i", (void*) & (P.DoOutputPlaceDistForOneAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
-		if (P.DoOutputPlaceDistForOneAdunit)
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output incidence by administrative unit", "%i", (void*)&(P.DoAdunitOutput), 1, 1, 0)) P.DoAdunitOutput = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*)&(P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct administrative unit populations", "%i", (void*)&(P.DoCorrectAdunitPop), 1, 1, 0)) P.DoCorrectAdunitPop = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Fix population size at specified value", "%i", (void*)&(P.DoSpecifyPop), 1, 1, 0)) P.DoSpecifyPop = 0;
+			fprintf(stderr, "Using %i administrative units\n", P.NumAdunits);
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for administrative unit codes for boundary plotting on bitmaps", "%i", (void*)&(P.AdunitBitmapDivisor), 1, 1, 0)) P.AdunitBitmapDivisor = 1;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output household to place distance distribution for one administrative unit", "%i", (void*)&(P.DoOutputPlaceDistForOneAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
+			if (P.DoOutputPlaceDistForOneAdunit)
+			{
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Administrative unit for which household to place distance distribution to be output", "%i", (void*)&(P.OutputPlaceDistAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
+			}
+		}
+		else
+
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Administrative unit for which household to place distance distribution to be output", "%i", (void*) & (P.OutputPlaceDistAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
+			P.DoAdunitBoundaries = P.DoAdunitBoundaryOutput = P.DoAdunitOutput = P.DoCorrectAdunitPop = P.DoSpecifyPop = 0;
+			P.AdunitLevel1Divisor = 1; P.AdunitLevel1Mask = 1000000000;
+			P.AdunitBitmapDivisor = P.AdunitLevel1Divisor;
 		}
 	}
-	else
-	{
-		P.DoAdunitBoundaries = P.DoAdunitBoundaryOutput = P.DoAdunitOutput = P.DoCorrectAdunitPop = P.DoSpecifyPop = 0;
-		P.AdunitLevel1Divisor = 1; P.AdunitLevel1Mask = 1000000000;
-		P.AdunitBitmapDivisor = P.AdunitLevel1Divisor;
-	}
 
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include age", "%i", (void*) & (P.DoAge), 1, 1, 0)) P.DoAge = 1;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include age", "%i", (void*)&(P.DoAge), 1, 1, 0)) P.DoAge = 1;
 	if (!P.DoAge)
 	{
 		for (i = 0; i < NUM_AGE_GROUPS; i++) {
@@ -595,9 +662,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity acts as partial immunity", "%i", (void*)&(P.DoPartialImmunity), 1, 1, 0)) P.DoPartialImmunity = 1;
-		if ((P.DoHouseholds)&&(!P.DoPartialImmunity))
+		if ((P.DoHouseholds) && (!P.DoPartialImmunity))
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity applied to all household members", "%i", (void*) & (P.DoWholeHouseholdImmunity), 1, 1, 0)) P.DoWholeHouseholdImmunity = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial immunity applied to all household members", "%i", (void*)&(P.DoWholeHouseholdImmunity), 1, 1, 0)) P.DoWholeHouseholdImmunity = 0;
 		}
 		else
 			P.DoWholeHouseholdImmunity = 0;
@@ -663,174 +730,199 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	t += P.AgeInfectiousness[i] * P.PropAgeGroup[0][i];
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	P.AgeInfectiousness[i] /= t;
 	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include spatial transmission", "%i", (void*) & (P.DoSpatial), 1, 1, 0)) P.DoSpatial = 1;
-	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel type", "%i", (void*) & (P.MoveKernel.type_), 1, 1, 0);
-	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel scale", "%lf", (void*) & (P.MoveKernel.scale_), 1, 1, 0);
-	if (P.KernelOffsetScale != 1)
-	{
-		P.MoveKernel.scale_ *= P.KernelOffsetScale;
-	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param", "%lf", (void*) & (P.MoveKernel.p3_), 1, 1, 0)) P.MoveKernel.p3_ = 0;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 4th param", "%lf", (void*) & (P.MoveKernel.p4_), 1, 1, 0)) P.MoveKernel.p4_ = 0;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel Shape", "%lf", (void*) & (P.MoveKernel.shape_), 1, 1, 0)) P.MoveKernel.shape_ = 1.0;
-	if (P.KernelPowerScale != 1)
-	{
-		P.MoveKernel.shape_ *= P.KernelPowerScale;
-	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Type", "%i", (void*) & (P.AirportKernel.type_), 1, 1, 0)) P.AirportKernel.type_ = P.MoveKernel.type_;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Scale", "%lf", (void*) & (P.AirportKernel.scale_), 1, 1, 0)) P.AirportKernel.scale_ = P.MoveKernel.scale_;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Shape", "%lf", (void*) & (P.AirportKernel.shape_), 1, 1, 0)) P.AirportKernel.shape_ = P.MoveKernel.shape_;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel 3rd param", "%lf", (void*) & (P.AirportKernel.p3_), 1, 1, 0)) P.AirportKernel.p3_ = P.MoveKernel.p3_;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel 4th param", "%lf", (void*) & (P.AirportKernel.p4_), 1, 1, 0)) P.AirportKernel.p4_ = P.MoveKernel.p4_;
 
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include places", "%i", (void*)&(P.DoPlaces), 1, 1, 0)) P.DoPlaces = 1;
-	if (P.DoPlaces)
+	if (P.FitIter == 0)
 	{
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of types of places", "%i", (void*)&(P.PlaceTypeNum), 1, 1, 0)) P.PlaceTypeNum = 0;
-		if (P.PlaceTypeNum == 0) P.DoPlaces = P.DoAirports = 0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include spatial transmission", "%i", (void*)&(P.DoSpatial), 1, 1, 0)) P.DoSpatial = 1;
+		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel type", "%i", (void*)&(P.MoveKernel.type_), 1, 1, 0);
+		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel scale", "%lf", (void*)&(P.MoveKernel.scale_), 1, 1, 0);
+		if (P.KernelOffsetScale != 1)
+		{
+			P.MoveKernel.scale_ *= P.KernelOffsetScale;
+		}
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param", "%lf", (void*)&(P.MoveKernel.p3_), 1, 1, 0)) P.MoveKernel.p3_ = 0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 4th param", "%lf", (void*)&(P.MoveKernel.p4_), 1, 1, 0)) P.MoveKernel.p4_ = 0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel Shape", "%lf", (void*)&(P.MoveKernel.shape_), 1, 1, 0)) P.MoveKernel.shape_ = 1.0;
+		if (P.KernelPowerScale != 1)
+		{
+			P.MoveKernel.shape_ *= P.KernelPowerScale;
+		}
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Type", "%i", (void*)&(P.AirportKernel.type_), 1, 1, 0)) P.AirportKernel.type_ = P.MoveKernel.type_;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Scale", "%lf", (void*)&(P.AirportKernel.scale_), 1, 1, 0)) P.AirportKernel.scale_ = P.MoveKernel.scale_;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel Shape", "%lf", (void*)&(P.AirportKernel.shape_), 1, 1, 0)) P.AirportKernel.shape_ = P.MoveKernel.shape_;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel 3rd param", "%lf", (void*)&(P.AirportKernel.p3_), 1, 1, 0)) P.AirportKernel.p3_ = P.MoveKernel.p3_;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Airport Kernel 4th param", "%lf", (void*)&(P.AirportKernel.p4_), 1, 1, 0)) P.AirportKernel.p4_ = P.MoveKernel.p4_;
+
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include places", "%i", (void*)&(P.DoPlaces), 1, 1, 0)) P.DoPlaces = 1;
+		if (P.DoPlaces)
+		{
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of types of places", "%i", (void*)&(P.PlaceTypeNum), 1, 1, 0)) P.PlaceTypeNum = 0;
+			if (P.PlaceTypeNum == 0) P.DoPlaces = P.DoAirports = 0;
+		}
+		else
+			P.PlaceTypeNum = P.DoAirports = 0;
 	}
-	else
-		P.PlaceTypeNum = P.DoAirports = 0;
 	if (P.DoPlaces)
 	{
-		if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Proportion of age group 1 in place types", "%lf", (void*) & (P.PlaceTypePropAgeGroup), P.PlaceTypeNum, 1, 0);
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 2 in place types", "%lf", (void*) & (P.PlaceTypePropAgeGroup2), P.PlaceTypeNum, 1, 0))
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of household contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentHouseholdScaling), 1, 1, 0)) P.CareHomeResidentHouseholdScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of spatial contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentSpatialScaling), 1, 1, 0)) P.CareHomeResidentSpatialScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of between group (home) contacts for care home residents", "%lf", (void*)&(P.CareHomeResidentPlaceScaling), 1, 1, 0)) P.CareHomeResidentPlaceScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Scaling of within group (home) contacts for care home workers", "%lf", (void*)&(P.CareHomeWorkerGroupScaling), 1, 1, 0)) P.CareHomeWorkerGroupScaling = 1.0;
+		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Relative probability that care home residents are hospitalised", "%lf", (void*)&(P.CareHomeRelProbHosp), 1, 1, 0)) P.CareHomeRelProbHosp = 1.0;
+
+		if (P.FitIter == 0)
 		{
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
+			if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place type number for care homes", "%i", (void*)&(P.CareHomePlaceType), 1, 1, 0)) P.CareHomePlaceType = -1;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Allow initial infections to be in care homes", "%i", (void*)&(P.CareHomeAllowInitialInfections), 1, 1, 0)) P.CareHomeAllowInitialInfections = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum age of care home residents", "%i", (void*)&(P.CareHomeResidentMinimumAge), 1, 1, 0)) P.CareHomeResidentMinimumAge = 1000;
+
+			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMin, P.PlaceTypeNum, 1, 0);
+			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 1 in place types", "%i", (void*)P.PlaceTypeAgeMax, P.PlaceTypeNum, 1, 0);
+			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Proportion of age group 1 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup), P.PlaceTypeNum, 1, 0);
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 2 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup2), P.PlaceTypeNum, 1, 0))
 			{
-				P.PlaceTypePropAgeGroup2[i] = 0;
-				P.PlaceTypeAgeMin2[i] = 0;
-				P.PlaceTypeAgeMax2[i] = 1000;
-			}
-		}
-		else
-		{
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMin2, P.PlaceTypeNum, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMax2, P.PlaceTypeNum, 1, 0);
-		}
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 3 in place types", "%lf", (void*) & (P.PlaceTypePropAgeGroup3), P.PlaceTypeNum, 1, 0))
-		{
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-			{
-				P.PlaceTypePropAgeGroup3[i] = 0;
-				P.PlaceTypeAgeMin3[i] = 0;
-				P.PlaceTypeAgeMax3[i] = 1000;
-			}
-		}
-		else
-		{
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMin3, P.PlaceTypeNum, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMax3, P.PlaceTypeNum, 1, 0);
-		}
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel shape params for place types", "%lf", (void*) & (P.PlaceTypeKernelShape), P.PlaceTypeNum, 1, 0))
-		{
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-			{
-				P.PlaceTypeKernelShape[i] = P.MoveKernel.shape_;
-				P.PlaceTypeKernelScale[i] = P.MoveKernel.scale_;
-			}
-		}
-		else
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel scale params for place types", "%lf", (void*) & (P.PlaceTypeKernelScale), P.PlaceTypeNum, 1, 0);
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param for place types", "%lf", (void*) & (P.PlaceTypeKernelP3), P.PlaceTypeNum, 1, 0))
-		{
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-			{
-				P.PlaceTypeKernelP3[i] = P.MoveKernel.p3_;
-				P.PlaceTypeKernelP4[i] = P.MoveKernel.p4_;
-			}
-		}
-		else
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel 4th param for place types", "%lf", (void*) & (P.PlaceTypeKernelP4), P.PlaceTypeNum, 1, 0);
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of closest places people pick from (0=all) for place types", "%i", (void*) & (P.PlaceTypeNearestNeighb), P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeNearestNeighb[i] = 0;
-		if (P.DoAdUnits)
-		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Degree to which crossing administrative unit boundaries to go to places is inhibited", "%lf", (void*) & (P.InhibitInterAdunitPlaceAssignment), P.PlaceTypeNum, 1, 0))
 				for (i = 0; i < NUM_PLACE_TYPES; i++)
-					P.InhibitInterAdunitPlaceAssignment[i] = 0;
-		}
+				{
+					P.PlaceTypePropAgeGroup2[i] = 0;
+					P.PlaceTypeAgeMin2[i] = 0;
+					P.PlaceTypeAgeMax2[i] = 1000;
+				}
+			}
+			else
+			{
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMin2, P.PlaceTypeNum, 1, 0);
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 2 in place types", "%i", (void*)P.PlaceTypeAgeMax2, P.PlaceTypeNum, 1, 0);
+			}
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Proportion of age group 3 in place types", "%lf", (void*)&(P.PlaceTypePropAgeGroup3), P.PlaceTypeNum, 1, 0))
+			{
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+				{
+					P.PlaceTypePropAgeGroup3[i] = 0;
+					P.PlaceTypeAgeMin3[i] = 0;
+					P.PlaceTypeAgeMax3[i] = 1000;
+				}
+			}
+			else
+			{
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Minimum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMin3, P.PlaceTypeNum, 1, 0);
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Maximum age for age group 3 in place types", "%i", (void*)P.PlaceTypeAgeMax3, P.PlaceTypeNum, 1, 0);
+			}
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel shape params for place types", "%lf", (void*)&(P.PlaceTypeKernelShape), P.PlaceTypeNum, 1, 0))
+			{
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+				{
+					P.PlaceTypeKernelShape[i] = P.MoveKernel.shape_;
+					P.PlaceTypeKernelScale[i] = P.MoveKernel.scale_;
+				}
+			}
+			else
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel scale params for place types", "%lf", (void*)&(P.PlaceTypeKernelScale), P.PlaceTypeNum, 1, 0);
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel 3rd param for place types", "%lf", (void*)&(P.PlaceTypeKernelP3), P.PlaceTypeNum, 1, 0))
+			{
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+				{
+					P.PlaceTypeKernelP3[i] = P.MoveKernel.p3_;
+					P.PlaceTypeKernelP4[i] = P.MoveKernel.p4_;
+				}
+			}
+			else
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Kernel 4th param for place types", "%lf", (void*)&(P.PlaceTypeKernelP4), P.PlaceTypeNum, 1, 0);
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of closest places people pick from (0=all) for place types", "%i", (void*)&(P.PlaceTypeNearestNeighb), P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeNearestNeighb[i] = 0;
+			if (P.DoAdUnits)
+			{
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Degree to which crossing administrative unit boundaries to go to places is inhibited", "%lf", (void*)&(P.InhibitInterAdunitPlaceAssignment), P.PlaceTypeNum, 1, 0))
+					for (i = 0; i < NUM_PLACE_TYPES; i++)
+						P.InhibitInterAdunitPlaceAssignment[i] = 0;
+			}
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
-		if (!P.DoAirports)
-		{
-			// Airports disabled => all places are not to do with airports, and we
-			// have no hotels.
-			P.PlaceTypeNoAirNum = P.PlaceTypeNum;
-			P.HotelPlaceType = P.PlaceTypeNum;
-		}
-		else
-		{
-			// When airports are activated we must have at least one airport place
-			// // and a hotel type.
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
-			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
-			if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include air travel", "%i", (void*)&(P.DoAirports), 1, 1, 0)) P.DoAirports = 0;
+			if (!P.DoAirports)
+			{
+				// Airports disabled => all places are not to do with airports, and we
+				// have no hotels.
+				P.PlaceTypeNoAirNum = P.PlaceTypeNum;
+				P.HotelPlaceType = P.PlaceTypeNum;
 			}
-			if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
-				ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
-			}
+			else
+			{
+				// When airports are activated we must have at least one airport place
+				// // and a hotel type.
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Number of non-airport places", "%i", (void*)&(P.PlaceTypeNoAirNum), 1, 1, 0);
+				GetInputParameter(PreParamFile_dat, AdminFile_dat, "Hotel place type", "%i", (void*)&(P.HotelPlaceType), 1, 1, 0);
+				if (P.PlaceTypeNoAirNum >= P.PlaceTypeNum) {
+					ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+				}
+				if (P.HotelPlaceType < P.PlaceTypeNoAirNum || P.HotelPlaceType >= P.PlaceTypeNum) {
+					ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P.HotelPlaceType, P.PlaceTypeNoAirNum, P.PlaceTypeNum);
+				}
 
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling factor for input file to convert to daily traffic", "%lf", (void*) & (P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of hotel attendees who are local", "%lf", (void*) & (P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of air journeys", "%lf", (void*) & (P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
-			{
-				P.JourneyDurationDistrib[0] = 1;
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling factor for input file to convert to daily traffic", "%lf", (void*)&(P.AirportTrafficScale), 1, 1, 0)) P.AirportTrafficScale = 1.0;
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of hotel attendees who are local", "%lf", (void*)&(P.HotelPropLocal), 1, 1, 0)) P.HotelPropLocal = 0;
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of air journeys", "%lf", (void*)&(P.JourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
+				{
+					P.JourneyDurationDistrib[0] = 1;
+					for (i = 0; i < MAX_TRAVEL_TIME; i++)
+						P.JourneyDurationDistrib[i] = 0;
+				}
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of local journeys", "%lf", (void*)&(P.LocalJourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
+				{
+					P.LocalJourneyDurationDistrib[0] = 1;
+					for (i = 0; i < MAX_TRAVEL_TIME; i++)
+						P.LocalJourneyDurationDistrib[i] = 0;
+				}
+				P.MeanJourneyTime = P.MeanLocalJourneyTime = 0;
 				for (i = 0; i < MAX_TRAVEL_TIME; i++)
-					P.JourneyDurationDistrib[i] = 0;
+				{
+					P.MeanJourneyTime += ((double)(i)) * P.JourneyDurationDistrib[i];
+					P.MeanLocalJourneyTime += ((double)(i)) * P.LocalJourneyDurationDistrib[i];
+				}
+				fprintf(stderr, "Mean duration of local journeys = %lf days\n", P.MeanLocalJourneyTime);
+				for (i = 1; i < MAX_TRAVEL_TIME; i++)
+				{
+					P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
+					P.LocalJourneyDurationDistrib[i] += P.LocalJourneyDurationDistrib[i - 1];
+				}
+				for (i = j1 = j2 = 0; i <= 1024; i++)
+				{
+					s = ((double)i) / 1024;
+					while (P.JourneyDurationDistrib[j1] < s) j1++;
+					P.InvJourneyDurationDistrib[i] = j1;
+					while (P.LocalJourneyDurationDistrib[j2] < s) j2++;
+					P.InvLocalJourneyDurationDistrib[i] = j2;
+				}
 			}
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Distribution of duration of local journeys", "%lf", (void*) & (P.LocalJourneyDurationDistrib), MAX_TRAVEL_TIME, 1, 0))
+			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Mean size of place types", "%lf", (void*)P.PlaceTypeMeanSize, P.PlaceTypeNum, 1, 0);
+			GetInputParameter(PreParamFile_dat, AdminFile_dat, "Param 1 of place group size distribution", "%lf", (void*)P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum, 1, 0);
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Power of place size distribution", "%lf", (void*)P.PlaceTypeSizePower, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeSizePower[i] = 0;
+			//added to enable lognormal distribution - ggilani 09/02/17
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Standard deviation of place size distribution", "%lf", (void*)P.PlaceTypeSizeSD, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeSizeSD[i] = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Offset of place size distribution", "%lf", (void*)P.PlaceTypeSizeOffset, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeSizeOffset[i] = 0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMax, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeSizeMax[i] = 1e20;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMin, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeSizeMin[i] = 1.0;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel type for place types", "%i", (void*)P.PlaceTypeKernelType, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					P.PlaceTypeKernelType[i] = P.MoveKernel.type_;
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0))
 			{
-				P.LocalJourneyDurationDistrib[0] = 1;
-				for (i = 0; i < MAX_TRAVEL_TIME; i++)
-					P.LocalJourneyDurationDistrib[i] = 0;
-			}
-			P.MeanJourneyTime = P.MeanLocalJourneyTime = 0;
-			for (i = 0; i < MAX_TRAVEL_TIME; i++)
-			{
-				P.MeanJourneyTime += ((double)(i)) * P.JourneyDurationDistrib[i];
-				P.MeanLocalJourneyTime += ((double)(i)) * P.LocalJourneyDurationDistrib[i];
-			}
-			fprintf(stderr, "Mean duration of local journeys = %lf days\n", P.MeanLocalJourneyTime);
-			for (i = 1; i < MAX_TRAVEL_TIME; i++)
-			{
-				P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
-				P.LocalJourneyDurationDistrib[i] += P.LocalJourneyDurationDistrib[i - 1];
-			}
-			for (i = j1 = j2 = 0; i <= 1024; i++)
-			{
-				s = ((double)i) / 1024;
-				while (P.JourneyDurationDistrib[j1] < s) j1++;
-				P.InvJourneyDurationDistrib[i] = j1;
-				while (P.LocalJourneyDurationDistrib[j2] < s) j2++;
-				P.InvLocalJourneyDurationDistrib[i] = j2;
+				for (i = 0; i < NUM_PLACE_TYPES; i++)
+					for (j = 0; j < NUM_PLACE_TYPES; j++)
+						P.PlaceExclusivityMatrix[i * NUM_PLACE_TYPES + j] = (i == j) ? 1 : 0;
 			}
 		}
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Mean size of place types", "%lf", (void*)P.PlaceTypeMeanSize, P.PlaceTypeNum, 1, 0);
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Param 1 of place group size distribution", "%lf", (void*)P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum, 1, 0);
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Power of place size distribution", "%lf", (void*)P.PlaceTypeSizePower, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeSizePower[i] = 0;
-		//added to enable lognormal distribution - ggilani 09/02/17
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Standard deviation of place size distribution", "%lf", (void*)P.PlaceTypeSizeSD, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeSizeSD[i] = 0;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Offset of place size distribution", "%lf", (void*)P.PlaceTypeSizeOffset, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeSizeOffset[i] = 0;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum of place size distribution", "%lf", (void*)P.PlaceTypeSizeMax, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeSizeMax[i] = 1e20;
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Kernel type for place types", "%i", (void*)P.PlaceTypeKernelType, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++)
-				P.PlaceTypeKernelType[i] = P.MoveKernel.type_;
-		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Place overlap matrix", "%lf", (void*)P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 1, 0); //changed from P.PlaceTypeNum,P.PlaceTypeNum,0);
-/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
+		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
 
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Proportion of between group place links", "%lf", (void*)P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum, 1, 0);
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative transmission rates for place types", "%lf", (void*)P.PlaceTypeTrans, P.PlaceTypeNum, 1, 0);
@@ -853,7 +945,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (i = 0; i < DAYS_PER_YEAR; i++)
 			P.Seasonality[i] /= s;
 	}
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of seed locations", "%i", (void*) & (P.NumSeedLocations), 1, 1, 0)) P.NumSeedLocations = 1;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of seed locations", "%i", (void*)&(P.NumSeedLocations), 1, 1, 0)) P.NumSeedLocations = 1;
 	if (P.NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
 	{
 		fprintf(stderr, "Too many seed locations\n");
@@ -861,37 +953,56 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Location of initial infecteds", "%lf", (void*)&(P.LocationInitialInfection[0][0]), P.NumSeedLocations * 2, 1, 0)) P.LocationInitialInfection[0][0] = P.LocationInitialInfection[0][1] = 0.0;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*) & (P.MinPopDensForInitialInfection), 1, 1, 0)) P.MinPopDensForInitialInfection = 0;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Minimum population in microcell of initial infection", "%i", (void*)&(P.MinPopDensForInitialInfection), 1, 1, 0)) P.MinPopDensForInitialInfection = 0;
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum population in microcell of initial infection", "%i", (void*)&(P.MaxPopDensForInitialInfection), 1, 1, 0)) P.MaxPopDensForInitialInfection = 10000000;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*) & (P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc=1;
-	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*) & (P.DoAllInitialInfectioninSameLoc), 1, 1, 0)) P.DoAllInitialInfectioninSameLoc=0;
-	if (P.DoAdUnits)
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Maximum age of initial infections", "%i", (void*)&(P.MaxAgeForInitialInfection), 1, 1, 0)) P.MaxAgeForInitialInfection = 1000;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Randomise initial infection location", "%i", (void*)&(P.DoRandomInitialInfectionLoc), 1, 1, 0)) P.DoRandomInitialInfectionLoc = 1;
+	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "All initial infections located in same microcell", "%i", (void*)&(P.DoAllInitialInfectioninSameLoc), 1, 1, 0)) P.DoAllInitialInfectioninSameLoc = 0;
+	if (GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Day of year of start of seeding", "%lf", (void*)&(P.InitialInfectionCalTime), 1, 1, 0))
 	{
-		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.NumSeedLocations > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumSeedLocations, 1, 0))
-			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+		if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of infection seeding", "%lf", (void*)&(P.SeedingScaling), 1, 1, 0))
+			P.DoNoCalibration = 1;
 		else
-			for (i = 0; i < P.NumSeedLocations; i++)
-			{
-				f = 0;
-				if (P.NumAdunits > 0)
-				{
-					for (j = 0; (j < P.NumAdunits) && (!f); j++) f = (!strcmp(AdUnits[j].ad_name, AdunitListNames[i]));
-					if (f) k = AdUnits[j-1].id;
-				}
-				if (!f) k = atoi(AdunitListNames[i]);
-				P.InitialInfectionsAdminUnit[i] = k;
-				P.InitialInfectionsAdminUnitId[i]=P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
-			}
-		if(!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit seeding weights", "%lf", (void*) & (P.InitialInfectionsAdminUnitWeight[0]), P.NumSeedLocations, 1, 0))
-			for(i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] = 1.0;
-		s=0;
-		for(i = 0; i < P.NumSeedLocations; i++) s+=P.InitialInfectionsAdminUnitWeight[i];
-		for(i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i]/=s;
-	//	for (i = 0; i < P.NumSeedLocations; i++) fprintf(stderr, "## %i %s %i %i %lf\n",i, AdUnits[P.InitialInfectionsAdminUnitId[i]].ad_name, P.InitialInfectionsAdminUnitId[i], P.InitialInfectionsAdminUnit[i], P.InitialInfectionsAdminUnitWeight[i]);
+		{
+			P.SeedingScaling = 1.0;
+			P.DoNoCalibration = 0;
+		}
 	}
 	else
 	{
-		for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+		P.SeedingScaling = 1.0;
+		P.DoNoCalibration = 0;
+		P.InitialInfectionCalTime = -1;
+	}
+	if (P.FitIter == 0)
+	{
+		if (P.DoAdUnits)
+		{
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit to seed initial infection into", "%s", (P.NumSeedLocations > 1) ? ((void*)AdunitListNames) : ((void*)AdunitListNames[0]), P.NumSeedLocations, 1, 0))
+				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+			else
+				for (i = 0; i < P.NumSeedLocations; i++)
+				{
+					f = 0;
+					if (P.NumAdunits > 0)
+					{
+						for (j = 0; (j < P.NumAdunits) && (!f); j++) f = (!strcmp(AdUnits[j].ad_name, AdunitListNames[i]));
+						if (f) k = AdUnits[j - 1].id;
+					}
+					if (!f) k = atoi(AdunitListNames[i]);
+					P.InitialInfectionsAdminUnit[i] = k;
+					P.InitialInfectionsAdminUnitId[i] = P.AdunitLevel1Lookup[(k % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor];
+				}
+			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Administrative unit seeding weights", "%lf", (void*)&(P.InitialInfectionsAdminUnitWeight[0]), P.NumSeedLocations, 1, 0))
+				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] = 1.0;
+			s = 0;
+			for (i = 0; i < P.NumSeedLocations; i++) s += P.InitialInfectionsAdminUnitWeight[i];
+			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnitWeight[i] /= s;
+		}
+		else
+		{
+			for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
+		}
 	}
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Initial rate of importation of infections", "%lf", (void*)&(P.InfectionImportRate1), 1, 1, 0)) P.InfectionImportRate1 = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Changed rate of importation of infections", "%lf", (void*)&(P.InfectionImportRate2), 1, 1, 0)) P.InfectionImportRate2 = 0;
@@ -903,13 +1014,21 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (P.DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Daily importation time profile", "%lf", (void*)P.ImportInfectionTimeProfile, P.DurImportTimeProfile, 1, 0);
 	}
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Reproduction number", "%lf", (void*) & (P.R0), 1, 1, 0);
-	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Infectious period", "%lf", (void*) & (P.InfectiousPeriod), 1, 1, 0);
+	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Reproduction number", "%lf", (void*)&(P.R0), 1, 1, 0);
+	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Beta for spatial transmission", "%lf", (void*)&(P.LocalBeta), 1, 1, 0))
+		P.FixLocalBeta = 1;
+	else
+	{
+		P.LocalBeta = -1.0;
+		P.FixLocalBeta = 0;
+	}
+	GetInputParameter(ParamFile_dat, PreParamFile_dat, "Infectious period", "%lf", (void*)&(P.InfectiousPeriod), 1, 1, 0);
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in susceptibility", "%lf", (void*)&(P.SusceptibilitySD), 1, 1, 0)) P.SusceptibilitySD = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in infectiousness", "%lf", (void*) & (P.InfectiousnessSD), 1, 1, 0)) P.InfectiousnessSD = 0;
-	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k of individual variation in infectiousness", "%lf", (void*)& s, 1, 1, 0)) P.InfectiousnessSD = 1.0 / sqrt(s);
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model time varying infectiousness", "%i", (void*) & (P.DoInfectiousnessProfile), 1, 1, 0)) P.DoInfectiousnessProfile = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power of scaling of spatial R0 with density", "%lf", (void*) & (P.R0DensityScalePower), 1, 1, 0)) P.R0DensityScalePower = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "SD of individual variation in infectiousness", "%lf", (void*)&(P.InfectiousnessSD), 1, 1, 0)) P.InfectiousnessSD = 0;
+	if (GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k of individual variation in infectiousness", "%lf", (void*)&s, 1, 1, 0)) P.InfectiousnessSD = 1.0 / sqrt(s);
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "k does not apply in households", "%i", (void*)&P.NoInfectiousnessSDinHH, 1, 1, 0)) P.NoInfectiousnessSDinHH = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model time varying infectiousness", "%i", (void*)&(P.DoInfectiousnessProfile), 1, 1, 0)) P.DoInfectiousnessProfile = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Power of scaling of spatial R0 with density", "%lf", (void*)&(P.R0DensityScalePower), 1, 1, 0)) P.R0DensityScalePower = 0;
 	if (P.DoInfectiousnessProfile)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Infectiousness profile", "%lf", (void*)P.infectious_prof, INFPROF_RES, 1, 0))
@@ -948,20 +1067,20 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.infectiousness[k] = 0;
 		P.infectious_icdf.assign_exponent();
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include latent period", "%i", (void*) & (P.DoLatent), 1, 1, 0)) P.DoLatent = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include latent period", "%i", (void*)&(P.DoLatent), 1, 1, 0)) P.DoLatent = 0;
 	if (P.DoLatent)
 	{
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) & (P.LatentPeriod), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Latent period", "%lf", (void*) &(P.LatentPeriod), 1, 1, 0);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "Latent period inverse CDF", &P.latent_icdf, 1e10);
 	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include symptoms", "%i", (void*) & (P.DoSymptoms), 1, 1, 0)) P.DoSymptoms = 0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include symptoms", "%i", (void*)&(P.DoSymptoms), 1, 1, 0)) P.DoSymptoms = 0;
 	if (!P.DoSymptoms)
 	{
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 			P.ProportionSymptomatic[i] = 0;
 		P.FalsePositiveRate = 0;
-		P.SymptInfectiousness = 1.0;
+		P.SymptInfectiousness = P.AsymptInfectiousness = 1.0;
 		P.LatentToSymptDelay = 0;
 	}
 	else
@@ -974,10 +1093,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 1; i < NUM_AGE_GROUPS; i++)
 				P.ProportionSymptomatic[i] = P.ProportionSymptomatic[0];
 		}
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Delay from end of latent period to start of symptoms", "%lf", (void*) & (P.LatentToSymptDelay), 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative rate of random contacts if symptomatic", "%lf", (void*) & (P.SymptSpatialContactRate), 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Symptomatic infectiousness relative to asymptomatic", "%lf", (void*) & (P.SymptInfectiousness), 1, 1, 0);
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model symptomatic withdrawal to home as true absenteeism", "%i", (void*)& P.DoRealSymptWithdrawal, 1, 1, 0)) P.DoRealSymptWithdrawal = 0;
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Delay from end of latent period to start of symptoms", "%lf", (void*)&(P.LatentToSymptDelay), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative rate of random contacts if symptomatic", "%lf", (void*)&(P.SymptSpatialContactRate), 1, 1, 0);
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Symptomatic infectiousness relative to asymptomatic", "%lf", (void*)&(P.SymptInfectiousness), 1, 1, 0)) P.SymptInfectiousness = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Asymptomatic infectiousness relative to symptomatic", "%lf", (void*)&(P.AsymptInfectiousness), 1, 1, 0)) P.AsymptInfectiousness = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Model symptomatic withdrawal to home as true absenteeism", "%i", (void*)&P.DoRealSymptWithdrawal, 1, 1, 0)) P.DoRealSymptWithdrawal = 0;
 		if (P.DoPlaces)
 		{
 			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Relative level of place attendance if symptomatic", "%lf", (void*)P.SymptPlaceTypeContactRate, P.PlaceTypeNum, 1, 0);
@@ -992,8 +1112,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			else
 				for (j = 0; j < NUM_PLACE_TYPES; j++) P.SymptPlaceTypeWithdrawalProp[j] = 0.0;
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum age of child at home for whom one adult also stays at home", "%i", (void*)& P.CaseAbsentChildAgeCutoff, 1, 1, 0)) P.CaseAbsentChildAgeCutoff = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of children at home for whom one adult also stays at home", "%lf", (void*)& P.CaseAbsentChildPropAdultCarers, 1, 1, 0)) P.CaseAbsentChildPropAdultCarers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum age of child at home for whom one adult also stays at home", "%i", (void*)&P.CaseAbsentChildAgeCutoff, 1, 1, 0)) P.CaseAbsentChildAgeCutoff = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of children at home for whom one adult also stays at home", "%lf", (void*)&P.CaseAbsentChildPropAdultCarers, 1, 1, 0)) P.CaseAbsentChildPropAdultCarers = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place close round household", "%i", (void*)&P.PlaceCloseRoundHousehold, 1, 1, 0)) P.PlaceCloseRoundHousehold = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Absenteeism place closure", "%i", (void*)&P.AbsenteeismPlaceClosure, 1, 1, 0)) P.AbsenteeismPlaceClosure = 0;
 		if (P.AbsenteeismPlaceClosure)
@@ -1007,20 +1127,27 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay in starting place absenteeism for cases who withdraw", "%lf", (void*)& P.CaseAbsenteeismDelay, 1, 1, 0)) P.CaseAbsenteeismDelay = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay in starting place absenteeism for cases who withdraw", "%lf", (void*)&P.CaseAbsenteeismDelay, 1, 1, 0)) P.CaseAbsenteeismDelay = 0;
 			P.MaxAbsentTime = 0; // Not used when !P.AbsenteeismPlaceClosure
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place absenteeism for cases who withdraw", "%lf", (void*)& P.CaseAbsenteeismDuration, 1, 1, 0)) P.CaseAbsenteeismDuration = 7;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of place absenteeism for cases who withdraw", "%lf", (void*)&P.CaseAbsenteeismDuration, 1, 1, 0)) P.CaseAbsenteeismDuration = 7;
 
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive rate", "%lf", (void*) & (P.FalsePositiveRate), 1, 1, 0)) P.FalsePositiveRate = 0.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive per capita incidence", "%lf", (void*) & (P.FalsePositivePerCapitaIncidence), 1, 1, 0)) P.FalsePositivePerCapitaIncidence = 0.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive rate", "%lf", (void*)&(P.FalsePositiveRate), 1, 1, 0)) P.FalsePositiveRate = 0.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive per capita incidence", "%lf", (void*)&(P.FalsePositivePerCapitaIncidence), 1, 1, 0)) P.FalsePositivePerCapitaIncidence = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "False positive relative incidence by age", "%lf", (void*)P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1, 0))
 			for (j = 0; j < NUM_AGE_GROUPS; j++) P.FalsePositiveAgeRate[j] = 1.0;
 	}
 
-	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*) & (P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
-	if(P.DoSeverity == 1)
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum sensitivity of serology assay", "%lf", (void*)&(P.SeroConvMaxSens), 1, 1, 0)) P.SeroConvMaxSens = 1.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 1", "%lf", (void*)&(P.SeroConvP1), 1, 1, 0)) P.SeroConvP1 = 14.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Seroconversion model parameter 2", "%lf", (void*)&(P.SeroConvP2), 1, 1, 0)) P.SeroConvP2 = 3.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Specificity of serology assay", "%lf", (void*)&(P.SeroConvSpec), 1, 1, 0)) P.SeroConvSpec = 1.0;
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Scaling of modelled infection prevalence to match surveys", "%lf", (void*)&(P.InfPrevSurveyScale), 1, 1, 0)) P.InfPrevSurveyScale = 1.0;
+
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*)&(P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
+	if (P.DoSeverity)
 	{
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleIFR), 1, 1, 0)) P.ScaleIFR = 1.0;
 		//// Means for icdf's.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
@@ -1080,77 +1207,93 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_Mild_ByAge[i] = 0.5;
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_ILI_ByAge", "%lf", (void*)P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_ILI_ByAge", "%lf", (void*)P.Prop_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_ILI_ByAge[i] = 0.3;
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_SARI_ByAge", "%lf", (void*)P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_SARI_ByAge", "%lf", (void*)P.Prop_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_SARI_ByAge[i] = 0.15;
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Critical_ByAge", "%lf", (void*)P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Critical_ByAge", "%lf", (void*)P.Prop_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_Critical_ByAge[i] = 0.05;
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_SARI_ByAge", "%lf", (void*)P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_SARI_ByAge", "%lf", (void*)P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.CFR_SARI_ByAge[i] = 0.50;
-		if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_Critical_ByAge", "%lf", (void*)P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
-			for(i = 0; i < NUM_AGE_GROUPS; i++)
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_Critical_ByAge", "%lf", (void*)P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 1, 0))
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.CFR_Critical_ByAge[i] = 0.50;
+
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ILI_ByAge", "%lf", (void*)P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.CFR_ILI_ByAge[i] = 0.00;
-	}
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) & (P.BoundingBox[0]), 4, 1, 0))
+		//Add param to allow severity to be uniformly scaled up or down.
+		for (i = 0; i < NUM_AGE_GROUPS; i++)
+		{
+			P.Prop_SARI_ByAge[i] *= P.ScaleIFR;
+			P.Prop_Critical_ByAge[i] *= P.ScaleIFR;
+			P.Prop_ILI_ByAge[i] = 1.0 - P.Prop_Mild_ByAge[i] - P.Prop_SARI_ByAge[i] - P.Prop_Critical_ByAge[i];
+		}
+	}
+	if (P.FitIter == 0)
 	{
-		P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
-		P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.BoundingBox[0]), 4, 1, 0))
+		{
+			P.BoundingBox[0] = P.BoundingBox[1] = 0.0;
+			P.BoundingBox[2] = P.BoundingBox[3] = 1.0;
+		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) &(P.SpatialBoundingBox[0]), 4, 1, 0))
+		{
+			P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
+			P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
+		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*)&(P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*)&(P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*)&(P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*)&(P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap movie frame interval", "%i", (void*)&(P.BitmapMovieFrame), 1, 1, 0)) P.BitmapMovieFrame = 250;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap", "%i", (void*)&(P.OutputBitmap), 1, 1, 0)) P.OutputBitmap = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap detected", "%i", (void*)&(P.OutputBitmapDetected), 1, 1, 0)) P.OutputBitmapDetected = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output immunity on bitmap", "%i", (void*)&(P.DoImmuneBitmap), 1, 1, 0)) P.DoImmuneBitmap = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output infection tree", "%i", (void*)&(P.DoInfectionTree), 1, 1, 0)) P.DoInfectionTree = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do one generation", "%i", (void*)&(P.DoOneGen), 1, 1, 0)) P.DoOneGen = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output every realisation", "%i", (void*)&(P.OutputEveryRealisation), 1, 1, 0)) P.OutputEveryRealisation = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number to sample for correlations", "%i", (void*)&(P.MaxCorrSample), 1, 1, 0)) P.MaxCorrSample = 1000000000;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Assume SI model", "%i", (void*)&(P.DoSI), 1, 1, 0)) P.DoSI = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Assume periodic boundary conditions", "%i", (void*)&(P.DoPeriodicBoundaries), 1, 1, 0)) P.DoPeriodicBoundaries = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output non-extinct realisations", "%i", (void*)&(P.OutputOnlyNonExtinct), 1, 1, 0)) P.OutputOnlyNonExtinct = 0;
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use cases per thousand threshold for area controls", "%i", (void*)&(P.DoPerCapitaTriggers), 1, 1, 0)) P.DoPerCapitaTriggers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use global triggers for interventions", "%i", (void*)&(P.DoGlobalTriggers), 1, 1, 0)) P.DoGlobalTriggers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use admin unit triggers for interventions", "%i", (void*)&(P.DoAdminTriggers), 1, 1, 0)) P.DoAdminTriggers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use ICU case triggers for interventions", "%i", (void*)&(P.DoICUTriggers), 1, 1, 0)) P.DoICUTriggers = 0;
+		if (P.DoGlobalTriggers)  P.DoAdminTriggers = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Divisor for per-capita area threshold (default 1000)", "%i", (void*)&(P.IncThreshPop), 1, 1, 0)) P.IncThreshPop = 1000;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Divisor for per-capita global threshold (default 1000)", "%i", (void*)&(P.GlobalIncThreshPop), 1, 1, 0)) P.GlobalIncThreshPop = 1000;
+
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of sampling intervals over which cumulative incidence measured for global trigger", "%i", (void*)&(P.TriggersSamplingInterval), 1, 1, 0)) P.TriggersSamplingInterval = 10000000;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected for treatment", "%lf", (void*)&(P.PostAlertControlPropCasesId), 1, 1, 0)) P.PostAlertControlPropCasesId = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected before outbreak alert", "%lf", (void*)&(P.PreAlertControlPropCasesId), 1, 1, 0)) P.PreAlertControlPropCasesId = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.TriggerAlertOnDeaths), 1, 1, 0)) P.TriggerAlertOnDeaths = 0;
 	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) & (P.SpatialBoundingBox[0]), 4, 1, 0))
-	{
-		P.SpatialBoundingBox[0] = P.SpatialBoundingBox[1] = 0.0;
-		P.SpatialBoundingBox[2] = P.SpatialBoundingBox[3] = 1.0;
-	}
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*) & (P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*) & (P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap scale", "%lf", (void*) & (P.BitmapScale), 1, 1, 0)) P.BitmapScale = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap y:x aspect scaling", "%lf", (void*) & (P.BitmapAspectScale), 1, 1, 0)) P.BitmapAspectScale = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bitmap movie frame interval", "%i", (void*) & (P.BitmapMovieFrame), 1, 1, 0)) P.BitmapMovieFrame = 250;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap", "%i", (void*) & (P.OutputBitmap), 1, 1, 0)) P.OutputBitmap = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output bitmap detected", "%i", (void*) & (P.OutputBitmapDetected), 1, 1, 0)) P.OutputBitmapDetected = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output immunity on bitmap", "%i", (void*) & (P.DoImmuneBitmap), 1, 1, 0)) P.DoImmuneBitmap = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output infection tree", "%i", (void*) & (P.DoInfectionTree), 1, 1, 0)) P.DoInfectionTree = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do one generation", "%i", (void*) & (P.DoOneGen), 1, 1, 0)) P.DoOneGen = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output every realisation", "%i", (void*) & (P.OutputEveryRealisation), 1, 1, 0)) P.OutputEveryRealisation = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number to sample for correlations", "%i", (void*) & (P.MaxCorrSample), 1, 1, 0)) P.MaxCorrSample = 1000000000;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Assume SI model", "%i", (void*) & (P.DoSI), 1, 1, 0)) P.DoSI = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Assume periodic boundary conditions", "%i", (void*) & (P.DoPeriodicBoundaries), 1, 1, 0)) P.DoPeriodicBoundaries = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output non-extinct realisations", "%i", (void*) & (P.OutputOnlyNonExtinct), 1, 1, 0)) P.OutputOnlyNonExtinct = 0;
-
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use cases per thousand threshold for area controls", "%i", (void*) & (P.DoPerCapitaTriggers), 1, 1, 0)) P.DoPerCapitaTriggers = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use global triggers for interventions", "%i", (void*) & (P.DoGlobalTriggers), 1, 1, 0)) P.DoGlobalTriggers = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use admin unit triggers for interventions", "%i", (void*) & (P.DoAdminTriggers), 1, 1, 0)) P.DoAdminTriggers = 0;
-	if(!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use ICU case triggers for interventions", "%i", (void*) & (P.DoICUTriggers), 1, 1, 0)) P.DoICUTriggers = 0;
-	if (P.DoGlobalTriggers)  P.DoAdminTriggers = 0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Divisor for per-capita area threshold (default 1000)", "%i", (void*) & (P.IncThreshPop), 1, 1, 0)) P.IncThreshPop = 1000;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Divisor for per-capita global threshold (default 1000)", "%i", (void*) & (P.GlobalIncThreshPop), 1, 1, 0)) P.GlobalIncThreshPop = 1000;
-
-
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of sampling intervals over which cumulative incidence measured for global trigger", "%i", (void*) & (P.TriggersSamplingInterval), 1, 1, 0)) P.TriggersSamplingInterval = 10000000;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected for treatment", "%lf", (void*) & (P.PostAlertControlPropCasesId), 1, 1, 0)) P.PostAlertControlPropCasesId = 1;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of cases detected before outbreak alert", "%lf", (void*) & (P.PreAlertControlPropCasesId), 1, 1, 0)) P.PreAlertControlPropCasesId = 1.0;
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger alert on deaths", "%i", (void*)&(P.TriggerAlertOnDeaths), 1, 1, 0)) P.TriggerAlertOnDeaths = 0;
 	if (P.TriggerAlertOnDeaths)
 	{
-		if (P.CaseOrDeathThresholdBeforeAlert == 0)
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of deaths accummulated before alert", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
-	else if (P.CaseOrDeathThresholdBeforeAlert == 0)
+	else
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*) & (P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of detected cases needed before outbreak alert triggered", "%i", (void*)&(P.CaseOrDeathThresholdBeforeAlert), 1, 1, 0)) P.CaseOrDeathThresholdBeforeAlert = 0;
 	}
+
+	if (P.CaseOrDeathThresholdBeforeAlert_CommandLine > 0) P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_CommandLine;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Alert trigger starts after interventions", "%i", (void*)&(P.DoAlertTriggerAfterInterv), 1, 1, 0)) P.DoAlertTriggerAfterInterv = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Day of year trigger is reached", "%lf", (void*)&(P.DateTriggerReached_CalTime), 1, 1, 0)) P.DateTriggerReached_CalTime = -1;
 	if (P.DoAlertTriggerAfterInterv)
@@ -1162,15 +1305,20 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		{
 			P.AlertTriggerAfterIntervThreshold = P.CaseOrDeathThresholdBeforeAlert;
 			P.CaseOrDeathThresholdBeforeAlert = 1000;
+			fprintf(stderr, "Threshold of %i deaths by day %lg\n", P.AlertTriggerAfterIntervThreshold, P.DateTriggerReached_CalTime);
 		}
 	}
 	else
+	{
 		P.Interventions_StartDate_CalTime = P.DateTriggerReached_CalTime;
-	P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
-	//if (P.DoAlertTriggerAfterInterv) P.ResetSeeds =P.KeepSameSeeds = 1;
+	}
+	if (P.FitIter == 0)
+	{
+		P.CaseOrDeathThresholdBeforeAlert_Fixed = P.CaseOrDeathThresholdBeforeAlert;
+	}
+
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of days to accummulate cases/deaths before alert", "%i", (void*)&(P.WindowToEvaluateTriggerAlert), 1, 1, 0)) P.WindowToEvaluateTriggerAlert = 1000;
 
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only use confirmed cases to trigger alert", "%i", (void*) & (P.DoEarlyCaseDiagnosis), 1, 1, 0)) P.DoEarlyCaseDiagnosis = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only treat mixing groups within places", "%i", (void*) & (P.DoPlaceGroupTreat), 1, 1, 0)) P.DoPlaceGroupTreat = 0;
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Treatment trigger incidence per cell"				, "%lf", (void*) & (P.TreatCellIncThresh)			, 1, 1, 0)) P.TreatCellIncThresh			= 1000000000;
@@ -1361,10 +1509,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output digital contact tracing", "%i", (void*) & (P.OutputDigitalContactTracing), 1, 1, 0)) P.OutputDigitalContactTracing = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output digital contact distribution", "%i", (void*)&(P.OutputDigitalContactDist), 1, 1, 0)) P.OutputDigitalContactDist = 0;
 
-		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include household contacts in digital contact tracing", "%i", (void*) & (P.IncludeHouseholdDigitalContactTracing), 1, 1, 0)) P.IncludeHouseholdDigitalContactTracing = 1;
-		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Include place group contacts in digital contact tracing", "%i", (void*) & (P.IncludePlaceGroupDigitalContactTracing), 1, 1, 0)) P.IncludePlaceGroupDigitalContactTracing = 1;
-
-		//added admin unit specific delays by admin unit
 		if (P.DoInterventionDelaysByAdUnit)
 		{
 			double AdunitDelayToDCT[MAX_ADUNITS];
@@ -1823,79 +1967,80 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.DCT_MaxToTrace_OverTime				[DCT_ChangeTime] = P.DCT_MaxToTrace_OverTime			[P.Num_DCT_ChangeTimes - 1];
 		}
 	}
-
-	if (P.DoPlaces)
+	if(P.FitIter==0)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers randomly distributed in the population", "%i", (void*) & (P.KeyWorkerPopNum), 1, 1, 0)) P.KeyWorkerPopNum = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers in different places by place type", "%i", (void*)P.KeyWorkerPlaceNum, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPlaceNum[i] = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of staff who are key workers per chosen place by place type", "%lf", (void*)P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1, 0))
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPropInKeyPlaces[i] = 1.0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for key worker prophylaxis", "%i", (void*) & (P.KeyWorkerProphCellIncThresh), 1, 1, 0)) P.KeyWorkerProphCellIncThresh = 1000000000;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Key worker prophylaxis start time", "%lf", (void*) & (P.KeyWorkerProphTimeStartBase), 1, 1, 0)) P.KeyWorkerProphTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of key worker prophylaxis", "%lf", (void*) & (P.KeyWorkerProphDuration), 1, 1, 0)) P.KeyWorkerProphDuration = 0;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time interval from start of key worker prophylaxis before policy restarted", "%lf", (void*) & (P.KeyWorkerProphRenewalDuration), 1, 1, 0)) P.KeyWorkerProphRenewalDuration = P.KeyWorkerProphDuration;
-		if (P.DoHouseholds)
+		if (P.DoPlaces)
 		{
-			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of key workers whose households are also treated as key workers", "%lf", (void*) & (P.KeyWorkerHouseProp), 1, 1, 0)) P.KeyWorkerHouseProp = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers randomly distributed in the population", "%i", (void*) & (P.KeyWorkerPopNum), 1, 1, 0)) P.KeyWorkerPopNum = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Number of key workers in different places by place type", "%i", (void*)P.KeyWorkerPlaceNum, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPlaceNum[i] = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of staff who are key workers per chosen place by place type", "%lf", (void*)P.KeyWorkerPropInKeyPlaces, P.PlaceTypeNum, 1, 0))
+				for (i = 0; i < NUM_PLACE_TYPES; i++) P.KeyWorkerPropInKeyPlaces[i] = 1.0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Trigger incidence per cell for key worker prophylaxis", "%i", (void*) & (P.KeyWorkerProphCellIncThresh), 1, 1, 0)) P.KeyWorkerProphCellIncThresh = 1000000000;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Key worker prophylaxis start time", "%lf", (void*) & (P.KeyWorkerProphTimeStartBase), 1, 1, 0)) P.KeyWorkerProphTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Duration of key worker prophylaxis", "%lf", (void*) & (P.KeyWorkerProphDuration), 1, 1, 0)) P.KeyWorkerProphDuration = 0;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Time interval from start of key worker prophylaxis before policy restarted", "%lf", (void*) & (P.KeyWorkerProphRenewalDuration), 1, 1, 0)) P.KeyWorkerProphRenewalDuration = P.KeyWorkerProphDuration;
+			if (P.DoHouseholds)
+			{
+				if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of key workers whose households are also treated as key workers", "%lf", (void*) & (P.KeyWorkerHouseProp), 1, 1, 0)) P.KeyWorkerHouseProp = 0;
+			}
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Minimum radius for key worker prophylaxis", "%lf", (void*) & (P.KeyWorkerProphRadius), 1, 1, 0)) P.KeyWorkerProphRadius = 0;
 		}
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Minimum radius for key worker prophylaxis", "%lf", (void*) & (P.KeyWorkerProphRadius), 1, 1, 0)) P.KeyWorkerProphRadius = 0;
-	}
-	else
-	{
-		P.KeyWorkerPopNum = 0;
-		P.KeyWorkerProphTimeStartBase = 1e10;
-	}
+		else
+		{
+			P.KeyWorkerPopNum = 0;
+			P.KeyWorkerProphTimeStartBase = 1e10;
+		}
 
-	//Added this to parameter list so that recording infection events (and the number to record) can easily be turned off and on: ggilani - 10/10/2014
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Record infection events", "%i", (void*) & (P.DoRecordInfEvents), 1, 1, 0)) P.DoRecordInfEvents = 0;
-	if (P.DoRecordInfEvents)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max number of infection events to record", "%i", (void*) & (P.MaxInfEvents), 1, 1, 0)) P.MaxInfEvents = 1000;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Record infection events per run", "%i", (void*) & (P.RecordInfEventsPerRun), 1, 1, 0)) P.RecordInfEventsPerRun = 0;
-	}
-	else
-	{
-		P.MaxInfEvents = 0;
-	}
-	//Include a limit to the number of infections to simulate, if this happens before time runs out
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Limit number of infections", "%i", (void*) & (P.LimitNumInfections), 1, 1, 0)) P.LimitNumInfections = 0;
-	if (P.LimitNumInfections)
-	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max number of infections", "%i", (void*) & (P.MaxNumInfections), 1, 1, 0)) P.MaxNumInfections = 60000;
-	}
-	//Add origin-destination matrix parameter
-	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output origin destination matrix", "%i", (void*) & (P.DoOriginDestinationMatrix), 1, 1, 0)) P.DoOriginDestinationMatrix = 0;
+		//Added this to parameter list so that recording infection events (and the number to record) can easily be turned off and on: ggilani - 10/10/2014
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Record infection events", "%i", (void*) & (P.DoRecordInfEvents), 1, 1, 0)) P.DoRecordInfEvents = 0;
+		if (P.DoRecordInfEvents)
+		{
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max number of infection events to record", "%i", (void*) & (P.MaxInfEvents), 1, 1, 0)) P.MaxInfEvents = 1000;
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Record infection events per run", "%i", (void*) & (P.RecordInfEventsPerRun), 1, 1, 0)) P.RecordInfEventsPerRun = 0;
+		}
+		else
+		{
+			P.MaxInfEvents = 0;
+		}
+		//Include a limit to the number of infections to simulate, if this happens before time runs out
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Limit number of infections", "%i", (void*) & (P.LimitNumInfections), 1, 1, 0)) P.LimitNumInfections = 0;
+		if (P.LimitNumInfections)
+		{
+			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Max number of infections", "%i", (void*) & (P.MaxNumInfections), 1, 1, 0)) P.MaxNumInfections = 60000;
+		}
+		//Add origin-destination matrix parameter
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Output origin destination matrix", "%i", (void*) & (P.DoOriginDestinationMatrix), 1, 1, 0)) P.DoOriginDestinationMatrix = 0;
 
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Mean child age gap", "%i", (void*) & (P.MeanChildAgeGap), 1, 1, 0)) P.MeanChildAgeGap=2;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Min adult age", "%i", (void*)&(P.MinAdultAge), 1, 1, 0)) P.MinAdultAge = 19;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max MF partner age gap", "%i", (void*) & (P.MaxMFPartnerAgeGap), 1, 1, 0)) P.MaxMFPartnerAgeGap = 5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max FM partner age gap", "%i", (void*) & (P.MaxFMPartnerAgeGap), 1, 1, 0)) P.MaxFMPartnerAgeGap = 5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Min parent age gap", "%i", (void*) & (P.MinParentAgeGap), 1, 1, 0)) P.MinParentAgeGap = 19;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max parent age gap", "%i", (void*) & (P.MaxParentAgeGap), 1, 1, 0)) P.MaxParentAgeGap = 44;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max child age", "%i", (void*) & (P.MaxChildAge), 1, 1, 0)) P.MaxChildAge = 20;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Two Pers Prob", "%lf", (void*) & (P.OneChildTwoPersProb), 1, 1, 0)) P.OneChildTwoPersProb = 0.08;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Child Three Pers Prob", "%lf", (void*) & (P.TwoChildThreePersProb), 1, 1, 0)) P.TwoChildThreePersProb = 0.11;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Pers House Prob Old", "%lf", (void*) & (P.OnePersHouseProbOld), 1, 1, 0)) P.OnePersHouseProbOld = 0.5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Pers House Prob Old", "%lf", (void*) & (P.TwoPersHouseProbOld), 1, 1, 0)) P.TwoPersHouseProbOld = 0.5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Pers House Prob Young", "%lf", (void*) & (P.OnePersHouseProbYoung), 1, 1, 0)) P.OnePersHouseProbYoung = 0.23;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Pers House Prob Young", "%lf", (void*) & (P.TwoPersHouseProbYoung), 1, 1, 0)) P.TwoPersHouseProbYoung = 0.23;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Prob Youngest Child Under Five", "%lf", (void*) & (P.OneChildProbYoungestChildUnderFive), 1, 1, 0)) P.OneChildProbYoungestChildUnderFive = 0.5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Children Prob Youngest Under Five", "%lf", (void*) & (P.TwoChildrenProbYoungestUnderFive), 1, 1, 0)) P.TwoChildrenProbYoungestUnderFive = 0.0;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Prob Youngest Child Under Five", "%lf", (void*) & (P.ProbYoungestChildUnderFive), 1, 1, 0)) P.ProbYoungestChildUnderFive = 0;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Zero Child Three Pers Prob", "%lf", (void*) & (P.ZeroChildThreePersProb), 1, 1, 0)) P.ZeroChildThreePersProb = 0.25;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Four Pers Prob", "%lf", (void*) & (P.OneChildFourPersProb), 1, 1, 0)) P.OneChildFourPersProb = 0.2;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Young And Single Slope", "%lf", (void*) & (P.YoungAndSingleSlope), 1, 1, 0)) P.YoungAndSingleSlope = 0.7;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Young And Single", "%i", (void*) & (P.YoungAndSingle), 1, 1, 0)) P.YoungAndSingle = 36;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "No Child Pers Age", "%i", (void*) & (P.NoChildPersAge), 1, 1, 0)) P.NoChildPersAge = 44;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Old Pers Age", "%i", (void*) & (P.OldPersAge), 1, 1, 0)) P.OldPersAge = 60;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Three Child Five Pers Prob", "%lf", (void*) & (P.ThreeChildFivePersProb), 1, 1, 0)) P.ThreeChildFivePersProb = 0.5;
-	if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Older Gen Gap", "%i", (void*) & (P.OlderGenGap), 1, 1, 0)) P.OlderGenGap = 19;
-
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Mean child age gap", "%i", (void*) & (P.MeanChildAgeGap), 1, 1, 0)) P.MeanChildAgeGap=2;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Min adult age", "%i", (void*)&(P.MinAdultAge), 1, 1, 0)) P.MinAdultAge = 19;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max MF partner age gap", "%i", (void*) & (P.MaxMFPartnerAgeGap), 1, 1, 0)) P.MaxMFPartnerAgeGap = 5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max FM partner age gap", "%i", (void*) & (P.MaxFMPartnerAgeGap), 1, 1, 0)) P.MaxFMPartnerAgeGap = 5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Min parent age gap", "%i", (void*) & (P.MinParentAgeGap), 1, 1, 0)) P.MinParentAgeGap = 19;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max parent age gap", "%i", (void*) & (P.MaxParentAgeGap), 1, 1, 0)) P.MaxParentAgeGap = 44;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Max child age", "%i", (void*) & (P.MaxChildAge), 1, 1, 0)) P.MaxChildAge = 20;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Two Pers Prob", "%lf", (void*) & (P.OneChildTwoPersProb), 1, 1, 0)) P.OneChildTwoPersProb = 0.08;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Child Three Pers Prob", "%lf", (void*) & (P.TwoChildThreePersProb), 1, 1, 0)) P.TwoChildThreePersProb = 0.11;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Pers House Prob Old", "%lf", (void*) & (P.OnePersHouseProbOld), 1, 1, 0)) P.OnePersHouseProbOld = 0.5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Pers House Prob Old", "%lf", (void*) & (P.TwoPersHouseProbOld), 1, 1, 0)) P.TwoPersHouseProbOld = 0.5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Pers House Prob Young", "%lf", (void*) & (P.OnePersHouseProbYoung), 1, 1, 0)) P.OnePersHouseProbYoung = 0.23;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Pers House Prob Young", "%lf", (void*) & (P.TwoPersHouseProbYoung), 1, 1, 0)) P.TwoPersHouseProbYoung = 0.23;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Prob Youngest Child Under Five", "%lf", (void*) & (P.OneChildProbYoungestChildUnderFive), 1, 1, 0)) P.OneChildProbYoungestChildUnderFive = 0.5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Two Children Prob Youngest Under Five", "%lf", (void*) & (P.TwoChildrenProbYoungestUnderFive), 1, 1, 0)) P.TwoChildrenProbYoungestUnderFive = 0.0;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Prob Youngest Child Under Five", "%lf", (void*) & (P.ProbYoungestChildUnderFive), 1, 1, 0)) P.ProbYoungestChildUnderFive = 0;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Zero Child Three Pers Prob", "%lf", (void*) & (P.ZeroChildThreePersProb), 1, 1, 0)) P.ZeroChildThreePersProb = 0.25;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "One Child Four Pers Prob", "%lf", (void*) & (P.OneChildFourPersProb), 1, 1, 0)) P.OneChildFourPersProb = 0.2;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Young And Single Slope", "%lf", (void*) & (P.YoungAndSingleSlope), 1, 1, 0)) P.YoungAndSingleSlope = 0.7;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Young And Single", "%i", (void*) & (P.YoungAndSingle), 1, 1, 0)) P.YoungAndSingle = 36;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "No Child Pers Age", "%i", (void*) & (P.NoChildPersAge), 1, 1, 0)) P.NoChildPersAge = 44;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Old Pers Age", "%i", (void*) & (P.OldPersAge), 1, 1, 0)) P.OldPersAge = 60;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Three Child Five Pers Prob", "%lf", (void*) & (P.ThreeChildFivePersProb), 1, 1, 0)) P.ThreeChildFivePersProb = 0.5;
+		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Older Gen Gap", "%i", (void*) & (P.OlderGenGap), 1, 1, 0)) P.OlderGenGap = 19;
+	}
 	// Close input files.
 	fclose(ParamFile_dat);
-	if (PreParamFile_dat != NULL) fclose(PreParamFile_dat);
-	if (ParamFile_dat != AdminFile_dat && AdminFile_dat != NULL) fclose(AdminFile_dat);
+	fclose(PreParamFile_dat);
+	fclose(AdminFile_dat);
 
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
@@ -1942,6 +2087,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			sinx[i] = sin(t);
 			cosx[i] = cos(t);
 		}
+	}
+	if (P.R0scale != 1.0)
+	{
+		P.HouseholdTrans *= P.R0scale;
+		if (P.FixLocalBeta) P.LocalBeta *= P.R0scale;
+		P.R0 *= P.R0scale;
+		for (int j = 0; j < P.PlaceTypeNum; j++) P.PlaceTypeTrans[j] *= P.R0scale;
+		fprintf(stderr, "Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
 	}
 	fprintf(stderr, "Parameters read\n");
 }
@@ -2696,7 +2849,11 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
 	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
 	if (!P.StopCalibration) P.DateTriggerReached_SimTime = 0;
-
+	if (P.InitialInfectionCalTime > 0)
+	{
+		P.HolidaysStartDay_SimTime = -P.InitialInfectionCalTime;
+		P.DateTriggerReached_SimTime = P.Epidemic_StartDate_CalTime = P.Interventions_StartDate_CalTime - P.InitialInfectionCalTime;
+	}
 	fprintf(stderr, "Finished InitModel.\n");
 }
 
@@ -2726,7 +2883,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
 				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType<0 || Hosts[l].PlaceLinks[P.CareHomePlaceType]<0))
 					{
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
@@ -2762,7 +2919,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 					if (Hosts[l].inf == InfStat_Susceptible)
 					{
-						if (CalcPersonSusc(l, 0, 0, 0) > 0)
+						if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 						{
 							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
 							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
@@ -2798,7 +2955,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 				if (Hosts[l].inf == InfStat_Susceptible)
 				{
-					if (CalcPersonSusc(l, 0, 0, 0) > 0)
+					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age<=P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 					{
 						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
 						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
@@ -2878,7 +3035,10 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 
 	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
 	{
+
 		RecordSample(t, ns - 1, output_file_base);
+		CalibrationThresholdCheck(t, ns - 1);
+
 		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
 			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
 		if (!InterruptRun)
@@ -3308,7 +3468,7 @@ void SaveResults(std::string const& output_file_base)
 #endif
 
 
-	if(P.DoSeverity)
+	if((P.DoSeverity)&&(P.OutputSeverity))
 	{
 		outname = output_file_base + ".severity.xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
@@ -3440,6 +3600,7 @@ void SaveResults(std::string const& output_file_base)
 					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
+		fclose(dat);
 	}
 }
 
@@ -3557,7 +3718,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][0]);
+		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%i", AdUnits[i].n);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
 		fprintf(dat, "\n");
 		for(i = 0; i < P.NumSamples; i++)
@@ -3752,7 +3913,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		fclose(dat);
 	}
 
-	if (P.DoSeverity)
+	if ((P.DoSeverity)&&(P.OutputSeverity))
 	{
 		//// output separate severity file (can integrate with main if need be)
 		outname = output_file_base + ".severity.xls";
@@ -4108,6 +4269,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
+		fclose(dat);
 	}
 
 }
@@ -4519,7 +4681,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
 	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
 	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases, trigAlert, trigAlertCases;
+	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
 	unsigned short int ts;
 
@@ -4581,21 +4743,21 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 		if (P.DoSeverity)
 		{
 			///// severity states by thread
-			Mild				+= StateT[j].Mild				;
-			ILI					+= StateT[j].ILI				;
-			SARI				+= StateT[j].SARI				;
-			Critical			+= StateT[j].Critical			;
-			CritRecov			+= StateT[j].CritRecov			;
+			Mild += StateT[j].Mild;
+			ILI += StateT[j].ILI;
+			SARI += StateT[j].SARI;
+			Critical += StateT[j].Critical;
+			CritRecov += StateT[j].CritRecov;
 
 			///// cumulative severity states by thread
-			cumMild				+= StateT[j].cumMild			;
-			cumILI				+= StateT[j].cumILI				;
-			cumSARI				+= StateT[j].cumSARI			;
-			cumCritical			+= StateT[j].cumCritical		;
-			cumCritRecov		+= StateT[j].cumCritRecov		;
-			cumDeath_ILI		+= StateT[j].cumDeath_ILI		;
-			cumDeath_SARI		+= StateT[j].cumDeath_SARI		;
-			cumDeath_Critical	+= StateT[j].cumDeath_Critical	;
+			cumMild += StateT[j].cumMild;
+			cumILI += StateT[j].cumILI;
+			cumSARI += StateT[j].cumSARI;
+			cumCritical += StateT[j].cumCritical;
+			cumCritRecov += StateT[j].cumCritRecov;
+			cumDeath_ILI += StateT[j].cumDeath_ILI;
+			cumDeath_SARI += StateT[j].cumDeath_SARI;
+			cumDeath_Critical += StateT[j].cumDeath_Critical;
 		}
 
 		//add up cumulative country counts: ggilani - 12/11/14
@@ -4690,44 +4852,44 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	{
 
 		//// Record incidence. (Must be done with old State totals)
-		TimeSeries[n].incMild			= (double)(cumMild				- State.cumMild				);
-		TimeSeries[n].incILI			= (double)(cumILI				- State.cumILI				);
-		TimeSeries[n].incSARI			= (double)(cumSARI				- State.cumSARI				);
-		TimeSeries[n].incCritical		= (double)(cumCritical			- State.cumCritical			);
-		TimeSeries[n].incCritRecov		= (double)(cumCritRecov			- State.cumCritRecov		);
-		TimeSeries[n].incDeath_ILI		= (double)(cumDeath_ILI			- State.cumDeath_ILI		);
-		TimeSeries[n].incDeath_SARI		= (double)(cumDeath_SARI		- State.cumDeath_SARI		);
-		TimeSeries[n].incDeath_Critical	= (double)(cumDeath_Critical	- State.cumDeath_Critical	);
+		TimeSeries[n].incMild = (double)(cumMild - State.cumMild);
+		TimeSeries[n].incILI = (double)(cumILI - State.cumILI);
+		TimeSeries[n].incSARI = (double)(cumSARI - State.cumSARI);
+		TimeSeries[n].incCritical = (double)(cumCritical - State.cumCritical);
+		TimeSeries[n].incCritRecov = (double)(cumCritRecov - State.cumCritRecov);
+		TimeSeries[n].incDeath_ILI = (double)(cumDeath_ILI - State.cumDeath_ILI);
+		TimeSeries[n].incDeath_SARI = (double)(cumDeath_SARI - State.cumDeath_SARI);
+		TimeSeries[n].incDeath_Critical = (double)(cumDeath_Critical - State.cumDeath_Critical);
 
 		/////// update state with totals
-		State.Mild				= Mild				;
-		State.ILI				= ILI				;
-		State.SARI				= SARI				;
-		State.Critical			= Critical			;
-		State.CritRecov			= CritRecov			;
-		State.cumMild			= cumMild			;
-		State.cumILI			= cumILI			;
-		State.cumSARI			= cumSARI			;
-		State.cumCritical		= cumCritical		;
-		State.cumCritRecov		= cumCritRecov		;
-		State.cumDeath_ILI		= cumDeath_ILI		;
-		State.cumDeath_SARI		= cumDeath_SARI		;
-		State.cumDeath_Critical	= cumDeath_Critical	;
+		State.Mild = Mild;
+		State.ILI = ILI;
+		State.SARI = SARI;
+		State.Critical = Critical;
+		State.CritRecov = CritRecov;
+		State.cumMild = cumMild;
+		State.cumILI = cumILI;
+		State.cumSARI = cumSARI;
+		State.cumCritical = cumCritical;
+		State.cumCritRecov = cumCritRecov;
+		State.cumDeath_ILI = cumDeath_ILI;
+		State.cumDeath_SARI = cumDeath_SARI;
+		State.cumDeath_Critical = cumDeath_Critical;
 
 		//// Record new totals for time series. (Must be done with old State totals)
-		TimeSeries[n].Mild				= Mild				;
-		TimeSeries[n].ILI				= ILI				;
-		TimeSeries[n].SARI				= SARI				;
-		TimeSeries[n].Critical			= Critical			;
-		TimeSeries[n].CritRecov			= CritRecov			;
-		TimeSeries[n].cumMild			= cumMild			;
-		TimeSeries[n].cumILI			= cumILI			;
-		TimeSeries[n].cumSARI			= cumSARI			;
-		TimeSeries[n].cumCritical		= cumCritical		;
-		TimeSeries[n].cumCritRecov		= cumCritRecov		;
-		TimeSeries[n].cumDeath_ILI		= cumDeath_ILI		;
-		TimeSeries[n].cumDeath_SARI		= cumDeath_SARI		;
-		TimeSeries[n].cumDeath_Critical	= cumDeath_Critical	;
+		TimeSeries[n].Mild = Mild;
+		TimeSeries[n].ILI = ILI;
+		TimeSeries[n].SARI = SARI;
+		TimeSeries[n].Critical = Critical;
+		TimeSeries[n].CritRecov = CritRecov;
+		TimeSeries[n].cumMild = cumMild;
+		TimeSeries[n].cumILI = cumILI;
+		TimeSeries[n].cumSARI = cumSARI;
+		TimeSeries[n].cumCritical = cumCritical;
+		TimeSeries[n].cumCritRecov = cumCritRecov;
+		TimeSeries[n].cumDeath_ILI = cumDeath_ILI;
+		TimeSeries[n].cumDeath_SARI = cumDeath_SARI;
+		TimeSeries[n].cumDeath_Critical = cumDeath_Critical;
 
 		for (int i = 0; i < NUM_AGE_GROUPS; i++)
 		{
@@ -4804,77 +4966,77 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			{
 				//// Record incidence. Need new total minus old total (same as minus old total plus new total).
 				//// First subtract old total while unchanged.
-				TimeSeries[n].incMild_adunit			[i] = (double)(-State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] = (double)(-State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] = (double)(-State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] = (double)(-State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] = (double)(-State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] = (double)(-State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] = (double)(-State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] = (double)(-State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] = (double)(-State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[n].incMild_adunit[i] = (double)(-State.cumMild_adunit[i]);
+				TimeSeries[n].incILI_adunit[i] = (double)(-State.cumILI_adunit[i]);
+				TimeSeries[n].incSARI_adunit[i] = (double)(-State.cumSARI_adunit[i]);
+				TimeSeries[n].incCritical_adunit[i] = (double)(-State.cumCritical_adunit[i]);
+				TimeSeries[n].incCritRecov_adunit[i] = (double)(-State.cumCritRecov_adunit[i]);
+				TimeSeries[n].incD_adunit[i] = (double)(-State.cumD_adunit[i]);
+				TimeSeries[n].incDeath_ILI_adunit[i] = (double)(-State.cumDeath_ILI_adunit[i]);
+				TimeSeries[n].incDeath_SARI_adunit[i] = (double)(-State.cumDeath_SARI_adunit[i]);
+				TimeSeries[n].incDeath_Critical_adunit[i] = (double)(-State.cumDeath_Critical_adunit[i]);
 
 				//// reset State (not StateT) to zero. Don't need to do this with non-admin unit as local variables Mild, cumSARI etc. initialized to zero at beginning of function. Check with Gemma
-				State.Mild_adunit				[i] = 0;
-				State.ILI_adunit				[i] = 0;
-				State.SARI_adunit				[i] = 0;
-				State.Critical_adunit			[i] = 0;
-				State.CritRecov_adunit			[i] = 0;
-				State.cumMild_adunit			[i] = 0;
-				State.cumILI_adunit				[i] = 0;
-				State.cumSARI_adunit			[i] = 0;
-				State.cumCritical_adunit		[i] = 0;
-				State.cumCritRecov_adunit		[i] = 0;
-				State.cumD_adunit				[i] = 0;
-				State.cumDeath_ILI_adunit		[i] = 0;
-				State.cumDeath_SARI_adunit		[i] = 0;
-				State.cumDeath_Critical_adunit	[i] = 0;
+				State.Mild_adunit[i] = 0;
+				State.ILI_adunit[i] = 0;
+				State.SARI_adunit[i] = 0;
+				State.Critical_adunit[i] = 0;
+				State.CritRecov_adunit[i] = 0;
+				State.cumMild_adunit[i] = 0;
+				State.cumILI_adunit[i] = 0;
+				State.cumSARI_adunit[i] = 0;
+				State.cumCritical_adunit[i] = 0;
+				State.cumCritRecov_adunit[i] = 0;
+				State.cumD_adunit[i] = 0;
+				State.cumDeath_ILI_adunit[i] = 0;
+				State.cumDeath_SARI_adunit[i] = 0;
+				State.cumDeath_Critical_adunit[i] = 0;
 
 				for (j = 0; j < P.NumThreads; j++)
 				{
 					//// collate from threads
-					State.Mild_adunit				[i] += StateT[j].Mild_adunit				[i];
-					State.ILI_adunit				[i] += StateT[j].ILI_adunit					[i];
-					State.SARI_adunit				[i] += StateT[j].SARI_adunit				[i];
-					State.Critical_adunit			[i] += StateT[j].Critical_adunit			[i];
-					State.CritRecov_adunit			[i] += StateT[j].CritRecov_adunit			[i];
-					State.cumMild_adunit			[i] += StateT[j].cumMild_adunit				[i];
-					State.cumILI_adunit				[i] += StateT[j].cumILI_adunit				[i];
-					State.cumSARI_adunit			[i] += StateT[j].cumSARI_adunit				[i];
-					State.cumCritical_adunit		[i] += StateT[j].cumCritical_adunit			[i];
-					State.cumCritRecov_adunit		[i] += StateT[j].cumCritRecov_adunit		[i];
-					State.cumD_adunit				[i] += StateT[j].cumD_adunit				[i];
-					State.cumDeath_ILI_adunit		[i] += StateT[j].cumDeath_ILI_adunit		[i];
-					State.cumDeath_SARI_adunit		[i] += StateT[j].cumDeath_SARI_adunit		[i];
-					State.cumDeath_Critical_adunit	[i] += StateT[j].cumDeath_Critical_adunit	[i];
+					State.Mild_adunit[i] += StateT[j].Mild_adunit[i];
+					State.ILI_adunit[i] += StateT[j].ILI_adunit[i];
+					State.SARI_adunit[i] += StateT[j].SARI_adunit[i];
+					State.Critical_adunit[i] += StateT[j].Critical_adunit[i];
+					State.CritRecov_adunit[i] += StateT[j].CritRecov_adunit[i];
+					State.cumMild_adunit[i] += StateT[j].cumMild_adunit[i];
+					State.cumILI_adunit[i] += StateT[j].cumILI_adunit[i];
+					State.cumSARI_adunit[i] += StateT[j].cumSARI_adunit[i];
+					State.cumCritical_adunit[i] += StateT[j].cumCritical_adunit[i];
+					State.cumCritRecov_adunit[i] += StateT[j].cumCritRecov_adunit[i];
+					State.cumD_adunit[i] += StateT[j].cumD_adunit[i];
+					State.cumDeath_ILI_adunit[i] += StateT[j].cumDeath_ILI_adunit[i];
+					State.cumDeath_SARI_adunit[i] += StateT[j].cumDeath_SARI_adunit[i];
+					State.cumDeath_Critical_adunit[i] += StateT[j].cumDeath_Critical_adunit[i];
 				}
 
 				//// Record incidence. Need new total minus old total. Add new total
-				TimeSeries[n].incMild_adunit			[i] += (double)(State.cumMild_adunit			[i]);
-				TimeSeries[n].incILI_adunit				[i] += (double)(State.cumILI_adunit				[i]);
-				TimeSeries[n].incSARI_adunit			[i] += (double)(State.cumSARI_adunit			[i]);
-				TimeSeries[n].incCritical_adunit		[i] += (double)(State.cumCritical_adunit		[i]);
-				TimeSeries[n].incCritRecov_adunit		[i] += (double)(State.cumCritRecov_adunit		[i]);
-				TimeSeries[n].incD_adunit				[i] += (double)(State.cumD_adunit				[i]);
-				TimeSeries[n].incDeath_ILI_adunit		[i] += (double)(State.cumDeath_ILI_adunit		[i]);
-				TimeSeries[n].incDeath_SARI_adunit		[i] += (double)(State.cumDeath_SARI_adunit		[i]);
-				TimeSeries[n].incDeath_Critical_adunit	[i] += (double)(State.cumDeath_Critical_adunit	[i]);
+				TimeSeries[n].incMild_adunit[i] += (double)(State.cumMild_adunit[i]);
+				TimeSeries[n].incILI_adunit[i] += (double)(State.cumILI_adunit[i]);
+				TimeSeries[n].incSARI_adunit[i] += (double)(State.cumSARI_adunit[i]);
+				TimeSeries[n].incCritical_adunit[i] += (double)(State.cumCritical_adunit[i]);
+				TimeSeries[n].incCritRecov_adunit[i] += (double)(State.cumCritRecov_adunit[i]);
+				TimeSeries[n].incD_adunit[i] += (double)(State.cumD_adunit[i]);
+				TimeSeries[n].incDeath_ILI_adunit[i] += (double)(State.cumDeath_ILI_adunit[i]);
+				TimeSeries[n].incDeath_SARI_adunit[i] += (double)(State.cumDeath_SARI_adunit[i]);
+				TimeSeries[n].incDeath_Critical_adunit[i] += (double)(State.cumDeath_Critical_adunit[i]);
 
 				//// Record new totals for time series. (Must be done with old State totals)
-				TimeSeries[n].Mild_adunit				[i] = State.Mild_adunit					[i];
-				TimeSeries[n].ILI_adunit				[i] = State.ILI_adunit					[i];
-				TimeSeries[n].SARI_adunit				[i] = State.SARI_adunit					[i];
-				TimeSeries[n].Critical_adunit			[i] = State.Critical_adunit				[i];
-				TimeSeries[n].CritRecov_adunit			[i] = State.CritRecov_adunit			[i];
-				TimeSeries[n].cumMild_adunit			[i] = State.cumMild_adunit				[i];
-				TimeSeries[n].cumILI_adunit				[i] = State.cumILI_adunit				[i];
-				TimeSeries[n].cumSARI_adunit			[i] = State.cumSARI_adunit				[i];
-				TimeSeries[n].cumCritical_adunit		[i] = State.cumCritical_adunit			[i];
-				TimeSeries[n].cumCritRecov_adunit		[i] = State.cumCritRecov_adunit			[i];
-				TimeSeries[n].cumD_adunit				[i] = State.cumD_adunit					[i];
-				TimeSeries[n].cumDeath_ILI_adunit		[i] = State.cumDeath_ILI_adunit			[i];
-				TimeSeries[n].cumDeath_SARI_adunit		[i] = State.cumDeath_SARI_adunit		[i];
-				TimeSeries[n].cumDeath_Critical_adunit	[i] = State.cumDeath_Critical_adunit	[i];
+				TimeSeries[n].Mild_adunit[i] = State.Mild_adunit[i];
+				TimeSeries[n].ILI_adunit[i] = State.ILI_adunit[i];
+				TimeSeries[n].SARI_adunit[i] = State.SARI_adunit[i];
+				TimeSeries[n].Critical_adunit[i] = State.Critical_adunit[i];
+				TimeSeries[n].CritRecov_adunit[i] = State.CritRecov_adunit[i];
+				TimeSeries[n].cumMild_adunit[i] = State.cumMild_adunit[i];
+				TimeSeries[n].cumILI_adunit[i] = State.cumILI_adunit[i];
+				TimeSeries[n].cumSARI_adunit[i] = State.cumSARI_adunit[i];
+				TimeSeries[n].cumCritical_adunit[i] = State.cumCritical_adunit[i];
+				TimeSeries[n].cumCritRecov_adunit[i] = State.cumCritRecov_adunit[i];
+				TimeSeries[n].cumD_adunit[i] = State.cumD_adunit[i];
+				TimeSeries[n].cumDeath_ILI_adunit[i] = State.cumDeath_ILI_adunit[i];
+				TimeSeries[n].cumDeath_SARI_adunit[i] = State.cumDeath_SARI_adunit[i];
+				TimeSeries[n].cumDeath_Critical_adunit[i] = State.cumDeath_Critical_adunit[i];
 			}
 	}
 
@@ -4920,7 +5082,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	if (P.DoAdUnits)
 		for (int i = 0; i <= P.NumAdunits; i++)
 		{
-			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] =  0; //added detected cases: ggilani 03/02/15
+			TimeSeries[n].incI_adunit[i] = TimeSeries[n].incC_adunit[i] = TimeSeries[n].cumT_adunit[i] = TimeSeries[n].incH_adunit[i] = TimeSeries[n].incDC_adunit[i] = TimeSeries[n].incCT_adunit[i] = TimeSeries[n].incDCT_adunit[i] = 0; //added detected cases: ggilani 03/02/15
 			for (j = 0; j < P.NumThreads; j++)
 			{
 				TimeSeries[n].incI_adunit[i] += (double)StateT[j].cumI_adunit[i];
@@ -4959,10 +5121,10 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
 	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
-	TimeSeries[n].PropSocDist=((double)k)/((double)P.NMC);
+	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NMC);
 
 	//update contact number distribution in State
-	for (int i = 0; i < (MAX_CONTACTS+1); i++)
+	for (int i = 0; i < (MAX_CONTACTS + 1); i++)
 	{
 		for (j = 0; j < P.NumThreads; j++)
 		{
@@ -4970,30 +5132,56 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			StateT[j].contact_dist[i] = 0;
 		}
 	}
+	if (P.OutputBitmap >= 1)
+	{
+		TSMean = TSMeanNE; TSVar = TSVarNE;
+		CaptureBitmap();
+		OutputBitmap(0, output_file_base);
+	}
+}
+
+void CalibrationThresholdCheck(double t,int n)
+{
+	int k;
+	int trigAlert, trigAlertCases;
+	unsigned short int ts;
+
+	ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	trigAlertCases = State.cumDC;
-	if (n >= P.WindowToEvaluateTriggerAlert) trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
+	if (n >= P.WindowToEvaluateTriggerAlert) {
+		trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
+	}
 
 	if (P.TriggerAlertOnDeaths)  //// if using deaths as trigger (as opposed to detected cases)
 	{
 		trigAlert = (int)TimeSeries[n].D;
 		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
 	}
-	else	trigAlert = trigAlertCases;
+	else
+	{
+		trigAlert = trigAlertCases;
+	}
 
 	double RatioPredictedObserved, DesiredAccuracy; // calibration variables.
-	if(((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) || ((P.DoAlertTriggerAfterInterv) &&
-		(((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert)&&(P.ModelCalibIteration<2)) || ((t>=P.Epidemic_StartDate_CalTime) && (P.ModelCalibIteration >= 2)))))
+
+	if (((P.DoNoCalibration) && (t >= P.Epidemic_StartDate_CalTime)) ||
+		((!P.DoNoCalibration) && (((!P.DoAlertTriggerAfterInterv) && (trigAlert >= P.CaseOrDeathThresholdBeforeAlert)) ||
+		((P.DoAlertTriggerAfterInterv) && (((trigAlertCases >= P.CaseOrDeathThresholdBeforeAlert) && (P.ModelCalibIteration < 2))
+			|| ((t >= P.Epidemic_StartDate_CalTime) && ((P.ModelCalibIteration >= 2)||(P.InitialInfectionCalTime > 0) )))))))
 	{
-		if((!P.StopCalibration)&&(!InterruptRun))
+		if ((!P.DoNoCalibration) && (!P.StopCalibration) && (!InterruptRun))
 		{
-			if (P.DateTriggerReached_SimTime == 0) // i.e. if this is first time that calibration has been called for this realisation.
+			if ((P.DateTriggerReached_SimTime == 0) && (P.InitialInfectionCalTime <=0))
 			{
 				P.Epidemic_StartDate_CalTime = P.DateTriggerReached_SimTime = t; // initialize Epidemic_StartDate_CalTime & DateTriggerReached_SimTime to now (i.e. simulation time that trigger was reached)
 				if (P.DateTriggerReached_CalTime >= 0)
+				{
 					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between DateTriggerReached_SimTime and day of year interventions start.
+//					fprintf(stderr, "@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
+				}
 			}
-			if ((P.DateTriggerReached_CalTime >= 0)&& (!P.DoAlertTriggerAfterInterv))
+			if ((P.DateTriggerReached_CalTime >= 0) && (!P.DoAlertTriggerAfterInterv) && (P.InitialInfectionCalTime <= 0))
 			{
 				P.StopCalibration = 1;
 				InterruptRun = 1;
@@ -5005,38 +5193,61 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 					RatioPredictedObserved = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					DesiredAccuracy = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime,RatioPredictedObserved);
+					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime, RatioPredictedObserved);
 					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
-					if ((P.ModelCalibIteration >= 2) && ((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) || (((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
-						P.StopCalibration = 1;
-					else if (P.ModelCalibIteration == 0)
+
+					if (P.InitialInfectionCalTime > 0)
 					{
-						// rescale threshold
-						k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
-						if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
+						if ((P.ModelCalibIteration >= 2) &&
+							((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) ||
+							(((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
+							P.StopCalibration = 1;
+						else if (P.ModelCalibIteration == 1)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.7);
+						else if (P.ModelCalibIteration == 2)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.6);
+						else if (P.ModelCalibIteration > 2)
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.3 + 0.2 * ranf()); // include random number to prevent loops
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 0)) // on even iterations, adjust timings
+					else
 					{
-						if (RatioPredictedObserved > 1)  // if too many predicted cases/deaths, make timings earlier...
+						if ((P.ModelCalibIteration >= 2) &&
+							((((RatioPredictedObserved - 1.0) <= DesiredAccuracy) && (RatioPredictedObserved >= 1)) ||
+							(((1.0 - RatioPredictedObserved) <= DesiredAccuracy) && (RatioPredictedObserved < 1))))
+							P.StopCalibration = 1;
+						else if (P.ModelCalibIteration == 0)
 						{
-							P.Epidemic_StartDate_CalTime--;
-							P.HolidaysStartDay_SimTime--;
+							k = (int)(((double)P.CaseOrDeathThresholdBeforeAlert) / RatioPredictedObserved);
+							if (k > 0) P.CaseOrDeathThresholdBeforeAlert = k;
 						}
-						else if (RatioPredictedObserved < 1) // ... otherwise if too few cases/deaths,  make timings later
+						else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 < 2))
 						{
-							P.Epidemic_StartDate_CalTime++;
-							P.HolidaysStartDay_SimTime++;
+							if (RatioPredictedObserved > 1)
+							{
+								P.Epidemic_StartDate_CalTime--;
+								P.HolidaysStartDay_SimTime--;
+							}
+							else if (RatioPredictedObserved < 1)
+							{
+								P.Epidemic_StartDate_CalTime++;
+								P.HolidaysStartDay_SimTime++;
+							}
+						}
+						else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 3 == 2))
+						{
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.3 * ranf()); // include random number to prevent loops
 						}
 					}
-					else if ((P.ModelCalibIteration >= 2) && ((P.ModelCalibIteration) % 2 == 1))  // on odd iterations, adjust seeding.
-						P.SeedingScaling /= pow(RatioPredictedObserved, 0.2 + 0.4 * ranf()); // include random number to prevent loops
 					P.ModelCalibIteration++;
 					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 
-					if(P.StopCalibration)	fprintf(stderr, "Calibration ended.\n");
-					else					InterruptRun = 1;
+					if(P.StopCalibration)
+						fprintf(stderr, "Calibration ended.\n");
+					else
+						InterruptRun = 1;
 				}
-				else	P.StopCalibration = 1;
+				else
+					P.StopCalibration = 1;
 			}
 		}
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
@@ -5135,12 +5346,160 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh2;
 		}
 	}
+}
 
-	if (P.OutputBitmap >= 1)
+void CalcLikelihood(int run, std::string const& DataFile, std::string const& OutFileBase)
+{
+	FILE* dat;
+
+	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
+	static double **Data,NegBinK,sumL;
+
+	if (!DataAlreadyRead)
 	{
-		TSMean = TSMeanNE; TSVar = TSVarNE;
-		CaptureBitmap	();
-		OutputBitmap	(0, output_file_base);
+		char FieldName[1024];
+		if (!(dat = fopen(DataFile.c_str(), "r"))) ERR_CRITICAL("Unable to open data file\n");
+		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
+		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		for(int i=0;i<nrows;i++)
+			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		for (int i = 0; i < ncols; i++)
+		{
+			ColTypes[i] = -100;
+			fscanf(dat, "%s", FieldName);
+			if (!strcmp(FieldName, "day"))
+			{
+				ColTypes[i] = -1;
+				if (i != 0) ERR_CRITICAL("'day' must be first column in data file\n");
+			}
+			if (!strcmp(FieldName, "all_deaths"))
+				ColTypes[i] = 0;
+			else if (!strcmp(FieldName, "hospital_deaths"))
+				ColTypes[i] = 1;
+			else if (!strcmp(FieldName, "care_home_deaths"))
+				ColTypes[i] = 2;
+			else if (!strcmp(FieldName, "seroprevalence_numerator"))
+				ColTypes[i] = 3;
+			else if (!strcmp(FieldName, "seroprevalence_denominator"))
+			{
+				ColTypes[i] = 4;
+				if (ColTypes[i - 1] != 3) ERR_CRITICAL("Seroprevalence denominator must be next column after numerator in data file\n");
+			}
+			else if (!strcmp(FieldName, "infection_prevalence_numerator"))
+				ColTypes[i] = 5;
+			else if (!strcmp(FieldName, "infection_prevalence_denominator"))
+			{
+				ColTypes[i] = 6;
+				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
+			}
+		}
+		for (int i = 0; i < nrows; i++)
+			for (int j = 0; j < ncols; j++)
+				fscanf(dat, "%lg", &(Data[i][j]));
+		fclose(dat);
+		DataAlreadyRead = 1;
+	}
+
+	// calculate likelihood function
+	double c, LL=0.0;
+	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; //clP[99] reserved for fitting overdispersion
+	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
+	int offset= (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
+	for (int i = 1; i < ncols;i++)
+	{
+		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2))
+		{
+			double ModelValueSum = 0.0;
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i]>=-1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double ModelValue;
+					if (ColTypes[i]==0)
+						ModelValue=c*TimeSeries[day-offset].incD; // all deaths by date of death
+					else if (ColTypes[i] == 1)
+						ModelValue=c*(TimeSeries[day-offset].incDeath_Critical+ TimeSeries[day-offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
+					else if (ColTypes[i] == 2)
+						ModelValue = c * TimeSeries[day-offset].incDeath_ILI; // care home deaths (ILI) by date of death
+					ModelValueSum += ModelValue;
+					if (Data[j][i] >= 0)
+					{
+						if ((j > 0) && (Data[j - 1][i] == -1)) // cumulative column: -1 means sum column up to first >=0 value
+						{
+							ModelValue = ModelValueSum;
+							ModelValueSum = 0.0;  // reset cumulative sum
+						}
+						if (NegBinK >= 10000)
+							//prob model and data from same underlying poisson
+							LL += lgamma(2 * (Data[j][i] + ModelValue) + 1) - lgamma(Data[j][i] + ModelValue + 1) - lgamma(Data[j][i] + 1) - lgamma(ModelValue + 1) - (3 * (Data[j][i] + ModelValue) + 1) * log(2);
+						else
+						{
+							//neg bin LL (NegBinK=1 implies no over-dispersion. >1 implies more)
+							double knb = 1.0 + ModelValue / kp;
+							double pnb = kp / (1.0 + kp);
+							LL += lgamma(Data[j][i] + knb) - lgamma(Data[j][i] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[j][i] * log(pnb);
+						}
+					}
+				}
+			}
+		}
+		else if (ColTypes[i] == 3) //seroprevalence by date of sample
+		{
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double m = Data[j][i]; // numerator
+					double N = Data[j][i + 1]; // denominator
+					double ModelValue;
+					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
+					{
+						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*(exp(-((double)(day - k))*P.SeroConvP1) + exp(-((double)(day - k))*P.SeroConvP2)));
+						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
+					}
+					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
+					ModelValue /= ((double)P.PopSize);
+					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+				}
+			}
+		}
+		else if (ColTypes[i] == 5) // infection prevalence by date of sample
+		{
+			for (int j = 0; j < nrows; j++)
+			{
+				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				{
+					double m = Data[j][i]; // numerator
+					double N = Data[j][i + 1]; // denominator
+					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day-offset].I / ((double)P.PopSize);
+					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+				}
+			}
+		}
+	}
+	fprintf(stderr, "Log-likelihood = %lg\n", LL);
+	if (run == 0)
+		sumL = LL;
+	else
+	{
+		double maxLL = LL;
+		if (sumL > maxLL) maxLL = sumL;
+		sumL = maxLL + log(exp(sumL - maxLL) + exp(LL - maxLL));
+	}
+
+	if (run + 1 == P.NumRealisations)
+	{
+		LL = sumL - log((double)P.NumRealisations);
+		std::string TmpFile = OutFileBase + ".ll.tmp";
+		std::string OutFile = OutFileBase + ".ll.txt";
+		if (!(dat = fopen(TmpFile.c_str(), "w"))) ERR_CRITICAL("Unable to open likelihood file\n");
+		fprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
+		fclose(dat);
+		rename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
 	}
 }
 
@@ -5262,7 +5621,7 @@ void RecordInfTypes(void)
 	}
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
-	fprintf(stderr, "extinct=%i (%i)\n", (int) TimeSeries[P.NumSamples - 1].extinct, P.NumSamples - 1);
+
 	if (TimeSeries[P.NumSamples - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
@@ -5517,18 +5876,26 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			if (NumItem == 1)
 			{
 				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-				if (match[0] == '#') {
-					int match_id = match[1] - '1';
-					if ((match_id >= 1) && (match_id <= 6))
+				if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+				{
+					int cln;
+					if ((match[2] >= '0') && (match[2] <= '9'))
+						cln = ((int)(match[1] - '0')) * 10 + ((int)(match[2] - '0'));
+					else
+						cln = (int)(match[1] - '0');
+					if ((n<3)&&(P.clP_copies[cln] < MAX_CLP_COPIES))
 					{
-						FindFlag++;
-						if (n == 1)
-							* ((double*)ItemPtr) = P.clP[match_id];
-						else if (n == 2)
-							* ((int*)ItemPtr) = (int)P.clP[match_id];
-						else if (n == 3)
-							sscanf(match, "%s", (char*)ItemPtr);
+						P.clP_type[cln][P.clP_copies[cln]] = n;
+						P.clP_ptr[cln][P.clP_copies[cln]] = ItemPtr;
+						P.clP_copies[cln]++;
 					}
+					FindFlag++;
+					if (n == 1)
+						*((double*)ItemPtr) = P.clP[cln];
+					else if (n == 2)
+						*((int*)ItemPtr) = (int)P.clP[cln];
+					else if (n == 3)
+						sscanf(match, "%s", (char*)ItemPtr);
 				}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
@@ -5546,7 +5913,40 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+					{
+						int cln;
+						if ((match[2] >= '0') && (match[2] <= '9'))
+							cln = ((int)(match[1] - '0')) * 10 + ((int)(match[2] - '0'));
+						else
+							cln = (int)(match[1] - '0');
+						FindFlag++;
+						if (n == 1)
+						{
+							double* ipt = (((double*)ItemPtr) + CurPos + Offset);
+							*ipt = P.clP[cln];
+							if (P.clP_copies[cln] < MAX_CLP_COPIES)
+							{
+								P.clP_type[cln][P.clP_copies[cln]] = 1;
+								P.clP_ptr[cln][P.clP_copies[cln]] = (void *)ipt;
+								P.clP_copies[cln]++;
+							}
+						}
+						else if (n == 2)
+						{
+							int* ipt = (((int*)ItemPtr) + CurPos + Offset);
+							*ipt = (int)P.clP[cln];
+							if (P.clP_copies[cln] < MAX_CLP_COPIES)
+							{
+								P.clP_type[cln][P.clP_copies[cln]] = 2;
+								P.clP_ptr[cln][P.clP_copies[cln]] = (void*)ipt;
+								P.clP_copies[cln]++;
+							}
+						}
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
@@ -5568,11 +5968,44 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 				for (i = 0; i < NumItem2; i++)
 				{
 					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
-					if ((match[0] != '[') && (!feof(dat)))
+					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
+					{
+						FindFlag++;
+						int cln;
+						if ((match[2] >= '0') && (match[2] <= '9'))
+							cln = ((int)(match[1] - '0')) * 10 + ((int)(match[2] - '0'));
+						else
+							cln = (int)(match[1] - '0');
+						if (n == 1)
+						{
+							double* ipt = (((double**)ItemPtr)[j + Offset] + i + Offset);
+							*ipt = P.clP[cln];
+							if (P.clP_copies[cln] < MAX_CLP_COPIES)
+							{
+								P.clP_type[cln][P.clP_copies[cln]] = 1;
+								P.clP_ptr[cln][P.clP_copies[cln]] = (void*)ipt;
+								P.clP_copies[cln]++;
+							}
+						}
+						else if (n == 2)
+						{
+							int* ipt = (((int**)ItemPtr)[j + Offset] + i + Offset);
+							*ipt = (int)P.clP[cln];
+							if (P.clP_copies[cln] < MAX_CLP_COPIES)
+							{
+								P.clP_type[cln][P.clP_copies[cln]] = 2;
+								P.clP_ptr[cln][P.clP_copies[cln]] = (void*)ipt;
+								P.clP_copies[cln]++;
+							}
+						}
+						else if (n == 3)
+							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+					}
+					else if((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset); //changed from [j+Offset]+i+Offset to +j+Offset+i, as ItemPtr isn't an array - 01/10: changed it back
+							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
 						else
 							sscanf(match, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
 					}
@@ -5582,8 +6015,8 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 						j = NumItem;
 					}
 				}
-				//Offset=Offset+(NumItem2-1); //added this line to get the correct offset in address position when incrementing j
-			} //added these braces
+
+			}
 		}
 	}
 	//	fprintf(stderr,"%s\n",SItemName);

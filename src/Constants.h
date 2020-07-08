@@ -67,6 +67,8 @@ const int OUTPUT_DIST_SCALE = 1000;
 const int MAX_PLACE_SIZE = 20000;
 const int MAX_NUM_SEED_LOCATIONS = 10000;
 
+const int MAX_CLP_COPIES = 50;
+
 const int CDF_RES = 20;
 const int INFPROF_RES = 56;
 

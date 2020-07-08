@@ -529,11 +529,12 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// calculate place susceptbility based on infectee (i3), place type (k), timestep (ts)
 										// cell (ci) and thread number (tn)
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+
+										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
+										if ((k==P.CareHomePlaceType)&&((!Hosts[ci].care_home_resident)||(!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
+										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
+										//if infectee is also a user, add them as a contact
 										
-										// ** add potential infectees to digital contact tracing queue**
-										// if contact tracing in place (fct) AND potential infectee (i3) is a contact tracing user 
-										// AND potential infectee != infectionus person ci 
-										// AND potential infectee (i3) isn't absent
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
 											// scale place susceptibility by proportion who self isolate and store as s6
@@ -554,14 +555,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
-										}// digital contact tracing queue
+										}
 
-										// 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//downscale s if it has been scaled up do to digital contact tracing
 											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
+
 											// if blanket movement restrictions are in place
 											if (bm)
 											{
@@ -580,7 +581,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												s *= P.MoveRestrEffect;
 											}
 
-											// if susceptiblity is 1 ie 100% or random number is less than s
+											// if either susceptiblity is 100% or sample probability s
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												// select cell containing potential infectee
@@ -635,8 +636,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
 										// calculate place susceptibility s
 										s = CalcPlaceSusc(i3, k, ts, ci, tn);
-										
-										// ** Do contact tracing in hotels **
+										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
+										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[i3].PlaceGroupLinks[k])) s *= P.CareHomeResidentPlaceScaling;
+										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
+										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
@@ -882,7 +885,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								// pick microcell of infectee (mt)
 								Microcell* mt = Mcells + Hosts[i3].mcell;
 								s = CalcSpatialSusc(i3, ts, ci, tn);
-
+								// Care home residents may have fewer contacts
+								if ((Hosts[i3].care_home_resident) || (Hosts[ci].care_home_resident)) s *= P.CareHomeResidentSpatialScaling;
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if (fct)
 								{
