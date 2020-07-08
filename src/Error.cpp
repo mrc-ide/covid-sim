@@ -1,7 +1,7 @@
 #include "Error.h"
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdarg>
+#include <cstdio>
 
 void ErrorCritical(const char* fmt, const char* file, int line, ...)
 {

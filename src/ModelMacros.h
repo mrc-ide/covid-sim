@@ -1,7 +1,7 @@
 #ifndef COVIDSIM_MODELMACROS_H_INCLUDED_
 #define COVIDSIM_MODELMACROS_H_INCLUDED_
 
-#include <limits.h>
+#include <climits>
 
 #define HOST_TREATED(x) ((Hosts[x].treat_stop_time > ts) && (Hosts[x].treat_start_time <= ts))
 #define HOST_TO_BE_TREATED(x) (Hosts[x].treat_stop_time > ts)
@@ -10,8 +10,8 @@
 #define HOST_TO_BE_VACCED(x) (Hosts[x].vacc_start_time < USHRT_MAX - 1)
 #define HOST_VACCED(x) (Hosts[x].vacc_start_time+P.usVaccTimeToEfficacy<=ts)
 #define HOST_VACCED_SWITCH(x) (Hosts[x].vacc_start_time >= P.usVaccTimeEfficacySwitch)
-#define HOST_QUARANTINED(x) ((Hosts[x].quar_comply == 1) && (Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_start_time <= ts))
-#define HOST_TO_BE_QUARANTINED(x) ((Hosts[x].quar_start_time + P.usHQuarantineHouseDuration > ts) && (Hosts[x].quar_comply < 2))
+#define HOST_QUARANTINED(x) ((HostsQuarantine[x].comply == 1) && (HostsQuarantine[x].start_time + P.usHQuarantineHouseDuration > ts) && (HostsQuarantine[x].start_time <= ts))
+#define HOST_TO_BE_QUARANTINED(x) ((HostsQuarantine[x].start_time + P.usHQuarantineHouseDuration > ts) && (HostsQuarantine[x].comply < 2))
 #define HOST_ISOLATED(x) ((Hosts[x].isolation_start_time + P.usCaseIsolationDelay <= ts) && (Hosts[x].isolation_start_time + P.usCaseIsolationDelay + P.usCaseIsolationDuration > ts))
 #define HOST_ABSENT(x) ((Hosts[x].absent_start_time <= ts) && (Hosts[x].absent_stop_time > ts))
 

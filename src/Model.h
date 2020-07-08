@@ -1,68 +1,26 @@
 #ifndef COVIDSIM_MODEL_H_INCLUDED_
 #define COVIDSIM_MODEL_H_INCLUDED_
 
+#include <cstdint>
 #include <cstddef>
+#include <vector>
 
 #include "Country.h"
-#include "MachineDefines.h"
 #include "Constants.h"
 #include "InfStat.h"
+#include "IndexList.h"
 
+#include "Geometry/Vector2.h"
+
+#include "Models/Cell.h"
+#include "Models/Household.h"
+#include "Models/Microcell.h"
+#include "Models/Person.h"
 
 //// need to test that inequalities in IncubRecoverySweep can be replaced if you initialize to USHRT_MAX, rather than zero.
 //// need to output quantities by admin unit
 
 #pragma pack(push, 2)
-
-struct Person
-{
-	int pcell;			// place cell, Cells[person->pcell] holds this person
-	int mcell;			// microcell, Mcells[person->mcell] holds this person
-	int hh;				// Household[person->hh] holds this person
-	int infector;		// If >=0, Hosts[person->infector] was who infected this person
-	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
-
-	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc,ProbAbsent,ProbCare;
-
-	unsigned int esocdist_comply : 1;
-	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
-	unsigned int to_die : 1;
-	unsigned int detected : 1; 
-	unsigned int care_home_resident : 1;
-	unsigned int quar_comply : 2;		// can be 0, 1, or 2
-	unsigned int digitalContactTracingUser : 1;
-	unsigned int digitalContactTraced : 1;
-	unsigned int index_case_dct : 2;
-
-	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
-	unsigned char age;
-	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
-
-	short int infect_type;		// INFECT_TYPE_MASK
-	InfStat inf;
-	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
-
-	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
-	unsigned short int absent_start_time, absent_stop_time;
-	unsigned short int quar_start_time, isolation_start_time;
-	unsigned short int infection_time, latent_time;		// Set in DoInfect function. infection time is time of infection; latent_time is a misnomer - it is the time at which person become infectious (i.e. infection time + latent period for this person). latent_time will also refer to time of onset with ILI or Mild symptomatic disease.
-	unsigned short int recovery_or_death_time;	// set in DoIncub function
-	unsigned short int SARI_time, Critical_time, RecoveringFromCritical_time; //// /*mild_time, ILI_time,*/ Time of infectiousness onset same for asymptomatic, Mild, and ILI infection so don't need mild_time etc.
-	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
-	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
-	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
-
-};
-
-struct Household
-{
-	int FirstPerson;
-	unsigned short int nh; // number people in household
-	float loc_x, loc_y;
-	unsigned short int nhr;
-};
 
 /*
 In the main InfectSweep loop, we cannot safely set
@@ -92,13 +50,24 @@ struct ContactEvent
 };
 
 /**
+ * @brief Apply place closure effects to household in a thread-safe way.
+ *
+ */
+struct HostClosure
+{
+	int host_index;
+	unsigned short start_time;
+	unsigned short stop_time;
+};
+
+/**
  * @brief The global state of the model.
  *
  * TODO: Detailed explanation.
  */
 struct PopVar
 {
-	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDC, cumTG, cumSI, nTG;
+	int S, L, I, R, D, cumI, cumR, cumD, cumC, cumTC, cumFC, cumDC, trigDetectedCases, cumTG, cumSI, nTG;
 	int cumH; //Added cumulative hospitalisation: ggilani 28/10/14
 	int cumCT, cumCC, DCT, cumDCT; //Added total and cumulative contact tracing: ggilani 15/06/17, and equivalents for digital contact tracing: ggilani 11/03/20
 	int cumC_country[MAX_COUNTRIES]; //added cumulative cases by country: ggilani 12/11/14
@@ -111,6 +80,8 @@ struct PopVar
 	int cumItype[INFECT_TYPE_MASK], cumI_keyworker[2], cumC_keyworker[2], cumT_keyworker[2];
 	Infection *inf_queue[MAX_NUM_THREADS]; // the queue (i.e. list) of infections. 1st index is thread, 2nd is person.
 	int n_queue[MAX_NUM_THREADS]; 	// number of infections in inf_queue
+	HostClosure *host_closure_queue;  // When places close, buffer host index, and closure times here.
+	int host_closure_queue_size; // Number of host closures in host_closure_queue.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
 	float* cell_inf;  //// List of spatial infectiousnesses by person within cell.
@@ -137,7 +108,7 @@ struct PopVar
 	int cumDeath_ILI_adunit[MAX_ADUNITS], cumDeath_SARI_adunit[MAX_ADUNITS], cumDeath_Critical_adunit[MAX_ADUNITS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 	int cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];
 
-	int prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	int **prevInf_age_adunit, **cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 
 	//// above quantities need to be amended in following parts of code:
@@ -163,7 +134,7 @@ struct Results
 {
 	// Initial values should not be touched by mean/var calculation
 	double t;
-	double prevInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], incInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS], cumInf_age_adunit[NUM_AGE_GROUPS][MAX_ADUNITS]; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
+	double** prevInf_age_adunit, ** incInf_age_adunit, ** cumInf_age_adunit; // prevalence, incidence, and cumulative incidence of infection by age and admin unit.
 
 	// The following values must all be doubles or inline arrays of doubles
 	// The first variable must be S.  If that changes change the definition of
@@ -203,6 +174,7 @@ struct Results
 	double incDeath_ILI_age[NUM_AGE_GROUPS], incDeath_SARI_age[NUM_AGE_GROUPS], incDeath_Critical_age[NUM_AGE_GROUPS];		// tracks incidence of death from ILI, SARI & Critical severities
 	double cumDeath_ILI_age[NUM_AGE_GROUPS], cumDeath_SARI_age[NUM_AGE_GROUPS], cumDeath_Critical_age[NUM_AGE_GROUPS];		// tracks cumulative deaths from ILI, SARI & Critical severities
 
+	double prevQuarNotInfected, prevQuarNotSymptomatic; // Which people are under quarantine but not themselves infected/sypmtomatic?
 
 	/////// possibly need quantities by age (later)
 	//// state variables (S, L, I, R) and therefore (Mild, ILI) etc. changed in i) SetUpModel (initialised to zero); ii)
@@ -248,15 +220,6 @@ struct Events
 */
 
 /**
- * @brief Used for computing spatial interactions more efficiently.
- */
-struct IndexList
-{
-	int id;
-	float prob;
-};
-
-/**
  * @brief Airport state.
  *
  * Not used for COVID-19 right now. Might be more relevant for USA and
@@ -266,52 +229,10 @@ struct Airport
 {
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int num_connected, *conn_airports;
-	float total_traffic, loc_x, loc_y;
+	float total_traffic;
+	Geometry::Vector2<float> loc;
 	float* prop_traffic;
 	IndexList* DestMcells, *DestPlaces;
-};
-
-/**
- * @brief The basic unit of the simulation and is associated to a geographical location.
- *
- * Interventions (e.g., school closures) are tracked at this level. It contains a list of its
- * members (people), places (schools, universities, workplaces etc.), road networks, links to
- * airports etc.
- */
-struct Microcell
-{
-	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
-	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
-	*/
-	int n /*Number of people in microcell*/, adunit;
-	int* members;
-	unsigned short int country;
-
-	int* places[NUM_PLACE_TYPES];
-	unsigned short int np[NUM_PLACE_TYPES];
-	unsigned short int moverest, placeclose, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
-	unsigned short int move_start_time, move_end_time;
-	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
-	unsigned short int treat, vacc, treat_trig, vacc_trig;
-	unsigned short int treat_start_time, treat_end_time;
-	unsigned short int vacc_start_time;
-	IndexList* AirportList;
-};
-
-/**
- * @brief Holds microcells.
- *
- * Keeps track of susceptible, latent and infected people (in addition to details like who
- * is vaccinated, treated etc.) Also contains data for the spatial gravity model for social
- * interactions (probability distributions).
-*/
-struct Cell
-{
-	int n, S, L, I, R, D, cumTC, S0, tot_treat, tot_vacc;
-	int* members, *susceptible, *latent, *infected; //// pointers to people in cell. e.g. *susceptible identifies where the final susceptible member of cel is.
-	int* InvCDF;
-	float tot_prob, *cum_trans, *max_trans;
-	short int CurInterv[MAX_INTERVENTION_TYPES];
 };
 
 /**
@@ -331,7 +252,7 @@ struct Place
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	float loc_x, loc_y;
+	Geometry::Vector2<float> loc;
 	float ProbClose;
 	int* group_start, *group_size, *members;
 };
@@ -370,10 +291,12 @@ struct AdminUnit
 #pragma pack(pop)
 
 extern Person* Hosts;
+extern std::vector<PersonQuarantine> HostsQuarantine;
 extern Household* Households;
 extern PopVar State, StateT[MAX_NUM_THREADS];
 extern Cell* Cells, ** CellLookup;
 extern Microcell* Mcells, ** McellLookup;
+extern std::vector<uint16_t> mcell_country;
 extern Place** Places;
 extern AdminUnit AdUnits[MAX_ADUNITS];
 

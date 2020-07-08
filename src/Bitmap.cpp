@@ -1,14 +1,16 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cerrno>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 
 #include "BinIO.h"
 #include "Bitmap.h"
 #include "Error.h"
 #include "Param.h"
 #include "Model.h"
+#include "Memory.h"
 
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** BITMAP stuff.
@@ -25,9 +27,6 @@ static CLSID  encoderClsid;
 #endif
 
 static unsigned char* bmf, *bmPixels, *bmp;
-// externs from CovidSim.cpp
-// TODO: move these to a header files
-extern char OutFile[1024], OutFileBase[1024];
 
 void CaptureBitmap()
 {
@@ -37,7 +36,7 @@ void CaptureBitmap()
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.bwidth * P.bheight);
+	mi = (int)(P.b.width * P.b.height);
 	if (fst)
 	{
 		fst = 0;
@@ -45,9 +44,9 @@ void CaptureBitmap()
 		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			x = ((int)(Households[Hosts[i].hh].loc_x * P.scalex)) - P.bminx;
-			y = ((int)(Households[Hosts[i].hh].loc_y * P.scaley)) - P.bminy;
-			if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+			x = ((int)(Households[Hosts[i].hh].loc.x * P.scale.x)) - P.bmin.x;
+			y = ((int)(Households[Hosts[i].hh].loc.y * P.scale.y)) - P.bmin.y;
+			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				j = y * bmh->width + x;
 				if ((j < bmh->imagesize) && (j >= 0))
@@ -62,30 +61,30 @@ void CaptureBitmap()
 			if (Mcells[i].n > 0)
 			{
 				f = 0;
-				if ((i < P.NMC - 1) && (i / P.get_number_of_micro_cells_high() == (i + 1) / P.get_number_of_micro_cells_high()) && (Mcells[i + 1].n > 0) && ((Mcells[i].country != Mcells[i + 1].country)
+				if ((i < P.NMC - 1) && (i / P.total_microcells_high_ == (i + 1) / P.total_microcells_high_) && (Mcells[i + 1].n > 0) && ((mcell_country[i] != mcell_country[i + 1])
 					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + 1].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i > 0) && (i / P.get_number_of_micro_cells_high() == (i - 1) / P.get_number_of_micro_cells_high()) && (Mcells[i - 1].n > 0) && (Mcells[i].country != Mcells[i - 1].country)) f = 1;
-				if ((i < P.NMC - P.get_number_of_micro_cells_high()) && (Mcells[i + P.get_number_of_micro_cells_high()].n > 0) && ((Mcells[i].country != Mcells[i + P.get_number_of_micro_cells_high()].country)
-					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.get_number_of_micro_cells_high()].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
-				if ((i >= P.get_number_of_micro_cells_high()) && (Mcells[i - P.get_number_of_micro_cells_high()].n > 0) && (Mcells[i].country != Mcells[i - P.get_number_of_micro_cells_high()].country)) f = 1;
+				if ((i > 0) && (i / P.total_microcells_high_ == (i - 1) / P.total_microcells_high_) && (Mcells[i - 1].n > 0) && (mcell_country[i] != mcell_country[i - 1])) f = 1;
+				if ((i < P.NMC - P.total_microcells_high_) && (Mcells[i + P.total_microcells_high_].n > 0) && ((mcell_country[i] != mcell_country[i + P.total_microcells_high_])
+					|| ((P.DoAdunitBoundaryOutput) && ((AdUnits[Mcells[i].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor != (AdUnits[Mcells[i + P.total_microcells_high_].adunit].id % P.AdunitLevel1Mask) / P.AdunitBitmapDivisor)))) f = 1;
+				if ((i >= P.total_microcells_high_) && (Mcells[i - P.total_microcells_high_].n > 0) && (mcell_country[i] != mcell_country[i - P.total_microcells_high_])) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width_ * (((double)(i / P.get_number_of_micro_cells_high())) + 0.5) * P.scalex) - P.bminx;
-					y = (int)(P.in_microcells_.height_ * (((double)(i % P.get_number_of_micro_cells_high())) + 0.5) * P.scaley) - P.bminy;
-					if ((x >= 0) && (x < P.bwidth) && (y >= 0) && (y < P.bheight))
+					x = (int)(P.in_microcells_.width * (((double)(i / P.total_microcells_high_)) + 0.5) * P.scale.x) - P.bmin.x;
+					y = (int)(P.in_microcells_.height * (((double)(i % P.total_microcells_high_)) + 0.5) * P.scale.y) - P.bmin.y;
+					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 					{
 						j = y * bmh->width + x;
 						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.bwidth / 2; i++)
+		for (int i = 0; i < P.b.width / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.bwidth) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.b.width) * 2);
 			f = ((int)prev);
 			for (j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.bheight + 5) * bmh->width + P.bwidth / 4 + i] = f;
+				bmPixels[(j + P.b.height + 5) * bmh->width + P.b.width / 4 + i] = f;
 			}
 		}
 	}
@@ -108,47 +107,30 @@ void CaptureBitmap()
 	}
 }
 
-void OutputBitmap(int tp)
+void OutputBitmap(int tp, std::string const& output_file_base)
 {
-	char buf[3000], OutF[3000];
+	char buf[3000];
 	int j = 0;
-	static int cn1 = 0, cn2 = 0, cn3 = 0, cn4 = 0;
+	static int cn[4] = {0, 0, 0, 0};
+	const char *OutPrefix[4] = {"", "Mean.", "Min.", "Max."};
 
-	char *OutBaseName = strrchr(OutFile, '/');
-	char *OutBaseName2 = strrchr(OutFile, '\\');
-	if (OutBaseName2 != nullptr && (OutBaseName == nullptr || OutBaseName2 > OutBaseName)) {
-		OutBaseName = OutBaseName2;
+	// if the output_file_base has a forward or backwards slash, use that as the cutoff
+	// point for the leaf_name, otherwise keep the full output_file_base
+	auto slash_loc = output_file_base.find_last_of('/');
+	auto bslash_loc = output_file_base.find_last_of('\\');
+	if (bslash_loc != std::string::npos && (slash_loc == std::string::npos || bslash_loc > slash_loc)) {
+		slash_loc = bslash_loc;
 	}
-	if (OutBaseName == nullptr) {
-		OutBaseName = OutFile;
-	}
-
-	if (tp == 0)
-	{
-		j = cn1;
-		cn1++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "%s", OutFile, OutBaseName);
-	}
-	else if (tp == 1)
-	{
-		j = cn2;
-		cn2++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Mean.%s", OutFile, OutBaseName);
-	}
-	else if (tp == 2)
-	{
-		j = cn3;
-		cn3++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Min.%s", OutFile, OutBaseName);
-	}
-	else if (tp == 3)
-	{
-		j = cn4;
-		cn4++;
-		sprintf(OutF, "%s.ge" DIRECTORY_SEPARATOR "Max.%s", OutFile, OutBaseName);
+	auto leaf_name = output_file_base;
+	if (slash_loc != std::string::npos) {
+		leaf_name = leaf_name.substr(slash_loc);
 	}
 
-	if (P.BitmapFormat == BF_PNG)
+	j = cn[tp];
+	cn[tp]++;
+	auto OutF = output_file_base + ".ge" DIRECTORY_SEPARATOR + OutPrefix[tp] + leaf_name;
+
+	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
@@ -179,20 +161,19 @@ void OutputBitmap(int tp)
 	  //This transfers HBITMAP to GDI+ Bitmap object
 	  Bitmap* gdip_bmp = Bitmap::FromHBITMAP(bmpdib, NULL);
 	  //Now change White in palette (first entry) to be transparent
-	  if ((cn1 == 1) && (tp == 0))
+	  if ((cn[0] == 1) && (tp == 0))
 	  {
 		  static UINT palsize;
 		  static ColorPalette* palette;
 		  palsize = gdip_bmp->GetPaletteSize();
-		  palette = (ColorPalette*)malloc(palsize);
-		  if (!palette) ERR_CRITICAL("Unable to allocate palette memory\n");
+		  palette = (ColorPalette*)Memory::xcalloc(1, palsize);
 		  (void)gdip_bmp->GetPalette(palette, palsize);
 		  palette->Flags = PaletteFlagsHasAlpha;
 		  palette->Entries[0] = 0x00ffffff; // Transparent white
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png
-	  sprintf(buf, "%s.%05i.png", OutF, j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase,OutF,j+1);
+	  sprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
 	  mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
@@ -200,8 +181,8 @@ void OutputBitmap(int tp)
 	  fprintf(stderr, "Do not know how to output PNG\n");
 #endif
 	}
-	else if (P.BitmapFormat == BF_BMP) {
-	  sprintf(buf, "%s.%05i.bmp", OutF, j);
+	else if (P.BitmapFormat == BitmapFormats::BMP) {
+	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat;
 	  if (!(dat = fopen(buf, "wb"))) {
 	    char* errMsg = strerror(errno);
@@ -219,23 +200,22 @@ void OutputBitmap(int tp)
 	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
 	}
 }
-void InitBMHead()
+void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.bwidth * P.bheight2;
+	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
-	if (!(bmf = (unsigned char*)calloc((size_t)k + k2, sizeof(unsigned char))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	bmf = (unsigned char*)Memory::xcalloc((size_t)k + k2, sizeof(unsigned char));
 	bmPixels = &(bmf[k2]);
 	bmp = &(bmf[12]);
 	bmh = (BitmapHeader*)bmf;
 	bmh->spare = 0;
 	bmh->boffset = 2 + sizeof(BitmapHeader);
 	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.bwidth;
+	bmh->width = P.b.width;
 	bmh->height = P.bheight2;
 	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel
@@ -267,18 +247,14 @@ void InitBMHead()
 		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
 		bmh->palette[3 * BWCOLS + j][2] = 0;
 	}
-	if (!(bmPopulation = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmInfected = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmRecovered = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
-	if (!(bmTreated = (int32_t*)malloc(bmh->imagesize * sizeof(int32_t))))
-		ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	bmPopulation = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmInfected = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmRecovered = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	bmTreated = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
 
-	if (P.BitmapFormat == BF_PNG)
-	{
 #ifdef _WIN32
+	if (P.BitmapFormat == BitmapFormats::PNG)
+	{
 	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, NULL);
 	  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	  Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
@@ -288,8 +264,7 @@ void InitBMHead()
 
 	  Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 	  Gdiplus::GetImageEncodersSize(&num, &size);
-	  if (!(pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size))))
-	    ERR_CRITICAL("Unable to allocate storage for bitmap\n");
+	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xcalloc(1, size);
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
 	  for (UINT j = 0; j < num; ++j) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
@@ -302,11 +277,11 @@ void InitBMHead()
 	    }
 	  }
 	  free(pImageCodecInfo);
-#endif
 	}
+#endif
 
 	char buf[1024+3];
-	sprintf(buf, "%s.ge", OutFileBase);
+	sprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
 #else
@@ -317,7 +292,7 @@ void InitBMHead()
 void Bitmap_Finalise()
 {
 #ifdef _WIN32
-  if (P.BitmapFormat == BF_PNG)
+  if (P.BitmapFormat == BitmapFormats::PNG)
   {
     Gdiplus::GdiplusShutdown(m_gdiplusToken);
   }

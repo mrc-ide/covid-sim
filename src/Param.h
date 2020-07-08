@@ -5,20 +5,17 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "InverseCdf.h"
+#include "Kernels.h"
 #include "MicroCellPosition.hpp"
 
-/** @brief Enumeration of bitmap formats. */
-enum BitmapFormats
-{
-  BF_PNG = 0,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
-  BF_BMP = 1   // BMP - fall-back
-};
+#include "Geometry/Size.h"
 
-/// Size of spatial domain in various units
-struct DomainSize
+/** @brief Enumeration of bitmap formats. */
+enum struct BitmapFormats
 {
-	double width_;
-	double height_;
+  PNG,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
+  BMP   // BMP - fall-back
 };
 
 /**
@@ -36,11 +33,10 @@ struct Param
 	int NRactNE;
 	int UpdatesPerSample; // Number of time steps between samples
 	int NumSamples; // Total number of samples that will be made
-	int KernelType;
-	int NKR; // Size of kernel lookup table
-	int NK_HR; // Factor to expand hi-res kernel lookup table by
-	int MoveKernelType;
-	int AirportKernelType;
+	CovidSim::TBD1::KernelLookup KernelLookup;
+	CovidSim::TBD1::KernelStruct Kernel;
+	CovidSim::TBD1::KernelStruct MoveKernel;
+	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot,FitIter;
 	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
@@ -51,22 +47,26 @@ struct Param
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int total_microcells_wide_, total_microcells_high_;
 
-	int get_number_of_micro_cells_wide() const;
-	int get_number_of_micro_cells_high() const;
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
-	int get_micro_cell_index_from_position(MicroCellPosition position) const;
-	bool is_in_bounds(MicroCellPosition position) const;
+	int get_micro_cell_index_from_position(MicroCellPosition const& position) const;
+	bool is_in_bounds(MicroCellPosition const& position) const;
 
 	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
-	int DoAdunitOutput, DoAdunitBoundaryOutput, DoAdunitDemog, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
-	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit, OutputDensFile;
+	int DoAdunitOutput, DoAdunitBoundaryOutput, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
+	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
-	int bwidth, bheight; // Size in pixels of the map area in the bitmap output
-	int bheight2; // Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	int bminx, bminy;
+
+	/// Size in pixels of the map area in the bitmap output
+	Geometry::Size<int> b;
+
+	/// Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
+	int bheight2;
+
+	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
-	int DoSI, DoHeteroDensity, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
+	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
 	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection, MaxAgeForInitialInfection;
@@ -90,27 +90,37 @@ struct Param
 	double SampleStep; // The length of a sampling step, in days
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	double scalex, scaley; // Number of pixels per degree in bitmap output
-	DomainSize in_degrees_; ///< Size of spatial domain in degrees
-	DomainSize in_cells_; ///< Size of spatial domain in cells
-	DomainSize in_microcells_; ///< Size of spatial domain in microcells
+	
+	/// Number of pixels per degree in bitmap output
+	Geometry::Vector2<double> scale;
+
+	/// Size of spatial domain in degrees
+	Geometry::Size<double> in_degrees_;
+
+	/// Size of spatial domain in cells
+	Geometry::Size<double> in_cells_;
+
+	/// Size of spatial domain in microcells
+	Geometry::Size<double> in_microcells_;
+	
 	double SpatialBoundingBox[4], LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime, TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
-	double SeroConvMaxSens, SeroConvTime, SeroConvPow, SeroConvSpec, InfPrevSurveyScale;
+	double SeroConvMaxSens, SeroConvP1, SeroConvP2, SeroConvSpec, InfPrevSurveyScale;
+	
+	double AirportTrafficScale;
 
-	double KernelShape, KernelScale, KernelP3, KernelP4, KernelDelta, MoveKernelShape, MoveKernelScale, MoveKernelP3, MoveKernelP4;
-	double AirportKernelShape, AirportKernelScale, AirportKernelP3, AirportKernelP4, AirportTrafficScale;
 	double R0, R0scale, LocalBeta;
 	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
-	double latent_icdf[CDF_RES + 1], infectious_icdf[CDF_RES + 1], infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
+	InverseCdf latent_icdf, infectious_icdf;
+	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
-	double SusceptibilitySD,InfectiousnessSD, R0DensityScalePower;
+	double SusceptibilitySD, InfectiousnessSD, R0DensityScalePower;
 	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
-	int CareHomePlaceType, CareHomeResidentMinimumAge,CareHomeAllowInitialInfections;
-	double CareHomeResidentHouseholdScaling,CareHomeResidentSpatialScaling, CareHomeWorkerGroupScaling, CareHomeResidentPlaceScaling, CareHomeRelProbHosp, CareHomePropResidents;
+	int CareHomePlaceType, CareHomeResidentMinimumAge, CareHomeAllowInitialInfections;
+	double CareHomeResidentHouseholdScaling, CareHomeResidentSpatialScaling, CareHomeWorkerGroupScaling, CareHomeResidentPlaceScaling, CareHomeRelProbHosp, CareHomePropResidents;
 	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS];
@@ -118,6 +128,7 @@ struct Param
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
+
 
 	int NoInfectiousnessSDinHH; // Default 0 
 	int PlaceCloseRoundHousehold; // Default 1 (close places around a household), 0 (off)
@@ -140,15 +151,18 @@ struct Param
 	double InvLifeExpecDist[MAX_ADUNITS][1001];
 
 	double ScaleIFR;
-	double MildToRecovery_icdf[CDF_RES + 1], ILIToRecovery_icdf[CDF_RES + 1], SARIToRecovery_icdf[CDF_RES + 1], CriticalToCritRecov_icdf[CDF_RES + 1], CritRecovToRecov_icdf[CDF_RES + 1];
-	double ILIToSARI_icdf[CDF_RES + 1], SARIToCritical_icdf[CDF_RES + 1], ILIToDeath_icdf[CDF_RES + 1], SARIToDeath_icdf[CDF_RES + 1], CriticalToDeath_icdf[CDF_RES + 1];
+
+	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
+	
+	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
+	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, CriticalToDeath_icdf;
 	/// means for above icdf's.
 	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS];
 	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
 	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
-
+	
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceClosePropAttending[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
@@ -254,12 +268,46 @@ struct Param
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
 	double AirportCloseTimeStartBase, HQuarantineTimeStartBase, CaseIsolationTimeStartBase, SocDistTimeStartBase, KeyWorkerProphTimeStartBase, DigitalContactTracingTimeStartBase;
 	double InfectionImportRate1, InfectionImportRate2, InfectionImportChangeTime, ImportInfectionTimeProfile[MAX_DUR_IMPORT_PROFILE];
-	double PreControlClusterIdTime, PreControlClusterIdCalTime, PreControlClusterIdHolOffset, PreIntervIdCalTime,PreIntervTime,SeedingScaling;
-	int PreControlClusterIdCaseThresholdBase, PreControlClusterIdCaseThreshold, PreControlClusterIdCaseThreshold2, PreControlClusterIdUseDeaths, PreControlClusterIdDuration;
-	int DoAlertTriggerAfterInterv, AlertTriggerAfterIntervThreshold, StopCalibration, ModelCalibIteration,DoNoCalibration;
-	int DoPerCapitaTriggers, DoGlobalTriggers, DoAdminTriggers, DoICUTriggers, MoveRestrCellIncThresh, DoHQretrigger;
 
-	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, TriggersSamplingInterval, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
+	int DoNoCalibration, CaseOrDeathThresholdBeforeAlert_CommandLine;
+
+	/**< CALIBRATION PARAMETERS
+		Params below govern how epidemic is calibrated.
+		Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
+		Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
+		Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+		Simulation time day 0 (i.e. t = 0 in runtime) is recorded as Epidemic_StartDate_CalTime.
+		Variables with _CalTime suffix refer to calendar time (relative to Calendar time Day 0). Variables with _SimTime suffix refer to simulation time.
+		Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
+		Calibration parameters specified in pre-parameter file.
+	*/
+
+	double DateTriggerReached_SimTime;			// Day of simulation that trigger is reached. 	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double DateTriggerReached_CalTime;			// Day of year trigger is reached (where trigger refers to either cumulative deaths or cumulative ICU admissions, absolute or per-capita etc.)
+	double HolidaysStartDay_SimTime;			// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
+	double Interventions_StartDate_CalTime;		// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
+	double Epidemic_StartDate_CalTime;			// First day of epidemic relative to Calendar time Day 0.	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double SeedingScaling;						// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	int CaseOrDeathThresholdBeforeAlert;		// Number of deaths accummulated before alert (if TriggerAlertOnDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if TriggerAlertOnDeaths == 0)
+	int CaseOrDeathThresholdBeforeAlert_Fixed;	// CaseOrDeathThresholdBeforeAlert adjusted during calibration. Need to record fixed version in order to reset so that calibration works for multiple realisations
+	int TriggerAlertOnDeaths;					// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration).
+	int WindowToEvaluateTriggerAlert;			// Number of days to accummulate cases/deaths before alert
+	int DoAlertTriggerAfterInterv;				// Alert trigger starts after interventions, i.e. were there interventions before date specified in DateTriggerReached_CalTime / "Day of year trigger is reached"?
+	int AlertTriggerAfterIntervThreshold;		// initialized to CaseOrDeathThresholdBeforeAlert (i.e. number cases or deaths accumulated before alert).
+
+	int StopCalibration;
+	int ModelCalibIteration;
+
+	/**< Trigger parameters */
+	int DoPerCapitaTriggers;			// Use cases per thousand threshold for area controls
+	int DoGlobalTriggers;				// Use global triggers for interventions
+	int DoAdminTriggers;				// Use admin unit triggers for interventions
+	int DoICUTriggers;					// Use ICU case triggers for interventions
+	int TriggersSamplingInterval;		// Number of sampling intervals over which cumulative incidence measured for global trigger
+
+	int MoveRestrCellIncThresh, DoHQretrigger;
+
+	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
 	int PlaceCloseCellIncStopThresh, SocDistCellIncStopThresh;
 	int PlaceCloseAdunitPlaceTypes[NUM_PLACE_TYPES];
 

@@ -93,29 +93,33 @@
     <ClCompile Include="src\BinIO.cpp" />
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
+    <ClCompile Include="src\CLI.cpp" />
     <ClCompile Include="src\Dist.cpp" />
     <ClCompile Include="src\Error.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
+    <ClCompile Include="src\Memory.cpp" />
     <ClCompile Include="src\Rand.cpp" />
     <ClCompile Include="src\SetupModel.cpp" />
     <ClCompile Include="src\CovidSim.cpp" />
     <ClCompile Include="src\Sweep.cpp" />
     <ClCompile Include="src\Update.cpp" />
     <ClCompile Include="src\Param.cpp" />
-    <ClCompile Include="src\MicroCellPosition.cpp" />
     <ClCompile Include="src\Direction.cpp" />
+    <ClCompile Include="src\Geometry\Vector2.cpp" />
+    <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
+    <ClInclude Include="src\CLI.h" />
     <ClInclude Include="src\Constants.h" />
     <ClInclude Include="src\Country.h" />
     <ClInclude Include="src\Dist.h" />
     <ClInclude Include="src\Error.h" />
     <ClInclude Include="src\InfStat.h" />
     <ClInclude Include="src\Kernels.h" />
-    <ClInclude Include="src\MachineDefines.h" />
+    <ClInclude Include="src\Memory.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelMacros.h" />
     <ClInclude Include="src\Param.h" />
@@ -126,6 +130,14 @@
     <ClInclude Include="src\Update.h" />
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
+    <ClInclude Include="src\Geometry\BoundingBox.h" />
+    <ClInclude Include="src\Geometry\Size.h" />
+    <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="src\Models\Cell.h" />
+    <ClInclude Include="src\Models\Household.h" />
+    <ClInclude Include="src\Models\Microcell.h" />
+    <ClInclude Include="src\Models\Person.h" />
+    <ClInclude Include="src\InverseCdf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

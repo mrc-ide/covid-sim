@@ -10,6 +10,7 @@ void DoFalseCase(int, double, unsigned short int, int);
 void DoRecover(int, int, int); //added int as argument to record run number: ggilani - 23/10/14. Added thread number to record Severity categories in StateT.
 void DoDeath(int, int, int); //added int as argument to record run number: ggilani - 23/10/14
 void DoPlaceClose(int, int, unsigned short int, int, int);
+void UpdateHostClosure();
 void DoPlaceOpen(int, int, unsigned short int, int);
 void DoTreatCase(int, unsigned short int, int);
 void DoProph(int, unsigned short int, int);

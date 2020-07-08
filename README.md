@@ -6,8 +6,12 @@ for Global Infectious Disease Analysis hosted at Imperial College, London.
 CovidSim models the transmission dynamics and severity of COVID-19 infections
 throughout a spatially and socially structured population over time.  It enables
 modelling of how intervention policies and healthcare provision affect the
-spread of COVID-19. With parameter changes, it can be used to model other
-respiratory viruses, such as influenza.
+spread of COVID-19.  It is used to inform health policy by making quantitative 
+forecasts of (for example) cases, deaths and hospitalisations, and how these will 
+vary depending on which specific interventions, such as social distancing, are enacted.
+
+With parameter changes, it can be used to model other respiratory viruses, 
+such as influenza.
 
 ## IMPORTANT NOTES
 
@@ -67,8 +71,13 @@ From within your build directory do:
 make test
 # If you want more progress indication
 make test ARGS="-V"
+# To parallelise tests add a -jN option for instance:
+make test ARGS="-j6"
+make test ARGS="-j6 -V"
 # or
 ctest -V
+ctest -V -j6
+# etc...
 ```
 
 *IMPORTANT*: The test scripts use test data only are not runs reflective of
@@ -82,7 +91,7 @@ The Python script [run_sample.py](./data/run_sample.py) demonstrates how to
 invoke CovidSim to use this data.  See the [sample README](./data/README.md) for
 details on how to run the samples.
 
-The directory [report9](./report9) contains files to allow the results tables in the Imperial College 
+The directory [report9](./report9) contains files to allow the results tables in the Imperial College
 `Report 9 - Impact of non-pharmaceutical interventions (NPIs) to reduce COVID-19 mortality and healthcare demand`
 to be reproduced.
 
