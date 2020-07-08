@@ -5459,12 +5459,12 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 					double ModelValue;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
-						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*(exp(-((double)(day - k))*P.SeroConvP1) + exp(-((double)(day - k))*P.SeroConvP2)));
+						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*((exp(-((double)(day - k))*P.SeroConvP1) + 1.0)*exp(-((double)(day - k))*P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
 						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
 					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
-					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+					LL += m * log((ModelValue + 1e-20)/(m/N+1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20)/(1.0-m/N+1e-20));  // subtract saturated likelihood
 				}
 			}
 		}
