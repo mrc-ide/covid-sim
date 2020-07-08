@@ -3364,7 +3364,7 @@ void SaveResults(std::string const& output_file_base)
 
 	}
 
-	if ((P.DoDigitalContactTracing) && (P.OutputDigitalContactDist))
+	if (P.DoDigitalContactTracing && P.OutputDigitalContactDist)
 	{
 		outname = output_file_base + ".digitalcontactdist.xls"; //modifying to csv file
 		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
@@ -3493,35 +3493,23 @@ void SaveResults(std::string const& output_file_base)
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			//// prevalence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s"			, AdUnits[i].ad_name);
-
-			//// incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_adu%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_ILI_adu%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_SARI_adu%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_Critical_adu%s"	, AdUnits[i].ad_name);
-
-			//// cumulative incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeath_ILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeath_SARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeath_Critical_%s"	, AdUnits[i].ad_name);
+			std::string colnames[] = {
+				// prevalence
+				"Mild_", "ILI_", "SARI_", "Critical_", "CritRecov_",
+				// incidence
+				"incI_", "incMild_", "incILI_", "incSARI_", "incCritical_", "incCritRecov_",
+				"incDeath_adu", "incDeath_ILI_adu", "incDeath_SARI_adu", "incDeath_Critical_adu"
+				// cumulative incidence
+				"cumMild_", "cumILI_", "cumSARI_", "cumCritical_", "cumCritRecov_", "cumDeaths_",
+				"cumDeath_ILI_", "cumDeath_SARI_", "cumDeath_Critical_"
+			};
+			for (auto colname : colnames)
+			{
+				for (i = 0; i < P.NumAdunits; i++)
+				{
+					fprintf(dat, "\t%s%s", colname.c_str(), AdUnits[i].ad_name);
+				}
+			}
 
 			fprintf(dat, "\n");
 
