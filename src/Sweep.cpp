@@ -18,7 +18,7 @@
 
 // helper functions
 
-void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const int infect_type);
+void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
 void AddInfections(const int tn, int& infectee_cell_number, Person* person, const int place_type_index, const int infector_index, const int infectee_index, const int num_place_types);
 void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
 
@@ -1986,7 +1986,7 @@ void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsi
 	}
 }
 
-void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const int infect_type)
+void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type)
 {
 	StateT[tn].inf_queue[infectee_cell_number][StateT[tn].n_queue[infectee_cell_number]++] = { infector_index, infectee_index, infect_type };
 }
