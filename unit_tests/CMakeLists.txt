@@ -27,5 +27,4 @@ function(add_unit_tests TEST_SRC_FILES TEST_LIBRARIES)
   endforeach()
 endfunction()
 
-ADD_SUBDIRECTORY(example)
 ADD_SUBDIRECTORY(geometry)
