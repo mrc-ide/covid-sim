@@ -572,7 +572,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// if either susceptiblity is 100% or sample probability s
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												AddInfections(cq, ci, tn, si, k, i3, NUM_PLACE_TYPES);
+												AddInfections(cq, ci, tn, si, k, i3, 0);
 											}
 										}
 									}
@@ -654,7 +654,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// is susceptibility is 1 (ie infect everyone) or random number is less than susceptibility
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												AddInfections(cq, ci, tn, si, k, i3, 0);
+												AddInfections(cq, ci, tn, si, k, i3, NUM_PLACE_TYPES);
 											}// susceptibility test
 										}// potential infectee i3 uninfected and not absent.
 									}// loop over sampling queue
