@@ -17,6 +17,7 @@ target_include_directories(CovidSim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(Geometry)
 add_subdirectory(Models)
 
+target_link_libraries(CovidSim PUBLIC geometrylib)
 if(USE_OPENMP)
   target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
 endif()
