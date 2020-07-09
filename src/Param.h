@@ -93,7 +93,7 @@ struct Param
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	
 	/// Number of pixels per degree in bitmap output
-	Geometry::Vector2<double> scale;
+	Geometry::DiagonalMatrix2d scale;
 
 	/// Size of spatial domain in degrees
 	Geometry::Size<double> in_degrees_;
