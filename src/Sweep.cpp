@@ -14,6 +14,7 @@
 #include "Param.h"
 #include "Sweep.h"
 #include "Update.h"
+#include <cassert>
 
 // helper functions
 
@@ -1956,6 +1957,9 @@ int TreatSweep(double t)
 
 void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
 {
+	assert(infector_index >= -1);
+	assert(infectee_index >= 0);
+
 	// File for storing error reports
 	FILE* stderr_shared = stderr;
 
@@ -1984,11 +1988,16 @@ void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsi
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const int infect_type)
 {
-	StateT[tn].inf_queue[infectee_cell_number][StateT[tn].n_queue[infectee_cell_number]++] = { -1, infectee_index, -1 };
+	StateT[tn].inf_queue[infectee_cell_number][StateT[tn].n_queue[infectee_cell_number]++] = { infector_index, infectee_index, infect_type };
 }
 
 void AddInfections(const int tn, int& infectee_cell_number, Person* person, const int place_type_index, const int infector_index, const int infectee_index, const int num_place_types)
 {
+	assert(place_type_index >= 0);
+	assert(infector_index >= -1);
+	assert(infectee_index >= 0);
+	assert(num_place_types >= 0);
+	
 	// store cell number of potential infectee infectee_index as infectee_cell_number
 	// select cell containing potential infectee
 	infectee_cell_number = Hosts[infectee_index].pcell % P.NumThreads;
