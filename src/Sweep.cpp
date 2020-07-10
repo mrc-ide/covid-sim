@@ -19,7 +19,7 @@
 // helper functions
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
-void AddInfections(const int tn, int& infectee_cell_number, Person* person, const int place_type_index, const int infector_index, const int infectee_index, const int num_place_types);
+void AddInfections(const int tn, Person* host, const int place_link_index, const int infector_index, const int infectee_index, const int num_place_types);
 void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
 
 void TravelReturnSweep(double t)
@@ -573,7 +573,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// if either susceptiblity is 100% or sample probability s
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												AddInfections(tn, cq, si, k, ci, i3, 0);
+												AddInfections(tn, si, k, ci, i3, 0);
 											}
 										}
 									}
@@ -655,7 +655,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// is susceptibility is 1 (ie infect everyone) or random number is less than susceptibility
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												AddInfections(tn, cq, si, k, ci, i3, NUM_PLACE_TYPES);
+												AddInfections(tn, si, k, ci, i3, NUM_PLACE_TYPES);
 											}// susceptibility test
 										}// potential infectee i3 uninfected and not absent.
 									}// loop over sampling queue
@@ -1954,10 +1954,20 @@ int TreatSweep(double t)
 	return (f > 0);
 }
 
-
+/**
+ * Function: AddToDCT
+ *
+ * Purpose: add to the DCT queue
+ * @param tn - thread number
+ * @param weightedPlaceSusceptibility
+ * @param ts - time
+ * @param infector_index
+ * @param infectee_index
+ * @return void
+ */
 void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
 {
-	assert(infector_index >= -1);
+	assert(infector_index >= 0);
 	assert(infectee_index >= 0);
 
 	// File for storing error reports
@@ -1986,36 +1996,59 @@ void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsi
 	}
 }
 
+/**
+ * Function: AddToInfectionQueue
+ *
+ * Purpose: add to the infection queue
+ * @param tn - thread number
+ * @param infectee_cell_number
+ * @param infector_index
+ * @param infectee_index
+ * @param infect_type
+ * @return void
+ */
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type)
 {
 	StateT[tn].inf_queue[infectee_cell_number][StateT[tn].n_queue[infectee_cell_number]++] = { infector_index, infectee_index, infect_type };
 }
 
-void AddInfections(const int tn, int& infectee_cell_number, Person* person, const int place_type_index, const int infector_index, const int infectee_index, const int num_place_types)
+/**
+ * Function: AddInfections
+ *
+ * Purpose: add to the infection queue
+ * @param tn - thread number
+ * @param host
+ * @param place_link_index
+ * @param infector_index
+ * @param infectee_index
+ * @param num_place_types
+ * @return void
+ */
+void AddInfections(const int tn, Person* host, const int place_link_index, const int infector_index, const int infectee_index, const int num_place_types)
 {
-	assert(place_type_index >= 0);
+	assert(place_link_index >= 0);
 	assert(infector_index >= -1);
 	assert(infectee_index >= 0);
 	assert(num_place_types >= 0);
 	
-	// store cell number of potential infectee infectee_index as infectee_cell_number
+	// store cell number of potential infectee infectee_index as infectee_cell_index
 	// select cell containing potential infectee
-	infectee_cell_number = Hosts[infectee_index].pcell % P.NumThreads;
+	int infectee_cell_index = Hosts[infectee_index].pcell % P.NumThreads;
 	// if there is space in queue for this thread
 	// if infection queue for selected call < maximum length
-	if ((StateT[tn].n_queue[infectee_cell_number] < P.InfQueuePeakLength))
+	if ((StateT[tn].n_queue[infectee_cell_index] < P.InfQueuePeakLength))
 	{
 		// if random number < false positive rate
 		// false positive
 		if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
 			// add false positive to infection queue
-			AddToInfectionQueue(tn, infectee_cell_number, -1, infectee_index, -1);
+			AddToInfectionQueue(tn, infectee_cell_index, -1, infectee_index, -1);
 		else
 		{
 			// infect infectee_index - add if to infection queue for selected cell
-			short int infect_type = 2 + place_type_index + num_place_types + INFECT_TYPE_MASK * (1 + person->infect_type / INFECT_TYPE_MASK);
+			short int infect_type = 2 + place_link_index + num_place_types + INFECT_TYPE_MASK * (1 + host->infect_type / INFECT_TYPE_MASK);
 			// add infection of infectee_index by infector_index to infection queue
-			AddToInfectionQueue(tn, infectee_cell_number, infector_index, infectee_index, infect_type);
+			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);
 		}
 	}// space in queue
 }
