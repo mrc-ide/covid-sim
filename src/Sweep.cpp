@@ -20,7 +20,7 @@
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
 void AddInfections(const int tn, Person* host, const int infectee_cell_index, const int place_link_index, const int infector_index, const int infectee_index, const int num_place_types);
-void AddToDCT(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
+void AddToDCTQueue(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
 
 void TravelReturnSweep(double t)
 {
@@ -547,7 +547,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// if infectee_index isn't absent
 										if (fct && !HOST_ABSENT(i3))
 										{
-											AddToDCT(tn, s6, ts, ci, i3);
+											AddToDCTQueue(tn, s6, ts, ci, i3);
 										}
 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
@@ -629,7 +629,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// if infectee_index isn't absent
 										if (fct && !HOST_ABSENT(i3))
 										{
-											AddToDCT(tn, s6, ts, ci, i3);
+											AddToDCTQueue(tn, s6, ts, ci, i3);
 										}
 										
 										// if potential infectee i3 uninfected and not absent.
@@ -841,7 +841,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if (fct)
 								{
-									AddToDCT(tn, s * P.ProportionDigitalContactsIsolate, ts, ci, i3);
+									AddToDCTQueue(tn, s * P.ProportionDigitalContactsIsolate, ts, ci, i3);
 
 									//scale down susceptibility so we don't over accept
 									s /= P.ScalingFactorSpatialDigitalContacts;
@@ -1944,7 +1944,7 @@ int TreatSweep(double t)
 }
 
 /**
- * Function: AddToDCT
+ * Function: AddToDCTQueue
  *
  * Purpose: add to the DCT queue
  * @param tn - thread number
@@ -1954,7 +1954,7 @@ int TreatSweep(double t)
  * @param infectee_index
  * @return void
  */
-void AddToDCT(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
+void AddToDCTQueue(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
 {
 	assert(infector_index >= 0);
 	assert(infectee_index >= 0);
