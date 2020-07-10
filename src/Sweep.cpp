@@ -544,6 +544,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// s6 = place susceptibility * proportion of digital contacts who self isolate
 										s6 = P.ProportionDigitalContactsIsolate * s;
 
+										// if infectee_index isn't absent
 										if (fct && !HOST_ABSENT(i3))
 										{
 											AddToDCT(tn, s6, ts, ci, i3);
@@ -625,6 +626,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// s6 = place susceptibility * proportion of digital contacts who self isolate
 										s6 = P.ProportionDigitalContactsIsolate * s;
 
+										// if infectee_index isn't absent
 										if (fct && !HOST_ABSENT(i3))
 										{
 											AddToDCT(tn, s6, ts, ci, i3);
@@ -1960,13 +1962,10 @@ void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsi
 	// File for storing error reports
 	FILE* stderr_shared = stderr;
 
-	// if contact tracing in place AND potential infectee infectee_index is a contact tracing user AND infectee_index isn't absent AND infectee_index isn't infector_index (suspect this should be si)
-	// if infectee is also a user, add them as a contact
 	if ((Hosts[infectee_index].digitalContactTracingUser) && (infector_index != infectee_index))
 	{
 		// if random number < weightedPlaceSusceptibility
 		// AND number of contacts of infector_index(!) is less than maximum digital contact to trace
-		// if number of contacts of infectious person < maximum and random number < weightedPlaceSusceptibility
 		if ((Hosts[infector_index].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < weightedPlaceSusceptibility))
 		{
 			Hosts[infector_index].ncontacts++; //add to number of contacts made
@@ -2006,7 +2005,7 @@ void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int
  * Purpose: add to the infection queue
  * @param tn - thread number
  * @param host
- * @param infectee_cell_index
+ * @param infectee_cell_index -  cell number of potential infectee
  * @param place_link_index
  * @param infector_index
  * @param infectee_index
@@ -2020,24 +2019,21 @@ void AddInfections(const int tn, Person* host, const int infectee_cell_index, co
 	assert(infectee_index >= 0);
 	assert(num_place_types >= 0);
 	
-	// store cell number of potential infectee infectee_index as infectee_cell_index
-	// select cell containing potential infectee
-	
 	// if there is space in queue for this thread
-	// if infection queue for selected call < maximum length
 	if ((StateT[tn].n_queue[infectee_cell_index] < P.InfQueuePeakLength))
 	{
 		// if random number < false positive rate
-		// false positive
 		if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
 			// add false positive to infection queue
 			AddToInfectionQueue(tn, infectee_cell_index, -1, infectee_index, -1);
 		else
 		{
-			// infect infectee_index - add if to infection queue for selected cell
-			short int infect_type = 2 + place_link_index + num_place_types + INFECT_TYPE_MASK * (1 + host->infect_type / INFECT_TYPE_MASK);
-			// add infection of infectee_index by infector_index to infection queue
+			// infect infectee_index
+
+			// explicitly cast to short to resolve level 4 warning
+			short int infect_type = (short)(2 + place_link_index + num_place_types + INFECT_TYPE_MASK * (1 + host->infect_type / INFECT_TYPE_MASK));
+			
 			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);
 		}
-	}// space in queue
+	}
 }
