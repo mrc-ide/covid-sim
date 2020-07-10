@@ -20,7 +20,7 @@
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
 void AddInfections(const int tn, Person* host, const int infectee_cell_index, const int place_link_index, const int infector_index, const int infectee_index, const int num_place_types);
-void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
+void AddToDCT(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
 
 void TravelReturnSweep(double t)
 {
@@ -1948,13 +1948,13 @@ int TreatSweep(double t)
  *
  * Purpose: add to the DCT queue
  * @param tn - thread number
- * @param weightedPlaceSusceptibility
+ * @param weighted_place_susceptibility
  * @param ts - time
  * @param infector_index
  * @param infectee_index
  * @return void
  */
-void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
+void AddToDCT(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
 {
 	assert(infector_index >= 0);
 	assert(infectee_index >= 0);
@@ -1964,9 +1964,9 @@ void AddToDCT(const int tn, const double weightedPlaceSusceptibility, const unsi
 
 	if ((Hosts[infectee_index].digitalContactTracingUser) && (infector_index != infectee_index))
 	{
-		// if random number < weightedPlaceSusceptibility
+		// if random number < weighted_place_susceptibility
 		// AND number of contacts of infector_index(!) is less than maximum digital contact to trace
-		if ((Hosts[infector_index].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < weightedPlaceSusceptibility))
+		if ((Hosts[infector_index].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < weighted_place_susceptibility))
 		{
 			Hosts[infector_index].ncontacts++; //add to number of contacts made
 			int ad = Mcells[Hosts[infectee_index].mcell].adunit;
@@ -2030,8 +2030,15 @@ void AddInfections(const int tn, Person* host, const int infectee_cell_index, co
 		{
 			// infect infectee_index
 
+			// infect_type: first 4 bits store type of infection
+			//				1= household
+			//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
+			//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
+			//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
+			// bits >4 store the generation of infection
+
 			// explicitly cast to short to resolve level 4 warning
-			short int infect_type = (short)(2 + place_link_index + num_place_types + INFECT_TYPE_MASK * (1 + host->infect_type / INFECT_TYPE_MASK));
+			const short infect_type = static_cast<short>(2 + place_link_index + num_place_types + INFECT_TYPE_MASK * (1 + host->infect_type / INFECT_TYPE_MASK));
 			
 			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);
 		}
