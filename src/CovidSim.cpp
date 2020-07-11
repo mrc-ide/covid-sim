@@ -3492,7 +3492,7 @@ void SaveResults(std::string const& output_file_base)
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			std::string colnames[] = {
+			const std::string colnames[] = {
 				// prevalence
 				"Mild_", "ILI_", "SARI_", "Critical_", "CritRecov_",
 				// incidence
@@ -3975,6 +3975,18 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c* TSVar[i].cumDeath_Critical- c * TSMean[i].cumDeath_Critical* c * TSMean[i].cumDeath_Critical);
 		}
 		fclose(dat);
+
+		const std::string colnames[] = {
+			// prevalence
+			"Mild", "ILI", "SARI", "Critical", "CritRecov", "SARIP", "CriticalP", "CritRecovP",
+			// incidence
+			"incI", "incMild", "incILI", "incSARI", "incCritical", "incCritRecov", "incSARIP",
+			"incCriticalP", "incCritRecovP", "incDeath", "incDeath_ILI", "incDeath_SARI", "incDeath__Critical",
+			// cumulative incidence
+			"cumMild", "cumILI", "cumSARI", "cumCritical", "cumCritRecov", "cumDeaths",
+			"cumDeaths_ILI", "cumDeaths_SARI", "cumDeaths_Critical"
+		};
+
 		if (P.OutputSeverityAge)
 		{
 			double* SARI_a, * Critical_a, * CritRecov_a, * incSARI_a, * incCritical_a, * incCritRecov_a, sc1a, sc2a, sc3a, sc4a; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
@@ -3996,42 +4008,12 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			//// prevalance
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tMild_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tILI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritical_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecov_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tSARIP_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCriticalP_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tCritRecovP_%i", i);
-
-			//// incidence
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincMild_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincILI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritical_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecov_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincSARIP_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCriticalP_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincCritRecovP_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_ILI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath_SARI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tincDeath__Critical_%i", i);
-
-			//// cumulative incidence
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumMild_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumILI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumSARI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritical_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumCritRecov_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_ILI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_SARI_%i", i);
-			for (i = 0; i < NUM_AGE_GROUPS; i++) fprintf(dat, "\tcumDeaths_Critical_%i", i);
-
+			for (auto colname : colnames) {
+				for (i = 0; i < NUM_AGE_GROUPS; i++)
+				{
+					fprintf(dat, "\t%s_%i", colname.c_str(), i);
+				}
+			}
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
@@ -4118,42 +4100,12 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			fprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
-			//// prevalance
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tMild_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tILI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritical_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tSARIP_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCriticalP_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tCritRecovP_%s"			, AdUnits[i].ad_name);
-
-			//// incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincI_%s"					, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincSARIP_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCriticalP_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincCritRecovP_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_ILI_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath_SARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tincDeath__Critical_%s"	, AdUnits[i].ad_name);
-
-			//// cumulative incidence
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumMild_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumILI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumSARI_%s"				, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritical_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumCritRecov_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_%s"			, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_ILI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_SARI_%s"		, AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tcumDeaths_Critical_%s"	, AdUnits[i].ad_name);
-
+			for (auto colname : colnames) {
+				for (i = 0; i < P.NumAdunits; i++)
+				{
+					fprintf(dat, "\t%s_%s", colname.c_str(), AdUnits[i].ad_name);
+				}
+			}
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
