@@ -7,6 +7,8 @@ class InverseCdf
 	double cdf_values_[CDF_RES + 1];
 
 public:
+	// default start value for icdf double arrays (was hardcoded as 100)
+	static constexpr double start_value_ = 100.0;
 
 	void set_neg_log(double start_value);
 

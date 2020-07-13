@@ -47,17 +47,24 @@ struct Param
 	int NMC; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NMCP, ncw, nch, nsp;
+	bool DoUTM_coords, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 	int total_microcells_wide_, total_microcells_high_;
 
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
 	int get_micro_cell_index_from_position(MicroCellPosition const& position) const;
 	bool is_in_bounds(MicroCellPosition const& position) const;
 
-	int DoAdUnits, NumAdunits, DoAdunitBoundaries, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
-	int DoAdunitOutput, DoAdunitBoundaryOutput, DoCorrectAdunitPop, DoSpecifyPop, AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
-	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit;
-	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
+	bool DoAdUnits, DoAdunitBoundaries;
+	int AdunitLevel1Lookup[ADUNIT_LOOKUP_SIZE];
+	int NumAdunits, AdunitLevel1Divisor, AdunitLevel1Mask, AdunitBitmapDivisor, CountryDivisor;
+	bool DoAdunitOutput, DoAdunitBoundaryOutput, DoCorrectAdunitPop, DoSpecifyPop;
+	bool DoOutputPlaceDistForOneAdunit;
+	int OutputPlaceDistAdunit;
+
+	bool OutputBitmap; // Whether to output a bitmap
+	bool DoOneGen, OutputEveryRealisation, OutputOnlyNonExtinct, DoLatent;
+	int BitmapMovieFrame, MaxCorrSample, InfQueuePeakLength, NumThreads, MaxNumThreads;
 
 	/// Size in pixels of the map area in the bitmap output
 	Geometry::Size<int> b;
@@ -67,31 +74,40 @@ struct Param
 
 	Geometry::Vector2<int> bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
-	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
-	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
-	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
+	bool DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected;
+	bool DoHouseholds, DoPlaces, DoPlaceGroupTreat;
+	int PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases;
+	bool DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
+	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS];
 	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection, MaxAgeForInitialInfection;
-	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
-	int OutputOnlyNonExtinct, DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
-	int DoAirports, Nairports, Air_popscale, DoSchoolFile, DoRealSymptWithdrawal, CaseAbsentChildAgeCutoff, DoInterventionFile;
+	bool DoAge, DoSymptoms;
+	int LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
+	bool DoInfectiousnessProfile, DoInfectionTree, DoWholeHouseholdImmunity, DoSpatial, DoDeath;
+	bool DoRealSymptWithdrawal, DoEarlyCaseDiagnosis;
+	int CaseAbsentChildAgeCutoff;
+
+	bool DoAirports, DoSchoolFile, DoInterventionFile;
+	int Nairports, Air_popscale;
 	int PlaceTypeNoAirNum; // If DoAirports then this is the number of non-airport place types (< PlaceTypeNum), else == PlaceTypeNum (~ no airport places).
 	int HotelPlaceType; // If DoAirports then this is place type for hotel (>= PlaceTypeNoAirNum, < PlaceTypeNum), else == PlaceTypeNum (~ unused).
 	int FixLocalBeta;
+
 	int32_t setupSeed1, setupSeed2; // RNG seeds from the command line, used to initialise the RNG for setup
 	int32_t runSeed1, runSeed2; // RNG seeds from the command line, used to initialise the RNG for running the model
 	int32_t nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
 	int32_t nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
-	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
-	int OutputBitmap; // Whether to output a bitmap
-	int ts_age;
-	int DoSeverity; // Non-zero (true) if severity analysis should be done
+	bool ResetSeeds, KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag;
+	int TimeToResetSeeds;
+
+	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 
 	double TimeStep; // The length of a time step, in days
 	double SampleTime; // The number of days to run for
 	double SampleStep; // The length of a sampling step, in days
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
-	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
-	
+	int ts_age;
+	bool DoSeverity; // if severity analysis should be done
+
 	/// Number of pixels per degree in bitmap output
 	Geometry::Vector2<double> scale;
 
@@ -130,11 +146,11 @@ struct Param
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
-
-
-	int NoInfectiousnessSDinHH; // Default 0 
-	int PlaceCloseRoundHousehold; // Default 1 (close places around a household), 0 (off)
-	int AbsenteeismPlaceClosure; // Default 0 (off), 1 (on) track place closures in more detail
+	
+	
+	int NoInfectiousnessSDinHH; // Default 0
+	bool PlaceCloseRoundHousehold; // Default true (close places around a household)
+	bool AbsenteeismPlaceClosure; // Default false (track place closures in more detail)
 	int MaxAbsentTime; // In days.  Max number of days absent, range [0, MAX_ABSENT_TIME].  Default 0 if !P.AbsenteeismPlaceClosure, otherwise MAX_ABSENT_TIME
 	int InvJourneyDurationDistrib[1025], InvLocalJourneyDurationDistrib[1025];
 	double HouseholdTrans, HouseholdSizeDistrib[MAX_ADUNITS][MAX_HOUSEHOLD_SIZE], HouseholdTransPow;
@@ -168,7 +184,9 @@ struct Param
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceClosePropAttending[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
-	int DoHolidays, NumHolidays;
+	
+	bool DoHolidays;
+	int NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
 	double ColourPeriod;
 	Geometry::BoundingBox2d BoundingBox;
@@ -183,7 +201,7 @@ struct Param
 	double VaccTimeToEfficacy, VaccProp, VaccRadius, VaccRadius2, VaccMinRadius, VaccMinRadius2, VaccPropCaseHouseholds, VaccHouseholdsDuration, VaccMaxCoursesBase;
 	double VaccNewCoursesRate, VaccNewCoursesStartTime, VaccMaxCourses, VaccNewCoursesEndTime, VaccEfficacyDecay, VaccCellIncThresh, VaccCampaignInterval, VaccCoverageIncreasePeriod;
 	int VaccDosePerDay;
-	int EnhancedSocDistClusterByHousehold;
+	bool EnhancedSocDistClusterByHousehold;
 
 	double PreAlertControlPropCasesId, PostAlertControlPropCasesId, ControlPropCasesId;
 	double MoveRestrRadius, MoveRestrRadius2;
@@ -211,7 +229,7 @@ struct Param
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-	int VaryEfficaciesOverTime;
+	bool VaryEfficaciesOverTime;
 
 	/**< SOCIAL DISTANCING	*/
 	/**< non-enhanced	*/
@@ -294,22 +312,23 @@ struct Param
 	double SeedingScaling;						// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
 	int CaseOrDeathThresholdBeforeAlert;		// Number of deaths accummulated before alert (if TriggerAlertOnDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if TriggerAlertOnDeaths == 0)
 	int CaseOrDeathThresholdBeforeAlert_Fixed;	// CaseOrDeathThresholdBeforeAlert adjusted during calibration. Need to record fixed version in order to reset so that calibration works for multiple realisations
-	int TriggerAlertOnDeaths;					// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration).
+	bool TriggerAlertOnDeaths;					// Trigger alert on deaths (if true then cumulative deaths used for calibration, if false then cumulative ICU cases used for calibration).
 	int WindowToEvaluateTriggerAlert;			// Number of days to accummulate cases/deaths before alert
-	int DoAlertTriggerAfterInterv;				// Alert trigger starts after interventions, i.e. were there interventions before date specified in DateTriggerReached_CalTime / "Day of year trigger is reached"?
+	bool DoAlertTriggerAfterInterv;				// Alert trigger starts after interventions, i.e. were there interventions before date specified in DateTriggerReached_CalTime / "Day of year trigger is reached"?
 	int AlertTriggerAfterIntervThreshold;		// initialized to CaseOrDeathThresholdBeforeAlert (i.e. number cases or deaths accumulated before alert).
 
 	int StopCalibration;
 	int ModelCalibIteration;
 
 	/**< Trigger parameters */
-	int DoPerCapitaTriggers;			// Use cases per thousand threshold for area controls
-	int DoGlobalTriggers;				// Use global triggers for interventions
-	int DoAdminTriggers;				// Use admin unit triggers for interventions
-	int DoICUTriggers;					// Use ICU case triggers for interventions
+	bool DoPerCapitaTriggers;			// Use cases per thousand threshold for area controls
+	bool DoGlobalTriggers;				// Use global triggers for interventions
+	bool DoAdminTriggers;				// Use admin unit triggers for interventions
+	bool DoICUTriggers;					// Use ICU case triggers for interventions
 	int TriggersSamplingInterval;		// Number of sampling intervals over which cumulative incidence measured for global trigger
 
-	int MoveRestrCellIncThresh, DoHQretrigger;
+	int MoveRestrCellIncThresh;
+	bool DoHQretrigger;
 
 	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
 	int PlaceCloseCellIncStopThresh, SocDistCellIncStopThresh;
@@ -319,27 +338,33 @@ struct Param
 
 	int VaccMaxRounds, VaccByAdminUnit, VaccAdminUnitDivisor, TreatByAdminUnit, TreatAdminUnitDivisor, MoveRestrByAdminUnit, MoveRestrAdminUnitDivisor, PlaceCloseByAdminUnit, PlaceCloseAdminUnitDivisor;
 	int KeyWorkerProphCellIncThresh, KeyWorkerPlaceNum[NUM_PLACE_TYPES], KeyWorkerPopNum, KeyWorkerNum, KeyWorkerIncHouseNum;
-	int DoBlanketMoveRestr, PlaceCloseIncTrig, PlaceCloseIncTrig1, PlaceCloseIncTrig2, TreatMaxCoursesPerCase, DoImportsViaAirports, DoMassVacc, DurImportTimeProfile;
-	int DoRecordInfEvents, MaxInfEvents, RecordInfEventsPerRun;
+	bool DoBlanketMoveRestr, DoMassVacc;
+	bool DoImportsViaAirports; // TODO: currently unused in code
+	int PlaceCloseIncTrig, PlaceCloseIncTrig1, PlaceCloseIncTrig2, TreatMaxCoursesPerCase, DurImportTimeProfile;
+	bool DoRecordInfEvents;
+	int MaxInfEvents, RecordInfEventsPerRun;
 	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// us = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay
 	unsigned short int usCaseIsolationDuration, usCaseIsolationDelay, usCaseAbsenteeismDuration, usCaseAbsenteeismDelay,usAlignDum; // last is for 8 byte alignment
 
 	double KernelPowerScale, KernelOffsetScale;
-	int LimitNumInfections, MaxNumInfections;
 
-	//Added parameters to deal with digital contact tracing - ggilani 09/03/2020
-	int DoDigitalContactTracing, ClusterDigitalContactUsers, NDigitalContactUsers, NDigitalHouseholdUsers, FindContactsOfDCTContacts, DoDCTTest;
-	int OutputDigitalContactTracing, OutputDigitalContactDist, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase, MaxDigitalContactsToTrace;
+	bool LimitNumInfections;
+	int MaxNumInfections;
+
+	// Added parameters to deal with digital contact tracing - ggilani 09/03/2020
+	bool DoDigitalContactTracing, ClusterDigitalContactUsers, FindContactsOfDCTContacts, DoDCTTest;
+	int NDigitalContactUsers, NDigitalHouseholdUsers;
+	bool OutputDigitalContactTracing, OutputDigitalContactDist, DCTIsolateIndexCases, RemoveContactsOfNegativeIndexCase;
+	int MaxDigitalContactsToTrace;
 	double PropPopUsingDigitalContactTracing, ScalingFactorSpatialDigitalContacts, ScalingFactorPlaceDigitalContacts, DigitalContactTracingDelay, LengthDigitalContactIsolation, ProportionDigitalContactsIsolate, ProportionSmartphoneUsersByAge[NUM_AGE_GROUPS];
 	double DelayFromIndexCaseDetectionToDCTIsolation, DelayToTestIndexCase, DelayToTestDCTContacts, SpecificityDCT, SensitivityDCT;
 	double DigitalContactTracingPolicyDuration, DCTCaseIsolationHouseEffectiveness, DCTCaseIsolationEffectiveness;
 
-	int DoOriginDestinationMatrix; //added: ggilani 28/01/15
-	int DoInterventionDelaysByAdUnit;
+	bool DoOriginDestinationMatrix;
+	bool DoInterventionDelaysByAdUnit;
 
-
-	int OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity;
-	int OutputSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults, OutputAdUnitAge;
+	bool OutputAge, OutputR0, OutputControls, OutputCountry, OutputAdUnitVar, OutputHousehold, OutputInfType, OutputNonSeverity;
+	bool OutputSeverity, OutputSeverityAdminUnit, OutputSeverityAge, OutputNonSummaryResults, OutputAdUnitAge;
 
 	int MeanChildAgeGap; // Average gap between ages of children in a household, in years
 	int MinAdultAge; // The youngest age, in years, at which someone is considered to be an adult
