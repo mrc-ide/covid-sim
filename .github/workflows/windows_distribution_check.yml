@@ -18,7 +18,11 @@ jobs:
           cd build
           cmake ..
           cmake --build .
+      - name: unit tests
+        run: |
+          cd build
+          ctest -j2 -V -E inttest.*
       - name: regression tests
         run: |
           cd build
-          ctest -j2 -V -C Debug
+          ctest -j2 -V -C Debug -R inttest.*

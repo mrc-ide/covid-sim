@@ -17,9 +17,14 @@ jobs:
         mkdir build && cd build
         cmake ..
         make
+    - name: unit tests
+      run: |
+        cd build
+        ctest -j2 -V -E inttest.*
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V -j2"
+        cd build
+        ctest -j2 -V -R inttest.*
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -52,6 +57,23 @@ jobs:
         cmake ..
         make
       if: matrix.container_image != 'ubuntu:bionic'
+    - name: unit tests
+      run: |
+        cd build
+        ctest -j2 -V -E inttest.*
+      if: matrix.container_image != 'centos:7'
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V -j2"
+        cd build
+        ctest -j2 -V -R inttest.*
+      if: matrix.container_image != 'centos:7'
+    - name: unit tests centos
+      run: |
+        cd build
+        ctest3 -j2 -V -E inttest.*
+      if: matrix.container_image == 'centos:7'
+    - name: regression tests centos
+      run: |
+        cd build
+        ctest3 -j2 -V -R inttest.*
+      if: matrix.container_image == 'centos:7'
