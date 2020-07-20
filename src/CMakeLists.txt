@@ -1,10 +1,5 @@
 # CMakeLists.txt for src directory
 
-# Add -fp-model precise in to Intel compiler targets (must be done before target is defined).
-if(UNIX AND (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
-  add_compile_options("-fp-model" "precise")
-endif()
-
 # Set up the IDE
 set(MAIN_SRC_FILES CovidSim.cpp BinIO.cpp Rand.cpp Error.cpp Dist.cpp Kernels.cpp Bitmap.cpp SetupModel.cpp CalcInfSusc.cpp Sweep.cpp Update.cpp Param.cpp MicroCellPosition.cpp Direction.cpp)
 set(MAIN_HDR_FILES CovidSim.h BinIO.h Rand.h Constants.h Country.h MachineDefines.h Error.h Dist.h Kernels.h Bitmap.h Model.h Param.h SetupModel.h ModelMacros.h InfStat.h CalcInfSusc.h Sweep.h Update.h MicroCellPosition.hpp Direction.hpp)
@@ -26,6 +21,9 @@ if(WIN32)
   endif()
 elseif(UNIX)
   target_compile_definitions(CovidSim PUBLIC UNIX)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    target_compile_options(CovidSim PUBLIC "SHELL:-fp-model precise")
+  endif()
 else()
   message(FATAL_ERROR "Unknown operating system type: ${CMAKE_SYSTEM_NAME}")
 endif()
