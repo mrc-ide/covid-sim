@@ -20,7 +20,6 @@
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
 void AddInfections(const int tn, Person* host, const int infectee_cell_index, const int place_link_index, const int infector_index, const int infectee_index, const int num_place_types);
-void AddToDCTQueue(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index);
 
 void TravelReturnSweep(double t)
 {
@@ -539,15 +538,28 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
 										if ((k==P.CareHomePlaceType)&&((!Hosts[ci].care_home_resident)||(!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
-										//if infectee is also a user, add them as a contact
-
-										// s6 = place susceptibility * proportion of digital contacts who self isolate
-										s6 = P.ProportionDigitalContactsIsolate * s;
-
-										// if infectee_index isn't absent
-										if (fct && !HOST_ABSENT(i3))
+										//if infectee is also a user, add them as a contact											
+										
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											AddToDCTQueue(tn, s6, ts, ci, i3);
+											// scale place susceptibility by proportion who self isolate and store as s6
+											s6 = P.ProportionDigitalContactsIsolate * s;
+											// if random number < s6
+											// AND number of contacts of ci(!) is less than maximum digital contact to trace
+											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
+											{
+												Hosts[ci].ncontacts++; //add to number of contacts made
+												int ad = Mcells[Hosts[i3].mcell].adunit;
+												if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
+												{
+													//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
+													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { i3,ci,ts };
+												}
+												else
+												{
+													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+												}
+											}
 										}
 
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
@@ -623,13 +635,25 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 
-										// s6 = place susceptibility * proportion of digital contacts who self isolate
-										s6 = P.ProportionDigitalContactsIsolate * s;
-
-										// if infectee_index isn't absent
-										if (fct && !HOST_ABSENT(i3))
+										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
-											AddToDCTQueue(tn, s6, ts, ci, i3);
+											// s6 = place susceptibility * proportion of digital contacts who self isolate
+											s6 = P.ProportionDigitalContactsIsolate * s;
+											// if number of contacts of infectious person < maximum and random number < s6
+											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
+											{
+												Hosts[ci].ncontacts++; //add to number of contacts made
+												int ad = Mcells[Hosts[i3].mcell].adunit;
+												if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
+												{
+													//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
+													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { i3,ci,ts };
+												}
+												else
+												{
+													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+												}
+											}
 										}
 										
 										// if potential infectee i3 uninfected and not absent.
@@ -841,8 +865,24 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
 								if (fct)
 								{
-									AddToDCTQueue(tn, s * P.ProportionDigitalContactsIsolate, ts, ci, i3);
-
+									//if infectee is also a user, add them as a contact
+									if (Hosts[i3].digitalContactTracingUser && (ci != i3))
+									{
+										if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s * P.ProportionDigitalContactsIsolate))
+										{
+											Hosts[ci].ncontacts++; //add to number of contacts made
+											int ad = Mcells[Hosts[i3].mcell].adunit;
+											if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
+											{
+												//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
+												StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { i3,ci,ts };
+											}
+											else
+											{
+												fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+											}
+										}
+									}
 									//scale down susceptibility so we don't over accept
 									s /= P.ScalingFactorSpatialDigitalContacts;
 								}
@@ -1941,46 +1981,6 @@ int TreatSweep(double t)
 
 
 	return (f > 0);
-}
-
-/**
- * Function: AddToDCTQueue
- *
- * Purpose: add to the DCT queue
- * @param tn - thread number
- * @param weighted_place_susceptibility
- * @param ts - time
- * @param infector_index
- * @param infectee_index
- * @return void
- */
-void AddToDCTQueue(const int tn, const double weighted_place_susceptibility, const unsigned short ts, const int infector_index, const int infectee_index)
-{
-	assert(infector_index >= 0);
-	assert(infectee_index >= 0);
-
-	// File for storing error reports
-	FILE* stderr_shared = stderr;
-
-	if ((Hosts[infectee_index].digitalContactTracingUser) && (infector_index != infectee_index))
-	{
-		// if random number < weighted_place_susceptibility
-		// AND number of contacts of infector_index(!) is less than maximum digital contact to trace
-		if ((Hosts[infector_index].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < weighted_place_susceptibility))
-		{
-			Hosts[infector_index].ncontacts++; //add to number of contacts made
-			int ad = Mcells[Hosts[infectee_index].mcell].adunit;
-			if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
-			{
-				//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
-				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { infectee_index,infector_index,ts };
-			}
-			else
-			{
-				fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
-			}
-		}
-	}
 }
 
 /**
