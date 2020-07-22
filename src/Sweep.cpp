@@ -546,7 +546,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											s6 = P.ProportionDigitalContactsIsolate * s;
 											// if random number < s6
 											// AND number of contacts of ci(!) is less than maximum digital contact to trace
-											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
+											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) <s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
 												int ad = Mcells[Hosts[i3].mcell].adunit;
@@ -633,7 +633,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
+
 										//if infectee is also a user, add them as a contact
+										
+										// if contact tracing in place AND potential infectee i3 is a contact tracing user AND i3 isn't absent AND i3 isn't ci (suspect this should be si)
 
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
