@@ -2013,7 +2013,8 @@ bool AddInfections(const int tn, const int infectee_cell_index, const int infect
 	const short int infect_type)
 {
 	bool validEntryAddedToQueue = false;
-	assert(infector_index >= -1);
+	assert(infectee_cell_index >= 0);
+	assert(infector_index >= 0);
 	assert(infectee_index >= 0);
 	assert(infect_type >= 0);
 	
