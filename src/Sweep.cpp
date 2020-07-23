@@ -19,8 +19,7 @@
 // helper functions
 
 void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
-bool AddInfections(const int tn, Person* host, const int infectee_cell_index, const int infector_index, const int infectee_index,
-	const short infect_type);
+bool AddInfections(const int tn, const int infectee_cell_index, const int infector_index, const int infectee_index,	const short int infect_type);
 
 void TravelReturnSweep(double t)
 {
@@ -398,9 +397,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								if (ranf_mt(tn) < s) 
 								{
 									// explicitly cast to short to resolve level 4 warning
-									const short infect_type = static_cast<short> (1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+									const short int infect_type = static_cast<short int>(1 + INFECT_TYPE_MASK * (1 + si->
+										infect_type / INFECT_TYPE_MASK));
 
-									if (AddInfections(tn, si, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type))
+									if (AddInfections(tn, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type))
 									{
 										// ** infect household member i3 **
 										Hosts[i3].infector = ci; //// assign person ci as infector of person i3
@@ -577,9 +577,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												// explicitly cast to short to resolve level 4 warning
-												const short infect_type = static_cast<short> (2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+												const short int infect_type = static_cast<short int> (2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
 
-												AddInfections(tn, si, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type);
+												AddInfections(tn, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type);
 											}
 										}
 									}
@@ -681,9 +681,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
 												// explicitly cast to short to resolve level 4 warning
-												const short infect_type = static_cast<short> (2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+												const short int infect_type = static_cast<short int> (2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
 												
-												AddInfections(tn, si, Hosts[i3].pcell% P.NumThreads, ci, i3, infect_type);
+												AddInfections(tn, Hosts[i3].pcell% P.NumThreads, ci, i3, infect_type);
 											}// susceptibility test
 										}// potential infectee i3 uninfected and not absent.
 									}// loop over sampling queue
@@ -912,9 +912,9 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if (Hosts[i3].inf == InfStat_Susceptible)
 										{
 											// explicitly cast to short to resolve level 4 warning
-											const short infect_type = static_cast<short>(2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+											const short int infect_type = static_cast<short int>(2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
 											
-											AddInfections(tn, si, cq, ci, i3, infect_type);
+											AddInfections(tn, cq, ci, i3, infect_type);
 										}
 									}
 								}// m < susceptible people in target cell
@@ -2003,15 +2003,14 @@ void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int
  *
  * Purpose: add to the infection queue
  * @param tn - thread number
- * @param host
  * @param infectee_cell_index -  cell number of potential infectee
  * @param infector_index
  * @param infectee_index
  * @param infect_type
  * @return if the queue is added to, return true
  */
-bool AddInfections(const int tn, Person* host, const int infectee_cell_index, const int infector_index, const int infectee_index,
-	const short infect_type)
+bool AddInfections(const int tn, const int infectee_cell_index, const int infector_index, const int infectee_index,
+	const short int infect_type)
 {
 	bool validEntryAddedToQueue = false;
 	assert(infector_index >= -1);
