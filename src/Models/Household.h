@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Geometry/Vector2.h"
+#include "geometry/Vector2.h"
 
 struct Household
 {

@@ -10,7 +10,7 @@
 #include "InfStat.h"
 #include "IndexList.h"
 
-#include "Geometry/Vector2.h"
+#include "geometry/Vector2.h"
 
 #include "Models/Cell.h"
 #include "Models/Household.h"
