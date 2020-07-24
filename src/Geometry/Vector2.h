@@ -4,6 +4,21 @@
 
 namespace Geometry {
 	template<class T>
+	struct DiagonalMatrix2 {
+		T x;
+		T y;
+
+		DiagonalMatrix2() : x(), y() {}
+
+		DiagonalMatrix2(T x, T y) : x(x), y(y) {}
+
+		template<class U>
+		explicit operator DiagonalMatrix2<U>() const {
+			return DiagonalMatrix2<U>((U)this->x, (U)this->y);
+		}
+	};
+
+	template<class T>
 	struct Vector2 {
 		T x;
 		T y;
@@ -26,9 +41,9 @@ namespace Geometry {
 
 		Vector2<T> &operator-=(const Vector2<T> &other);
 
-		Vector2<T> operator*(const Vector2<T> &other) const;
+		Vector2<T> operator*(const DiagonalMatrix2<T> &other) const;
 
-		Vector2<T> operator/(const Vector2<T> &other) const;
+		Vector2<T> operator/(const DiagonalMatrix2<T> &other) const;
 
 		Vector2<T> operator+(const T &other) const;
 
@@ -85,12 +100,12 @@ namespace Geometry {
 	}
 
 	template<class T>
-	Vector2<T> Vector2<T>::operator*(const Vector2<T> &other) const {
+	Vector2<T> Vector2<T>::operator*(const DiagonalMatrix2<T> &other) const {
 		return Vector2<T>(this->x * other.x, this->y * other.y);
 	}
 
 	template<class T>
-	Vector2<T> Vector2<T>::operator/(const Vector2<T> &other) const {
+	Vector2<T> Vector2<T>::operator/(const DiagonalMatrix2<T> &other) const {
 		return Vector2<T>(this->x / other.x, this->y / other.y);
 	}
 
@@ -120,12 +135,17 @@ namespace Geometry {
 		return Vector2<U>((U)this->x, (U)this->y);
 	}
 
+	typedef DiagonalMatrix2<double> DiagonalMatrix2d;
+	typedef DiagonalMatrix2<float>  DiagonalMatrix2f;
+	typedef DiagonalMatrix2<int>    DiagonalMatrix2i;
+
 	typedef Vector2<double> Vector2d;
 	typedef Vector2<float>  Vector2f;
 	typedef Vector2<int>    Vector2i;
 
-	Vector2d operator*(const Vector2d &left, const Vector2f &right);
-	Vector2d operator*(const Vector2f &left, const Vector2d &right);
+
+	Vector2d operator*(const DiagonalMatrix2d &left, const Vector2f &right);
+	Vector2d operator*(const Vector2f &left, const DiagonalMatrix2d &right);
 
 	Vector2d operator-(const Vector2d &left, const Vector2i &right);
 	Vector2d operator-(const Vector2i &left, const Vector2d &right);
