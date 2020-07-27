@@ -525,7 +525,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
 										if ((k==P.CareHomePlaceType)&&((!Hosts[ci].care_home_resident)||(!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
-										//if infectee is also a user, add them as a contact											
+										//if infectee is also a user, add them as a contact
 										
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
@@ -648,7 +648,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 											}
 										}
-										
+
 										// if potential infectee i3 uninfected and not absent.
 										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
 										{
@@ -2007,12 +2007,12 @@ void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int
  * @param infector_index
  * @param infectee_index
  * @param infect_type
- * @return if the queue is added to, return true
+ * @return true if a positive entry is added to the queue
  */
 bool AddInfections(const int tn, const int infectee_cell_index, const int infector_index, const int infectee_index,
 	const short int infect_type)
 {
-	bool validEntryAddedToQueue = false;
+	bool positiveEntryAdded = false;
 	assert(infectee_cell_index >= 0);
 	assert(infector_index >= 0);
 	assert(infectee_index >= 0);
@@ -2037,8 +2037,8 @@ bool AddInfections(const int tn, const int infectee_cell_index, const int infect
 			// bits >4 store the generation of infection
 
 			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);
-			validEntryAddedToQueue = true;
+			positiveEntryAdded = true;
 		}
 	}
-	return validEntryAddedToQueue;
+	return positiveEntryAdded;
 }
