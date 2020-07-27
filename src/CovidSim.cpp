@@ -1247,13 +1247,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Bounding box for bitmap", "%lf", (void*) &(P.BoundingBox.bottom_left().x), 4, 1, 0))
 		{
-			P.BoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
-			P.BoundingBox.top_right()   = Geometry::Vector2d(1.0, 1.0);
+			P.BoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
+			P.BoundingBox.top_right()   = CovidSim::Geometry::Vector2d(1.0, 1.0);
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial domain for simulation", "%lf", (void*) &(P.SpatialBoundingBox.bottom_left().x), 4, 1, 0))
 		{
-			P.SpatialBoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
-			P.SpatialBoundingBox.top_right()   = Geometry::Vector2d(1.0, 1.0);
+			P.SpatialBoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
+			P.SpatialBoundingBox.top_right()   = CovidSim::Geometry::Vector2d(1.0, 1.0);
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Grid size", "%lf", (void*)&(P.in_cells_.width), 1, 1, 0)) P.in_cells_.width = 1.0 / 120.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Use long/lat coord system", "%i", (void*)&(P.DoUTM_coords), 1, 1, 0)) P.DoUTM_coords = 1;
@@ -2367,7 +2367,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
             ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
         }
 		traf *= (P.AirportTrafficScale * sc);
-		if (!P.SpatialBoundingBox.inside(Geometry::Vector2d(Airports[i].loc)))
+		if (!P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(Airports[i].loc)))
 		{
 			Airports[i].loc.x = Airports[i].loc.y = -1;
 			Airports[i].total_traffic = 0;
