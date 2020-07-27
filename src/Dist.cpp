@@ -34,11 +34,11 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	y -= yi;
 	x = (1 - x) * sinx[(int)xi] + x * sinx[((int)xi) + 1];
 	y = (1 - y) * sinx[(int)yi] + y * sinx[((int)yi) + 1];
-	yt = fabs(y1 + P.SpatialBoundingBox[1]);
+	yt = fabs(y1 + P.SpatialBoundingBox.bottom_left().y);
 	yi = floor(yt);
 	cy1 = yt - yi;
 	cy1 = (1 - cy1) * cosx[((int)yi)] + cy1 * cosx[((int)yi) + 1];
-	yt = fabs(y2 + P.SpatialBoundingBox[1]);
+	yt = fabs(y2 + P.SpatialBoundingBox.bottom_left().y);
 	yi = floor(yt);
 	cy2 = yt - yi;
 	cy2 = (1 - cy2) * cosx[((int)yi)] + cy2 * cosx[((int)yi) + 1];
