@@ -14,7 +14,12 @@
 #include "Param.h"
 #include "Sweep.h"
 #include "Update.h"
+#include <cassert>
 
+// helper functions
+
+void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type);
+bool AddInfections(const int tn, const int infectee_cell_index, const int infector_index, const int infectee_index,	const short int infect_type);
 
 void TravelReturnSweep(double t)
 {
@@ -391,27 +396,14 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								// Force of Infection (s) > random value between 0 and 1
 								if (ranf_mt(tn) < s) 
 								{
-									// identify which cell queue (index cq) to add infection to 
-									cq = Hosts[i3].pcell % P.NumThreads;
-									if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
+									// explicitly cast to short to resolve level 4 warning
+									const short int infect_type = static_cast<short int>(1 + INFECT_TYPE_MASK * (1 + si->
+										infect_type / INFECT_TYPE_MASK));
+
+									if (AddInfections(tn, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type))
 									{
-										if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
-										else
-										{
-
-											// ** infect household member i3 **
-											Hosts[i3].infector = ci; //// assign person ci as infector of person i3
-											//infect_type: first 4 bits store type of infection
-											//				1= household
-											//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
-											//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
-											//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
-											// bits >4 store the generation of infection
-
-											short int infect_type = 1 + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
-											StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
-										}
+										// ** infect household member i3 **
+										Hosts[i3].infector = ci; //// assign person ci as infector of person i3
 									}
 								}// if FOI > s
 							} // if person in household uninfected/susceptible and not travelling
@@ -584,21 +576,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// if either susceptiblity is 100% or sample probability s
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												// select cell containing potential infectee
-												cq = Hosts[i3].pcell % P.NumThreads;
-												// if infection queue for selected call < maximum length
-												if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //(Hosts[i3].infector==-1)&&
-												{
-													// false positive
-													if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
-													else
-													{
-														// infect i3 - add if to infection queue for selected cell
-														short int infect_type = 2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
-														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
-													}
-												}
+												// explicitly cast to short to resolve level 4 warning
+												const short int infect_type = static_cast<short int> (2 + k + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+
+												AddInfections(tn, Hosts[i3].pcell % P.NumThreads, ci, i3, infect_type);
 											}
 										}
 									}
@@ -642,9 +623,11 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
+
 										//if infectee is also a user, add them as a contact
 										
 										// if contact tracing in place AND potential infectee i3 is a contact tracing user AND i3 isn't absent AND i3 isn't ci (suspect this should be si)
+
 										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
 										{
 											// s6 = place susceptibility * proportion of digital contacts who self isolate
@@ -697,22 +680,10 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											// is susceptibility is 1 (ie infect everyone) or random number is less than susceptibility
 											if ((s == 1) || (ranf_mt(tn) < s))
 											{
-												// store cell number of potential infectee i3 as cq
-												cq = Hosts[i3].pcell % P.NumThreads;
-												// if there is space in queue for this thread
-												if ((StateT[tn].n_queue[cq] < P.InfQueuePeakLength))//(Hosts[i3].infector==-1)&&
-												{
-													// if random number < false positive rate
-													if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-														// add false positive to infection queue
-														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {-1, i3, -1};
-													else
-													{
-														short int infect_type = 2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
-														// add infection of i3 by ci to infection queue
-														StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = {ci, i3, infect_type};
-													}
-												}// space in queue
+												// explicitly cast to short to resolve level 4 warning
+												const short int infect_type = static_cast<short int> (2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+												
+												AddInfections(tn, Hosts[i3].pcell% P.NumThreads, ci, i3, infect_type);
 											}// susceptibility test
 										}// potential infectee i3 uninfected and not absent.
 									}// loop over sampling queue
@@ -893,7 +864,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//if infectee is also a user, add them as a contact
 									if (Hosts[i3].digitalContactTracingUser && (ci != i3))
 									{
-										if ((Hosts[ci].ncontacts<P.MaxDigitalContactsToTrace)&&(ranf_mt(tn) < s*P.ProportionDigitalContactsIsolate))
+										if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s * P.ProportionDigitalContactsIsolate))
 										{
 											Hosts[ci].ncontacts++; //add to number of contacts made
 											int ad = Mcells[Hosts[i3].mcell].adunit;
@@ -911,6 +882,8 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									//scale down susceptibility so we don't over accept
 									s /= P.ScalingFactorSpatialDigitalContacts;
 								}
+								
+							
 								if (m < ct->S)  // only bother trying to infect susceptible people
 								{
 									s *= CalcPersonSusc(i3, ts, ci, tn);
@@ -935,15 +908,13 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									if ((s == 1) || (ranf_mt(tn) < s)) //// accept/reject
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (StateT[tn].n_queue[cq] < P.InfQueuePeakLength)) //Hosts[i3].infector==-1
+
+										if (Hosts[i3].inf == InfStat_Susceptible)
 										{
-											if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
-												StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = { -1, i3, -1 };
-											else
-											{
-												short int infect_type = 2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK);
-												StateT[tn].inf_queue[cq][StateT[tn].n_queue[cq]++] = { ci, i3, infect_type };
-											}
+											// explicitly cast to short to resolve level 4 warning
+											const short int infect_type = static_cast<short int>(2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
+											
+											AddInfections(tn, cq, ci, i3, infect_type);
 										}
 									}
 								}// m < susceptible people in target cell
@@ -2009,4 +1980,65 @@ int TreatSweep(double t)
 
 
 	return (f > 0);
+}
+
+/**
+ * Function: AddToInfectionQueue
+ *
+ * Purpose: add to the infection queue
+ * @param tn - thread number
+ * @param infectee_cell_number
+ * @param infector_index
+ * @param infectee_index
+ * @param infect_type
+ * @return void
+ */
+void AddToInfectionQueue(const int tn, const int infectee_cell_number, const int infector_index, const int infectee_index, const short int infect_type)
+{
+	StateT[tn].inf_queue[infectee_cell_number][StateT[tn].n_queue[infectee_cell_number]++] = { infector_index, infectee_index, infect_type };
+}
+
+/**
+ * Function: AddInfections
+ *
+ * Purpose: add to the infection queue
+ * @param tn - thread number
+ * @param infectee_cell_index -  cell number of potential infectee
+ * @param infector_index
+ * @param infectee_index
+ * @param infect_type
+ * @return true if a positive entry is added to the queue
+ */
+bool AddInfections(const int tn, const int infectee_cell_index, const int infector_index, const int infectee_index,
+	const short int infect_type)
+{
+	bool positiveEntryAdded = false;
+	assert(infectee_cell_index >= 0);
+	assert(infector_index >= 0);
+	assert(infectee_index >= 0);
+	assert(infect_type >= 0);
+	
+	// if there is space in queue for this thread
+	if ((StateT[tn].n_queue[infectee_cell_index] < P.InfQueuePeakLength))
+	{
+		// if random number < false positive rate
+		if ((P.FalsePositiveRate > 0) && (ranf_mt(tn) < P.FalsePositiveRate))
+			// add false positive to infection queue
+			AddToInfectionQueue(tn, infectee_cell_index, -1, infectee_index, -1);
+		else
+		{
+			// infect infectee_index
+
+			// infect_type: first 4 bits store type of infection
+			//				1= household
+			//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
+			//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
+			//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
+			// bits >4 store the generation of infection
+
+			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);
+			positiveEntryAdded = true;
+		}
+	}
+	return positiveEntryAdded;
 }
