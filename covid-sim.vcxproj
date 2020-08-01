@@ -60,6 +60,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>/Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,6 +79,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>/Zc:twoPhase- -openmp %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>Default</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,9 +132,9 @@
     <ClInclude Include="src\Update.h" />
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
-    <ClInclude Include="src\Geometry\BoundingBox.h" />
-    <ClInclude Include="src\Geometry\Size.h" />
-    <ClInclude Include="src\Geometry\Vector2.h" />
+    <ClInclude Include="include\geometry\BoundingBox.h" />
+    <ClInclude Include="include\geometry\Size.h" />
+    <ClInclude Include="include\geometry\Vector2.h" />
     <ClInclude Include="src\Models\Cell.h" />
     <ClInclude Include="src\Models\Household.h" />
     <ClInclude Include="src\Models\Microcell.h" />

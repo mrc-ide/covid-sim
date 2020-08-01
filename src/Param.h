@@ -9,8 +9,8 @@
 #include "Kernels.h"
 #include "MicroCellPosition.hpp"
 
-#include "Geometry/BoundingBox.h"
-#include "Geometry/Size.h"
+#include "geometry/BoundingBox.h"
+#include "geometry/Size.h"
 
 /** @brief Enumeration of bitmap formats. */
 enum struct BitmapFormats
