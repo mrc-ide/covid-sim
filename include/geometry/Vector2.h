@@ -1,4 +1,6 @@
-#pragma once
+#ifndef COVIDSIM_GEOMETRY_VECTOR2_H_INCLUDED_
+#define COVIDSIM_GEOMETRY_VECTOR2_H_INCLUDED_
+
 
 #include <cmath>
 
@@ -150,3 +152,5 @@ namespace Geometry {
 	Vector2d operator-(const Vector2d &left, const Vector2i &right);
 	Vector2d operator-(const Vector2i &left, const Vector2d &right);
 }
+
+#endif

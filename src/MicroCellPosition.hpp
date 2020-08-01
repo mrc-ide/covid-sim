@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_MICRO_CELL_POSITION_HPP_INCLUDED_
+#define COVIDSIM_MICRO_CELL_POSITION_HPP_INCLUDED_
 
 #include "Direction.hpp"
 #include "Error.h"
@@ -20,3 +21,5 @@ struct MicroCellPosition
 		return *this;
 	}
 };
+
+#endif

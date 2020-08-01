@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_MODELS_PERSON_H_INCLUDED_
+#define COVIDSIM_MODELS_PERSON_H_INCLUDED_
 
 #include <cstdint>
 #include <limits>
@@ -57,3 +58,5 @@ struct PersonQuarantine
 	// because it conflicts with the max() preprocessor macro in MSVC builds
 	PersonQuarantine() : comply(2), start_time((std::numeric_limits<uint16_t>::max)()-1) {} 
 };
+
+#endif

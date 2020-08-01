@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_MODELS_HOUSEHOLD_H_INCLUDED_
+#define COVIDSIM_MODELS_HOUSEHOLD_H_INCLUDED_
 
 #include "geometry/Vector2.h"
 
@@ -9,3 +10,5 @@ struct Household
 	unsigned short int nhr;
 	Geometry::Vector2<float> loc;
 };
+
+#endif

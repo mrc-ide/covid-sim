@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_GEOMETRY_SIZE_H_INCLUDED_
+#define COVIDSIM_GEOMETRY_SIZE_H_INCLUDED_
 
 #include <cmath>
 #include "Vector2.h"
@@ -110,3 +111,5 @@ namespace Geometry {
 		return Vector2<U>((U)this->width, (U)this->height);
 	}
 }
+
+#endif

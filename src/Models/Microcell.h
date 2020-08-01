@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_MODELS_MICRO_CELL_H_INCLUDED_
+#define COVIDSIM_MODELS_MICRO_CELL_H_INCLUDED_
 
 #include "../IndexList.h"
 
@@ -27,3 +28,5 @@ struct Microcell
 	unsigned short int vacc_start_time;
 	IndexList* AirportList;
 };
+
+#endif
