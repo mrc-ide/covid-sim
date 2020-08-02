@@ -13,7 +13,7 @@
 #include <functional>
 #include <cassert>
 
-using namespace Geometry;
+using namespace CovidSim::Geometry;
 
 //adding function to record an event: ggilani - 10/10/2014
 void RecordEvent(double, int, int, int, int); //added int as argument to InfectSweep to record run number: ggilani - 15/10/14
@@ -86,7 +86,7 @@ void DoImmune(int ai)
 
 		if (P.OutputBitmap)
 		{
-			Vector2<int> pixel((Households[a->hh].loc * P.scale) - P.bmin);
+			Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
 			if (P.b.contains(pixel))
 			{
 				unsigned j = pixel.y * bmh->width + pixel.x;
@@ -169,7 +169,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2<int> pixel((Households[a->hh].loc * P.scale) - P.bmin);
+				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
 				if (P.b.contains(pixel))
 				{
 					unsigned j = pixel.y * bmh->width + pixel.x;
@@ -907,7 +907,7 @@ void DoRecover(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2<int> pixel((Households[a->hh].loc * P.scale) - P.bmin);
+				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
 				if (P.b.contains(pixel))
 				{
 					unsigned j = pixel.y * bmh->width + pixel.x;
@@ -955,7 +955,7 @@ void DoDeath(int ai, int tn, int run)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2<int> pixel((Households[a->hh].loc * P.scale) - P.bmin);
+				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
 				if (P.b.contains(pixel))
 				{
 					unsigned j = pixel.y * bmh->width + pixel.x;
@@ -990,7 +990,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 			if (P.OutputBitmap)
 			{
-				Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
+				Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
 				if (P.b.contains(pixel))
 				{
 					unsigned j = pixel.y * bmh->width + pixel.x;
@@ -1021,7 +1021,7 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
 			if (P.b.contains(pixel))
 			{
 				unsigned j = pixel.y * bmh->width + pixel.x;
@@ -1049,7 +1049,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		Cells[Hosts[ai].pcell].tot_treat++;
 		if (P.OutputBitmap)
 		{
-			Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
 			if (P.b.contains(pixel))
 			{
 				unsigned j = pixel.y * bmh->width + pixel.x;
@@ -1285,7 +1285,7 @@ void DoVacc(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
 			if (P.b.contains(pixel))
 			{
 				unsigned j = pixel.y * bmh->width + pixel.x;
@@ -1323,7 +1323,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		Cells[Hosts[ai].pcell].tot_vacc++;
 		if (P.OutputBitmap)
 		{
-			Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
 			if (P.b.contains(pixel))
 			{
 				unsigned j = pixel.y * bmh->width + pixel.x;
