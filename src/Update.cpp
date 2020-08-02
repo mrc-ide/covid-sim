@@ -349,6 +349,9 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 				ToDeathILI(tn, a->mcell, ai);
 				a->Severity_Current = Severity::Dead;
 				break;
+
+			default:
+				break;
 		}
 	}
 }
@@ -386,6 +389,9 @@ void DoRecover_FromSeverity(int ai, int tn)
 				case Severity::RecoveringFromCritical:
 					FromCritRecov(tn, a->mcell, ai);
 					a->Severity_Current = Severity::Recovered;
+					break;
+
+				default:
 					break;
 			}
 		}
