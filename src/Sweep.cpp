@@ -108,7 +108,13 @@ void TravelDepartSweep(double t)
 						l = Airports[i].DestMcells[l].id;
 						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
-						if ((abs(Hosts[i2].inf) < InfStat::InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat::Case))
+
+						// Original:
+						// if ((abs(Hosts[i2].inf) < InfStat::InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat::Case))
+						// but note: above is equivalent to if ((abs(inf) < 2) && (inf != -2)),
+						// so if h were -2, it would fail the first case, and the second is redundant.
+
+						if (not_yet_symptomatic(Hosts[i2].inf))
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))
@@ -841,7 +847,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						// initialise f2=0 (f2=1 is the while condition for this loop)
 						f2 = 0;
 						// if random number greater than acceptance probablility or infectee is dead
-						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat::Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
+						if ((ranf_mt(tn) >= s) || (is_dead(Hosts[i3].inf))) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
 							// set f2=1 so loop continues 
 							f2 = 1;
@@ -1305,7 +1311,9 @@ void DigitalContactTracingSweep(double t)
 						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
 						{
 							//if host is positive
-							if ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)) //either asymptomatic infectious, symptomatic infectious or presymptomatic infectious
+							if ((Hosts[contact].inf == InfStat::InfectiousAsymptomaticNotCase) ||
+								(Hosts[contact].inf == InfStat::Case) ||
+								(Hosts[contact].inf == InfStat::InfectiousAlmostSymptomatic))
 							{
 								//if the test is a false negative
 								if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
@@ -1319,8 +1327,8 @@ void DigitalContactTracingSweep(double t)
 									Hosts[contact].index_case_dct = 1;
 									//set trigger time to pick up their contacts in the next time step
 									Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
-									//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-									if (Hosts[contact].inf == 2)
+									//if they are an infectious, asymptomatic non-case, call DoDetectedCase in order to trigger HQ and PC too.
+									if (Hosts[contact].inf == InfStat::InfectiousAsymptomaticNotCase)
 									{
 										DoDetectedCase(contact, t, ts, tn);
 										Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
@@ -1342,7 +1350,10 @@ void DigitalContactTracingSweep(double t)
 					else if (P.FindContactsOfDCTContacts)
 					{
 						//check every day to see if contacts become index cases - but they have to be infectious. Otherwise we could set the trigger time and cause their contacts to be traced when they are not being traced themselves.
-						if ((Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+						if ((Hosts[contact].index_case_dct == 0) && (
+							(Hosts[contact].inf == InfStat::InfectiousAsymptomaticNotCase) ||
+							(Hosts[contact].inf == InfStat::Case) ||
+							(Hosts[contact].inf == InfStat::InfectiousAlmostSymptomatic)))
 							//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
 						{
 							//set them to be an index case
@@ -1350,7 +1361,7 @@ void DigitalContactTracingSweep(double t)
 							//set trigger time to pick up their contacts in the next time step
 							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
 							//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
-							if (Hosts[contact].inf == 2)
+							if (Hosts[contact].inf == InfStat::InfectiousAsymptomaticNotCase)
 							{
 								DoDetectedCase(contact, t, ts, tn);
 								Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;

@@ -666,13 +666,17 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (j = j1; (j < j2) && (!f); j++)
-							f = ((abs(Hosts[j].inf) != InfStat::Dead) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
+							f = (!is_dead(Hosts[j].inf) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
 
 						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
 							for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
-								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j].inf) != InfStat::Dead)) { k = j; f = 1; }
+								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[j].inf)))
+								{
+									k = j;
+									f = 1;
+								}
 							if (f) //// so finally, if at least one member of household is alive and does not need supervision by an adult, amend absent start and stop times
 							{
 								Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -823,12 +827,16 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 								f = 0;
 								for (int j3 = j1; (j3 < j2) && (!f); j3++)
-									f = ((abs(Hosts[j3].inf) != InfStat::Dead) && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
+									f = ((!is_dead(Hosts[j3].inf)) && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
 										&& ((Hosts[j3].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)|| (HOST_ABSENT(j3)) || (HOST_QUARANTINED(j3))));
 								if (!f)
 								{
 									for (int j3 = j1; (j3 < j2) && (!f); j3++)
-										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[j3].inf) != InfStat::Dead)) { k = j3; f = 1; }
+										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[j3].inf)))
+										{
+											k = j3;
+											f = 1;
+										}
 									if (f)
 									{
 										if (!HOST_ABSENT(k)) Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
@@ -899,7 +907,13 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		a->inf = (InfStat)(InfStat::Recovered * a->inf / abs(a->inf));
+		// Original... Recovered = 3, and (a->inf / abs(a->inf)) is +1 or -1 depending on whether a_inf is positive.
+		// a->inf = (InfStat)(InfStat::Recovered * a->inf / abs(a->inf));
+		// Note: only two possible values for a->inf at this point (see if above)
+		// Assuming                          case -> RecoveredFromSymp
+		//   and    InfectiousAsymptomaticNotCase -> RecoveredFromASymp (not just recovered)
+		
+		a->inf = (a->inf == InfStat::Case) ? InfStat::RecoveredFromSymp : InfStat::RecoveredFromAsymp;
 		if (P.DoAdUnits && P.OutputAdUnitAge)
 			StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 
@@ -933,7 +947,10 @@ void DoDeath(int ai, int tn, int run)
 
 	if ((a->inf == InfStat::InfectiousAsymptomaticNotCase || a->inf == InfStat::Case))
 	{
-		a->inf = (InfStat)(InfStat::Dead * a->inf / abs(a->inf));
+		// Original: a->inf = (InfStat)(InfStat::Dead * a->inf / abs(a->inf));
+		// Assuming case leads to Dead_WasSymp, asympnotcase leads to Dead_Was_Asymp (not just Dead)
+		a->inf = (a->inf == InfStat::Case) ? InfStat::Dead_WasSymp : InfStat::Dead_WasAsymp;
+			
 		InfectiousToDeath(a->pcell);
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
@@ -983,7 +1000,11 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			Hosts[ai].treat_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
 			Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatCaseCourseLength)));
 			StateT[tn].cumT++;
-			if ((abs(Hosts[ai].inf) > InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
+
+			// Orig: if ((abs(Hosts[ai].inf) > InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
+			// Notd that susceptible enum val = 0
+
+			if ((Hosts[ai].inf != InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
 			StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 			if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 			Cells[Hosts[ai].pcell].tot_treat++;
@@ -1178,11 +1199,11 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat::Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = ((!is_dead(Hosts[l].inf)) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
 							{
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat::Dead))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[l].inf)))
 									{
 										int index = StateT[tn].host_closure_queue_size;
 										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
@@ -1243,11 +1264,11 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 							f = 0;
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((abs(Hosts[l].inf) != InfStat::Dead) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = ((!is_dead(Hosts[l].inf)) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f)
 							{
 								for (l = j1; (l < j2) && (!f); l++)
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (abs(Hosts[l].inf) != InfStat::Dead) && (HOST_ABSENT(l)))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[l].inf)) && (HOST_ABSENT(l)))
 									{
 										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = ts;
 									}

@@ -35,6 +35,11 @@ enum struct InfStat {
 	Dead = 5
 };
 
+bool not_yet_symptomatic(InfStat x);
+bool is_dead(InfStat x);
+bool is_recovered(InfStat x);
+bool pre_recovered(InfStat x);
+
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
 enum struct Severity {
 	//// Flag value.

@@ -3084,7 +3084,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 								do
 								{
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
-								} while ((abs(Hosts[l].inf) == InfStat::Dead) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
+								} while ((is_dead(Hosts[l].inf)) || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
 								DoFalseCase(l, t, ts, 0);
 							}
 						}
@@ -4604,8 +4604,8 @@ void RecordQuarNotInfected(int n, unsigned short int ts)
 		for (int Person = thread_no; Person < P.PopSize; Person += P.NumThreads)
 			if (HOST_QUARANTINED(Person))
 			{
-				if (Hosts[Person].inf == InfStat::Susceptible || abs(Hosts[Person].inf) == InfStat::Recovered) QuarNotInfected++;
-				if (Hosts[Person].inf > 0) QuarNotSymptomatic++;
+				if (Hosts[Person].inf == InfStat::Susceptible || is_recovered(Hosts[Person].inf)) QuarNotInfected++;
+				if (Hosts[Person].inf != InfStat::Susceptible) QuarNotSymptomatic++;
 			}
 
 	TimeSeries[n].prevQuarNotInfected		= (double) QuarNotInfected;
@@ -5477,10 +5477,14 @@ void RecordInfTypes(void)
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
 				infcountry[mcell_country[Hosts[i].mcell]]++;
-				if (abs(Hosts[i].inf) < InfStat::Recovered)
+				if (pre_recovered(Hosts[i].inf))
+				{
 					l = -1;
+				}
 				else if (l >= 0)
+				{
 					l++;
+				}
 				if ((l >= 0) && ((Hosts[i].inf == InfStat::RecoveredFromSymp) || (Hosts[i].inf == InfStat::Dead_WasSymp)))
 				{
 					lc2++;
@@ -5520,7 +5524,7 @@ void RecordInfTypes(void)
 			for (c = 0; c < Cells[b].n; c++)
 			{
 				i = Cells[b].members[c];
-				if ((abs(Hosts[i].inf) == InfStat::Recovered) || (abs(Hosts[i].inf) == InfStat::Dead))
+				if (is_recovered(Hosts[i].inf) || is_dead(Hosts[i].inf))
 				{
 					l = Hosts[i].infect_type / INFECT_TYPE_MASK;
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;
