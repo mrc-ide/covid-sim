@@ -107,6 +107,7 @@
     <ClCompile Include="src\Update.cpp" />
     <ClCompile Include="src\Param.cpp" />
     <ClCompile Include="src\Direction.cpp" />
+    <ClCompile Include="src\Geometry\Distance.cpp" />
     <ClCompile Include="src\Geometry\Vector2.cpp" />
     <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
@@ -134,6 +135,7 @@
     <ClInclude Include="src\MicroCellPosition.hpp" />
     <ClInclude Include="src\Direction.hpp" />
     <ClInclude Include="include\geometry\BoundingBox.h" />
+    <ClInclude Include="include\geometry\Distance.h" />
     <ClInclude Include="include\geometry\Size.h" />
     <ClInclude Include="include\geometry\Vector2.h" />
     <ClInclude Include="src\Models\Cell.h" />

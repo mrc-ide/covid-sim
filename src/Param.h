@@ -10,6 +10,7 @@
 #include "MicroCellPosition.hpp"
 
 #include "geometry/BoundingBox.h"
+#include "geometry/Distance.h"
 #include "geometry/Size.h"
 
 /** @brief Enumeration of bitmap formats. */
@@ -49,6 +50,8 @@ struct Param
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 	int total_microcells_wide_, total_microcells_high_;
+
+	std::shared_ptr<CovidSim::Geometry::Distance> distance_;
 
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
 	int get_micro_cell_index_from_position(MicroCellPosition const& position) const;
