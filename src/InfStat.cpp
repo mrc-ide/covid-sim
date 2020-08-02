@@ -24,3 +24,11 @@ bool pre_recovered(InfStat x)
 		(x == InfStat::Latent) || (x == InfStat::InfectiousAlmostSymptomatic) ||
 		(x == InfStat::InfectiousAsymptomaticNotCase) || (x == InfStat::Case);
 }
+
+bool never_symptomatic(InfStat x)
+{
+	return (x == InfStat::Latent) || (x == InfStat::InfectiousAsymptomaticNotCase) ||
+		(x == InfStat::RecoveredFromAsymp) || (x == InfStat::ImmuneAtStart) ||
+		(x == InfStat::Dead_WasAsymp);
+
+}

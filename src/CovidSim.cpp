@@ -4605,7 +4605,7 @@ void RecordQuarNotInfected(int n, unsigned short int ts)
 			if (HOST_QUARANTINED(Person))
 			{
 				if (Hosts[Person].inf == InfStat::Susceptible || is_recovered(Hosts[Person].inf)) QuarNotInfected++;
-				if (Hosts[Person].inf != InfStat::Susceptible) QuarNotSymptomatic++;
+				if (never_symptomatic(Hosts[Person].inf)) QuarNotSymptomatic++;
 			}
 
 	TimeSeries[n].prevQuarNotInfected		= (double) QuarNotInfected;
