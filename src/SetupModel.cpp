@@ -491,14 +491,18 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
 	{
-		for (int i = 0; i < P.NH;i++)
+		for (int i = 0; i < P.NH; i++)
 		{
 			l = Households[i].FirstPerson;
 			m = l + Households[i].nh;
 			int i2 = 0;
-			for (int k = l; k < m; k++) if (Hosts[k].esocdist_comply) i2=1;
+			for (int k = l; k < m; k++) {
+				if (Hosts[k].esocdist_comply) i2 = 1;
+			}
 			if (i2)
+			{
 				for (int k = l; k < m; k++) Hosts[k].esocdist_comply = 1;
+			}
 		}
 	}
 
@@ -667,7 +671,7 @@ void InitTransmissionCoeffs(void)
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat::Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 				shd += (double)(Households[Hosts[i].hh].nhr - 1);
 			}
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
@@ -1207,7 +1211,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				if (P.DoHouseholds)
 				{
 					for (i2 = 0; i2 < m; i2++) {
-						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
+						Hosts[i + i2].inf = InfStat::Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
 					}
 				}
 				Households[Hosts[i].hh].FirstPerson = i;
@@ -2187,7 +2191,7 @@ void AssignPeopleToPlaces()
 						ic = Hosts[i].mcell;
 
 						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
-						Direction m2 = Right;
+						Direction m2 = Direction::Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
 							auto const host_country = mcell_country[Hosts[i].mcell];

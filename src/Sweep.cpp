@@ -108,7 +108,7 @@ void TravelDepartSweep(double t)
 						l = Airports[i].DestMcells[l].id;
 						int k = (int)(ranf_mt(tn) * ((double)Mcells[l].n));
 						int i2 = Mcells[l].members[k];
-						if ((abs(Hosts[i2].inf) < InfStat_InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat_Case))
+						if ((abs(Hosts[i2].inf) < InfStat::InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat::Case))
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))
@@ -389,7 +389,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						// ie. loop over everyone in the household
 						for (int i3 = l; i3 < m; i3++) //// loop over all people in household (note goes from l to m - 1)
 						{
-							if ((Hosts[i3].inf == InfStat_Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
+							if ((Hosts[i3].inf == InfStat::Susceptible) && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
 								s = s3 * CalcHouseSusc(i3, ts, ci, tn);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
 								
@@ -549,7 +549,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											}
 										}
 
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
+										if ((Hosts[i3].inf == InfStat::Susceptible) && (!HOST_ABSENT(i3))) //// if person i3 uninfected and not absent.
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//downscale s if it has been scaled up do to digital contact tracing
@@ -650,7 +650,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										}
 
 										// if potential infectee i3 uninfected and not absent.
-										if ((Hosts[i3].inf == InfStat_Susceptible) && (!HOST_ABSENT(i3)))
+										if ((Hosts[i3].inf == InfStat::Susceptible) && (!HOST_ABSENT(i3)))
 										{
 											// mt = microcell of potential infectee
 											Microcell* mt = Mcells + Hosts[i3].mcell;
@@ -841,7 +841,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						// initialise f2=0 (f2=1 is the while condition for this loop)
 						f2 = 0;
 						// if random number greater than acceptance probablility or infectee is dead
-						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat_Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
+						if ((ranf_mt(tn) >= s) || (abs(Hosts[i3].inf) == InfStat::Dead)) //// if rejected, or infectee i3/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
 							// set f2=1 so loop continues 
 							f2 = 1;
@@ -909,7 +909,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									{
 										cq = ((int)(ct - Cells)) % P.NumThreads;
 
-										if (Hosts[i3].inf == InfStat_Susceptible)
+										if (Hosts[i3].inf == InfStat::Susceptible)
 										{
 											// explicitly cast to short to resolve level 4 warning
 											const short int infect_type = static_cast<short int>(2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
@@ -1547,7 +1547,7 @@ int TreatSweep(double t)
 					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
-						Direction j = Right;
+						Direction j = Direction::Right;
 						int k = b;
 						int maxx = 0;
 						int i, m, l;
@@ -1582,7 +1582,7 @@ int TreatSweep(double t)
 									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == Up)
+									if (j == Direction::Up)
 									{
 										f3 = f2;
 										f2 = 0;
@@ -1634,7 +1634,7 @@ int TreatSweep(double t)
 					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
-						Direction j = Right;
+						Direction j = Direction::Right;
 						int k = b;
 						int i, l, m;
 						i = m = f2 = 0;
@@ -1672,7 +1672,7 @@ int TreatSweep(double t)
 									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == Up)
+									if (j == Direction::Up)
 									{
 										f3 = f2;
 										f2 = 0;
@@ -1831,7 +1831,7 @@ int TreatSweep(double t)
 									j = rotate_left(j);
 									i = (i + 1) % 2;
 									if (i == 0) l++;
-									if (j == 1) { f3 = f2; f2 = 0; }
+									if (j == Direction::Up) { f3 = f2; f2 = 0; }
 								}
 								k = P.get_micro_cell_index_from_position(min);
 							} while (f3);
@@ -1925,7 +1925,7 @@ int TreatSweep(double t)
 					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
-						Direction j = Right;
+						Direction j = Direction::Right;
 						int k = b;
 						int i, l, m;
 						i = m = f2 = 0;
@@ -1956,7 +1956,7 @@ int TreatSweep(double t)
 								j = rotate_left(j);
 								i = (i + 1) % 2;
 								if (i == 0) l++;
-								if (j == Up)
+								if (j == Direction::Up)
 								{
 									f3 = f2;
 									f2 = 0;

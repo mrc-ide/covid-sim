@@ -11,10 +11,10 @@ struct MicroCellPosition
 	inline MicroCellPosition& operator+=(Direction direction)
 	{
 		switch (direction) {
-			case Right: this->x += 1; break;
-			case Up: this->y -= 1; break;
-			case Left: this->x -= 1; break;
-			case Down: this->y += 1; break;
+			case Direction::Right: this->x += 1; break;
+			case Direction::Up: this->y -= 1; break;
+			case Direction::Left: this->x -= 1; break;
+			case Direction::Down: this->y += 1; break;
 			default: ERR_CRITICAL("Unknown direction");
 		}
 		return *this;
