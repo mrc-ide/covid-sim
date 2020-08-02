@@ -23,16 +23,12 @@ enum struct InfStat {
 	RecoveredFromAsymp = 3,
 	//// Recovered from symptomatic infection
 	RecoveredFromSymp = -3,
-	//// InfStat_Recovered (will use this for abs() values) so code reads correctly
-	Recovered = 3,
 	//// Immune at start of epidemic - used to model partially immune population. Distinct from recovered, who recovered during runtime. Doesn't take negative values.
 	ImmuneAtStart = 4,
 	//// Dead was asymptomatic
 	Dead_WasAsymp = 5,
 	//// Dead was symptomatic
 	Dead_WasSymp = -5,
-	//// Dead (will use this for abs() values) so code reads correctly
-	Dead = 5
 };
 
 bool not_yet_symptomatic(InfStat x);
