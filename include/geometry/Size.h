@@ -4,7 +4,7 @@
 #include <cmath>
 #include "Vector2.h"
 
-namespace Geometry {
+namespace CovidSim { namespace Geometry {
 	template<class T>
 	struct Size {
 		T width;
@@ -110,6 +110,6 @@ namespace Geometry {
 	Size<T>::operator Vector2<U>() const {
 		return Vector2<U>((U)this->width, (U)this->height);
 	}
-}
+}}
 
 #endif

@@ -3,7 +3,7 @@
 // Third party headers
 #include "gtest/gtest.h"
 
-using namespace Geometry;
+using namespace CovidSim::Geometry;
 
 namespace CovidSim
 {

@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-namespace Geometry {
+namespace CovidSim { namespace Geometry {
 	template<class T>
 	struct DiagonalMatrix2 {
 		T x;
@@ -151,6 +151,6 @@ namespace Geometry {
 
 	Vector2d operator-(const Vector2d &left, const Vector2i &right);
 	Vector2d operator-(const Vector2i &left, const Vector2d &right);
-}
+}}
 
 #endif
