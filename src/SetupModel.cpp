@@ -132,7 +132,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 						s2 += t;
 						// Adjust the bounds of the spatial bounding box so that they include the location
 						// for this block of population.
-						P.SpatialBoundingBox.expand(Geometry::Vector2d(x, y));
+						P.SpatialBoundingBox.expand(CovidSim::Geometry::Vector2d(x, y));
 					}
 			}
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
@@ -147,7 +147,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_degrees_.width = ((double)P.ncw) * P.in_cells_.width;
 		P.in_degrees_.height = ((double)P.nch) * P.in_cells_.height;
 		P.SpatialBoundingBox.top_right() = P.SpatialBoundingBox.bottom_left()
-			+ Geometry::Vector2d(P.in_degrees_.width, P.in_degrees_.height);
+			+ CovidSim::Geometry::Vector2d(P.in_degrees_.width, P.in_degrees_.height);
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
 				P.SpatialBoundingBox.bottom_left().x, P.SpatialBoundingBox.bottom_left().y,
@@ -169,8 +169,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.NC = P.ncw * P.nch;
 		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
-		P.SpatialBoundingBox.bottom_left() = Geometry::Vector2d(0.0, 0.0);
-		P.SpatialBoundingBox.top_right() = Geometry::Vector2d(s, s);
+		P.SpatialBoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
+		P.SpatialBoundingBox.top_right() = CovidSim::Geometry::Vector2d(s, s);
 		P.PopSize = (int)(s * s);
 		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
 		P.in_degrees_.width = P.in_degrees_.height = s;
@@ -855,7 +855,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			{
 				k = 1;
 			}
-			if ((k) && P.SpatialBoundingBox.inside(Geometry::Vector2d(x, y)))
+			if ((k) && P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(x, y)))
 			{
 				j = (int)floor((x - P.SpatialBoundingBox.bottom_left().x) / P.in_microcells_.width  + 0.1);
 				k = (int)floor((y - P.SpatialBoundingBox.bottom_left().y) / P.in_microcells_.height + 0.1);
@@ -1413,7 +1413,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
 			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox.bottom_left().x);
 			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox.bottom_left().y);
-			if (P.SpatialBoundingBox.inside(Geometry::Vector2d(x, y)))
+			if (P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(x, y)))
 			{
 				int i = P.nch * ((int)(Places[j][P.Nplace[j]].loc.x / P.in_cells_.width)) + ((int)(Places[j][P.Nplace[j]].loc.y / P.in_cells_.height));
 				if (Cells[i].n == 0) mr++;

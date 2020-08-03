@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_DIRECTION_HPP_INCLUDED_
+#define COVIDSIM_DIRECTION_HPP_INCLUDED_
 
 enum struct Direction {
 	Right,
@@ -8,3 +9,5 @@ enum struct Direction {
 };
 
 Direction rotate_left(Direction direction);
+
+#endif

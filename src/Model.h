@@ -230,7 +230,7 @@ struct Airport
 	int num_mcell, num_place, Inv_prop_traffic[129], Inv_DestMcells[1025], Inv_DestPlaces[1025];
 	unsigned short int num_connected, *conn_airports;
 	float total_traffic;
-	Geometry::Vector2<float> loc;
+	CovidSim::Geometry::Vector2f loc;
 	float* prop_traffic;
 	IndexList* DestMcells, *DestPlaces;
 };
@@ -252,7 +252,7 @@ struct Place
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
-	Geometry::Vector2<float> loc;
+	CovidSim::Geometry::Vector2f loc;
 	float ProbClose;
 	int* group_start, *group_size, *members;
 };

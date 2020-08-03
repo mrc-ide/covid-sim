@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_GEOMETRY_BOUNDING_BOX_H_INCLUDED_
+#define COVIDSIM_GEOMETRY_BOUNDING_BOX_H_INCLUDED_
 
 // Local headers
 #include "Vector2.h"
@@ -7,7 +8,7 @@
 // Standard library headers
 #include <cmath>
 
-namespace Geometry {
+namespace CovidSim { namespace Geometry {
   /// General class for representing a 2D maximum point
   template<typename T>
   class Maximum2 : public Vector2<T>
@@ -190,4 +191,6 @@ namespace Geometry {
       top_right_.expand(p, 1e-6);
     }
   };
-}
+}}
+
+#endif

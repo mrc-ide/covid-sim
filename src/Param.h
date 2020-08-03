@@ -60,12 +60,12 @@ struct Param
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
 
 	/// Size in pixels of the map area in the bitmap output
-	Geometry::Size<int> b;
+	CovidSim::Geometry::Size<int> b;
 
 	/// Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
 	int bheight2;
 
-	Geometry::Vector2<int> bmin;
+	CovidSim::Geometry::Vector2i bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
@@ -93,18 +93,18 @@ struct Param
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	
 	/// Number of pixels per degree in bitmap output
-	Geometry::DiagonalMatrix2d scale;
+	CovidSim::Geometry::DiagonalMatrix2d scale;
 
 	/// Size of spatial domain in degrees
-	Geometry::Size<double> in_degrees_;
+	CovidSim::Geometry::Size<double> in_degrees_;
 
 	/// Size of spatial domain in cells
-	Geometry::Size<double> in_cells_;
+	CovidSim::Geometry::Size<double> in_cells_;
 
 	/// Size of spatial domain in microcells
-	Geometry::Size<double> in_microcells_;
+	CovidSim::Geometry::Size<double> in_microcells_;
 	
-	Geometry::BoundingBox2d SpatialBoundingBox;
+	CovidSim::Geometry::BoundingBox2d SpatialBoundingBox;
 	double LocationInitialInfection[MAX_NUM_SEED_LOCATIONS][2], InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime, TimeStepsPerDay;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double SeroConvMaxSens, SeroConvP1, SeroConvP2, SeroConvSpec, InfPrevSurveyScale;
@@ -171,7 +171,7 @@ struct Param
 	int DoHolidays, NumHolidays;
 	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
 	double ColourPeriod;
-	Geometry::BoundingBox2d BoundingBox;
+	CovidSim::Geometry::BoundingBox2d BoundingBox;
 	double BitmapScale;
 	double TreatSuscDrop, TreatInfDrop, TreatDeathDrop, TreatSympDrop, TreatDelayMean, TreatTimeStart, TreatPlaceGeogDuration;
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
