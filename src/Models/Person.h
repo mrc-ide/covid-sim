@@ -174,10 +174,6 @@ struct Person
 	*/
 	void set_susceptible();
 
-	
-	
-
-
 private:
 	InfStat inf;
 
