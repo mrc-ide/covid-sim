@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_DIRECTION_HPP_INCLUDED_
+#define COVIDSIM_DIRECTION_HPP_INCLUDED_
 
 enum Direction {
 	Right = 0,
@@ -8,3 +9,5 @@ enum Direction {
 };
 
 Direction rotate_left(Direction direction);
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_MODELS_CELL_H_INCLUDED_
+#define COVIDSIM_MODELS_CELL_H_INCLUDED_
 
 /**
  * @brief Holds microcells.
@@ -15,3 +16,5 @@ struct Cell
 	float tot_prob, *cum_trans, *max_trans;
 	short int CurInterv[MAX_INTERVENTION_TYPES];
 };
+
+#endif

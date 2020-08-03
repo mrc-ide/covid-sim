@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COVIDSIM_INVERSE_CDF_H_INCLUDED_
+#define COVIDSIM_INVERSE_CDF_H_INCLUDED_
 
 #include "Constants.h"
 
@@ -29,6 +30,4 @@ public:
 	}
 };
 
-
-
-
+#endif
