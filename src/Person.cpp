@@ -1,4 +1,4 @@
-#include "Models\Person.h"
+#include "Models/Person.h"
 #include "InfStat.h"
 
 bool Person::is_susceptible() const
