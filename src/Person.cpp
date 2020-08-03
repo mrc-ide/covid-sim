@@ -3,7 +3,8 @@
 
 
 bool Person::do_not_vaccinate() const {
-	// Originally: inf < InfStat::InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat::Dead_WasAsymp)
+
+	// Originally: inf < InfStat::InfectiousAlmostSymptomatic) || (inf >= InfStat::Dead_WasAsymp)
 	// ie, inf is either < -1, or >= 5. (ie, -2, -3, -5, or 5. There is no status for -4)
 	// 5 or -5 is "dead". -2 is case. -3 is RecoveredFromSymp.
 
@@ -20,7 +21,7 @@ bool Person::is_case() const {
 
 bool Person::is_dead() const
 {
-	// In previous versions, this would have been abs(Hosts[i].inf) == Dead
+	// In previous versions, this would have been abs(Hosts[i].inf) == InfStat::Dead
 
 	return (this->inf == InfStat::Dead_WasSymp || this->inf == InfStat::Dead_WasAsymp);
 }
@@ -52,9 +53,9 @@ bool Person::is_latent() const
 
 bool Person::is_never_symptomatic() const
 {
-	return (this->inf == InfStat::Latent) || (this->inf == InfStat::InfectiousAsymptomaticNotCase) ||
-		(this->inf == InfStat::RecoveredFromAsymp) || (this->inf == InfStat::ImmuneAtStart) ||
-		(this->inf == InfStat::Dead_WasAsymp);
+	return	(this->inf == InfStat::Latent) || (this->inf == InfStat::InfectiousAsymptomaticNotCase) ||
+			(this->inf == InfStat::RecoveredFromAsymp) || (this->inf == InfStat::ImmuneAtStart) ||
+			(this->inf == InfStat::Dead_WasAsymp);
 }
 
 bool Person::is_not_yet_symptomatic() const {
@@ -65,7 +66,7 @@ bool Person::is_not_yet_symptomatic() const {
 
 bool Person::is_recovered() const
 {
-	// In previous versions, abs(Hosts[i].inf) == Recovered
+	// In previous versions, abs(Hosts[i].inf) == InfStat::Recovered
 	return (this->inf == InfStat::RecoveredFromSymp) || (this->inf == InfStat::RecoveredFromAsymp);
 }
 
@@ -79,8 +80,9 @@ bool Person::is_susceptible() const {
 
 bool Person::is_susceptible_or_infected() const
 {
-	// In old versions, this would be abs(Hosts[i].inf]) < Recovered, so states included
+	// In old versions, this would be abs(inf]) < InfStat::Recovered, so states included
 	// Would be 0, +/- 1, and +/- 2, which in order are...
+
 	return	(this->inf == InfStat::Susceptible) ||
 			(this->inf == InfStat::Latent) || (this->inf == InfStat::InfectiousAlmostSymptomatic) ||
 			(this->inf == InfStat::InfectiousAsymptomaticNotCase) || (this->inf == InfStat::Case);
@@ -94,9 +96,8 @@ void Person::set_case() {
 
 void Person::set_dead() {
 
-	/*	In earlier code, this would be: a->inf = (InfStat)(InfStat_Dead * a->inf / abs(a->inf));
-		Where a->inf / abs(a->inf) becomes +/- 1. So if inf was positive, the resulting dead
-		state would also be positive (and the converse).
+	/*	In earlier code, this would be: inf = (InfStat)(InfStat_Dead * inf / abs(inf));
+		Where inf / abs(inf) becomes +/- 1. So dead state has same sign as incoming state.
 
 		Additionally, death only happens from two states: Case and InfectiousAsymptomaticNotCase,
 		so the only valid incoming states are +/- 2. Hence, it is sufficient to say:-
@@ -123,9 +124,8 @@ void Person::set_latent() {
 
 void Person::set_recovered() {
 
-	/*	Similar to deaths, this used to be: a->inf = (InfStat)(InfStat_Recovered * a->inf / abs(a->inf));
-		Where a->inf / abs(a->inf) becomes +/- 1. So if inf was positive, the resulting recovery
-		state would also be positive (and vice versa) - indicating symptomatic or not.
+	/*	Similar to deaths, this used to be: inf = (InfStat)(InfStat::Recovered * inf / abs(inf));
+		Where inf / abs(inf) becomes +/- 1. So resulting state has same sign as incoming state. 
 
 		Recovery only happens from the same two states as death: Case and InfectiousAsymptomaticNotCase,
 		so the only valid incoming states are +/- 2. Hence, it is sufficient to say:-
