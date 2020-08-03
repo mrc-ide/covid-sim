@@ -4605,7 +4605,7 @@ void RecordQuarNotInfected(int n, unsigned short int ts)
 			if (HOST_QUARANTINED(Person))
 			{
 				if (Hosts[Person].is_susceptible() || Hosts[Person].is_recovered()) QuarNotInfected++;
-				if (Hosts[Person].never_symptomatic()) QuarNotSymptomatic++;
+				if (Hosts[Person].is_never_symptomatic()) QuarNotSymptomatic++;
 			}
 
 	TimeSeries[n].prevQuarNotInfected		= (double) QuarNotInfected;
@@ -5477,7 +5477,7 @@ void RecordInfTypes(void)
 				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
 					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
 				infcountry[mcell_country[Hosts[i].mcell]]++;
-				if (Hosts[i].pre_recovered())
+				if (Hosts[i].is_susceptible_or_infected())
 				{
 					l = -1;
 				}
@@ -5485,7 +5485,7 @@ void RecordInfTypes(void)
 				{
 					l++;
 				}
-				if ((l >= 0) && (Hosts[i].is_recovered_symp() || Hosts[i].is_dead_symp()))
+				if ((l >= 0) && (Hosts[i].is_recovered_symp() || Hosts[i].is_dead_was_symp()))
 				{
 					lc2++;
 					if (Hosts[i].latent_time * P.TimeStep <= t) // This convoluted logic is to pick up households where the index is symptomatic

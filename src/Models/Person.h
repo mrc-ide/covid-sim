@@ -46,58 +46,137 @@ struct Person
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
 
-	
-	void set_susceptible();
-	void set_immune_at_start();
-	void set_latent();
-	void set_case();
-	void set_recovered();
-	void set_dead();
-	void set_infectious_almost_symptomatic();
-	void set_infectious_asymptomatic_not_case();
-
-	/*void make_immune();
-	void make_latent();
-	void make_infectious_almost_symptomatic();
-	void make_infectious_asymptomatic();
-	void make_case();
-	void make_recovered();
-	void make_dead();
+	/** \brief  Query whether a host should be included in mass vaccination.
+	*           The conditions for not being vaccinated are either: the host is dead,
+	*           or the host is a current case, or the host has recovered from
+	*           a symptomatic infection.
+	*  \return  TRUE if this host should not be vaccinated for the above reasons.
 	*/
-
-	bool not_yet_symptomatic() const;
-	bool is_dead() const;
-	bool is_dead_was_asymp() const;
-	bool is_alive() const;
-	bool is_recovered() const;
-	bool pre_recovered() const;
-	bool never_symptomatic() const;
-	bool is_susceptible() const;
-	bool is_immune_at_start() const;
-	bool is_case() const;
-	bool is_recovered_symp() const;
-	bool is_dead_symp() const;
-	bool is_infectious_asymptomatic_not_case() const;
-	bool is_infectious_almost_symptomatic() const;
-	bool is_latent() const;
 	bool do_not_vaccinate() const;
 
-
-	/*
-	bool is_latent() const;
-	bool is_susceptible() const;
-	bool is_symptomatic() const;
-	bool is_asymptomatic() const;
-	bool is_case() const;
-	bool is_exposed() const;
-	bool is_infectious() const;
-	bool is_infected() const;
-	bool has_recovered() const;
-	bool has_not_recovered() const;
-	bool is_positive() const;
-	bool is_alive() const;
-	bool is_dead() const;
+	/** \brief  Query whether a host is alive. This includes all states except the
+	*           two death states (death through symptomatic, or asymptomatic illness).
+	*  \return  TRUE if this host is alive.
 	*/
+	bool is_alive() const;
+
+	/** \brief  Query whether a host is a current case. (InfStat::Case)
+	*   \return TRUE if the host is a current case.
+    */
+	bool is_case() const;
+
+	/** \brief  Query whether a host is dead. This includes death through either
+	*           symptomatic or asymptomatic illess.
+	*   \return TRUE if the host is dead
+	*/
+	bool is_dead() const;
+
+	/** \brief  Query whether a host died with asymptomatic illness. (InfStat::Dead_WasAsymp)
+	*   \return TRUE if the host is dead and was asymptomatic.
+	*/
+	bool is_dead_was_asymp() const;
+
+	/** \brief  Query whether a host died with symptomatic illness. (InfStat::Dead_WasSymp)
+	*   \return TRUE if the host is dead and was asymptomatic.
+	*/
+	bool is_dead_was_symp() const;
+
+	/** \brief  Query whether a host was immune at the start of the epidemic. (InfStat::ImmuneAtStart)
+	*   \return TRUE if the host was already immune.
+	*/
+	bool is_immune_at_start() const;
+
+	/** \brief  Query whether an infected host is asymptomatic, hence not a case. (InfStat::InfectiousAsymptomaticNotCase)
+	*   \return TRUE if a host is infectious but asymptomatic.
+	*/
+	bool is_infectious_asymptomatic_not_case() const;
+
+	/** \brief  Query whether an infected host is about to become symptomatic. (InfStat::InfectiousAlmostSymptomatic)
+	*   \return TRUE if the host is about to become symptomatic.
+	*/
+	bool is_infectious_almost_symptomatic() const;
+
+	/** \brief  Query whether an infected host is in the latent period. (InfStat::Latent)
+	*   \return TRUE if the host is in latent period.
+	*/
+	bool is_latent() const;
+
+	/** \brief  Query whether an infected host is (currently) symptomic, or ever has been. Acceptable states are:
+	*           Latent, Infectious Asymptomatic, Infectious Almost Symptomatic, Recovered from Asymptomatic infection,
+	*           or died from Asymptomatic infection.
+	*   \return TRUE if the host is not, and never was symptomatic.
+	*/
+	bool is_never_symptomatic() const;
+
+	/** \brief  Query whether an infected host is not yet symptomatic, but could become so. Acceptable states are latent, susceptible, or
+	*           Infectious Almost Symptomatic. 
+	*   \return TRUE if the host is infected but not yet symptomatic.
+	*/
+	bool is_not_yet_symptomatic() const;
+
+	/** \brief  Query whether an infected host is a current or potential host for the epidemic. This excludes all who have recovered,
+	*           died, or were immune at the start.
+	*   \return TRUE if the host is susceptible, or currently infected.
+	*/
+	bool is_susceptible_or_infected() const;
+
+	/** \brief  Query whether a host has recovered from infection. This includes recovery from both symptomatic and asymptomatic
+	*           infections.
+	*   \return TRUE if the host has recovered from symptomatic or asymptomatic infection.
+	*/
+	bool is_recovered() const;
+
+	/** \brief  Query whether a host has recovered from a symptomatic infection.
+	*   \return TRUE only if the host has recovered from symptomatic infection.
+	*/
+	bool is_recovered_symp() const;
+
+	/** \brief  Query whether a host is susceptible.
+	*   \return TRUE only if the host is in the susceptible state.
+	*/
+	bool is_susceptible() const;
+
+	/** \brief  Set host to be a case. (See InfStat::Case)
+	*/
+	void set_case();
+
+	/** \brief  Set host to have died.
+	 *  For infections that were symptomatic, (ie, they passed through the InfStat::Case state),
+	 *  the death state is InfStat::DeadWasSymp. Otherwise (ie, they passed through InfStat::InfectiousAsymptomaticNotCase),
+	 *  the death state is InfStat::DeadWasAsymp.
+	*/
+	void set_dead();
+
+	/** \brief  Set host to be initially immune. (See InfStat::ImmuneAtStart)
+	*/
+	void set_immune_at_start();
+
+	/** \brief  Set host to be infectious, and about to become symptomatic. (See InfStat::InfectiousAlmostSymptomatic)
+	*/
+	void set_infectious_almost_symptomatic();
+
+	/** \brief  Set host to be infectious, but asymptomatic, so not defined as a case. (See InfStat::InfectiousAsymptomaticNotCase)
+	*/
+	void set_infectious_asymptomatic_not_case();
+
+	/** \brief  Set host to be in latent stage. (See InfStat::Latent)
+	*/
+	void set_latent();
+
+	/** \brief  Set host to be recovered.
+	*  For infections that were symptomatic, (ie, they passed through the InfStat::Case state),
+	*  the recovery state is InfStat::RecoveredFromSymp. Otherwise (ie, they passed through InfStat::InfectiousAsymptomaticNotCase),
+	*  the recovery state is InfStat::RecoveredFromAsymp.
+	*/
+	void set_recovered();
+
+	/** \brief  Set host to be susceptible. (See InfStat::Susceptible)
+	*/
+	void set_susceptible();
+
+	
+	
+
 
 private:
 	InfStat inf;

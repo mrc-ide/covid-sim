@@ -111,10 +111,10 @@ void TravelDepartSweep(double t)
 
 						// Original:
 						// if ((abs(Hosts[i2].inf) < InfStat::InfectiousAsymptomaticNotCase) && (Hosts[i2].inf != InfStat::Case))
-						// but note: above is equivalent to if ((abs(inf) < 2) && (inf != -2)),
+						// but also note: above is equivalent to if ((abs(inf) < 2) && (inf != -2)),
 						// so if h were -2, it would fail the first case, and the second is redundant.
 
-						if (Hosts[i2].not_yet_symptomatic())
+						if (Hosts[i2].is_not_yet_symptomatic())
 						{
 							int d2 = HOST_AGE_GROUP(i2);
 							if ((P.RelativeTravelRate[d2] == 1) || (ranf_mt(tn) < P.RelativeTravelRate[d2]))
