@@ -32,8 +32,8 @@ struct Person
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
 	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
 
-		short int infect_type;		// INFECT_TYPE_MASK
-	InfStat inf;
+	short int infect_type;		// INFECT_TYPE_MASK
+	
 	Severity Severity_Current, Severity_Final; //// Note we allow Severity_Final to take values: Severity_Mild, Severity_ILI, Severity_SARI, Severity_Critical (not e.g. Severity_Dead or Severity_RecoveringFromCritical)
 
 	unsigned short int detected_time; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
@@ -45,6 +45,62 @@ struct Person
 	unsigned short int treat_start_time, treat_stop_time, vacc_start_time;  //// set in TreatSweep function.
 	unsigned short int dct_start_time, dct_end_time, dct_trigger_time, dct_test_time; //digital contact tracing start and end time: ggilani 10/03/20
 	int ncontacts; //added this in to record total number of contacts each index case records: ggilani 13/04/20
+
+	
+	void set_susceptible();
+	void set_immune_at_start();
+	void set_latent();
+	void set_case();
+	void set_recovered();
+	void set_dead();
+	void set_infectious_almost_symptomatic();
+	void set_infectious_asymptomatic_not_case();
+
+	/*void make_immune();
+	void make_latent();
+	void make_infectious_almost_symptomatic();
+	void make_infectious_asymptomatic();
+	void make_case();
+	void make_recovered();
+	void make_dead();
+	*/
+
+	bool not_yet_symptomatic() const;
+	bool is_dead() const;
+	bool is_dead_was_asymp() const;
+	bool is_alive() const;
+	bool is_recovered() const;
+	bool pre_recovered() const;
+	bool never_symptomatic() const;
+	bool is_susceptible() const;
+	bool is_immune_at_start() const;
+	bool is_case() const;
+	bool is_recovered_symp() const;
+	bool is_dead_symp() const;
+	bool is_infectious_asymptomatic_not_case() const;
+	bool is_infectious_almost_symptomatic() const;
+	bool is_latent() const;
+	bool do_not_vaccinate() const;
+
+
+	/*
+	bool is_latent() const;
+	bool is_susceptible() const;
+	bool is_symptomatic() const;
+	bool is_asymptomatic() const;
+	bool is_case() const;
+	bool is_exposed() const;
+	bool is_infectious() const;
+	bool is_infected() const;
+	bool has_recovered() const;
+	bool has_not_recovered() const;
+	bool is_positive() const;
+	bool is_alive() const;
+	bool is_dead() const;
+	*/
+
+private:
+	InfStat inf;
 
 };
 

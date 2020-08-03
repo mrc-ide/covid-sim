@@ -51,14 +51,13 @@ static void UpdateCell(int* cellPeople, int* srcCellPeople, int index, int srcIn
 void DoImmune(int ai)
 {
 	// This transfers a person straight from susceptible to immune. Used to start a run with a partially immune population.
-	Person* a;
 	int c;
 
-	a = Hosts + ai;
-	if (a->inf == InfStat::Susceptible)
+	Person* a = Hosts + ai;
+	if (a->is_susceptible())
 	{
 		c = a->pcell;
-		a->inf = InfStat::ImmuneAtStart;
+		a->set_immune_at_start();
 
 		SusceptibleToRecovered(c);
 
@@ -106,14 +105,13 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 	unsigned short int ts; //// time step
 	double radiusSquared, x, y; //// radius squared, x and y coords. 
 	double q; //// quantile of inverse CDF to choose latent period.
-	Person* a;
 
-	a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
+	Person* a = Hosts + ai; //// pointer arithmetic. a = pointer to person. ai = int person index.
 
-	if (a->inf == InfStat::Susceptible) //// Only change anything if person a/ai uninfected at start of this function.
+	if (a->is_susceptible()) //// Only change anything if person a/ai uninfected at start of this function.
 	{
 		ts = (unsigned short int) (P.TimeStepsPerDay * t);
-		a->inf = InfStat::Latent; //// set person a to be infected
+		a->set_latent(); //// set person a to be infected
 		a->infection_time = (unsigned short int) ts; //// record their infection time
 
 		//// calculate radius squared, and increment sum of radii squared.
@@ -367,7 +365,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 	// Note: only assign a->Severity_Current = Severity::Recovered inside the switch cases.
 	// In rare cases DoRecover_FromSeverity can be called before a person has had their severity assigned.
 	if (P.DoSeverity)
-		if (a->inf == InfStat::InfectiousAsymptomaticNotCase || a->inf == InfStat::Case) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
+		if (a->is_infectious_asymptomatic_not_case() || a->is_case()) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
 		{
 			switch (a->Severity_Current)
 			{
@@ -407,7 +405,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
 	a = Hosts + ai;
-	if (a->inf == InfStat::Latent)
+	if (a->is_latent())
 	{
 		a->infectiousness = (float)P.AgeInfectiousness[age];
 		if (P.InfectiousnessSD > 0) a->infectiousness *= (float) gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn);
@@ -417,15 +415,15 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 
 		if (ranf_mt(tn) < q)
 		{
-			a->inf = InfStat::InfectiousAlmostSymptomatic;
+			a->set_infectious_almost_symptomatic();
 			a->infectiousness *= (float)(-P.SymptInfectiousness);
 		}
 		else
 		{
-			a->inf = InfStat::InfectiousAsymptomaticNotCase;
+			a->set_infectious_asymptomatic_not_case();
 			a->infectiousness *= (float) P.AsymptInfectiousness;
 		}
-		if (!P.DoSeverity || a->inf == InfStat::InfectiousAsymptomaticNotCase) //// if not doing severity or if person asymptomatic.
+		if (!P.DoSeverity || a->is_infectious_asymptomatic_not_case()) //// if not doing severity or if person asymptomatic.
 		{
 			if (P.DoInfectiousnessProfile)	a->recovery_or_death_time = a->latent_time + (unsigned short int) (P.InfectiousPeriod * P.TimeStepsPerDay);
 			else							a->recovery_or_death_time = a->latent_time + P.infectious_icdf.choose(P.InfectiousPeriod, tn, P.TimeStepsPerDay);
@@ -484,7 +482,7 @@ void DoIncub(int ai, unsigned short int ts, int tn, int run)
 			}
 		}
 
-		if ((a->inf== InfStat::InfectiousAlmostSymptomatic) && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
+		if (a->is_infectious_almost_symptomatic() && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
 		{
 			Hosts[ai].detected = 1;
 			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
@@ -672,13 +670,13 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 						//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 						for (j = j1; (j < j2) && (!f); j++)
-							f = (!is_dead(Hosts[j].inf) && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
+							f = (Hosts[j].is_alive() && (HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[j].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_ABSENT(j)) || (HOST_QUARANTINED(j))));
 
 						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
 							for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
-								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[j].inf)))
+								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && Hosts[j].is_alive())
 								{
 									k = j;
 									f = 1;
@@ -792,9 +790,9 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 	age = HOST_AGE_GROUP(ai);
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 	a = Hosts + ai;
-	if (a->inf == InfStat::InfectiousAlmostSymptomatic) //// if person latent/asymptomatically infected, but infectious
+	if (a->is_infectious_almost_symptomatic()) //// if person latent/asymptomatically infected, but infectious
 	{
-		a->inf = InfStat::Case; //// make person symptomatic and infectious (i.e. a case)
+		a->set_case(); //// make person symptomatic and infectious (i.e. a case)
 		if (HOST_ABSENT(ai))
 		{
 			if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
@@ -833,12 +831,12 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 								j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 								f = 0;
 								for (int j3 = j1; (j3 < j2) && (!f); j3++)
-									f = ((!is_dead(Hosts[j3].inf)) && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
+									f = (Hosts[j3].is_alive() && (HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff)
 										&& ((Hosts[j3].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0)|| (HOST_ABSENT(j3)) || (HOST_QUARANTINED(j3))));
 								if (!f)
 								{
 									for (int j3 = j1; (j3 < j2) && (!f); j3++)
-										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[j3].inf)))
+										if ((HOST_AGE_YEAR(j3) >= P.CaseAbsentChildAgeCutoff) && (Hosts[j3].is_alive()))
 										{
 											k = j3;
 											f = 1;
@@ -902,7 +900,7 @@ void DoRecover(int ai, int tn, int run)
 	Person* a;
 
 	a = Hosts + ai;
-	if (a->inf == InfStat::InfectiousAsymptomaticNotCase || a->inf == InfStat::Case)
+	if (a->is_infectious_asymptomatic_not_case() || a->is_case())
 	{
 		i = a->listpos;
 		InfectiousToRecovered(a->pcell);
@@ -913,13 +911,9 @@ void DoRecover(int ai, int tn, int run)
 			a->listpos = j;
 			Cells[a->pcell].susceptible[j] = ai;
 		}
-		// Original... Recovered = 3, and (a->inf / abs(a->inf)) is +1 or -1 depending on whether a_inf is positive.
-		// a->inf = (InfStat)(InfStat::Recovered * a->inf / abs(a->inf));
-		// Note: only two possible values for a->inf at this point (see if above)
-		// Assuming                          case -> RecoveredFromSymp
-		//   and    InfectiousAsymptomaticNotCase -> RecoveredFromASymp (not just recovered)
 		
-		a->inf = (a->inf == InfStat::Case) ? InfStat::RecoveredFromSymp : InfStat::RecoveredFromAsymp;
+		
+		a->set_recovered();
 		if (P.DoAdUnits && P.OutputAdUnitAge)
 			StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 
@@ -951,12 +945,10 @@ void DoDeath(int ai, int tn, int run)
 	int i;
 	Person* a = Hosts + ai;
 
-	if ((a->inf == InfStat::InfectiousAsymptomaticNotCase || a->inf == InfStat::Case))
+	if (a->is_infectious_asymptomatic_not_case() || a->is_case())
 	{
-		// Original: a->inf = (InfStat)(InfStat::Dead * a->inf / abs(a->inf));
-		// Assuming case leads to Dead_WasSymp, asympnotcase leads to Dead_Was_Asymp (not just Dead)
-		a->inf = (a->inf == InfStat::Case) ? InfStat::Dead_WasSymp : InfStat::Dead_WasAsymp;
-			
+
+		a->set_dead();
 		InfectiousToDeath(a->pcell);
 		i = a->listpos;
 		if (i < Cells[a->pcell].S + Cells[a->pcell].L + Cells[a->pcell].I)
@@ -1010,7 +1002,7 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			// Orig: if ((abs(Hosts[ai].inf) > InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
 			// Notd that susceptible enum val = 0
 
-			if ((Hosts[ai].inf != InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
+			if (!(Hosts[ai].is_susceptible() || Hosts[ai].is_dead_was_asymp())) Cells[Hosts[ai].pcell].cumTC++;
 			StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 			if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 			Cells[Hosts[ai].pcell].tot_treat++;
@@ -1205,11 +1197,11 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((!is_dead(Hosts[l].inf)) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = (Hosts[l].is_alive() && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
 							{
 								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[l].inf)))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && Hosts[l].is_alive())
 									{
 										int index = StateT[tn].host_closure_queue_size;
 										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
@@ -1270,11 +1262,11 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 							f = 0;
 							for (l = j1; (l < j2) && (!f); l++)
-								f = ((!is_dead(Hosts[l].inf)) && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
+								f = (Hosts[l].is_alive() && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
 							if (!f)
 							{
 								for (l = j1; (l < j2) && (!f); l++)
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (!is_dead(Hosts[l].inf)) && (HOST_ABSENT(l)))
+									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (Hosts[l].is_alive()) && (HOST_ABSENT(l)))
 									{
 										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = ts;
 									}
@@ -1290,8 +1282,10 @@ void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
 void DoVacc(int ai, unsigned short int ts)
 {
 	bool cumV_OK = false;
-
-	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat::InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat::Dead_WasAsymp))
+	// Orig inf status: (Hosts[ai].inf < InfStat::InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat::Dead_WasAsymp))
+	// < -1, or >= 5
+	// InfStat:: -2 = 
+	if (HOST_TO_BE_VACCED(ai) || Hosts[ai].do_not_vaccinate())
 		return;
 	if (State.cumV < P.VaccMaxCourses)
 	{
@@ -1330,7 +1324,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 {
 	bool cumVG_OK = false;
 
-	if ((HOST_TO_BE_VACCED(ai)) || (Hosts[ai].inf < InfStat::InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat::Dead_WasAsymp))
+	if (HOST_TO_BE_VACCED(ai) || Hosts[ai].do_not_vaccinate()) 
 		return;
 	if (State.cumVG < P.VaccMaxCourses)
 	{

@@ -98,9 +98,9 @@
     <ClCompile Include="src\CLI.cpp" />
     <ClCompile Include="src\Dist.cpp" />
     <ClCompile Include="src\Error.cpp" />
-    <ClCompile Include="src\InfStat.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
     <ClCompile Include="src\Memory.cpp" />
+    <ClCompile Include="src\Person.cpp" />
     <ClCompile Include="src\Rand.cpp" />
     <ClCompile Include="src\SetupModel.cpp" />
     <ClCompile Include="src\CovidSim.cpp" />
