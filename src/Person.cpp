@@ -53,6 +53,8 @@ bool Person::is_latent() const
 
 bool Person::is_never_symptomatic() const
 {
+	// In earlier code, this was written as (inf > 0) - all the positive numbered states.
+
 	return	(this->inf == InfStat::Latent) || (this->inf == InfStat::InfectiousAsymptomaticNotCase) ||
 			(this->inf == InfStat::RecoveredFromAsymp) || (this->inf == InfStat::ImmuneAtStart) ||
 			(this->inf == InfStat::Dead_WasAsymp);

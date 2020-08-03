@@ -9,6 +9,12 @@ enum struct InfStat {
 //// Note - DO NOT CHANGE these definitions without accounting for "Quarantined not Infected" /
 //// "Quarantined not symptomatic" calculation: relies on value below being negative for symptomatic people.
 
+	// Further note: August 2020 - See https://github.com/mrc-ide/covid-sim/pull/445  - which refactors the
+	// numerical comparisons or abs() that were used on states. See the functions in Person.cpp. Hence,
+	// the values are no longer critical; the old duplicates (Dead and Recovered) are no longer wanted,
+	// so any unique values below will work equivalently. For now I will leave them as they are below to allow
+	// some historic continuity, as they are "familiar" numbers.
+
 	//// Susceptible
 	Susceptible = 0,
 	//// Neither infectious nor symptomatic (E or L).
