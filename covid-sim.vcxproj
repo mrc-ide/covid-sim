@@ -112,16 +112,17 @@
     <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Country.h" />
+    <ClInclude Include="include\InfStat.h" />
+    <ClInclude Include="include\Models\Person.h" />
     <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
     <ClInclude Include="src\CLI.h" />
     <ClInclude Include="src\Constants.h" />
-    <ClInclude Include="src\Country.h" />
     <ClInclude Include="src\Dist.h" />
     <ClInclude Include="src\Error.h" />
     <ClInclude Include="src\IndexList.h" />
-    <ClInclude Include="src\InfStat.h" />
     <ClInclude Include="src\Kernels.h" />
     <ClInclude Include="src\Memory.h" />
     <ClInclude Include="src\Model.h" />
@@ -140,7 +141,6 @@
     <ClInclude Include="src\Models\Cell.h" />
     <ClInclude Include="src\Models\Household.h" />
     <ClInclude Include="src\Models\Microcell.h" />
-    <ClInclude Include="src\Models\Person.h" />
     <ClInclude Include="src\InverseCdf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
