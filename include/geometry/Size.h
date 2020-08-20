@@ -49,7 +49,7 @@ namespace CovidSim { namespace Geometry {
 	Size<T>::Size(const Vector2<T> &dimensions) : width(dimensions.x), height(dimensions.y) {}
 
 	template<class T>
-	Size<T>::Size(T width, T height) : width(width), height(height) {}
+	Size<T>::Size(T _width, T _height) : width(_width), height(_height) {}
 
 	template<class T>
 	T Size<T>::area() const {

@@ -31,7 +31,7 @@ static unsigned char* bmf, *bmPixels, *bmp;
 void CaptureBitmap()
 {
 	int x, y, f, mi;
-	unsigned j;
+	unsigned int j;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
@@ -49,7 +49,7 @@ void CaptureBitmap()
 			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 			{
 				j = y * bmh->width + x;
-				if ((j < bmh->imagesize) && (j >= 0))
+				if (j < bmh->imagesize)
 				{
 					bmPopulation[j]++;
 					if (bmPopulation[j] > maxPop) maxPop = bmPopulation[j];
@@ -74,7 +74,7 @@ void CaptureBitmap()
 					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
 					{
 						j = y * bmh->width + x;
-						if ((j < bmh->imagesize) && (j >= 0)) bmPopulation[j] = -1;
+						if (j < bmh->imagesize) bmPopulation[j] = -1;
 					}
 				}
 			}
@@ -255,7 +255,7 @@ void InitBMHead(std::string const& out_file_base)
 #ifdef _WIN32
 	if (P.BitmapFormat == BitmapFormats::PNG)
 	{
-	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, NULL);
+	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, 0);
 	  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	  Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 
@@ -266,14 +266,16 @@ void InitBMHead(std::string const& out_file_base)
 	  Gdiplus::GetImageEncodersSize(&num, &size);
 	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xcalloc(1, size);
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
-	  for (UINT j = 0; j < num; ++j) {
+	  for (UINT j2 = 0; j2 < num; ++j2) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
 	    // warning C6385: Reading invalid data from 'pImageCodecInfo':  the readable size is 'size' bytes, but '208' bytes may be read.
+#ifdef _MSC_VER
 #pragma warning( suppress: 6385 )
-	    const WCHAR* type = pImageCodecInfo[j].MimeType;
+#endif
+	    const WCHAR* type = pImageCodecInfo[j2].MimeType;
 	    if (wcscmp(type, L"image/png") == 0) {
-	      encoderClsid = pImageCodecInfo[j].Clsid;
-	      j = num;
+	      encoderClsid = pImageCodecInfo[j2].Clsid;
+	      j2 = num;
 	    }
 	  }
 	  free(pImageCodecInfo);

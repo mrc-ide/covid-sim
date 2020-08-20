@@ -509,9 +509,6 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 **********************************************************************
 *****DETERMINE APPROPRIATE ALGORITHM AND WHETHER SETUP IS NECESSARY
 */
-/* JJV changed initial values to ridiculous values */
-	double psave = -1.0E37;
-	int32_t nsave = -214748365;
 	int32_t ignbin_mt, i, ix, ix1, k, m, mp, T1;
 	double al, alv, amaxp, c, f, f1, f2, ffm, fm, g, p, p1, p2, p3, p4, q, qn, r, u, v, w, w2, x, x1,
 		x2, xl, xll, xlr, xm, xnp, xnpq, xr, ynorm, z, z2;
@@ -522,7 +519,7 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	*/
 	if (pp < 0.0) ERR_CRITICAL("PP < 0.0 in IGNBIN");
 	if (pp > 1.0) ERR_CRITICAL("PP > 1.0 in IGNBIN");
-	psave = pp;
+	double psave = pp;
 	p = std::min(psave, 1.0 - psave);
 	q = 1.0 - p;
 
@@ -531,7 +528,7 @@ TYPE OF ISEED SHOULD BE DICTATED BY THE UNIFORM GENERATOR
 	*/
 	if (n < 0) ERR_CRITICAL("N < 0 in IGNBIN");
 	xnp = n * p;
-	nsave = n;
+
 	if (xnp < 30.0) goto S140;
 	ffm = xnp + p;
 	m = (int32_t)ffm;
