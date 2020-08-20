@@ -25,4 +25,11 @@
 #include "Country.h"
 #include "Constants.h"
 
+int ChooseTriggerVariableAndValue(int AdUnit);
+double ChooseThreshold(int AdUnit, double WhichThreshold);
+void UpdateEfficaciesAndComplianceProportions(double t);
+void RecordAdminAgeBreakdowns(int t_int);
+void RecordQuarNotInfected(int n, unsigned short int ts);
+bool readString(const char* SItemName, FILE* dat, char *buf);
+
 #endif // COVIDSIM_COVIDSIM_H_INCLUDED_

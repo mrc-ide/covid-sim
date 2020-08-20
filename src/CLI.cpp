@@ -107,7 +107,7 @@ void CmdLineArgs::add_string_option(std::string const& option, StringParserFn fu
 	add_custom_option(option, std::bind(func, std::placeholders::_1, std::ref(output)), doc);
 }
 
-void CmdLineArgs::parse(int argc, char* argv[], Param& P)
+void CmdLineArgs::parse(int argc, char* argv[], Param& params)
 {
 	// Detect if the user wants to print out the full help output
 	if (argc >= 2)
@@ -127,10 +127,10 @@ void CmdLineArgs::parse(int argc, char* argv[], Param& P)
 
 	// Get seeds.
 	int i = argc - 4;
-	parse_integer(argv[i], P.setupSeed1);
-	parse_integer(argv[i+1], P.setupSeed2);
-	parse_integer(argv[i+2], P.runSeed1);
-	parse_integer(argv[i+3], P.runSeed2);
+	parse_integer(argv[i], params.setupSeed1);
+	parse_integer(argv[i+1], params.setupSeed2);
+	parse_integer(argv[i+2], params.runSeed1);
+	parse_integer(argv[i+3], params.runSeed2);
 
 	for (i = 1; i < argc - 4; i++)
 	{

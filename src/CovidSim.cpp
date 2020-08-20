@@ -2093,7 +2093,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HouseholdTrans *= P.R0scale;
 		if (P.FixLocalBeta) P.LocalBeta *= P.R0scale;
 		P.R0 *= P.R0scale;
-		for (int j = 0; j < P.PlaceTypeNum; j++) P.PlaceTypeTrans[j] *= P.R0scale;
+		for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++) {
+			P.PlaceTypeTrans[place_type] *= P.R0scale;
+		}
 		fprintf(stderr, "Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
 	}
 	fprintf(stderr, "Parameters read\n");
@@ -2882,7 +2884,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
 				if (Hosts[l].inf == InfStat_Susceptible) //// If Host l is uninfected.
 				{
-					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType<0 || Hosts[l].PlaceLinks[P.CareHomePlaceType]<0))
+					if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType<0 || Hosts[l].PlaceLinks[P.CareHomePlaceType]<0))
 					{
 						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
 						if (rf == 0)
@@ -2918,7 +2920,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 					if (Hosts[l].inf == InfStat_Susceptible)
 					{
-						if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
+						if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 						{
 							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
 							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
@@ -2954,7 +2956,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
 				if (Hosts[l].inf == InfStat_Susceptible)
 				{
-					if ((CalcPersonSusc(l, 0, 0, 0) > 0) && (Hosts[l].age<=P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
+					if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age<=P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
 					{
 						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
 						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
@@ -3091,7 +3093,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 					}
 					InfectSweep(t, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
 					//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If t is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
-					if (!P.DoSI) IncubRecoverySweep(t, run);
+					if (!P.DoSI) IncubRecoverySweep(t);
 					// If doing new contact tracing, update numbers of people under contact tracing after each time step
 
 					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
@@ -5131,9 +5133,9 @@ void CalibrationThresholdCheck(double t,int n)
 {
 	int k;
 	int trigAlert, trigAlertCases;
-	unsigned short int ts;
-
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	/* Never used
+	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	*/
 
 	trigAlertCases = State.cumDC;
 	if (n >= P.WindowToEvaluateTriggerAlert) {
@@ -5492,7 +5494,8 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 
 void RecordInfTypes(void)
 {
-	int i, j, k, l, lc, lc2, b, c, n, nf, i2;
+	int i, j, k, l, lc, lc2, b, c, n, i2;
+	unsigned int nf;
 	double* res, * res_av, * res_var, t, s;
 
 	for (n = 0; n < P.NumSamples; n++)
@@ -5628,14 +5631,14 @@ void RecordInfTypes(void)
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
-			for (std::size_t i = ResultsDoubleOffsetStart /* skip over initial fields */; i < nf; i++)
+			for (std::size_t i3 = ResultsDoubleOffsetStart /* skip over initial fields */; i3 < nf; i3++)
 			{
-				res_av[i] += res[i];
-				res_var[i] += res[i] * res[i];
+				res_av[i3] += res[i3];
+				res_var[i3] += res[i3] * res[i3];
 			}
 			if (P.DoAdUnits && P.OutputAdUnitAge)
 				for (std::size_t age = 0; age < NUM_AGE_GROUPS; ++age)
-					for (std::size_t adunit = 0; adunit < P.NumAdunits; ++adunit)
+					for (std::size_t adunit = 0; adunit < (size_t) P.NumAdunits; ++adunit)
 					{
 						TSMean[n].prevInf_age_adunit[age][adunit] = TimeSeries[n + lc].prevInf_age_adunit[age][adunit];
 						TSMean[n].cumInf_age_adunit [age][adunit] = TimeSeries[n + lc].cumInf_age_adunit [age][adunit];

@@ -12,7 +12,7 @@ namespace CovidSim { namespace Geometry {
 
 		DiagonalMatrix2() : x(), y() {}
 
-		DiagonalMatrix2(T x, T y) : x(x), y(y) {}
+		DiagonalMatrix2(T _x, T _y) : x(_x), y(_y) {}
 
 		template<class U>
 		explicit operator DiagonalMatrix2<U>() const {
@@ -27,7 +27,7 @@ namespace CovidSim { namespace Geometry {
 
 		Vector2();
 
-		Vector2(T x, T y);
+		Vector2(T _x, T _y);
 
 		T length() const;
 
@@ -64,7 +64,7 @@ namespace CovidSim { namespace Geometry {
 	Vector2<T>::Vector2() : x(), y() {}
 
 	template<class T>
-	Vector2<T>::Vector2(T x, T y) : x(x), y(y) {}
+	Vector2<T>::Vector2(T _x, T _y) : x(_x), y(_y) {}
 
 	template<class T>
 	T Vector2<T>::length() const {
