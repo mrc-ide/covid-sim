@@ -103,7 +103,7 @@ else:
 
     # Where the exe ends up depends on the OS.
     if os.name == 'nt':
-        exe = os.path.join(build_dir, "Debug", "src", "CovidSim.exe")
+        exe = os.path.join(build_dir, "src", "Debug", "CovidSim.exe")
     else:
         exe = os.path.join(build_dir, "src", "CovidSim")
 

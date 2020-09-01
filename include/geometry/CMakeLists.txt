@@ -1,1 +1,5 @@
-set(GEOMETRY_HDR_FILES Size.h Vector2.h BoundingBox.h)
+set(GEOMETRY_HDR_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/Size.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vector2.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.h
+    CACHE INTERNAL "Headers" FORCE)

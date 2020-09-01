@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <vector>
+#define __STDC_FORMAT_MACROS 1
 
 #include "BinIO.h"
 #include "Error.h"
@@ -32,7 +33,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 {
 	int l, m, j2, l2, m2;
 	unsigned int rn;
-	double t, s, s2, t2;
+	double t, s, s2;
 	char buf[2048];
 	FILE* dat;
 
@@ -69,7 +70,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			rewind(dat);
 			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 			BF = (BinFile*)BinFileBuf;
-			int index = 0;
+			unsigned int index = 0;
 			while(fgets(buf, sizeof(buf), dat) != NULL)
 			{
 				int i2;
@@ -211,7 +212,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
-	t2 = 0.0;
 
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
@@ -1457,7 +1457,6 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	{
 		fprintf(stderr, "Configuring places...\n");
 
-		FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
 			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, mcell_country, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
@@ -1926,7 +1925,7 @@ void AssignHouseholdAges(int n, int pers, int tn, bool do_adunit_demog)
 
 void AssignPeopleToPlaces()
 {
-	int i2, j, j2, k, k2, l, m, tp, f, f2, f3, f4, ic, a, cnt, ca, nt, nn;
+	int i2, j, j2, k, k2, l, m, tp, f, f2, f3, f4, ic, a, cnt, ca, nn;
 	int* PeopleArray;
 	int* NearestPlaces[MAX_NUM_THREADS];
 	double s, t, *NearestPlacesProb[MAX_NUM_THREADS];
@@ -2183,7 +2182,6 @@ void AssignPeopleToPlaces()
 				ca = 0;
 				fprintf(stderr, "Allocating people to place type %i\n", tp);
 				a = cnt;
-				nt = P.NumThreads;
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
 				{

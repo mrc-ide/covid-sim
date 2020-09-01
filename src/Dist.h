@@ -13,5 +13,6 @@ double dist2_cc(Cell*, Cell*);
 double dist2_cc_min(Cell*, Cell*);
 double dist2_mm(Microcell*, Microcell*);
 double dist2_raw(double, double, double, double);
+double periodic_xy(double x, double y);
 
 #endif // COVIDSIM_DIST_H_INCLUDED_

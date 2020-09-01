@@ -186,9 +186,9 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		}
 		if ((t > 0) && (P.DoOneGen))
 		{
-			DoIncub(ai, ts, tn, run);
+			DoIncub(ai, ts, tn);
 			DoCase(ai, t, ts, tn);
-			DoRecover(ai, tn, run);
+			DoRecover(ai, tn);
 		}
 	}
 }
@@ -348,7 +348,11 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 				a->Severity_Current = Severity::Dead;
 				break;
 
-			default:
+			case Severity::Asymptomatic:
+			case Severity::Dead:
+			case Severity::Mild:
+			case Severity::Recovered:
+			case Severity::RecoveringFromCritical:
 				break;
 		}
 	}
@@ -389,13 +393,16 @@ void DoRecover_FromSeverity(int ai, int tn)
 					a->Severity_Current = Severity::Recovered;
 					break;
 
-				default:
+				case Severity::Asymptomatic:
+				case Severity::Critical:
+				case Severity::Dead:
+				case Severity::Recovered:
 					break;
 			}
 		}
 }
 
-void DoIncub(int ai, unsigned short int ts, int tn, int run)
+void DoIncub(int ai, unsigned short int ts, int tn)
 {
 	Person* a;
 	double q;
@@ -894,7 +901,7 @@ void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
 	StateT[tn].cumFC++;
 }
 
-void DoRecover(int ai, int tn, int run)
+void DoRecover(int ai, int tn)
 {
 	int i, j;
 	Person* a;
@@ -924,13 +931,13 @@ void DoRecover(int ai, int tn, int run)
 				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
 				if (P.b.contains(pixel))
 				{
-					unsigned j = pixel.y * bmh->width + pixel.x;
-					if (j < bmh->imagesize)
+					unsigned int j2 = pixel.y * bmh->width + pixel.x;
+					if (j2 < bmh->imagesize)
 					{
 #pragma omp atomic
-						bmRecovered[j]++;
+						bmRecovered[j2]++;
 #pragma omp atomic
-						bmInfected[j]--;
+						bmInfected[j2]--;
 					}
 				}
 			}
@@ -940,7 +947,7 @@ void DoRecover(int ai, int tn, int run)
 	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
 }
 
-void DoDeath(int ai, int tn, int run)
+void DoDeath(int ai, int tn)
 {
 	int i;
 	Person* a = Hosts + ai;
@@ -1242,7 +1249,7 @@ void UpdateHostClosure() {
 	}
 }
 
-void DoPlaceOpen(int i, int j, unsigned short int ts, int tn)
+void DoPlaceOpen(int i, int j, unsigned short int ts)
 {
 	int k, ai, j1, j2, l, f;
 

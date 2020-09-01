@@ -397,7 +397,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 						{
 							if (Hosts[i3].is_susceptible() && (!Hosts[i3].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
-								s = s3 * CalcHouseSusc(i3, ts, ci, tn);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
+								s = s3 * CalcHouseSusc(i3, ts, ci);		//// FOI ( = infectiousness x susceptibility) from person ci/si on fellow household member i3
 								
 								// Force of Infection (s) > random value between 0 and 1
 								if (ranf_mt(tn) < s) 
@@ -526,7 +526,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[tn][m]];
 										// calculate place susceptbility based on infectee (i3), place type (k), timestep (ts)
 										// cell (ci) and thread number (tn)
-										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+										s = CalcPlaceSusc(i3, k, ts);
 
 										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
 										if ((k==P.CareHomePlaceType)&&((!Hosts[ci].care_home_resident)||(!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
@@ -559,7 +559,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										{
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 											//downscale s if it has been scaled up do to digital contact tracing
-											s *= CalcPersonSusc(i3, ts, ci, tn)*s4/s4_scaled;
+											s *= CalcPersonSusc(i3, ts, ci)*s4/s4_scaled;
 
 											// if blanket movement restrictions are in place
 											if (bm)
@@ -622,7 +622,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 										// select potential infectee from sampling queue
 										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
 										// calculate place susceptibility s
-										s = CalcPlaceSusc(i3, k, ts, ci, tn);
+										s = CalcPlaceSusc(i3, k, ts);
 										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
 										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[i3].PlaceGroupLinks[k])) s *= P.CareHomeResidentPlaceScaling;
 										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
@@ -662,7 +662,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											Microcell* mt = Mcells + Hosts[i3].mcell;
 
 											//if doing digital contact tracing, scale down susceptibility here
-											s*= CalcPersonSusc(i3, ts, ci, tn)*s3/s3_scaled;
+											s*= CalcPersonSusc(i3, ts, ci)*s3/s3_scaled;
 											// if blanket movement restrictions are in place
 											if (bm)
 											{
@@ -861,7 +861,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 								Microcell* mi = Mcells + si->mcell;
 								// pick microcell of infectee (mt)
 								Microcell* mt = Mcells + Hosts[i3].mcell;
-								s = CalcSpatialSusc(i3, ts, ci, tn);
+								s = CalcSpatialSusc(i3, ts);
 								// Care home residents may have fewer contacts
 								if ((Hosts[i3].care_home_resident) || (Hosts[ci].care_home_resident)) s *= P.CareHomeResidentSpatialScaling;
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
@@ -892,7 +892,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 							
 								if (m < ct->S)  // only bother trying to infect susceptible people
 								{
-									s *= CalcPersonSusc(i3, ts, ci, tn);
+									s *= CalcPersonSusc(i3, ts, ci);
 									if (bm)
 									{
 										if ((dist2_raw(Households[si->hh].loc.x, Households[si->hh].loc.y,
@@ -955,7 +955,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	}
 }
 
-void IncubRecoverySweep(double t, int run)
+void IncubRecoverySweep(double t)
 {
 	double ht;
 	unsigned short int ts; //// this timestep
@@ -991,14 +991,14 @@ void IncubRecoverySweep(double t, int run)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) shared(t, run, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
 		{
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
 				if (ts >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
-					DoIncub(c->latent[j], ts, tn, run); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
+					DoIncub(c->latent[j], ts, tn); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
@@ -1030,15 +1030,15 @@ void IncubRecoverySweep(double t, int run)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
-						DoRecover(ci, tn, run);
+						DoRecover(ci, tn);
 						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					}
 					else /// if they die and this timestep is after they've died.
 					{
 						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							DoRecover(ci, tn, run);
+							DoRecover(ci, tn);
 						else
-							DoDeath(ci, tn, run);
+							DoDeath(ci, tn);
 					}
 
 					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector
@@ -1723,7 +1723,7 @@ int TreatSweep(double t)
 							for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 								if (j2 != P.HotelPlaceType)
 									for (int i2 = 0; i2 < Mcells[b].np[j2]; i2++)
-										DoPlaceOpen(j2, Mcells[b].places[j2][i2], ts, tn);
+										DoPlaceOpen(j2, Mcells[b].places[j2][i2], ts);
 						}
 					}
 
