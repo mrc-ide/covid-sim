@@ -17,16 +17,29 @@ include_directories("${gtest_SOURCE_DIR}/include")
 
 FIND_PACKAGE(Threads REQUIRED)
 
-# from list of files we'll create tests test_name.cpp -> test_name
-function(add_unit_tests TEST_SRC_FILES TEST_LIBRARIES)
-  foreach(_test_file ${TEST_SRC_FILES})
-    get_filename_component(_test_name ${_test_file} NAME_WE)
-    add_executable(${_test_name} ${_test_file})
-    target_link_libraries(${_test_name} ${TEST_LIBRARIES} gtest_main ${CMAKE_THREAD_LIBS_INIT})
-    gtest_discover_tests(${_test_name})
-  endforeach()
+function(add_unit_tests)
+  # Parse options
+  set(_options "")
+  set(_one_value TARGET)
+  set(_multi_value SOURCES LIBRARIES)
+
+  cmake_parse_arguments(_aut "${_options}" "${_one_value}" "${_multi_value}" ${ARGN})
+
+  # Check parameters
+  if(NOT _aut_TARGET)
+    message(FATAL "No target specified to add_unit_tests")
+  endif()
+  if(NOT _aut_SOURCES)
+    message(FATAL "Must specify sources in add_unit_tests for test ${_aut_TARGET}")
+  endif()
+
+  # Create target and wire it up to ctest
+  add_executable(${_aut_TARGET} ${_aut_SOURCES})
+  target_link_libraries(${_aut_TARGET} ${_aut_LIBRARIES} gtest_main ${CMAKE_THREAD_LIBS_INIT})
+  target_include_directories(${_aut_TARGET} PUBLIC "${CMAKE_SOURCE_DIR}/src")
+  gtest_discover_tests(${_aut_TARGET})
 endfunction()
 
 ADD_SUBDIRECTORY(geometry)
 
-add_unit_tests(TARGET test-person SOURCES test-person.cpp)
+add_unit_tests(TARGET test-person SOURCES test-person.cpp ${CMAKE_SOURCE_DIR}/src/Person.cpp)
