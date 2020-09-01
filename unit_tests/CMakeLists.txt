@@ -28,3 +28,5 @@ function(add_unit_tests TEST_SRC_FILES TEST_LIBRARIES)
 endfunction()
 
 ADD_SUBDIRECTORY(geometry)
+
+add_unit_tests(TARGET test-person SOURCES test-person.cpp)
