@@ -18,6 +18,7 @@ add_subdirectory(Geometry)
 add_subdirectory(Models)
 
 target_link_libraries(CovidSim PUBLIC geometrylib)
+target_link_libraries(CovidSim PUBLIC person)
 
 if(USE_OPENMP)
   target_link_libraries(CovidSim PUBLIC OpenMP::OpenMP_CXX)
