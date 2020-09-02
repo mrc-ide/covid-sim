@@ -17,9 +17,14 @@ jobs:
         mkdir build && cd build
         cmake ..
         make
+    - name: unit tests
+      run: |
+        cd build
+        ctest -j2 -V -E inttest.*
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V -j2"
+        cd build
+        ctest -j2 -V -R inttest.*
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -28,6 +33,28 @@ jobs:
       fail-fast: false
       matrix:
         container_image: ["fedora:latest", "debian:10", "archlinux/base", "ubuntu:bionic", "centos:7", "opensuse/tumbleweed", "alpine:latest"]
+        include:
+        - container_image: "fedora:latest"
+          cmake: "cmake"
+          ctest: "ctest"
+        - container_image: "debian:10"
+          cmake: "cmake"
+          ctest: "ctest"
+        - container_image: "archlinux/base"
+          cmake: "cmake"
+          ctest: "ctest"
+        - container_image: "ubuntu:bionic"
+          cmake: "../cmake-3.17.2-Linux-x86_64/bin/cmake"
+          ctest: "ctest"
+        - container_image: "centos:7"
+          cmake: "cmake"
+          ctest: "ctest3"
+        - container_image: "opensuse/tumbleweed"
+          cmake: "cmake"
+          ctest: "ctest"
+        - container_image: "alpine:latest"
+          cmake: "cmake"
+          ctest: "ctest"
     container:
       image: ${{ matrix.container_image }}
 
@@ -40,18 +67,16 @@ jobs:
         wget https://cmake.org/files/v3.17/cmake-3.17.2-Linux-x86_64.tar.gz
         tar xf cmake-3.17.2-Linux-x86_64.tar.gz
         export PATH=$(pwd)/cmake-3.17.2-Linux-x86_64/bin:${PATH}
-    - name: build bionic
+    - name: build
       run: |
         mkdir build && cd build
-        ../cmake-3.17.2-Linux-x86_64/bin/cmake ..
+        ${{ matrix.cmake }} ..
         make
-      if: matrix.container_image == 'ubuntu:bionic'
-    - name: build others
+    - name: unit tests
       run: |
-        mkdir build && cd build
-        cmake ..
-        make
-      if: matrix.container_image != 'ubuntu:bionic'
+        cd build
+        ${{ matrix.ctest }} -j2 -V -E inttest.*
     - name: regression tests
       run: |
-        make -Cbuild test ARGS="-V -j2"
+        cd build
+        ${{ matrix.ctest }} -j2 -V -R inttest.*
