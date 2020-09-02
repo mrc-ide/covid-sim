@@ -68,7 +68,7 @@ To test behaviours of particular CovidSim functions, include the appropriate hea
 For example if testing functions in SetupModel.cpp, you would `#include "SetupModel.h"` in your sources and then have your CMakeLists.txt entry for the test look like:
 
 ```
-add_unit_tests(TARGET test-basic SOURCES test-basic.cpp $CMAKE_SOURCE_DIR/src/SetupModel.cpp)
+add_unit_tests(TARGET test-basic SOURCES test-basic.cpp ${CMAKE_SOURCE_DIR}/src/SetupModel.cpp)
 ```
 
 Note: The limitation here is that we cannot test functions in CovidSim.cpp because that has a `main()` function which will get the test framework confused.  The solution here is to move the functions under test out of CovidSim.cpp
