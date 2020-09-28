@@ -12,19 +12,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: download cmake
+      run: |
+        wget https://cmake.org/files/v3.18/cmake-3.18.2-Linux-x86_64.tar.gz
+        tar xf cmake-3.18.2-Linux-x86_64.tar.gz
     - name: build
       run: |
         mkdir build && cd build
-        cmake ..
+        ../cmake-3.18.2-Linux-x86_64/bin/cmake ..
         make
     - name: unit tests
       run: |
         cd build
-        ctest -j2 -V -E inttest.*
+        ../cmake-3.18.2-Linux-x86_64/bin/ctest -j2 -V -E inttest.*
     - name: regression tests
       run: |
         cd build
-        ctest -j2 -V -R inttest.*
+        ../cmake-3.18.2-Linux-x86_64/bin/ctest --stop-on-failure -j2 -V -R inttest.*
 
   test-in-container:
     runs-on: ubuntu-latest
@@ -36,19 +40,19 @@ jobs:
         include:
         - container_image: "fedora:latest"
           cmake: "cmake"
-          ctest: "ctest"
+          ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "debian:10"
           cmake: "cmake"
-          ctest: "ctest"
+          ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "archlinux/base"
           cmake: "cmake"
           ctest: "ctest"
         - container_image: "ubuntu:bionic"
-          cmake: "../cmake-3.17.2-Linux-x86_64/bin/cmake"
-          ctest: "ctest"
+          cmake: "../cmake-3.18.2-Linux-x86_64/bin/cmake"
+          ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "centos:7"
           cmake: "cmake"
-          ctest: "ctest3"
+          ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "opensuse/tumbleweed"
           cmake: "cmake"
           ctest: "ctest"
@@ -64,9 +68,9 @@ jobs:
       run: ./ci/install_dependencies.sh
     - name: download cmake
       run: |
-        wget https://cmake.org/files/v3.17/cmake-3.17.2-Linux-x86_64.tar.gz
-        tar xf cmake-3.17.2-Linux-x86_64.tar.gz
-        export PATH=$(pwd)/cmake-3.17.2-Linux-x86_64/bin:${PATH}
+        wget https://cmake.org/files/v3.18/cmake-3.18.2-Linux-x86_64.tar.gz
+        tar xf cmake-3.18.2-Linux-x86_64.tar.gz
+        export PATH=$(pwd)/cmake-3.18.2-Linux-x86_64/bin:${PATH}
     - name: build
       run: |
         mkdir build && cd build
@@ -79,4 +83,4 @@ jobs:
     - name: regression tests
       run: |
         cd build
-        ${{ matrix.ctest }} -j2 -V -R inttest.*
+        ${{ matrix.ctest }} --stop-on-failure -j2 -V -R inttest.*

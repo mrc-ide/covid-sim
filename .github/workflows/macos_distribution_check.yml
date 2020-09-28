@@ -29,4 +29,4 @@ jobs:
     - name: regression tests
       run: |
         cd build
-        ctest -j2 -V -R inttest.*
+        ctest --stop-on-failure -j2 -V -R inttest.*
