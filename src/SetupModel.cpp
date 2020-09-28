@@ -1280,7 +1280,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 
 		// make age adjustments to population
-#pragma omp parallel for private(j,k,m,s) schedule(static,1) default(none) \
+#pragma omp parallel for private(j,m,s) schedule(static,1) default(none) \
 			shared(P, Hosts, AgeDistCorrF, AgeDistCorrB, Mcells, reg_demog_file)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int i = tn; i < P.PopSize; i += P.NumThreads)
