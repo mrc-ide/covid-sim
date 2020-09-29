@@ -622,7 +622,7 @@ void InitTransmissionCoeffs(void)
 	t = s = t2 = 0;
 	for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
 	{
-		t += ((double)(_I64(1) + i)) * (P.HouseholdSizeDistrib[0][i] - t2);
+		t += ((double)(INT64_C(1) + i)) * (P.HouseholdSizeDistrib[0][i] - t2);
 		t2 = P.HouseholdSizeDistrib[0][i];
 	}
 	fprintf(stderr, "Household mean size=%lg\n", t);
@@ -1517,7 +1517,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		SamplingQueue[i] = (int*)Memory::xcalloc(2 * (MAX_PLACE_SIZE + CACHE_LINE_SIZE), sizeof(int));
 		for (int k = 0; k < P.NumThreads; k++)
 			StateT[i].inf_queue[k] = (Infection*)Memory::xcalloc(P.InfQueuePeakLength, sizeof(Infection));
-		StateT[i].cell_inf = (float*)Memory::xcalloc(_I64(1) + l, sizeof(float));
+		StateT[i].cell_inf = (float*)Memory::xcalloc(INT64_C(1) + l, sizeof(float));
 		StateT[i].host_closure_queue = (HostClosure*)Memory::xcalloc(P.InfQueuePeakLength, sizeof(HostClosure));
 	}
 

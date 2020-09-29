@@ -460,11 +460,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.FitIter == 0)
 	{
 		for (i = 0; i < MAX_COUNTRIES; i++) {
-			CountryNames[i] = CountryNameBuf + _I64(128) * i;
+			CountryNames[i] = CountryNameBuf + INT64_C(128) * i;
 			CountryNames[i][0] = 0;
 		}
 		for (i = 0; i < MAX_ADUNITS; i++) {
-			AdunitListNames[i] = AdunitListNamesBuf + _I64(128) * i;
+			AdunitListNames[i] = AdunitListNamesBuf + INT64_C(128) * i;
 			AdunitListNames[i][0] = 0;
 		}
 		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
@@ -554,7 +554,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
 		P.HouseholdDenomLookup[0] = 1.0;
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(_I64(1) + i)), P.HouseholdTransPow);
+		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P.HouseholdTransPow);
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include administrative units within countries", "%i", (void*)&(P.DoAdUnits), 1, 1, 0)) P.DoAdUnits = 1;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 		if (P.DoAdUnits)
@@ -566,9 +566,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
 				P.AdunitLevel1Lookup[i] = -1;
-				AdunitNames[3 * i] = AdunitNamesBuf + _I64(3) * i * 360;
-				AdunitNames[3 * i + 1] = AdunitNamesBuf + _I64(3) * i * 360 + 60;
-				AdunitNames[3 * i + 2] = AdunitNamesBuf + _I64(3) * i * 360 + 160;
+				AdunitNames[3 * i] = AdunitNamesBuf + INT64_C(3) * i * 360;
+				AdunitNames[3 * i + 1] = AdunitNamesBuf + INT64_C(3) * i * 360 + 60;
+				AdunitNames[3 * i + 2] = AdunitNamesBuf + INT64_C(3) * i * 360 + 160;
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Divisor), 1, 1, 0)) P.AdunitLevel1Divisor = 1;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Mask for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Mask), 1, 1, 0)) P.AdunitLevel1Mask = 1000000000;
