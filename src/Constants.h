@@ -100,4 +100,9 @@ const int HOTELS_PER_1000PASSENGER = 10;
 
 const int MAX_NUM_INTERVENTION_CHANGE_TIMES = 100; // may want to make this intervention-specifc, but keep simple for now.
 
+// MS generates a lot of C26451 overflow warnings. Below is shorthand
+// to increase the cast size and clean them up.
+
+#define _I64(x) static_cast<int64_t>(x)
+
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_

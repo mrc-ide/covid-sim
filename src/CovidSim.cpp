@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
 	};
 
-	int cl = clock();
+	double cl = (double) clock();
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
-	fprintf(stderr, "Model setup in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
+	fprintf(stderr, "Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 
 
@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
 			Bitmap_Finalise();
 
 			fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
+			fprintf(stderr, "Model ran in %lf seconds\n", ((double)clock() - cl) / CLOCKS_PER_SEC);
 			fprintf(stderr, "Model finished\n");
 		}
 	}
@@ -460,11 +460,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.FitIter == 0)
 	{
 		for (i = 0; i < MAX_COUNTRIES; i++) {
-			CountryNames[i] = CountryNameBuf + 128 * i;
+			CountryNames[i] = CountryNameBuf + INT64_C(128) * i;
 			CountryNames[i][0] = 0;
 		}
 		for (i = 0; i < MAX_ADUNITS; i++) {
-			AdunitListNames[i] = AdunitListNamesBuf + 128 * i;
+			AdunitListNames[i] = AdunitListNamesBuf + INT64_C(128) * i;
 			AdunitListNames[i][0] = 0;
 		}
 		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
@@ -554,7 +554,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
 		P.HouseholdDenomLookup[0] = 1.0;
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(i + 1)), P.HouseholdTransPow);
+		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P.HouseholdTransPow);
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include administrative units within countries", "%i", (void*)&(P.DoAdUnits), 1, 1, 0)) P.DoAdUnits = 1;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 		if (P.DoAdUnits)
@@ -566,9 +566,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
 				P.AdunitLevel1Lookup[i] = -1;
-				AdunitNames[3 * i] = AdunitNamesBuf + 3 * i * 360;
-				AdunitNames[3 * i + 1] = AdunitNamesBuf + 3 * i * 360 + 60;
-				AdunitNames[3 * i + 2] = AdunitNamesBuf + 3 * i * 360 + 160;
+				AdunitNames[3 * i] = AdunitNamesBuf + INT64_C(3) * i * 360;
+				AdunitNames[3 * i + 1] = AdunitNamesBuf + INT64_C(3) * i * 360 + 60;
+				AdunitNames[3 * i + 2] = AdunitNamesBuf + INT64_C(3) * i * 360 + 160;
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Divisor), 1, 1, 0)) P.AdunitLevel1Divisor = 1;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Mask for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Mask), 1, 1, 0)) P.AdunitLevel1Mask = 1000000000;
@@ -2361,7 +2361,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
-	buf = (float*)Memory::xcalloc(P.Nairports + 1, sizeof(float));
+	buf = (float*)Memory::xcalloc(_I64(P.Nairports) + 1, sizeof(float));
 	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
@@ -2479,7 +2479,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
-					AirTravelDist[l] += Airports[i].total_traffic * Airports[i].prop_traffic[j];
+					AirTravelDist[l] += (double) Airports[i].total_traffic * Airports[i].prop_traffic[j];
 			}
 		}
 	outname = output_file_base + ".airdist.xls";
@@ -3600,7 +3600,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	FILE* dat;
 	std::string outname;
 
-	c = 1 / ((double)(P.NRactE + P.NRactNE));
+	c = 1 / ((double)(_I64(P.NRactE) + P.NRactNE));
 
 	if (P.OutputNonSeverity)
 	{
@@ -4761,24 +4761,24 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	TimeSeries[n].I = (double)I;
 	TimeSeries[n].R = (double)R;
 	TimeSeries[n].D = (double)D;
-	TimeSeries[n].incI = (double)(cumI - State.cumI);
-	TimeSeries[n].incC = (double)(cumC - State.cumC);
-	TimeSeries[n].incFC = (double)(cumFC - State.cumFC);
-	TimeSeries[n].incCT = (double)(cumCT - State.cumCT); // added contact tracing
-	TimeSeries[n].incCC = (double)(cumCC - State.cumCC); // added cases who are contacts
-	TimeSeries[n].incDCT = (double)(cumDCT - State.cumDCT); //added cases who are digitally contact traced
-	TimeSeries[n].incDC = (double)(cumDC - State.cumDC); //added incidence of detected cases
-	TimeSeries[n].incTC = (double)(cumTC - State.cumTC);
-	TimeSeries[n].incR = (double)(cumR - State.cumR);
-	TimeSeries[n].incD = (double)(cumD - State.cumD);
-	TimeSeries[n].incHQ = (double)(cumHQ - State.cumHQ);
-	TimeSeries[n].incAC = (double)(cumAC - State.cumAC);
-	TimeSeries[n].incAH = (double)(cumAH - State.cumAH);
-	TimeSeries[n].incAA = (double)(cumAA - State.cumAA);
-	TimeSeries[n].incACS = (double)(cumACS - State.cumACS);
-	TimeSeries[n].incAPC = (double)(cumAPC - State.cumAPC);
-	TimeSeries[n].incAPA = (double)(cumAPA - State.cumAPA);
-	TimeSeries[n].incAPCS = (double)(cumAPCS - State.cumAPCS);
+	TimeSeries[n].incI = (double)(_I64(cumI) - State.cumI);
+	TimeSeries[n].incC = (double)(_I64(cumC) - State.cumC);
+	TimeSeries[n].incFC = (double)(_I64(cumFC) - State.cumFC);
+	TimeSeries[n].incCT = (double)(_I64(cumCT) - State.cumCT); // added contact tracing
+	TimeSeries[n].incCC = (double)(_I64(cumCC) - State.cumCC); // added cases who are contacts
+	TimeSeries[n].incDCT = (double)(_I64(cumDCT) - State.cumDCT); //added cases who are digitally contact traced
+	TimeSeries[n].incDC = (double)(_I64(cumDC) - State.cumDC); //added incidence of detected cases
+	TimeSeries[n].incTC = (double)(_I64(cumTC) - State.cumTC);
+	TimeSeries[n].incR = (double)(_I64(cumR) - State.cumR);
+	TimeSeries[n].incD = (double)(_I64(cumD) - State.cumD);
+	TimeSeries[n].incHQ = (double)(_I64(cumHQ) - State.cumHQ);
+	TimeSeries[n].incAC = (double)(_I64(cumAC) - State.cumAC);
+	TimeSeries[n].incAH = (double)(_I64(cumAH) - State.cumAH);
+	TimeSeries[n].incAA = (double)(_I64(cumAA) - State.cumAA);
+	TimeSeries[n].incACS = (double)(_I64(cumACS) - State.cumACS);
+	TimeSeries[n].incAPC = (double)(_I64(cumAPC) - State.cumAPC);
+	TimeSeries[n].incAPA = (double)(_I64(cumAPA) - State.cumAPA);
+	TimeSeries[n].incAPCS = (double)(_I64(cumAPCS) - State.cumAPCS);
 	TimeSeries[n].cumT = State.cumT;
 	TimeSeries[n].cumUT = State.cumUT;
 	TimeSeries[n].cumTP = State.cumTP;
@@ -4793,7 +4793,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	}
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
-	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(_I64(cumC_country[i]) - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
 		trigDetectedCases = cumCritical;
@@ -4841,14 +4841,14 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	{
 
 		//// Record incidence. (Must be done with old State totals)
-		TimeSeries[n].incMild = (double)(cumMild - State.cumMild);
-		TimeSeries[n].incILI = (double)(cumILI - State.cumILI);
-		TimeSeries[n].incSARI = (double)(cumSARI - State.cumSARI);
-		TimeSeries[n].incCritical = (double)(cumCritical - State.cumCritical);
-		TimeSeries[n].incCritRecov = (double)(cumCritRecov - State.cumCritRecov);
-		TimeSeries[n].incDeath_ILI = (double)(cumDeath_ILI - State.cumDeath_ILI);
-		TimeSeries[n].incDeath_SARI = (double)(cumDeath_SARI - State.cumDeath_SARI);
-		TimeSeries[n].incDeath_Critical = (double)(cumDeath_Critical - State.cumDeath_Critical);
+		TimeSeries[n].incMild = (double)(_I64(cumMild) - State.cumMild);
+		TimeSeries[n].incILI = (double)(_I64(cumILI) - State.cumILI);
+		TimeSeries[n].incSARI = (double)(_I64(cumSARI) - State.cumSARI);
+		TimeSeries[n].incCritical = (double)(_I64(cumCritical) - State.cumCritical);
+		TimeSeries[n].incCritRecov = (double)(_I64(cumCritRecov) - State.cumCritRecov);
+		TimeSeries[n].incDeath_ILI = (double)(_I64(cumDeath_ILI) - State.cumDeath_ILI);
+		TimeSeries[n].incDeath_SARI = (double)(_I64(cumDeath_SARI) - State.cumDeath_SARI);
+		TimeSeries[n].incDeath_Critical = (double)(_I64(cumDeath_Critical) - State.cumDeath_Critical);
 
 		/////// update state with totals
 		State.Mild = Mild;
@@ -5446,7 +5446,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 					double ModelValue;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
-						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*((exp(-((double)(day - k))*P.SeroConvP1) + 1.0)*exp(-((double)(day - k))*P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
+						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*((exp(-((double)(_I64(day) - k))*P.SeroConvP1) + 1.0)*exp(-((double)(_I64(day) - k))*P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
 						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
 					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
@@ -5496,7 +5496,7 @@ void RecordInfTypes(void)
 {
 	int i, j, k, l, lc, lc2, b, c, n, i2;
 	unsigned int nf;
-	double* res, * res_av, * res_var, t, s;
+	double* res, * res_av, * res_var, t, s = 0;
 
 	for (n = 0; n < P.NumSamples; n++)
 	{
@@ -5627,7 +5627,7 @@ void RecordInfTypes(void)
 	{
 		if ((n + lc >= 0) && (n + lc < P.NumSamples))
 		{
-			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(n + lc)); }
+			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(_I64(n) + lc)); }
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
@@ -5689,7 +5689,7 @@ void CalcOriginDestMatrix_adunit()
 				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.total_microcells_high_;
+					ptrdiff_t mcl_from = cl_from_mcl + l + _I64(k) * P.total_microcells_high_;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5711,11 +5711,11 @@ void CalcOriginDestMatrix_adunit()
 				double total_flow;
 				if (j == 0)
 				{
-					total_flow = Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
+					total_flow = (double)Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
 				}
 				else
 				{
-					total_flow = (Cells[cl_from].cum_trans[j] - Cells[cl_from].cum_trans[j - 1]) * Cells[cl_from].n;
+					total_flow = ((double)Cells[cl_from].cum_trans[j] - Cells[cl_from].cum_trans[j - 1]) * Cells[cl_from].n;
 				}
 
 				//loop over microcells within destination cell
@@ -5724,7 +5724,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.total_microcells_high_;
+						ptrdiff_t mcl_to = cl_to_mcl + p + _I64(m) * P.total_microcells_high_;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit
