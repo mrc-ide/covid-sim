@@ -674,6 +674,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates by age", "%lf", (void*)P.RelativeSpatialContact, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.RelativeSpatialContact[i] = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i,1,1,0)) i=0;
+		if(i)
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
+		else
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				P.RelativeSpatialContactSusc[i] =1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent infectiousness", "%lf", (void*)P.AgeInfectiousness, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.AgeInfectiousness[i] = 1.0;
