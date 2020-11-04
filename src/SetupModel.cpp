@@ -585,33 +585,34 @@ void ResetTimeSeries()
 
 int ReadFitIter(std::string const& FitFile)
 {
-	FILE* dat;
-	int i,n,cl_index[100];
-	double cl,cl2;
+	FILE* FitFile_Iter_dat;
+	int i, n, cl_index[100];
+	double Clock_1, Clock_2;
 
 	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter) + ".txt";
 	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
 	do
 	{
-		cl = ((double) clock()) / CLOCKS_PER_SEC;
+		Clock_1 = ((double) clock()) / CLOCKS_PER_SEC;
 		do
 		{
-			cl2 = ((double)clock()) / CLOCKS_PER_SEC;
+			Clock_2 = ((double)clock()) / CLOCKS_PER_SEC;
 		}
-		while ((cl2 > cl) && (cl2 < cl + 1.0));
-	} while (!(dat = fopen(fit_file_iter.c_str(), "r")));
-	fscanf(dat, "%i %i", &i, &n);
+		while ((Clock_2 > Clock_1) && (Clock_2 < Clock_1 + 1.0)); // first condition by definition true on first go of inner do-while, won't be true for very long if inner do-while not called and Clock_2 not reset, which it will be if more than 1 second has elapsed between setting of Clock_2 and resetting of Clock_1. 
+	} while (!(FitFile_Iter_dat = fopen(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
+	// Extract iteration number and number of parameter numbers to fit.
+	fscanf(FitFile_Iter_dat, "%i %i", &i, &n);
 	if (n <= 0)
 		fprintf(stderr, "Stop code read from file (iteration number <=0)\n");
 	else if (i != P.FitIter)
 		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
-		for (i = 0; i < n; i++) fscanf(dat, "%i", &(cl_index[i]));
-		for (i = 0; i < n; i++) fscanf(dat, "%lg", &P.clP[cl_index[i]]);
-	}
-	fclose(dat);
-	return (n > 0) ? 0 : 1;
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i", &(cl_index[index])); // extract indices of parameters to fit
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg", &P.clP[cl_index[index]]); // update values in clP array at those indices
+	}																						
+	fclose(FitFile_Iter_dat);
+	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
 }
 
 void InitTransmissionCoeffs(void)
