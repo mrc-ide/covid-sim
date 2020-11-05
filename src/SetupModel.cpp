@@ -618,7 +618,7 @@ int ReadFitIter(std::string const& FitFile)
 
 void InitTransmissionCoeffs(void)
 {
-	// To calibrate R0 and various transmission coefficients/betas, effectivey run the entire model, (more-or-less) deterministically through the population WITHOUT any interventions. 
+	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be per infection at household, place and spatial levels. 
 
 	double d, t, t2, t3, s, s2, s3, q;
 	int l, m;
@@ -635,7 +635,7 @@ void InitTransmissionCoeffs(void)
 	fprintf(stderr, "Household mean size=%lg\n", HouseholdMeanSize);
 
 	//// Loops below sum household and spatial infections 
-	t2 = s = 0; // here s and t2 will respectively refer to household and spatial infectiousness summed over entire population in loop below.
+	t2 = s = 0; // here s and t2 will respectively refer to total number of household and spatial infectiouns summed over entire population in loop below.
 	s3 = 1.0;
 	double shd = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
 #pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2,shd) default(none) shared(P, Households, Hosts)
@@ -703,11 +703,11 @@ void InitTransmissionCoeffs(void)
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
 		}
 	}
-	// Divide summed spatial infectiousness by PopSize to get Spatial R0. (s3 just equals 1)
+	// Divide total spatial infections by PopSize to get Spatial R0. (s3 just equals 1)
 	t2 *= (s3 / ((double)P.PopSize));
-	// Divide summed household infectiousness by summed household denominators to get household secondary attack rates
+	// Divide total household infections by summed household denominators to get household secondary attack rate
 	fprintf(stderr, "Household SAR=%lg\n", s / shd);
-	// Divide summed household infectiousness by PopSize to get household R0
+	// Divide total household infections by PopSize to get household R0
 	s /= ((double)P.PopSize);
 	fprintf(stderr, "Household R0=%lg\n", P.R0household = s);
 
@@ -773,6 +773,7 @@ void InitTransmissionCoeffs(void)
 		Hosts[i].recovery_or_death_time = 0; // reset everybody's recovery_or_death_time
 	}
 
+	// Divide total number of place infections by PopSize to get "place" R0. 
 	t /= ((double)P.PopSize);
 	recovery_time_days /= ((double)P.PopSize);
 	recovery_time_timesteps /= ((double)P.PopSize);
