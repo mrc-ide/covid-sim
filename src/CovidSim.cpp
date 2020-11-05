@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop =  0;
 				do
 				{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-					if ((P.ModelCalibIteration%14 == 0) && (ModelCalibLoop < 4))
+					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
 					{
 						thisRunSeed1 = P.nextRunSeed1;
 						thisRunSeed2 = P.nextRunSeed2;
@@ -3023,7 +3023,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	}
 	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
 */
-	InterruptRun = 0;
+	InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck
 	lcI = 1;
 	if (!snapshot_load_file.empty())
 	{
