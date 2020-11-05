@@ -292,12 +292,9 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 
-
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-
-
 
 	std::string output_file_base_f = output_file_base; // output_file_base_f remembers the original, as output_file_base changes with fitting.
 	std::string output_file; // Historically, this was global, and was used for all save...(void) type functions.
