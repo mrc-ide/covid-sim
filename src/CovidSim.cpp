@@ -325,15 +325,15 @@ int main(int argc, char* argv[])
 		{
 			P.NRactE = P.NRactNE = 0;
 			ResetTimeSeries();
-			for (int i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
+			for (int Realisation = 0; (Realisation < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); Realisation++)
 			{
 				if (P.NumRealisations > 1)
 				{
-					output_file = output_file_base + "." + std::to_string(i);
-					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+					output_file = output_file_base + "." + std::to_string(Realisation);
+					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
-				if (((i == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
+				if (((Realisation == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
 				{
 					P.nextRunSeed1 = P.runSeed1;
 					P.nextRunSeed2 = P.runSeed2;
@@ -364,12 +364,12 @@ int main(int argc, char* argv[])
 						int32_t tmp2 = thisRunSeed2;
 						setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
 					}
-					InitModel(i);
+					InitModel(Realisation);
 					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
-					ContCalib = RunModel(i, snapshot_save_file, snapshot_load_file, output_file_base);
+					ContCalib = RunModel(Realisation, snapshot_save_file, snapshot_load_file, output_file_base);
 				}
 				while (ContCalib);
-				if (!data_file.empty()) CalcLikelihood(i, data_file, output_file_base);
+				if (!data_file.empty()) CalcLikelihood(Realisation, data_file, output_file_base);
 				if (P.OutputNonSummaryResults)
 				{
 					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))

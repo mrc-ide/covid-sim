@@ -635,7 +635,7 @@ void InitTransmissionCoeffs(void)
 	fprintf(stderr, "Household mean size=%lg\n", HouseholdMeanSize);
 
 	//// Loops below sum household and spatial infections 
-	t2 = s = 0; // here s and t2 will respectively refer to total number of household and spatial infectiouns summed over entire population in loop below.
+	t2 = s = 0; // here s and t2 will respectively refer to total number of household and spatial infections summed over entire population in loop below.
 	s3 = 1.0;
 	double shd = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
 #pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2,shd) default(none) shared(P, Households, Hosts)
