@@ -5355,7 +5355,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
 		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
-		for(int i=0;i<nrows;i++)
+		for (int i = 0; i < nrows; i++)
 			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		for (int i = 0; i < ncols; i++)
 		{
@@ -5407,7 +5407,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 			for (int j = 0; j < nrows; j++)
 			{
 				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i]>=-1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				if ((Data[j][i] >= -1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
 					double ModelValue;
 					if (ColTypes[i]==0)
