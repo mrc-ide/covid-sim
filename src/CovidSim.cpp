@@ -5345,18 +5345,23 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 {
 	FILE* dat;
 
-	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
-	static double **Data,NegBinK,sumL;
+	static int DataAlreadyRead = 0, ncols, nrows, * ColTypes; // static i.e. won't be reset upon subsequent calls to CalcLikelihood
+	static double** Data, NegBinK, sumL;
 
 	if (!DataAlreadyRead)
 	{
 		char FieldName[1024];
 		if (!(dat = fopen(DataFile.c_str(), "r"))) ERR_CRITICAL("Unable to open data file\n");
+		// Extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution, from Data file
 		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
+
+		// allocate memory
 		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		for (int i = 0; i < nrows; i++)
 			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+
+		// cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
 		for (int i = 0; i < ncols; i++)
 		{
 			ColTypes[i] = -100;
@@ -5387,6 +5392,8 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
 			}
 		}
+
+		// extract data into Data array.
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
 				fscanf(dat, "%lg", &(Data[i][j]));
@@ -5395,80 +5402,81 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 	}
 
 	// calculate likelihood function
-	double c, LL=0.0;
-	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; //clP[99] reserved for fitting overdispersion
+	double c, LL = 0.0;
+	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; // clP[99] reserved for fitting overdispersion. If not positive-definite assign to NegBinK extracted above. 
 	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
-	int offset= (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
-	for (int i = 1; i < ncols;i++)
+	int offset = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
+
+	for (int col = 1; col < ncols; col++) /// cycle through columns (different sources of data contributing to likelihood), and add to log likelihood (LL) accordingly. 
 	{
-		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2))
+		if ((ColTypes[col] >= 0) && (ColTypes[col] <= 2)) // i.e. "all deaths", "hospital deaths", "care home deaths"
 		{
 			double ModelValueSum = 0.0;
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i] >= -1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= -1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
 					double ModelValue;
-					if (ColTypes[i]==0)
-						ModelValue=c*TimeSeries[day-offset].incD; // all deaths by date of death
-					else if (ColTypes[i] == 1)
-						ModelValue=c*(TimeSeries[day-offset].incDeath_Critical+ TimeSeries[day-offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
-					else if (ColTypes[i] == 2)
-						ModelValue = c * TimeSeries[day-offset].incDeath_ILI; // care home deaths (ILI) by date of death
+					if (ColTypes[col] == 0)
+						ModelValue = c * TimeSeries[day - offset].incD; // all deaths by date of death
+					else if (ColTypes[col] == 1)
+						ModelValue = c * (TimeSeries[day - offset].incDeath_Critical + TimeSeries[day - offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
+					else if (ColTypes[col] == 2)
+						ModelValue = c * TimeSeries[day - offset].incDeath_ILI; // care home deaths (ILI) by date of death
 					ModelValueSum += ModelValue;
-					if (Data[j][i] >= 0)
+					if (Data[row][col] >= 0)
 					{
-						if ((j > 0) && (Data[j - 1][i] == -1)) // cumulative column: -1 means sum column up to first >=0 value
+						if ((row > 0) && (Data[row - 1][col] == -1)) // cumulative column: -1 means sum column up to first >=0 value
 						{
 							ModelValue = ModelValueSum;
 							ModelValueSum = 0.0;  // reset cumulative sum
 						}
 						if (NegBinK >= 10000)
 							//prob model and data from same underlying poisson
-							LL += lgamma(2 * (Data[j][i] + ModelValue) + 1) - lgamma(Data[j][i] + ModelValue + 1) - lgamma(Data[j][i] + 1) - lgamma(ModelValue + 1) - (3 * (Data[j][i] + ModelValue) + 1) * log(2);
+							LL += lgamma(2 * (Data[row][col] + ModelValue) + 1) - lgamma(Data[row][col] + ModelValue + 1) - lgamma(Data[row][col] + 1) - lgamma(ModelValue + 1) - (3 * (Data[row][col] + ModelValue) + 1) * log(2);
 						else
 						{
 							//neg bin LL (NegBinK=1 implies no over-dispersion. >1 implies more)
 							double knb = 1.0 + ModelValue / kp;
 							double pnb = kp / (1.0 + kp);
-							LL += lgamma(Data[j][i] + knb) - lgamma(Data[j][i] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[j][i] * log(pnb);
+							LL += lgamma(Data[row][col] + knb) - lgamma(Data[row][col] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[row][col] * log(pnb);
 						}
 					}
 				}
 			}
 		}
-		else if (ColTypes[i] == 3) //seroprevalence by date of sample
+		else if (ColTypes[col] == 3) // seroprevalence by date of sample
 		{
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[j][i]; // numerator
-					double N = Data[j][i + 1]; // denominator
+					double m = Data[row][col]; // numerator
+					double N = Data[row][col + 1]; // denominator
 					double ModelValue;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
-						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*((exp(-((double)(_I64(day) - k))*P.SeroConvP1) + 1.0)*exp(-((double)(_I64(day) - k))*P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
+						double prob_seroconvert = P.SeroConvMaxSens * (1.0 - 0.5 * ((exp(-((double)(_I64(day) - k)) * P.SeroConvP1) + 1.0) * exp(-((double)(_I64(day) - k)) * P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
 						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
-					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
+					ModelValue += c * TimeSeries[day - offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
-					LL += m * log((ModelValue + 1e-20)/(m/N+1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20)/(1.0-m/N+1e-20));  // subtract saturated likelihood
+					LL += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20));  // subtract saturated likelihood
 				}
 			}
 		}
-		else if (ColTypes[i] == 5) // infection prevalence by date of sample
+		else if (ColTypes[col] == 5) // infection prevalence by date of sample
 		{
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[j][i]; // numerator
-					double N = Data[j][i + 1]; // denominator
-					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day-offset].I / ((double)P.PopSize);
+					double m = Data[row][col]; // numerator
+					double N = Data[row][col + 1]; // denominator
+					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day - offset].I / ((double)P.PopSize);
 					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
 				}
 			}
