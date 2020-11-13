@@ -37,6 +37,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	char buf[2048];
 	FILE* dat;
 
+	// allocate memory for integers used in multi=threaded random number generation.
   Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
   Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
 	P.nextSetupSeed1 = P.setupSeed1;
@@ -215,6 +216,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
+	// allocate memory for Time-Series
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSVarE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
@@ -222,6 +224,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	TSVarNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMean = TSMeanE; TSVar = TSVarE;
 
+	// allocate memory for Time-Series age and admin unit breakdowns.
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
 		State.prevInf_age_adunit = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
@@ -302,7 +305,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
-
 
 	fprintf(stderr, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
@@ -662,11 +664,10 @@ void InitTransmissionCoeffs(void)
 			else					// ... or if asymptomatic
 				Hosts[i].infectiousness *= (float)P.AsymptInfectiousness;
 
-			// choose recovery_or_death_time from infectious period inverse cumulative distribution function
+			// choose recovery_or_death_time from infectious period inverse cumulative distribution function. Will reset this later for each person in Update::DoIncub.
 			int j = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)j);
 			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
-
 
 			if (P.DoHouseholds) // code block effectively same as household infections in InfectSweep
 			{
@@ -685,7 +686,7 @@ void InitTransmissionCoeffs(void)
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				// loop over people in households (if household member susceptible, and ensuring person doesn't infect themselves, add to household infectiousness, taking accout of their age and whether they're a care home resident, i.e. the usual stuff in CalcInfSusc.cpp)
+				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), and ensuring person doesn't infect themselves, add to household infectiousness, taking account of their age and whether they're a care home resident, i.e. the usual stuff in CalcInfSusc.cpp.
 				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 				shd += (double)(Households[Hosts[i].hh].nhr - 1); // add to household denominator
 			}
@@ -1234,7 +1235,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				if (P.DoHouseholds)
 				{
 					for (i2 = 0; i2 < m; i2++) {
-						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
+						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to InfStat_Susceptible and household r0 is correctly calculated
 					}
 				}
 				Households[Hosts[i].hh].FirstPerson = i;
@@ -1593,6 +1594,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	fprintf(stderr, "Assigned hosts to cells\n");
 
 }
+
 void SetupAirports(void)
 {
 	int k, l, m;
@@ -1769,7 +1771,6 @@ void SetupAirports(void)
 }
 
 const double PROP_OTHER_PARENT_AWAY = 0.0;
-
 
 void AssignHouseholdAges(int n, int pers, int tn, bool do_adunit_demog)
 {
