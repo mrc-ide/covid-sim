@@ -620,7 +620,7 @@ int ReadFitIter(std::string const& FitFile)
 
 void InitTransmissionCoeffs(void)
 {
-	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be per infection at household, place and spatial levels. 
+	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be, given infectious period, per infection at household, place and spatial levels. 
 
 	double d, t, t2, t3, s, s2, s3, q;
 	int l, m;
@@ -686,15 +686,14 @@ void InitTransmissionCoeffs(void)
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), and ensuring person doesn't infect themselves, add to household infectiousness, taking account of their age and whether they're a care home resident, i.e. the usual stuff in CalcInfSusc.cpp.
+				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), and ensuring person doesn't infect themselves, add to household infections, taking account of their age and whether they're a care home resident, i.e. the usual stuff in CalcInfSusc.cpp, but without interventions
 				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 				shd += (double)(Households[Hosts[i].hh].nhr - 1); // add to household denominator
 			}
+			// calc spatial infections. Sum over number of days until recovery time, in two parts: before and after symptoms occur, as spatial contact rate differs between these periods.
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
-
-			// calc spatial infectiousness
 			s2 = fabs(Hosts[i].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(i)] * ((Hosts[i].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0) * P.TimeStep;
 			l = (int)(q / P.TimeStep);
 			int k;
