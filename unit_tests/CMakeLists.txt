@@ -1,3 +1,5 @@
+cmake_policy(SET CMP0079 NEW)
+
 include(FetchContent)
 
 FetchContent_Declare(

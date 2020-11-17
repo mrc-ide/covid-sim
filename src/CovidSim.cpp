@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
 	};
 
-	int cl = clock();
+	double cl = (double) clock();
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
@@ -289,15 +289,12 @@ int main(int argc, char* argv[])
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
-	fprintf(stderr, "Model setup in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
-
+	fprintf(stderr, "Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
-
-
 
 	std::string output_file_base_f = output_file_base; // output_file_base_f remembers the original, as output_file_base changes with fitting.
 	std::string output_file; // Historically, this was global, and was used for all save...(void) type functions.
@@ -328,15 +325,15 @@ int main(int argc, char* argv[])
 		{
 			P.NRactE = P.NRactNE = 0;
 			ResetTimeSeries();
-			for (int i = 0; (i < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); i++)
+			for (int Realisation = 0; (Realisation < P.NumRealisations) && (P.NRactNE < P.NumNonExtinctRealisations); Realisation++)
 			{
 				if (P.NumRealisations > 1)
 				{
-					output_file = output_file_base + "." + std::to_string(i);
-					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", i + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+					output_file = output_file_base + "." + std::to_string(Realisation);
+					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
-				if (((i == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
+				if (((Realisation == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
 				{
 					P.nextRunSeed1 = P.runSeed1;
 					P.nextRunSeed2 = P.runSeed2;
@@ -350,7 +347,7 @@ int main(int argc, char* argv[])
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop =  0;
 				do
 				{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
-					if ((P.ModelCalibIteration%14 == 0) && (ModelCalibLoop < 4))
+					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
 					{
 						thisRunSeed1 = P.nextRunSeed1;
 						thisRunSeed2 = P.nextRunSeed2;
@@ -367,12 +364,12 @@ int main(int argc, char* argv[])
 						int32_t tmp2 = thisRunSeed2;
 						setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
 					}
-					InitModel(i);
+					InitModel(Realisation);
 					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
-					ContCalib = RunModel(i, snapshot_save_file, snapshot_load_file, output_file_base);
+					ContCalib = RunModel(Realisation, snapshot_save_file, snapshot_load_file, output_file_base);
 				}
 				while (ContCalib);
-				if (!data_file.empty()) CalcLikelihood(i, data_file, output_file_base);
+				if (!data_file.empty()) CalcLikelihood(Realisation, data_file, output_file_base);
 				if (P.OutputNonSummaryResults)
 				{
 					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
@@ -411,7 +408,7 @@ int main(int argc, char* argv[])
 			Bitmap_Finalise();
 
 			fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-			fprintf(stderr, "Model ran in %lf seconds\n", ((double)(clock() - cl)) / CLOCKS_PER_SEC);
+			fprintf(stderr, "Model ran in %lf seconds\n", ((double)clock() - cl) / CLOCKS_PER_SEC);
 			fprintf(stderr, "Model finished\n");
 		}
 	}
@@ -460,11 +457,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.FitIter == 0)
 	{
 		for (i = 0; i < MAX_COUNTRIES; i++) {
-			CountryNames[i] = CountryNameBuf + 128 * i;
+			CountryNames[i] = CountryNameBuf + INT64_C(128) * i;
 			CountryNames[i][0] = 0;
 		}
 		for (i = 0; i < MAX_ADUNITS; i++) {
-			AdunitListNames[i] = AdunitListNamesBuf + 128 * i;
+			AdunitListNames[i] = AdunitListNamesBuf + INT64_C(128) * i;
 			AdunitListNames[i][0] = 0;
 		}
 		for (i = 0; i < 100; i++) P.clP_copies[i] = 0;
@@ -554,7 +551,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
 		P.HouseholdDenomLookup[0] = 1.0;
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(i + 1)), P.HouseholdTransPow);
+		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P.HouseholdTransPow);
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Include administrative units within countries", "%i", (void*)&(P.DoAdUnits), 1, 1, 0)) P.DoAdUnits = 1;
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 		if (P.DoAdUnits)
@@ -566,9 +563,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
 				P.AdunitLevel1Lookup[i] = -1;
-				AdunitNames[3 * i] = AdunitNamesBuf + 3 * i * 360;
-				AdunitNames[3 * i + 1] = AdunitNamesBuf + 3 * i * 360 + 60;
-				AdunitNames[3 * i + 2] = AdunitNamesBuf + 3 * i * 360 + 160;
+				AdunitNames[3 * i] = AdunitNamesBuf + INT64_C(3) * i * 360;
+				AdunitNames[3 * i + 1] = AdunitNamesBuf + INT64_C(3) * i * 360 + 60;
+				AdunitNames[3 * i + 2] = AdunitNamesBuf + INT64_C(3) * i * 360 + 160;
 			}
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Divisor), 1, 1, 0)) P.AdunitLevel1Divisor = 1;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Mask for level 1 administrative units", "%i", (void*)&(P.AdunitLevel1Mask), 1, 1, 0)) P.AdunitLevel1Mask = 1000000000;
@@ -674,6 +671,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates by age", "%lf", (void*)P.RelativeSpatialContact, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.RelativeSpatialContact[i] = 1;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i,1,1,0)) i=0;
+		if(i)
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
+		else
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				P.RelativeSpatialContactSusc[i] =1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent infectiousness", "%lf", (void*)P.AgeInfectiousness, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.AgeInfectiousness[i] = 1.0;
@@ -2361,7 +2365,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
-	buf = (float*)Memory::xcalloc(P.Nairports + 1, sizeof(float));
+	buf = (float*)Memory::xcalloc(_I64(P.Nairports) + 1, sizeof(float));
 	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
@@ -2479,7 +2483,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
-					AirTravelDist[l] += Airports[i].total_traffic * Airports[i].prop_traffic[j];
+					AirTravelDist[l] += (double) Airports[i].total_traffic * Airports[i].prop_traffic[j];
 			}
 		}
 	outname = output_file_base + ".airdist.xls";
@@ -3019,7 +3023,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	}
 	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
 */
-	InterruptRun = 0;
+	InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck
 	lcI = 1;
 	if (!snapshot_load_file.empty())
 	{
@@ -3600,7 +3604,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	FILE* dat;
 	std::string outname;
 
-	c = 1 / ((double)(P.NRactE + P.NRactNE));
+	c = 1 / ((double)(_I64(P.NRactE) + P.NRactNE));
 
 	if (P.OutputNonSeverity)
 	{
@@ -4711,24 +4715,24 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	TimeSeries[n].I = (double)I;
 	TimeSeries[n].R = (double)R;
 	TimeSeries[n].D = (double)D;
-	TimeSeries[n].incI = (double)(cumI - State.cumI);
-	TimeSeries[n].incC = (double)(cumC - State.cumC);
-	TimeSeries[n].incFC = (double)(cumFC - State.cumFC);
-	TimeSeries[n].incCT = (double)(cumCT - State.cumCT); // added contact tracing
-	TimeSeries[n].incCC = (double)(cumCC - State.cumCC); // added cases who are contacts
-	TimeSeries[n].incDCT = (double)(cumDCT - State.cumDCT); //added cases who are digitally contact traced
-	TimeSeries[n].incDC = (double)(cumDC - State.cumDC); //added incidence of detected cases
-	TimeSeries[n].incTC = (double)(cumTC - State.cumTC);
-	TimeSeries[n].incR = (double)(cumR - State.cumR);
-	TimeSeries[n].incD = (double)(cumD - State.cumD);
-	TimeSeries[n].incHQ = (double)(cumHQ - State.cumHQ);
-	TimeSeries[n].incAC = (double)(cumAC - State.cumAC);
-	TimeSeries[n].incAH = (double)(cumAH - State.cumAH);
-	TimeSeries[n].incAA = (double)(cumAA - State.cumAA);
-	TimeSeries[n].incACS = (double)(cumACS - State.cumACS);
-	TimeSeries[n].incAPC = (double)(cumAPC - State.cumAPC);
-	TimeSeries[n].incAPA = (double)(cumAPA - State.cumAPA);
-	TimeSeries[n].incAPCS = (double)(cumAPCS - State.cumAPCS);
+	TimeSeries[n].incI = (double)(_I64(cumI) - State.cumI);
+	TimeSeries[n].incC = (double)(_I64(cumC) - State.cumC);
+	TimeSeries[n].incFC = (double)(_I64(cumFC) - State.cumFC);
+	TimeSeries[n].incCT = (double)(_I64(cumCT) - State.cumCT); // added contact tracing
+	TimeSeries[n].incCC = (double)(_I64(cumCC) - State.cumCC); // added cases who are contacts
+	TimeSeries[n].incDCT = (double)(_I64(cumDCT) - State.cumDCT); //added cases who are digitally contact traced
+	TimeSeries[n].incDC = (double)(_I64(cumDC) - State.cumDC); //added incidence of detected cases
+	TimeSeries[n].incTC = (double)(_I64(cumTC) - State.cumTC);
+	TimeSeries[n].incR = (double)(_I64(cumR) - State.cumR);
+	TimeSeries[n].incD = (double)(_I64(cumD) - State.cumD);
+	TimeSeries[n].incHQ = (double)(_I64(cumHQ) - State.cumHQ);
+	TimeSeries[n].incAC = (double)(_I64(cumAC) - State.cumAC);
+	TimeSeries[n].incAH = (double)(_I64(cumAH) - State.cumAH);
+	TimeSeries[n].incAA = (double)(_I64(cumAA) - State.cumAA);
+	TimeSeries[n].incACS = (double)(_I64(cumACS) - State.cumACS);
+	TimeSeries[n].incAPC = (double)(_I64(cumAPC) - State.cumAPC);
+	TimeSeries[n].incAPA = (double)(_I64(cumAPA) - State.cumAPA);
+	TimeSeries[n].incAPCS = (double)(_I64(cumAPCS) - State.cumAPCS);
 	TimeSeries[n].cumT = State.cumT;
 	TimeSeries[n].cumUT = State.cumUT;
 	TimeSeries[n].cumTP = State.cumTP;
@@ -4743,7 +4747,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	}
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
-	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(cumC_country[i] - State.cumC_country[i]);
+	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(_I64(cumC_country[i]) - State.cumC_country[i]);
 	if (P.DoICUTriggers)
 	{
 		trigDetectedCases = cumCritical;
@@ -4791,14 +4795,14 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	{
 
 		//// Record incidence. (Must be done with old State totals)
-		TimeSeries[n].incMild = (double)(cumMild - State.cumMild);
-		TimeSeries[n].incILI = (double)(cumILI - State.cumILI);
-		TimeSeries[n].incSARI = (double)(cumSARI - State.cumSARI);
-		TimeSeries[n].incCritical = (double)(cumCritical - State.cumCritical);
-		TimeSeries[n].incCritRecov = (double)(cumCritRecov - State.cumCritRecov);
-		TimeSeries[n].incDeath_ILI = (double)(cumDeath_ILI - State.cumDeath_ILI);
-		TimeSeries[n].incDeath_SARI = (double)(cumDeath_SARI - State.cumDeath_SARI);
-		TimeSeries[n].incDeath_Critical = (double)(cumDeath_Critical - State.cumDeath_Critical);
+		TimeSeries[n].incMild = (double)(_I64(cumMild) - State.cumMild);
+		TimeSeries[n].incILI = (double)(_I64(cumILI) - State.cumILI);
+		TimeSeries[n].incSARI = (double)(_I64(cumSARI) - State.cumSARI);
+		TimeSeries[n].incCritical = (double)(_I64(cumCritical) - State.cumCritical);
+		TimeSeries[n].incCritRecov = (double)(_I64(cumCritRecov) - State.cumCritRecov);
+		TimeSeries[n].incDeath_ILI = (double)(_I64(cumDeath_ILI) - State.cumDeath_ILI);
+		TimeSeries[n].incDeath_SARI = (double)(_I64(cumDeath_SARI) - State.cumDeath_SARI);
+		TimeSeries[n].incDeath_Critical = (double)(_I64(cumDeath_Critical) - State.cumDeath_Critical);
 
 		/////// update state with totals
 		State.Mild = Mild;
@@ -5291,18 +5295,23 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 {
 	FILE* dat;
 
-	static int DataAlreadyRead = 0, ncols,nrows, *ColTypes;
-	static double **Data,NegBinK,sumL;
+	static int DataAlreadyRead = 0, ncols, nrows, * ColTypes; // static i.e. won't be reset upon subsequent calls to CalcLikelihood
+	static double** Data, NegBinK, sumL;
 
 	if (!DataAlreadyRead)
 	{
 		char FieldName[1024];
 		if (!(dat = fopen(DataFile.c_str(), "r"))) ERR_CRITICAL("Unable to open data file\n");
+		// Extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution, from Data file
 		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
+
+		// allocate memory
 		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
 		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
-		for(int i=0;i<nrows;i++)
+		for (int i = 0; i < nrows; i++)
 			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+
+		// cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
 		for (int i = 0; i < ncols; i++)
 		{
 			ColTypes[i] = -100;
@@ -5333,6 +5342,8 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
 			}
 		}
+
+		// extract data into Data array.
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
 				fscanf(dat, "%lg", &(Data[i][j]));
@@ -5341,80 +5352,81 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 	}
 
 	// calculate likelihood function
-	double c, LL=0.0;
-	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; //clP[99] reserved for fitting overdispersion
+	double c, LL = 0.0;
+	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; // clP[99] reserved for fitting overdispersion. If not positive-definite assign to NegBinK extracted above. 
 	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
-	int offset= (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
-	for (int i = 1; i < ncols;i++)
+	int offset = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
+
+	for (int col = 1; col < ncols; col++) /// cycle through columns (different sources of data contributing to likelihood), and add to log likelihood (LL) accordingly. 
 	{
-		if ((ColTypes[i] >= 0)&&(ColTypes[i] <= 2))
+		if ((ColTypes[col] >= 0) && (ColTypes[col] <= 2)) // i.e. "all deaths", "hospital deaths", "care home deaths"
 		{
 			double ModelValueSum = 0.0;
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i]>=-1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= -1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
 					double ModelValue;
-					if (ColTypes[i]==0)
-						ModelValue=c*TimeSeries[day-offset].incD; // all deaths by date of death
-					else if (ColTypes[i] == 1)
-						ModelValue=c*(TimeSeries[day-offset].incDeath_Critical+ TimeSeries[day-offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
-					else if (ColTypes[i] == 2)
-						ModelValue = c * TimeSeries[day-offset].incDeath_ILI; // care home deaths (ILI) by date of death
+					if (ColTypes[col] == 0)
+						ModelValue = c * TimeSeries[day - offset].incD; // all deaths by date of death
+					else if (ColTypes[col] == 1)
+						ModelValue = c * (TimeSeries[day - offset].incDeath_Critical + TimeSeries[day - offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
+					else if (ColTypes[col] == 2)
+						ModelValue = c * TimeSeries[day - offset].incDeath_ILI; // care home deaths (ILI) by date of death
 					ModelValueSum += ModelValue;
-					if (Data[j][i] >= 0)
+					if (Data[row][col] >= 0)
 					{
-						if ((j > 0) && (Data[j - 1][i] == -1)) // cumulative column: -1 means sum column up to first >=0 value
+						if ((row > 0) && (Data[row - 1][col] == -1)) // cumulative column: -1 means sum column up to first >=0 value
 						{
 							ModelValue = ModelValueSum;
 							ModelValueSum = 0.0;  // reset cumulative sum
 						}
 						if (NegBinK >= 10000)
 							//prob model and data from same underlying poisson
-							LL += lgamma(2 * (Data[j][i] + ModelValue) + 1) - lgamma(Data[j][i] + ModelValue + 1) - lgamma(Data[j][i] + 1) - lgamma(ModelValue + 1) - (3 * (Data[j][i] + ModelValue) + 1) * log(2);
+							LL += lgamma(2 * (Data[row][col] + ModelValue) + 1) - lgamma(Data[row][col] + ModelValue + 1) - lgamma(Data[row][col] + 1) - lgamma(ModelValue + 1) - (3 * (Data[row][col] + ModelValue) + 1) * log(2);
 						else
 						{
 							//neg bin LL (NegBinK=1 implies no over-dispersion. >1 implies more)
 							double knb = 1.0 + ModelValue / kp;
 							double pnb = kp / (1.0 + kp);
-							LL += lgamma(Data[j][i] + knb) - lgamma(Data[j][i] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[j][i] * log(pnb);
+							LL += lgamma(Data[row][col] + knb) - lgamma(Data[row][col] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[row][col] * log(pnb);
 						}
 					}
 				}
 			}
 		}
-		else if (ColTypes[i] == 3) //seroprevalence by date of sample
+		else if (ColTypes[col] == 3) // seroprevalence by date of sample
 		{
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[j][i]; // numerator
-					double N = Data[j][i + 1]; // denominator
+					double m = Data[row][col]; // numerator
+					double N = Data[row][col + 1]; // denominator
 					double ModelValue;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
-						double prob_seroconvert = P.SeroConvMaxSens*(1.0-0.5*((exp(-((double)(day - k))*P.SeroConvP1) + 1.0)*exp(-((double)(day - k))*P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
+						double prob_seroconvert = P.SeroConvMaxSens * (1.0 - 0.5 * ((exp(-((double)(_I64(day) - k)) * P.SeroConvP1) + 1.0) * exp(-((double)(_I64(day) - k)) * P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
 						ModelValue += c * TimeSeries[k - offset].incI * prob_seroconvert;
 					}
-					ModelValue += c * TimeSeries[day-offset].S * (1.0 - P.SeroConvSpec);
+					ModelValue += c * TimeSeries[day - offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
-					LL += m * log((ModelValue + 1e-20)/(m/N+1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20)/(1.0-m/N+1e-20));  // subtract saturated likelihood
+					LL += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20));  // subtract saturated likelihood
 				}
 			}
 		}
-		else if (ColTypes[i] == 5) // infection prevalence by date of sample
+		else if (ColTypes[col] == 5) // infection prevalence by date of sample
 		{
-			for (int j = 0; j < nrows; j++)
+			for (int row = 0; row < nrows; row++)
 			{
-				int day = (int)Data[j][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[j][i] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
+				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[j][i]; // numerator
-					double N = Data[j][i + 1]; // denominator
-					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day-offset].I / ((double)P.PopSize);
+					double m = Data[row][col]; // numerator
+					double N = Data[row][col + 1]; // denominator
+					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day - offset].I / ((double)P.PopSize);
 					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
 				}
 			}
@@ -5446,7 +5458,7 @@ void RecordInfTypes(void)
 {
 	int i, j, k, l, lc, lc2, b, c, n, i2;
 	unsigned int nf;
-	double* res, * res_av, * res_var, t, s;
+	double* res, * res_av, * res_var, t, s = 0;
 
 	for (n = 0; n < P.NumSamples; n++)
 	{
@@ -5581,7 +5593,7 @@ void RecordInfTypes(void)
 	{
 		if ((n + lc >= 0) && (n + lc < P.NumSamples))
 		{
-			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(n + lc)); }
+			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(_I64(n) + lc)); }
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
@@ -5643,7 +5655,7 @@ void CalcOriginDestMatrix_adunit()
 				for (int l = 0; l < P.NMCL; l++)
 				{
 					//get index of microcell
-					ptrdiff_t mcl_from = cl_from_mcl + l + k * P.total_microcells_high_;
+					ptrdiff_t mcl_from = cl_from_mcl + l + _I64(k) * P.total_microcells_high_;
 					if (Mcells[mcl_from].n > 0)
 					{
 						//get proportion of each population of cell that exists in each admin unit
@@ -5665,11 +5677,11 @@ void CalcOriginDestMatrix_adunit()
 				double total_flow;
 				if (j == 0)
 				{
-					total_flow = Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
+					total_flow = (double)Cells[cl_from].cum_trans[j] * Cells[cl_from].n;
 				}
 				else
 				{
-					total_flow = (Cells[cl_from].cum_trans[j] - Cells[cl_from].cum_trans[j - 1]) * Cells[cl_from].n;
+					total_flow = ((double)Cells[cl_from].cum_trans[j] - Cells[cl_from].cum_trans[j - 1]) * Cells[cl_from].n;
 				}
 
 				//loop over microcells within destination cell
@@ -5678,7 +5690,7 @@ void CalcOriginDestMatrix_adunit()
 					for (int p = 0; p < P.NMCL; p++)
 					{
 						//get index of microcell
-						ptrdiff_t mcl_to = cl_to_mcl + p + m * P.total_microcells_high_;
+						ptrdiff_t mcl_to = cl_to_mcl + p + _I64(m) * P.total_microcells_high_;
 						if (Mcells[mcl_to].n > 0)
 						{
 							//get proportion of each population of cell that exists in each admin unit

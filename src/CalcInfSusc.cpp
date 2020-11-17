@@ -68,7 +68,8 @@ double CalcSpatialSusc(int ai, unsigned short int ts)
 {
 	return	 ((HOST_QUARANTINED(ai) && (!Hosts[ai].care_home_resident) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantineSpatialEffect : 1.0)
 		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0)
-		* ((Hosts[ai].digitalContactTraced == 1) ? P.DCTCaseIsolationEffectiveness : 1.0);
+		* ((Hosts[ai].digitalContactTraced == 1) ? P.DCTCaseIsolationEffectiveness : 1.0)
+		* P.RelativeSpatialContactSusc[HOST_AGE_GROUP(ai)];
 }
 double CalcPersonSusc(int ai, unsigned short int ts, int infector)
 {

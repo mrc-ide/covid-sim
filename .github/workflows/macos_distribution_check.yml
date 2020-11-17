@@ -22,8 +22,11 @@ jobs:
         mkdir build && cd build
         cmake ..
         make
+    - name: unit tests
+      run: |
+        cd build
+        ctest -j2 -V -E inttest.*
     - name: regression tests
       run: |
-        pwd
-        ls -l
-        make -Cbuild test ARGS="-V -j2"
+        cd build
+        ctest --stop-on-failure -j2 -V -R inttest.*
