@@ -12,6 +12,18 @@
 #include "Model.h"
 #include "Memory.h"
 
+#define STRICT
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0400
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <vfw.h>
+#include <gdiplus.h>
+#endif
+#ifdef IMAGE_MAGICK
+#include "Magick++.h"
+#endif
+
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** BITMAP stuff.
 
@@ -26,33 +38,50 @@ static CLSID  encoderClsid;
 #include <sys/stat.h> // for mkdir
 #endif
 
-static unsigned char* bmf, *bmPixels, *bmp;
+namespace CovidSim
+{
+	namespace BitMap
+	{
+		int32_t *Builder::population_ = nullptr;
+		int32_t *Builder::infected_   = nullptr;
+		int32_t *Builder::recovered_  = nullptr;
+		int32_t *Builder::treated_    = nullptr;
 
-void CaptureBitmap()
+		unsigned char *Builder::bitmap_ = nullptr;
+		unsigned char *Builder::pixels_ = nullptr;
+		unsigned char *Builder::info_   = nullptr;
+	}
+}
+
+// externs from CovidSim.cpp
+// TODO: move these to a header files
+extern char OutFile[1024], OutFileBase[1024];
+
+void CovidSim::BitMap::Builder::capture()
 {
 	int x, y, f, mi;
-	unsigned int j;
+	unsigned j;
 	static double logMaxPop;
 	static int fst = 1;
 	double prev;
 
-	mi = (int)(P.b.width * P.b.height);
+	mi = (int)(bounds_.width * bounds_.height);
 	if (fst)
 	{
 		fst = 0;
 		int32_t maxPop = 0;
-		for (int i = 0; i < mi; i++) bmPopulation[i] = 0;
+		for (int i = 0; i < mi; i++) population_[i] = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			x = ((int)(Households[Hosts[i].hh].loc.x * P.scale.x)) - P.bmin.x;
-			y = ((int)(Households[Hosts[i].hh].loc.y * P.scale.y)) - P.bmin.y;
-			if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+			x = ((int)(Households[Hosts[i].hh].loc.x * scale_.x)) - min_.x;
+			y = ((int)(Households[Hosts[i].hh].loc.y * scale_.y)) - min_.y;
+			if ((x >= 0) && (x < bounds_.width) && (y >= 0) && (y < bounds_.height))
 			{
-				j = y * bmh->width + x;
-				if (j < bmh->imagesize)
+				j = y * header_->width + x;
+				if ((j < header_->imagesize) && (j >= 0))
 				{
-					bmPopulation[j]++;
-					if (bmPopulation[j] > maxPop) maxPop = bmPopulation[j];
+					population_[j]++;
+					if (population_[j] > maxPop) maxPop = population_[j];
 				}
 			}
 		}
@@ -69,45 +98,45 @@ void CaptureBitmap()
 				if ((i >= P.total_microcells_high_) && (Mcells[i - P.total_microcells_high_].n > 0) && (mcell_country[i] != mcell_country[i - P.total_microcells_high_])) f = 1;
 				if (f)
 				{
-					x = (int)(P.in_microcells_.width * (((double)(i / P.total_microcells_high_)) + 0.5) * P.scale.x) - P.bmin.x;
-					y = (int)(P.in_microcells_.height * (((double)(i % P.total_microcells_high_)) + 0.5) * P.scale.y) - P.bmin.y;
-					if ((x >= 0) && (x < P.b.width) && (y >= 0) && (y < P.b.height))
+					x = (int)(P.in_microcells_.width * (((double)(i / P.total_microcells_high_)) + 0.5) * scale_.x) - min_.x;
+					y = (int)(P.in_microcells_.height * (((double)(i % P.total_microcells_high_)) + 0.5) * scale_.y) - min_.y;
+					if ((x >= 0) && (x < bounds_.width) && (y >= 0) && (y < bounds_.height))
 					{
-						j = y * bmh->width + x;
-						if (j < bmh->imagesize) bmPopulation[j] = -1;
+						j = y * header_->width + x;
+						if ((j < header_->imagesize) && (j >= 0)) population_[j] = -1;
 					}
 				}
 			}
-		for (int i = 0; i < P.b.width / 2; i++)
+		for (int i = 0; i < bounds_.width / 2; i++)
 		{
-			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)P.b.width) * 2);
+			prev = floor(3.99999 * ((double)i) * BWCOLS / ((double)bounds_.width) * 2);
 			f = ((int)prev);
 			for (j = 0; j < 10; j++)
 			{
-				bmPixels[(j + P.b.height + 5) * bmh->width + P.b.width / 4 + i] = f;
+				pixels_[(j + bounds_.height + 5) * header_->width + bounds_.width / 4 + i] = f;
 			}
 		}
 	}
 #pragma omp parallel for schedule(static,5000) default(none) \
-		shared(mi, bmPixels, bmPopulation, bmInfected, bmTreated, bmRecovered, logMaxPop)
+		shared(mi, logMaxPop)
 	for (int i = 0; i < mi; i++)
 	{
-		if (bmPopulation[i] == -1)
-			bmPixels[i] = BWCOLS - 1; /* black for country boundary */
-		else if (bmInfected[i] > 0)
-			bmPixels[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)bmInfected[i]) / logMaxPop); /* red for infected */
-		else if (bmTreated[i] > 0)
-			bmPixels[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)bmTreated[i]) / logMaxPop); /* blue for treated */
-		else if (bmRecovered[i] > 0)
-			bmPixels[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)bmRecovered[i]) / logMaxPop);  /* green for recovered */
-		else if (bmPopulation[i] > 0)
-			bmPixels[i] = (unsigned char)(BWCOLS * log((double)bmPopulation[i]) / logMaxPop); /* grey for just people */
+		if (population_[i] == -1)
+			pixels_[i] = BWCOLS - 1; /* black for country boundary */
+		else if (infected_[i] > 0)
+			pixels_[i] = (unsigned char)(BWCOLS + BWCOLS * log((double)infected_[i]) / logMaxPop); /* red for infected */
+		else if (treated_[i] > 0)
+			pixels_[i] = (unsigned char)(2 * BWCOLS + BWCOLS * log((double)treated_[i]) / logMaxPop); /* blue for treated */
+		else if (recovered_[i] > 0)
+			pixels_[i] = (unsigned char)(3 * BWCOLS + BWCOLS * log((double)recovered_[i]) / logMaxPop);  /* green for recovered */
+		else if (population_[i] > 0)
+			pixels_[i] = (unsigned char)(BWCOLS * log((double)population_[i]) / logMaxPop); /* grey for just people */
 		else
-			bmPixels[i] = 0;
+			pixels_[i] = 0;
 	}
 }
 
-void OutputBitmap(int tp, std::string const& output_file_base)
+void CovidSim::BitMap::Builder::output(int tp, std::string const& output_file_base)
 {
 	char buf[3000];
 	int j = 0;
@@ -130,7 +159,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	cn[tp]++;
 	auto OutF = output_file_base + ".ge" DIRECTORY_SEPARATOR + OutPrefix[tp] + leaf_name;
 
-	if (P.BitmapFormat == BitmapFormats::PNG)
+	if (format_ == CovidSim::BitMap::Formats::PNG)
 	{
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
@@ -139,9 +168,9 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  sprintf(buf, "%s.bmp", OutF);
 	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
 	  fprintf(dat, "BM");
-	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
-	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
-	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
+	  //fwrite_big((void *) &bitmap_,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+header_->imagesize,dat);
+	  fwrite_big((void*)bitmap_, sizeof(bitmap_header), 1, dat);
+	  for (int i = 0; i < header_->imagesize; i++) fputc(pixels_[i], dat);
 	  fclose(dat);
 	  Image bmap(buf);
 	  sprintf(buf, "%s.%d.png", OutF, j);
@@ -181,7 +210,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  fprintf(stderr, "Do not know how to output PNG\n");
 #endif
 	}
-	else if (P.BitmapFormat == BitmapFormats::BMP) {
+	else if (format_ == CovidSim::BitMap::Formats::BMP) {
 	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat;
 	  if (!(dat = fopen(buf, "wb"))) {
@@ -192,70 +221,70 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
 	  }
 	  fprintf(dat, "BM");
-	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
+	  fwrite_big((void*)bitmap_, sizeof(unsigned char), sizeof(CovidSim::BitMap::Header) / sizeof(unsigned char) + header_->imagesize, dat);
 	  fclose(dat);
 	}
 	else
 	{
-	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
+	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)format_);
 	}
 }
-void InitBMHead(std::string const& out_file_base)
+void CovidSim::BitMap::Builder::initialise_header(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
 	fprintf(stderr, "Initialising bitmap\n");
-	k = P.b.width * P.bheight2;
-	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
+	k = bounds_.width * height2_;
+	k2 = sizeof(CovidSim::BitMap::Header) / sizeof(unsigned char);
 
-	bmf = (unsigned char*)Memory::xcalloc((size_t)k + k2, sizeof(unsigned char));
-	bmPixels = &(bmf[k2]);
-	bmp = &(bmf[12]);
-	bmh = (BitmapHeader*)bmf;
-	bmh->spare = 0;
-	bmh->boffset = 2 + sizeof(BitmapHeader);
-	bmh->headersize = 40; // BITMAPINFOHEADER
-	bmh->width = P.b.width;
-	bmh->height = P.bheight2;
-	bmh->PlanesAndBitspp = 1 // Number of colour planes; must be 1
+	bitmap_ = (unsigned char*)Memory::xcalloc((size_t)k + k2, sizeof(unsigned char));
+	pixels_ = &(bitmap_[k2]);
+	info_ = &(bitmap_[12]);
+	header_ = (CovidSim::BitMap::Header*)bitmap_;
+	header_->spare = 0;
+	header_->boffset = 2 + sizeof(CovidSim::BitMap::Header);
+	header_->headersize = 40; // BITMAPINFOHEADER
+	header_->width = bounds_.width;
+	header_->height = height2_;
+	header_->PlanesAndBitspp = 1 // Number of colour planes; must be 1
 	                     + (8 << 16); // Colour depth: 8 bits per pixel
-	bmh->compr = 0; // No compression (BI_RGB)
-	bmh->imagesize = bmh->width * bmh->height;
-	bmh->filesize = 2 // "BM"
-	              + ((unsigned int) sizeof(BitmapHeader)) // BITMAP_HEADER
-	              + bmh->imagesize; // Image data
-	bmh->hres = bmh->vres = (int)(bmh->width * 10); // Resolution, in pixels per metre
-	bmh->colours = BWCOLS * 4; // Number of colours in the palette
-	bmh->impcol = 0; // Every colour is important
+	header_->compr = 0; // No compression (BI_RGB)
+	header_->imagesize = header_->width * header_->height;
+	header_->filesize = 2 // "BM"
+	              + ((unsigned int) sizeof(CovidSim::BitMap::Header)) // BITMAP_HEADER
+	              + header_->imagesize; // Image data
+	header_->hres = header_->vres = (int)(header_->width * 10); // Resolution, in pixels per metre
+	header_->colours = BWCOLS * 4; // Number of colours in the palette
+	header_->impcol = 0; // Every colour is important
 	for (i = 0; i < BWCOLS * 4; i++)
-		bmh->palette[i][3] = 0;
+		header_->palette[i][3] = 0;
 	for (j = 0; j < BWCOLS; j++)
 	{
 		value = 255 - 255 * j / (BWCOLS - 1);
 		// Shades of gray:
-		bmh->palette[j][0] = bmh->palette[j][1] = bmh->palette[j][2] = (unsigned char)value;
+		header_->palette[j][0] = header_->palette[j][1] = header_->palette[j][2] = (unsigned char)value;
 		// Shades of red:
-		bmh->palette[BWCOLS + j][0] = 0;
-		bmh->palette[BWCOLS + j][1] = 0;
-		bmh->palette[BWCOLS + j][2] = (unsigned char)value;
+		header_->palette[BWCOLS + j][0] = 0;
+		header_->palette[BWCOLS + j][1] = 0;
+		header_->palette[BWCOLS + j][2] = (unsigned char)value;
 		// Shades of blue:
-		bmh->palette[2 * BWCOLS + j][0] = (unsigned char)value;
-		bmh->palette[2 * BWCOLS + j][1] = 0;
-		bmh->palette[2 * BWCOLS + j][2] = 0;
+		header_->palette[2 * BWCOLS + j][0] = (unsigned char)value;
+		header_->palette[2 * BWCOLS + j][1] = 0;
+		header_->palette[2 * BWCOLS + j][2] = 0;
 		// Shades of green:
-		bmh->palette[3 * BWCOLS + j][0] = 0;
-		bmh->palette[3 * BWCOLS + j][1] = (unsigned char)value;
-		bmh->palette[3 * BWCOLS + j][2] = 0;
+		header_->palette[3 * BWCOLS + j][0] = 0;
+		header_->palette[3 * BWCOLS + j][1] = (unsigned char)value;
+		header_->palette[3 * BWCOLS + j][2] = 0;
 	}
-	bmPopulation = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
-	bmInfected = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
-	bmRecovered = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
-	bmTreated = (int32_t*)Memory::xcalloc(bmh->imagesize, sizeof(int32_t));
+	population_ = (int32_t*)Memory::xcalloc(header_->imagesize, sizeof(int32_t));
+	infected_ = (int32_t*)Memory::xcalloc(header_->imagesize, sizeof(int32_t));
+	recovered_ = (int32_t*)Memory::xcalloc(header_->imagesize, sizeof(int32_t));
+	treated_ = (int32_t*)Memory::xcalloc(header_->imagesize, sizeof(int32_t));
 
 #ifdef _WIN32
-	if (P.BitmapFormat == BitmapFormats::PNG)
+	if (format_ == CovidSim::BitMap::Formats::PNG)
 	{
-	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)bmp, DIB_RGB_COLORS, (void**)&bmPixels, NULL, 0);
+	  bmpdib = CreateDIBSection(GetDC(NULL), (BITMAPINFO*)info_, DIB_RGB_COLORS, (void**)&pixels_, NULL, NULL);
 	  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	  Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 
@@ -266,16 +295,14 @@ void InitBMHead(std::string const& out_file_base)
 	  Gdiplus::GetImageEncodersSize(&num, &size);
 	  pImageCodecInfo = (Gdiplus::ImageCodecInfo*)Memory::xcalloc(1, size);
 	  Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
-	  for (UINT j2 = 0; j2 < num; ++j2) {
+	  for (UINT j = 0; j < num; ++j) {
 	    // Visual Studio Analyze incorrectly reports this because it doesn't understand Gdiplus::GetImageEncodersSize()
 	    // warning C6385: Reading invalid data from 'pImageCodecInfo':  the readable size is 'size' bytes, but '208' bytes may be read.
-#ifdef _MSC_VER
 #pragma warning( suppress: 6385 )
-#endif
-	    const WCHAR* type = pImageCodecInfo[j2].MimeType;
+	    const WCHAR* type = pImageCodecInfo[j].MimeType;
 	    if (wcscmp(type, L"image/png") == 0) {
-	      encoderClsid = pImageCodecInfo[j2].Clsid;
-	      j2 = num;
+	      encoderClsid = pImageCodecInfo[j].Clsid;
+	      j = num;
 	    }
 	  }
 	  free(pImageCodecInfo);
@@ -291,10 +318,10 @@ void InitBMHead(std::string const& out_file_base)
 #endif
 }
 
-void Bitmap_Finalise()
+void CovidSim::BitMap::Builder::finalise()
 {
 #ifdef _WIN32
-  if (P.BitmapFormat == BitmapFormats::PNG)
+  if (format_ == CovidSim::BitMap::Formats::PNG)
   {
     Gdiplus::GdiplusShutdown(m_gdiplusToken);
   }

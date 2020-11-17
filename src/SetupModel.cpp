@@ -182,17 +182,17 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.total_microcells_wide_ = P.ncw * P.NMCL;
 	P.total_microcells_high_ = P.nch * P.NMCL;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
-	P.scale.x = P.BitmapScale;
-	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
-	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox.width()) * P.scale.x);
-	P.b.width = (P.b.width + 3) / 4;
-	P.b.width *= 4;
-	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox.height()) * P.scale.y);
-	P.b.height += (4 - P.b.height % 4) % 4;
-	P.bheight2 = P.b.height + 20; // space for colour legend
-	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
-	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox.bottom_left().x * P.scale.x);
-	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox.bottom_left().y * P.scale.y);
+	P.bitmap.scale_.x = P.BitmapScale;
+	P.bitmap.scale_.y = P.BitmapAspectScale * P.BitmapScale;
+	P.bitmap.bounds_.width = (int)(P.in_degrees_.width * (P.BoundingBox.width()) * P.bitmap.scale_.x);
+	P.bitmap.bounds_.width = (P.bitmap.bounds_.width + 3) / 4;
+	P.bitmap.bounds_.width *= 4;
+	P.bitmap.bounds_.height = (int)(P.in_degrees_.height * (P.BoundingBox.height()) * P.bitmap.scale_.y);
+	P.bitmap.bounds_.height += (4 - P.bitmap.bounds_.height % 4) % 4;
+	P.bitmap.height2_ = P.bitmap.bounds_.height + 20; // space for colour legend
+	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.bitmap.bounds_.width, P.bitmap.bounds_.height);
+	P.bitmap.min_.x = (int)(P.in_degrees_.width * P.BoundingBox.bottom_left().x * P.bitmap.scale_.x);
+	P.bitmap.min_.y = (int)(P.in_degrees_.height * P.BoundingBox.bottom_left().y * P.bitmap.scale_.y);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);
 	P.in_microcells_.height = P.in_cells_.height / ((double)P.NMCL);
 	for (int i = 0; i < P.NumSeedLocations; i++)
@@ -502,9 +502,9 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		}
 	}
 
-	if (P.OutputBitmap)
+	if (P.bitmap.output_)
 	{
-		InitBMHead(out_file_base);
+		P.bitmap.initialise_header(out_file_base);
 	}
 	if (P.DoMassVacc)
 	{

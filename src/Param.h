@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+#include "Bitmap.h"
 #include "Country.h"
 #include "Constants.h"
 #include "InverseCdf.h"
@@ -11,13 +12,6 @@
 
 #include "geometry/BoundingBox.h"
 #include "geometry/Size.h"
-
-/** @brief Enumeration of bitmap formats. */
-enum struct BitmapFormats
-{
-  PNG,  // PNG - default if IMAGE_MAGICK or _WIN32 defined
-  BMP   // BMP - fall-back
-};
 
 /**
  * @brief Stores the parameters for the simulation.
@@ -59,14 +53,8 @@ struct Param
 	int DoOutputPlaceDistForOneAdunit, OutputPlaceDistAdunit;
 	int DoOneGen, OutputEveryRealisation, BitmapMovieFrame, MaxCorrSample, DoLatent, InfQueuePeakLength, NumThreads, MaxNumThreads;
 
-	/// Size in pixels of the map area in the bitmap output
-	CovidSim::Geometry::Size<int> b;
+	CovidSim::BitMap::Builder bitmap;
 
-	/// Height in pixels of the entire bitmap output, including both the spectrum at the top and the map area
-	int bheight2;
-
-	CovidSim::Geometry::Vector2i bmin;
-	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
 	int DoHouseholds, DoPlaces, PlaceTypeNum, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
@@ -82,7 +70,6 @@ struct Param
 	int32_t nextSetupSeed1, nextSetupSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for setup
 	int32_t nextRunSeed1, nextRunSeed2; // The next RNG seeds to use when we need to reinitialise the RNG for the model
 	int ResetSeeds,KeepSameSeeds, ResetSeedsPostIntervention, ResetSeedsFlag, TimeToResetSeeds;
-	int OutputBitmap; // Whether to output a bitmap
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 

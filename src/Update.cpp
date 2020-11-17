@@ -84,16 +84,16 @@ void DoImmune(int ai)
 		}
 
 
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
-			Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
-			if (P.b.contains(pixel))
+			Vector2i pixel((Households[a->hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+			if (P.bitmap.bounds_.contains(pixel))
 			{
-				unsigned j = pixel.y * bmh->width + pixel.x;
-				if (j < bmh->imagesize)
+				unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+				if (j < P.bitmap.header_->imagesize)
 				{
 #pragma omp atomic
-					bmRecovered[j]++;
+					CovidSim::BitMap::Builder::recovered_[j]++;
 				}
 			}
 		}
@@ -165,18 +165,18 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 				StateT[tn].cumInf_age_adunit [HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]++;
 			}
 		}
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
-				if (P.b.contains(pixel))
+				Vector2i pixel((Households[a->hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+				if (P.bitmap.bounds_.contains(pixel))
 				{
-					unsigned j = pixel.y * bmh->width + pixel.x;
-					if (j < bmh->imagesize)
+					unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+					if (j < P.bitmap.header_->imagesize)
 					{
 #pragma omp atomic
-						bmInfected[j]++;
+						CovidSim::BitMap::Builder::infected_[j]++;
 					}
 				}
 			}
@@ -917,20 +917,20 @@ void DoRecover(int ai, int tn)
 		if (P.DoAdUnits && P.OutputAdUnitAge)
 			StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
-				if (P.b.contains(pixel))
+				Vector2i pixel((Households[a->hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+				if (P.bitmap.bounds_.contains(pixel))
 				{
-					unsigned int j2 = pixel.y * bmh->width + pixel.x;
-					if (j2 < bmh->imagesize)
+					unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+					if (j < P.bitmap.header_->imagesize)
 					{
 #pragma omp atomic
-						bmRecovered[j2]++;
+						CovidSim::BitMap::Builder::recovered_[j]++;
 #pragma omp atomic
-						bmInfected[j2]--;
+						CovidSim::BitMap::Builder::infected_[j]--;
 					}
 				}
 			}
@@ -965,20 +965,20 @@ void DoDeath(int ai, int tn)
 			StateT[tn].cumD_adunit[Mcells[a->mcell].adunit]++;
 			if (P.OutputAdUnitAge) StateT[tn].prevInf_age_adunit[HOST_AGE_GROUP(ai)][Mcells[a->mcell].adunit]--;
 		}
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
 			if ((P.OutputBitmapDetected == 0) || ((P.OutputBitmapDetected == 1) && (Hosts[ai].detected == 1)))
 			{
-				Vector2i pixel((Households[a->hh].loc * P.scale) - P.bmin);
-				if (P.b.contains(pixel))
+				Vector2i pixel((Households[a->hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+				if (P.bitmap.bounds_.contains(pixel))
 				{
-					unsigned j = pixel.y * bmh->width + pixel.x;
-					if (j < bmh->imagesize)
+					unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+					if (j < P.bitmap.header_->imagesize)
 					{
 #pragma omp atomic
-						bmRecovered[j]++;
+						CovidSim::BitMap::Builder::recovered_[j]++;
 #pragma omp atomic
-						bmInfected[j]--;
+						CovidSim::BitMap::Builder::infected_[j]--;
 					}
 				}
 			}
@@ -1002,16 +1002,16 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 			if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
 			Cells[Hosts[ai].pcell].tot_treat++;
 			if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
-			if (P.OutputBitmap)
+			if (P.bitmap.output_)
 			{
-				Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
-				if (P.b.contains(pixel))
+				Vector2<int> pixel((Households[Hosts[ai].hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+				if (P.bitmap.bounds_.contains(pixel))
 				{
-					unsigned j = pixel.y * bmh->width + pixel.x;
-					if (j < bmh->imagesize)
+					unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+					if (j < P.bitmap.header_->imagesize)
 					{
 #pragma omp atomic
-						bmTreated[j]++;
+						CovidSim::BitMap::Builder::treated_[j]++;
 					}
 				}
 			}
@@ -1033,16 +1033,16 @@ void DoProph(int ai, unsigned short int ts, int tn)
 		if (P.DoAdUnits)	StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit]++;
 #pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
-			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
-			if (P.b.contains(pixel))
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+			if (P.bitmap.bounds_.contains(pixel))
 			{
-				unsigned j = pixel.y * bmh->width + pixel.x;
-				if (j < bmh->imagesize)
+				unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+				if (j < P.bitmap.header_->imagesize)
 				{
 #pragma omp atomic
-					bmTreated[j]++;
+					CovidSim::BitMap::Builder::treated_[j]++;
 				}
 			}
 		}
@@ -1061,16 +1061,16 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 		if (P.DoAdUnits) StateT[tn].cumT_adunit[Mcells[Hosts[ai].mcell].adunit] += nc;
 #pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_treat++;
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
-			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
-			if (P.b.contains(pixel))
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+			if (P.bitmap.bounds_.contains(pixel))
 			{
-				unsigned j = pixel.y * bmh->width + pixel.x;
-				if (j < bmh->imagesize)
+				unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+				if (j < P.bitmap.header_->imagesize)
 				{
 #pragma omp atomic
-					bmTreated[j]++;
+					CovidSim::BitMap::Builder::treated_[j]++;
 				}
 			}
 		}
@@ -1297,16 +1297,16 @@ void DoVacc(int ai, unsigned short int ts)
 		}
 #pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
-			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
-			if (P.b.contains(pixel))
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+			if (P.bitmap.bounds_.contains(pixel))
 			{
-				unsigned j = pixel.y * bmh->width + pixel.x;
-				if (j < bmh->imagesize)
+				unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+				if (j < P.bitmap.header_->imagesize)
 				{
 #pragma omp atomic
-					bmTreated[j]++;
+					CovidSim::BitMap::Builder::treated_[j]++;
 				}
 			}
 		}
@@ -1335,16 +1335,16 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 		}
 #pragma omp atomic
 		Cells[Hosts[ai].pcell].tot_vacc++;
-		if (P.OutputBitmap)
+		if (P.bitmap.output_)
 		{
-			Vector2i pixel((Households[Hosts[ai].hh].loc * P.scale) - P.bmin);
-			if (P.b.contains(pixel))
+			Vector2i pixel((Households[Hosts[ai].hh].loc * P.bitmap.scale_) - P.bitmap.min_);
+			if (P.bitmap.bounds_.contains(pixel))
 			{
-				unsigned j = pixel.y * bmh->width + pixel.x;
-				if (j < bmh->imagesize)
+				unsigned j = pixel.y * P.bitmap.header_->width + pixel.x;
+				if (j < P.bitmap.header_->imagesize)
 				{
 #pragma omp atomic
-					bmTreated[j]++;
+					CovidSim::BitMap::Builder::treated_[j]++;
 				}
 			}
 		}
