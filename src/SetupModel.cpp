@@ -1248,7 +1248,6 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				{
 					for (i2 = 0; i2 < m; i2++) {
 						Hosts[i + i2].set_susceptible(); //added this so that infection status is set to zero and household r0 is correctly calculated
-						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to InfStat_Susceptible and household r0 is correctly calculated
 					}
 				}
 				Households[Hosts[i].hh].FirstPerson = i;
