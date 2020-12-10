@@ -43,3 +43,5 @@ function(add_unit_tests)
 endfunction()
 
 ADD_SUBDIRECTORY(geometry)
+
+add_unit_tests(TARGET test-person SOURCES test-person.cpp ${CMAKE_SOURCE_DIR}/src/Person.cpp)

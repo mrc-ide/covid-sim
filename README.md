@@ -127,7 +127,7 @@ The source code for CovidSim is licensed under the GPLv3, see
 [LICENSE.md](LICENSE.md).
 
 It is Copyright Imperial College of Science, Technology and Medicine. The
-lead developers are Neil Ferguson, Gemma Nedjati-Giliani and Daniel Laydon.
+lead developers are Neil Ferguson, Gemma Nedjati-Gilani and Daniel Laydon.
 
 Additional contributions for open-sourcing made by Imperial College of
 Science, Technology and Medicine, GitHub Inc, and John Carmack are copyright

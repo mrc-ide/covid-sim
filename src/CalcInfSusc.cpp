@@ -27,7 +27,7 @@ double CalcPlaceInf(int j, int k, unsigned short int ts)
 	return	((HOST_ISOLATED(j) && (Hosts[j].digitalContactTraced != 1)) ? P.CaseIsolationEffectiveness : 1.0)
 		*	((Hosts[j].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
 		*	((HOST_QUARANTINED(j) && (!Hosts[j].care_home_resident) && (Hosts[j].digitalContactTraced != 1) && (!(HOST_ISOLATED(j)))) ? P.HQuarantinePlaceEffect[k] : 1.0)
-		*	(((Hosts[j].inf == InfStat_Case) && (!Hosts[j].care_home_resident)) ? P.SymptPlaceTypeContactRate[k] : 1.0)
+		*	((Hosts[j].is_case() && (!Hosts[j].care_home_resident)) ? P.SymptPlaceTypeContactRate[k] : 1.0)
 		*	P.PlaceTypeTrans[k] / P.PlaceTypeGroupSizeParam1[k] * CalcPersonInf(j, ts);
 }
 
@@ -36,7 +36,7 @@ double CalcSpatialInf(int j, unsigned short int ts)
 	return	((HOST_ISOLATED(j) && (Hosts[j].digitalContactTraced != 1)) ? P.CaseIsolationEffectiveness : 1.0)
 		*	((Hosts[j].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
 		*   ((HOST_QUARANTINED(j) && (!Hosts[j].care_home_resident) && (Hosts[j].digitalContactTraced != 1) && (!(HOST_ISOLATED(j)))) ? P.HQuarantineSpatialEffect : 1.0)
-		*	((Hosts[j].inf == InfStat_Case) ? P.SymptSpatialContactRate : 1.0)
+		*	(Hosts[j].is_case() ? P.SymptSpatialContactRate : 1.0)
 		*	P.RelativeSpatialContact[HOST_AGE_GROUP(j)]
 		*	CalcPersonInf(j, ts); 		/*	*Hosts[j].spatial_norm */
 }

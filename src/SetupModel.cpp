@@ -37,6 +37,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	char buf[2048];
 	FILE* dat;
 
+	// allocate memory for integers used in multi=threaded random number generation.
   Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
   Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
 	P.nextSetupSeed1 = P.setupSeed1;
@@ -215,6 +216,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 	SetupPopulation(density_file, out_density_file, school_file, reg_demog_file);
 
+	// allocate memory for Time-Series
 	TimeSeries = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMeanE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSVarE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
@@ -222,6 +224,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	TSVarNE = (Results*)Memory::xcalloc(P.NumSamples, sizeof(Results));
 	TSMean = TSMeanE; TSVar = TSVarE;
 
+	// allocate memory for Time-Series age and admin unit breakdowns.
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 	{
 		State.prevInf_age_adunit = (int**)Memory::xcalloc(NUM_AGE_GROUPS, sizeof(int*));
@@ -302,7 +305,6 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
-
 
 	fprintf(stderr, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
@@ -491,14 +493,18 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
 	{
-		for (int i = 0; i < P.NH;i++)
+		for (int i = 0; i < P.NH; i++)
 		{
 			l = Households[i].FirstPerson;
 			m = l + Households[i].nh;
 			int i2 = 0;
-			for (int k = l; k < m; k++) if (Hosts[k].esocdist_comply) i2=1;
+			for (int k = l; k < m; k++) {
+				if (Hosts[k].esocdist_comply) i2 = 1;
+			}
 			if (i2)
+			{
 				for (int k = l; k < m; k++) Hosts[k].esocdist_comply = 1;
+			}
 		}
 	}
 
@@ -585,91 +591,119 @@ void ResetTimeSeries()
 
 int ReadFitIter(std::string const& FitFile)
 {
-	FILE* dat;
-	int i,n,cl_index[100];
-	double cl,cl2;
+	FILE* FitFile_Iter_dat;
+	int i, n, cl_index[100];
+	double Clock_1, Clock_2;
 
 	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter) + ".txt";
 	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
 	do
 	{
-		cl = ((double) clock()) / CLOCKS_PER_SEC;
+		Clock_1 = ((double) clock()) / CLOCKS_PER_SEC;
 		do
 		{
-			cl2 = ((double)clock()) / CLOCKS_PER_SEC;
+			Clock_2 = ((double)clock()) / CLOCKS_PER_SEC;
 		}
-		while ((cl2 > cl) && (cl2 < cl + 1.0));
-	} while (!(dat = fopen(fit_file_iter.c_str(), "r")));
-	fscanf(dat, "%i %i", &i, &n);
+		while ((Clock_2 > Clock_1) && (Clock_2 < Clock_1 + 1.0)); // first condition by definition true on first go of inner do-while, won't be true for very long if inner do-while not called and Clock_2 not reset, which it will be if more than 1 second has elapsed between setting of Clock_2 and resetting of Clock_1. 
+	} while (!(FitFile_Iter_dat = fopen(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
+
+	// Extract iteration number and number of parameter numbers to fit from FitFile_Iter_dat
+	fscanf(FitFile_Iter_dat, "%i %i", &i, &n);
 	if (n <= 0)
 		fprintf(stderr, "Stop code read from file (iteration number <=0)\n");
 	else if (i != P.FitIter)
 		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
-		for (i = 0; i < n; i++) fscanf(dat, "%i", &(cl_index[i]));
-		for (i = 0; i < n; i++) fscanf(dat, "%lg", &P.clP[cl_index[i]]);
-	}
-	fclose(dat);
-	return (n > 0) ? 0 : 1;
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i", &(cl_index[index])); // extract indices of parameters to fit
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg", &P.clP[cl_index[index]]); // update values in clP array at those indices
+	}																						
+	fclose(FitFile_Iter_dat);
+	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
 }
 
 void InitTransmissionCoeffs(void)
 {
+	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be, given infectious period, per infection at household, place and spatial levels. 
+
 	double d, t, t2, t3, s, s2, s3, q;
 	int l, m;
 
+	double HouseholdMeanSize = 0;
+	double CumulativeHHSizeDist = 0; 
 	t = s = t2 = 0;
+	// calculate weighted average of household size
 	for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
 	{
-		t += ((double)(INT64_C(1) + i)) * (P.HouseholdSizeDistrib[0][i] - t2);
-		t2 = P.HouseholdSizeDistrib[0][i];
+		HouseholdMeanSize += ((double)(INT64_C(1) + i)) * (P.HouseholdSizeDistrib[0][i] - CumulativeHHSizeDist); // note here that HouseholdSizeDistrib is the cumulative distribution.
+		CumulativeHHSizeDist = P.HouseholdSizeDistrib[0][i];
 	}
-	fprintf(stderr, "Household mean size=%lg\n", t);
-	t2 = s = 0;
+	fprintf(stderr, "Household mean size=%lg\n", HouseholdMeanSize);
+
+	//// Loops below sum household and spatial infections 
+	t2 = s = 0; // here s and t2 will respectively refer to total number of household and spatial infections summed over entire population in loop below.
 	s3 = 1.0;
-	double shd = 0.0;
+	double shd = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
 #pragma omp parallel for private(s2,q,l,d,m) schedule(static,1) reduction(+:s,t2,shd) default(none) shared(P, Households, Hosts)
-	for (int tn = 0; tn < P.NumThreads; tn++)
+	for (int tn = 0; tn < P.NumThreads; tn++) // loop over threads
 	{
-		for (int i = tn; i < P.PopSize; i += P.NumThreads)
+		for (int i = tn; i < P.PopSize; i += P.NumThreads) // loop over people
 		{
+			// assign susceptibility of each host.
 			if (P.SusceptibilitySD == 0)
 				Hosts[i].susc = (float)((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(i)]) : 1.0);
 			else
 				Hosts[i].susc = (float)(((P.DoPartialImmunity) ? (1.0 - P.InitialImmunity[HOST_AGE_GROUP(i)]) : 1.0) * gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn));
+
+			// assign infectiousness of each host.
 			if (P.InfectiousnessSD == 0)
 				Hosts[i].infectiousness = (float)P.AgeInfectiousness[HOST_AGE_GROUP(i)];
 			else
 				Hosts[i].infectiousness = (float)(P.AgeInfectiousness[HOST_AGE_GROUP(i)] * gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn));
+
+			// scale infectiousness by symptomatic or asymptomatic multiplier
 			q = P.ProportionSymptomatic[HOST_AGE_GROUP(i)];
-			if (ranf_mt(tn) < q)
+			if (ranf_mt(tn) < q)	// if symptomatic, scale by Symptomatic Infectiousness (and make negative)...
 				Hosts[i].infectiousness *= (float)(-P.SymptInfectiousness);
-			else
+			else					// ... or if asymptomatic
 				Hosts[i].infectiousness *= (float)P.AsymptInfectiousness;
+
+			// choose recovery_or_death_time from infectious period inverse cumulative distribution function. Will reset this later for each person in Update::DoIncub.
 			int j = (int)floor((q = ranf_mt(tn) * CDF_RES));
 			q -= ((double)j);
 			Hosts[i].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(q * P.infectious_icdf[j + 1] + (1.0 - q) * P.infectious_icdf[j]) / P.TimeStep));
 
-			if (P.DoHouseholds)
+			if (P.DoHouseholds) // code block effectively same as household infections in InfectSweep
 			{
+				// choose multiplier of infectiousness
 				if (P.NoInfectiousnessSDinHH)
 					s2 = ((Hosts[i].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
 				else
 					s2 = fabs(Hosts[i].infectiousness);
 				// Care home residents less likely to infect via "household" contacts.
 				if (Hosts[i].care_home_resident) s2 *= P.CareHomeResidentHouseholdScaling;
-				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1];
+				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1]; 
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
-				for (int k = 0; k < l; k++) {
+				for (int k = 0; k < l; k++) { // loop over days adding to force of infection, probability that other household members will be infected.
 					double y = 1.0 - s2 * P.infectiousness[k];
 					d *= ((y < 0) ? 0 : y);
 				}
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
-				for (int k = l; k < m; k++) if ((Hosts[k].inf == InfStat_Susceptible) && (k != i)) s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
-				shd += (double)(Households[Hosts[i].hh].nhr - 1);
+
+        // loop over people in households. If household member susceptible (they will be unless already infected in this code block), 
+        // and ensuring person doesn't infect themselves, add to household infections, taking account of their age and whether they're a care home resident, 
+        // i.e. the usual stuff in CalcInfSusc.cpp, but without interventions
+				
+        for (int k = l; k < m; k++)
+				{
+					if ((Hosts[k].is_susceptible()) && (k != i))
+					{
+						s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+					}
+				}
 			}
+			// calc spatial infections. Sum over number of days until recovery time, in two parts: before and after symptoms occur, as spatial contact rate differs between these periods.
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
 			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
@@ -682,10 +716,15 @@ void InitTransmissionCoeffs(void)
 			for (; k < l; k++) t2 += s2 * P.infectiousness[k];
 		}
 	}
+	// Divide total spatial infections by PopSize to get Spatial R0. (s3 just equals 1)
 	t2 *= (s3 / ((double)P.PopSize));
+	// Divide total household infections by summed household denominators to get household secondary attack rate
 	fprintf(stderr, "Household SAR=%lg\n", s / shd);
+	// Divide total household infections by PopSize to get household R0
 	s /= ((double)P.PopSize);
 	fprintf(stderr, "Household R0=%lg\n", P.R0household = s);
+
+	// Loop below sums "place" infections
 	t = 0;
 	if (P.DoPlaces)
 		for (int j = 0; j < P.PlaceTypeNum; j++)
@@ -744,9 +783,10 @@ void InitTransmissionCoeffs(void)
 	{
 		recovery_time_days += Hosts[i].recovery_or_death_time * P.TimeStep;
 		recovery_time_timesteps += Hosts[i].recovery_or_death_time;
-		Hosts[i].recovery_or_death_time = 0;
+		Hosts[i].recovery_or_death_time = 0; // reset everybody's recovery_or_death_time
 	}
 
+	// Divide total number of place infections by PopSize to get "place" R0. 
 	t /= ((double)P.PopSize);
 	recovery_time_days /= ((double)P.PopSize);
 	recovery_time_timesteps /= ((double)P.PopSize);
@@ -756,7 +796,7 @@ void InitTransmissionCoeffs(void)
 		if (P.DoSI)
 			P.LocalBeta = (P.R0 / t2 - s - t);
 		else
-			P.LocalBeta = (P.R0 - s - t) / t2;
+			P.LocalBeta = (P.R0 - s - t) / t2; 
 		if (P.LocalBeta < 0) P.LocalBeta = 0;
 		fprintf(stderr, "Set spatial beta to %lg\n", P.LocalBeta);
 	}
@@ -1207,7 +1247,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				if (P.DoHouseholds)
 				{
 					for (i2 = 0; i2 < m; i2++) {
-						Hosts[i + i2].inf = InfStat_Susceptible; //added this so that infection status is set to zero and household r0 is correctly calculated
+						Hosts[i + i2].set_susceptible(); //added this so that infection status is set to zero and household r0 is correctly calculated
 					}
 				}
 				Households[Hosts[i].hh].FirstPerson = i;
@@ -1566,6 +1606,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	fprintf(stderr, "Assigned hosts to cells\n");
 
 }
+
 void SetupAirports(void)
 {
 	int k, l, m;
@@ -1742,7 +1783,6 @@ void SetupAirports(void)
 }
 
 const double PROP_OTHER_PARENT_AWAY = 0.0;
-
 
 void AssignHouseholdAges(int n, int pers, int tn, bool do_adunit_demog)
 {
@@ -2185,7 +2225,7 @@ void AssignPeopleToPlaces()
 						ic = Hosts[i].mcell;
 
 						MicroCellPosition mc_position = P.get_micro_cell_position_from_cell_index(ic);
-						Direction m2 = Right;
+						Direction m2 = Direction::Right;
 						if (Hosts[i].PlaceLinks[tp] < 0) //added this so that if any hosts have already be assigned due to their household membership, they will not be reassigned
 						{
 							auto const host_country = mcell_country[Hosts[i].mcell];
