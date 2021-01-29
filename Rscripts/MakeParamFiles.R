@@ -17,13 +17,19 @@
 #		ii) 	hard-coded parameters in MakePreParamList (any that need changing between countries/populations please add to arguments accordingly)
 # 		iii)	more example parameter files 	
 
+library(here) ## assumes that getwd() will return root covid-19-spatial-sim folder.
+
+## Import R source files
+invisible(sapply(list.files(here("Rscripts/SourceFiles"), full.names = TRUE), function(x) source(x)))
+
 
 
 NUM_AGE_GROUPS 	= 17
 CDF_RES			= 20
 options("scipen" = 13) #### set high penalty for scientific display. (so e.g. 10000 is not outputted as 1e+05) 
+OutputDir  = here("data/param_files") ## change as appropriate
 
-OutputDir  = "." ## change as appropriate
+
 
 PreParamList = MakePreParamList()
 
@@ -31,27 +37,6 @@ PreParamList = MakePreParamList()
 
 
 
-WriteParamList = function(ParamList, OutputDir, OutputFileName, PrintToConsole = FALSE)
-{
-	ListString = ""
-	for (ParamNum in 1:length(ParamList))
-	{
-		ParamNameString = paste0("[", names(ParamList)[ParamNum], "]")
-		if (PrintToConsole) cat(paste0(ParamNameString, "\n"))
-		ListString 		= paste0(ListString, ParamNameString, "\n")
-		if (class (ParamList[[ParamNum]]) == "matrix")
-		{
-			ParamValueString = ""
-			for (row in 1:dim(ParamList[[ParamNum]])[1])
-				ParamValueString = paste0(ParamValueString, paste0(ParamList[[ParamNum]][row,], collapse = " "), " \n")
-			
-		} else 	ParamValueString = paste0(paste0(ParamList[[ParamNum]], collapse = " "), "\n")
-		if (PrintToConsole) cat(paste0(ParamValueString, "\n"))
-		
-		ListString = paste0(ListString, ParamValueString, "\n")
-	}
-	write.table(ListString, file = paste0(OutputDir, OutputFileName, ".txt"), row.names = F, col.names = F, quote = F, sep = "\t")
-}
 
 
 MakeAndWriteParamList = function(OutputDir, OutputFileName, PrintToConsole = FALSE, ...)
