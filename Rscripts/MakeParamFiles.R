@@ -9,7 +9,7 @@
 ##		[Description of Parameter]
 ##		value
 
-## We have endeavored to name the parameters as they appear in the Cpp code.
+## We have endeavored to name the parameters as they appear in the Cpp code, although there remains the occasional exception.
 
 ## == ## == ## == ## == ## == ## == ## == ## == ## == ## == ## == ## == 
 ## Issues / still to do: 
@@ -48,13 +48,27 @@ MakePreParamList = function(
 		DoGlobalTriggers 	= 1,	# Use global triggers for interventions
 		DoAdminTriggers 	= 0,	# Use admin unit triggers for interventions
 		DoICUTriggers 		= 1,	# Use ICU case triggers for interventions
-		
-		
+				
 		DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
-		
-		ProportionSymptomatic = c(0.25, 0.25, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50),
 		SymptInfectiousness = 8,
+		PropCasesDetectedForTreatment = 1,
 		
+		
+		## Severity progression parameters
+		
+		# Transition probabilities
+		ProportionSymptomatic 		= c(0.25, 0.25, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50),
+		Prop_Mild_ByAge 			= c(0.666244874	,	0.666307235	,	0.666002907	,	0.665309462	,	0.663636419	,	0.660834577	,	0.657465236	,	0.65343285	,	0.650261465	,	0.64478501	,	0.633943755	,	0.625619329	,	0.609080537	,	0.600364976	,	0.5838608	,	0.566553872	,	0.564646465  ) , 
+		Prop_ILI_ByAge 				= c(0.333122437	,	0.333153617	,	0.333001453	,	0.332654731	,	0.33181821	,	0.330417289	,	0.328732618	,	0.326716425	,	0.325130732	,	0.322392505	,	0.316971878	,	0.312809664	,	0.304540269	,	0.300182488	,	0.2919304	,	0.283276936	,	0.282323232  ) , 
+		Prop_SARI_ByAge 			= c(0.000557744	,	0.000475283	,	0.000877703	,	0.001794658	,	0.004006955	,	0.007711884	,	0.012167229	,	0.017359248	,	0.021140307	,	0.027047193	,	0.03708932	,	0.039871236	,	0.040788928	,	0.027444452	,	0.101605674	,	0.142001415	,	0.150469697  ) , 
+		Prop_Critical_ByAge 		= c(7.49444E-05	,	6.38641E-05	,	0.000117937	,	0.000241149	,	0.000538417	,	0.00103625	,	0.001634918	,	0.002491477	,	0.003467496	,	0.005775292	,	0.011995047	,	0.021699771	,	0.045590266	,	0.072008084	,	0.022603126	,	0.008167778	,	0.002560606  ) , 
+		
+		# Case Fatality Ratios
+		CFR_ILI_ByAge 				= rep(0, NUM_AGE_GROUPS),
+		CFR_SARI_ByAge 				= c(0.125893251	,	0.12261338	,	0.135672867	,	0.152667869	,	0.174303077	,	0.194187895	,	0.209361731	,	0.224432564	,	0.237013516	,	0.257828065	,	0.290874602	,	0.320763971	,	0.362563751	,	0.390965457	,	0.421151485	,	0.447545892	,	0.482        ) , 
+		CFR_Critical_ByAge 			= c(0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896    ) ,  
+		
+		# Mean of delay distributions / sojourn times,
 		Mean_MildToRecovery 				= 7       ,
 		Mean_ILIToRecovery 					= 7       ,
 		Mean_ILIToSARI 						= 5       ,
@@ -70,6 +84,7 @@ MakePreParamList = function(
 		MeanTimeToTestCriticalOffset 		= 3.3     ,
 		MeanTimeToTestCritRecovOffset 		= 9.32    ,
 		
+		# Inverse cumulative distribution functions / quantiles (at 5% resolution)
 		MildToRecovery_icdf 		= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
 		ILIToRecovery_icdf  		= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
 		ILIToSARI_icdf 				= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
@@ -79,16 +94,14 @@ MakePreParamList = function(
 		SARIToCritical_icdf  		= c(0	, 0.108407687	, 0.220267228	, 0.337653773	, 0.46159365	, 0.593106462	, 0.733343356	, 0.88367093	, 1.045760001	, 1.221701998	, 1.414175806	, 1.62669998	, 1.864032461	, 2.132837436	, 2.442868902	, 2.809242289	, 3.257272257	, 3.834402667	, 4.647120033	, 6.035113821	, 9.253953212	) , 
 		CriticalToCritRecov_icdf 	= c(0	, 1.308310071	, 1.87022015	, 2.338694632	, 2.76749788	, 3.177830401	, 3.581381361	, 3.986127838	, 4.398512135	, 4.824525291	, 5.270427517	, 5.743406075	, 6.252370864	, 6.809125902	, 7.430338867	, 8.141231404	, 8.983341913	, 10.03350866	, 11.46214198	, 13.80540164	, 18.95469153	) , 
 		CriticalToDeath_icdf 		= c(0	, 1.60649128	, 2.291051747	, 2.860938008	, 3.382077741	, 3.880425012	, 4.37026577	, 4.861330415	, 5.361460943	, 5.877935626	, 6.4183471		, 6.991401405	, 7.607881726	, 8.282065409	, 9.034104744	, 9.894486491	, 10.91341144	, 12.18372915	, 13.9113346	, 16.74394356	, 22.96541429	) , 
-		CritRecovToRecov_icdf 		= c(0	, 0.133993315	, 0.265922775	, 0.402188416	, 0.544657341	, 0.694774487	, 0.853984373	, 1.023901078	, 1.206436504	, 1.403942719	, 1.619402771	, 1.856711876	, 2.121118605	, 2.419957988	, 2.763950408	, 3.169692564	, 3.664959893	, 4.301777536	, 5.196849239	, 6.7222126		, 10.24997697	) , 
+		CritRecovToRecov_icdf 		= c(0	, 0.133993315	, 0.265922775	, 0.402188416	, 0.544657341	, 0.694774487	, 0.853984373	, 1.023901078	, 1.206436504	, 1.403942719	, 1.619402771	, 1.856711876	, 2.121118605	, 2.419957988	, 2.763950408	, 3.169692564	, 3.664959893	, 4.301777536	, 5.196849239	, 6.7222126		, 10.24997697	) ,  
 		
-		Prop_Mild_ByAge 			= c(0.666244874	,	0.666307235	,	0.666002907	,	0.665309462	,	0.663636419	,	0.660834577	,	0.657465236	,	0.65343285	,	0.650261465	,	0.64478501	,	0.633943755	,	0.625619329	,	0.609080537	,	0.600364976	,	0.5838608	,	0.566553872	,	0.564646465  ) , 
-		Prop_ILI_ByAge 				= c(0.333122437	,	0.333153617	,	0.333001453	,	0.332654731	,	0.33181821	,	0.330417289	,	0.328732618	,	0.326716425	,	0.325130732	,	0.322392505	,	0.316971878	,	0.312809664	,	0.304540269	,	0.300182488	,	0.2919304	,	0.283276936	,	0.282323232  ) , 
-		Prop_SARI_ByAge 			= c(0.000557744	,	0.000475283	,	0.000877703	,	0.001794658	,	0.004006955	,	0.007711884	,	0.012167229	,	0.017359248	,	0.021140307	,	0.027047193	,	0.03708932	,	0.039871236	,	0.040788928	,	0.027444452	,	0.101605674	,	0.142001415	,	0.150469697  ) , 
-		Prop_Critical_ByAge 		= c(7.49444E-05	,	6.38641E-05	,	0.000117937	,	0.000241149	,	0.000538417	,	0.00103625	,	0.001634918	,	0.002491477	,	0.003467496	,	0.005775292	,	0.011995047	,	0.021699771	,	0.045590266	,	0.072008084	,	0.022603126	,	0.008167778	,	0.002560606  ) , 
-		CFR_ILI_ByAge 				= rep(0, NUM_AGE_GROUPS),
-		CFR_SARI_ByAge 				= c(0.125893251	,	0.12261338	,	0.135672867	,	0.152667869	,	0.174303077	,	0.194187895	,	0.209361731	,	0.224432564	,	0.237013516	,	0.257828065	,	0.290874602	,	0.320763971	,	0.362563751	,	0.390965457	,	0.421151485	,	0.447545892	,	0.482        ) , 
-		CFR_Critical_ByAge 			= c(0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896    )  
-
+		HouseholdAttackRate 					= 0.1,	 ## (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
+		HouseholdTransmissionDenominatorPower 	= 0.8,  ## (Cauchemez 2004)
+		ReproductionNumber 		= 2,
+		NumSimulationDays		= 720,
+		OutputBitmap 			= 0,
+		...
 )
 {
 	### === ### Returns list of parameters for pre-parameter file. 
@@ -98,7 +111,7 @@ MakePreParamList = function(
 	PreParamList = list()
 	
 	PreParamList[["Output every realisation"]] = 1
-	PreParamList[["Output bitmap"]] = 0
+	PreParamList[["Output bitmap"]] = OutputBitmap
 	PreParamList[["OutputAge"]] = 1
 	PreParamList[["OutputSeverityAdminUnit"]] = 1
 	PreParamList[["OutputR0"]] = 0
@@ -117,15 +130,15 @@ MakePreParamList = function(
 	PreParamList[["Update timestep"]] = 0.25
 	PreParamList[["Equilibriation time"]] = 0
 	PreParamList[["Sampling timestep"]] = 1
-	PreParamList[["Sampling time"]] = 720
+	PreParamList[["Sampling time"]] = NumSimulationDays
 	PreParamList[["Grid size"]] = 0.075
 	PreParamList[["Spatial domain for simulation"]] = matrix(c(73, 6.3, 136, 54), nrow = 2, byrow = TRUE)
 	PreParamList[["Number of micro-cells per spatial cell width"]] = 9
 	PreParamList[["Initial immunity profile by age"]] = rep(0, NUM_AGE_GROUPS)
 	PreParamList[["Initial immunity applied to all household members"]] = 1
 	PreParamList[["Relative spatial contact rates by age"]] = c(0.6, 0.7, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 0.5) ### (POLYMOD, averaging 20-70)
-	PreParamList[["Household attack rate"]] = 0.1 ## (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
-	PreParamList[["Household transmission denominator power"]] = 0.8 ## (Cauchemez 2004)
+	PreParamList[["Household attack rate"]] = HouseholdAttackRate
+	PreParamList[["Household transmission denominator power"]] = HouseholdTransmissionDenominatorPower
 	PreParamList[["Relative transmission rates for place types"]] = c(0.14, 0.14, 0.1, 0.07) ## (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1
@@ -171,7 +184,7 @@ MakePreParamList = function(
 			1.152944119	, 0.979149081	, 0.831549648	, 0.70620165	, 0.59974816	, 0.509342763	, 0.43256591	, 0.367362791	, 
 			0.311990061	, 0.264964778	, 0.22502858	, 0.19111364	, 0.162311178	, 0.137852214	, 0.117080312	, 0.099440002	, 
 			0.084459683	, 0.07173828	, 0.06093513	, 0.051761119	)
-	PreParamList[["Reproduction number"]] = 2
+	PreParamList[["Reproduction number"]] = ReproductionNumber
 	PreParamList[["Power of scaling of spatial R0 with density"]] = 0
 	PreParamList[["Include latent period"]] = 1
 	PreParamList[["Latent period"]] = 4.59 # - minus half a day to account for infectiousness pre symptom onset
@@ -216,7 +229,7 @@ MakePreParamList = function(
 	PreParamList[["Alert trigger starts after interventions"]] 							= DoAlertTriggerAfterInterv
 	
 	
-	PreParamList[["Proportion of cases detected for treatment"]] = 1
+	PreParamList[["Proportion of cases detected for treatment"]] = PropCasesDetectedForTreatment
 	PreParamList[["Places close only once"]] = DoPlaceCloseOnceOnly
 	PreParamList[["Social distancing only once"]] = DoSocDistOnceOnly
 	PreParamList[["Proportion of cases detected before outbreak alert"]] = 1
@@ -416,7 +429,39 @@ MakeParamList = function(
 		SD_SpatialEffects_OverTime				= rep(SocDistSpatialEffect				, Num_SD_ChangeTimes), 
 		Enhanced_SD_SpatialEffects_OverTime		= rep(EnhancedSocDistSpatialEffect		, Num_SD_ChangeTimes), 
 		
-		SD_CellIncThresh_OverTime 				= rep(SocDistCellIncThresh				, Num_SD_ChangeTimes) 
+		SD_CellIncThresh_OverTime 				= rep(SocDistCellIncThresh				, Num_SD_ChangeTimes), 
+		
+		# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
+		# = # = # = # = # = # = # = # = # = # = 	DIGITAL CONTACT TRACING PARAMETERS
+		
+		##### NOTE: Default is to have digital contact tracing ENABLED
+		
+		DoDigitalContactTracing = 1, DigitalContactTracingTimeStartBase = 0, # i.e. will start as soon as trigger threshold reached.
+		OutputDigitalContactTracing = 1, # Output the a file showing the number of people under isolation due to contact tracing in each admin unit at any given time. Only relevant if DoDigitalContactTracing == 1.
+		ClusterDigitalContactUsers = 0, #by default, don't cluster by location. #If we cluster by household, then we select a proportion of households to be potential app users, if not then we select people over the whole population
+		PropPopUsingDigitalContactTracing = 0.6, 
+		ProportionSmartphoneUsersByAge = c(0, 0, 0, 0.96, 0.96, 0.96, 0.96, 0.91, 0.91, 0.91, 0.91, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55),  # (Taken from p. 189 here: https://www.ofcom.org.uk/__data/assets/pdf_file/0026/143981/technology-tracker-2019-uk-data-tables.pdf)
+		# This mobile phone data would be used specifically for the digital app. If we include actual phone usage data and don't cluster by household, then we adjust the probability of any individual to be a user in order to obtain the specified proportion - however this is limited by a theoretical maximum and if our desired probability exceeds this, we'll get an error.  We don't currently adjust the probabilities if clustering by household - the proportion of households containing users will match the desired proportion but due to age dependent usage, the actual proportion of the population who are users will be lower.
+		# NOTE: if we set the proportion of users by age to 1 for all age groups, this means everyone can be tracked and is more similar to standard contact tracing.
+		
+		ProportionDigitalContactsIsolate = 0.4, DelayFromIndexCaseDetectionToDCTIsolation = 0, LengthDigitalContactIsolation = 14, DigitalContactTracingDelay = 0,
+		ScalingFactorSpatialDigitalContacts = 10, ScalingFactorPlaceDigitalContacts = 3, 
+		DigitalContactTracing_CellIncThresh = 100, DigitalContactTracingPolicyDuration = 121,
+		
+		DCT_Duration_byAdUnit 	= rep(DigitalContactTracingPolicyDuration, NumAdUnits),
+		DCT_Delay_byAdUnit 		= rep(0, NumAdUnits), ### note there isn't a non-admin unit version of this variable in cpp code yet. 
+		DCTIsolateIndexCases 	= 1, 
+		
+		DelayToTestIndexCase = 0, DelayToTestDCTContacts = 0, 
+		
+		SensitivityDCT = 1, SpecificityDCT = 1,	FindContactsOfDCTContacts = 0, DoDCTTest = 0, RemoveContactsOfNegativeIndexCase = 0, 
+		DCTCaseIsolationEffectiveness = 0.25, DCTCaseIsolationHouseEffectiveness = 0.25, 
+		
+		Num_DCT_ChangeTimes = 1, DCT_ChangeTimes = c(DigitalContactTracingTimeStartBase, rep(1000000, Num_DCT_ChangeTimes - 1)), ### by default, initialize first time to non-variable time start, then all other times to be arbitrarily large. 
+		DCT_SpatialAndPlaceEffects_OverTime = rep(DCTCaseIsolationEffectiveness		, Num_DCT_ChangeTimes), 
+		DCT_HouseholdEffects_OverTime 		= rep(DCTCaseIsolationHouseEffectiveness, Num_DCT_ChangeTimes), 
+		DCT_Prop_OverTime 					= rep(ProportionDigitalContactsIsolate	, Num_DCT_ChangeTimes)
+
 )
 {
 	#### Add checks - e.g. number of change times must match number of levels. Add warnings for change times set before and after start and start + duration of policy
