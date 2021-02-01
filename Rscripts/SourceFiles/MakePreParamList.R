@@ -1,7 +1,21 @@
 MakePreParamList = function(NUM_AGE_GROUPS = 17, 
 		
-		## calibration parameters
+		# transmission parameters
+		ReproductionNumber 		= 2, 							# R_0
+		SpatialBeta				= NULL, 							# Spatial beta. P.LocalBeta in Cpp code. 
+		PlaceTypeTrans			= c(0.14, 0.14, 0.1, 0.07),  	# Place betas. (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
+		HouseholdAttackRate 	= 0.1,							# Household beta. (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
+		HouseholdTransPow 		= 0.8,  						# (Cauchemez 2004)
 		
+		# symptomatic / asymptomatic parameters
+		SymptInfectiousness 		= 1,
+		AsymptInfectiousness 		= 1,
+		SymptSpatialContactRate 	= 0.75,
+		SymptPlaceTypeContactRate 	= c(0.5, 0.5, 0.75, 0.00),
+		InfectiousnessSD			= 0.25,
+		
+		## == ## == ## == ## == ## == ## == ## ==  
+		## == calibration parameters
 		#	Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
 		#	Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
 		#	Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
@@ -22,13 +36,15 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		DoAdminTriggers 	= 0,	# Use admin unit triggers for interventions
 		DoICUTriggers 		= 1,	# Use ICU case triggers for interventions
 		
+		SeedingScaling = NULL, 
+		InitialInfectionCalTime = NULL, 
+		
 		DoPlaceCloseOnceOnly = 0, DoSocDistOnceOnly = 0, NumRealisations = 1, NumNonExtinctRealisations = NumRealisations, 
-		SymptInfectiousness = 8,
 		PropCasesDetectedForTreatment = 1,
 		
 		
-		## Severity progression parameters
-		
+		## == ## == ## == ## == ## == ## == ## ==  
+		## == Severity progression parameters
 		# Transition probabilities
 		ProportionSymptomatic 		= c(0.25, 0.25, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50),
 		Prop_Mild_ByAge 			= c(0.666244874	,	0.666307235	,	0.666002907	,	0.665309462	,	0.663636419	,	0.660834577	,	0.657465236	,	0.65343285	,	0.650261465	,	0.64478501	,	0.633943755	,	0.625619329	,	0.609080537	,	0.600364976	,	0.5838608	,	0.566553872	,	0.564646465  ) , 
@@ -55,8 +71,8 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		Mean_CriticalToDeath 			= rep(1, 		NUM_AGE_GROUPS),
 		Mean_CritRecovToRecov 			= rep(1, 		NUM_AGE_GROUPS),
 		Mean_StepdownToDeath 			= rep(1/0.12, 	NUM_AGE_GROUPS),
-		
 
+		ScaleIFR						= 1		,
 		MeanTimeToTest 					= 4		,
 		MeanTimeToTestOffset 			= 1		,
 		MeanTimeToTestCriticalOffset 	= 3.3	,
@@ -77,11 +93,33 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		CritRecovToRecov_icdf 		= c(0	, 0.133993315	, 0.265922775	, 0.402188416	, 0.544657341	, 0.694774487	, 0.853984373	, 1.023901078	, 1.206436504	, 1.403942719	, 1.619402771	, 1.856711876	, 2.121118605	, 2.419957988	, 2.763950408	, 3.169692564	, 3.664959893	, 4.301777536	, 5.196849239	, 6.7222126		, 10.24997697	) ,  
 		StepdownToDeath_icdf 		= CritRecovToRecov_icdf,
 		
-		HouseholdAttackRate 					= 0.1,	 ## (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
-		HouseholdTransmissionDenominatorPower 	= 0.8,  ## (Cauchemez 2004)
-		ReproductionNumber 		= 2,
 		NumSimulationDays		= 720,
-		OutputBitmap 			= 0,
+		
+		# care home parameters
+		CareHomeResidentHouseholdScaling 	= 1, 
+		CareHomeResidentSpatialScaling   	= 1, 
+		CareHomeResidentPlaceScaling     	= 1, 
+		CareHomeWorkerGroupScaling       	= 1, 
+		CareHomeRelProbHosp              	= 1, 
+		
+		# which outputs?
+		OutputEveryRealisation				= 1,
+		OutputBitmap 						= 0,
+		OutputAge							= 1,
+		OutputSeverity						= 1,
+		OutputSeverityAge					= 1,
+		OutputSeverityAdminUnit				= 1,
+		OutputR0							= 0,
+		OutputControls						= 0,
+		OutputCountry						= 0,
+		OutputAdUnitVar						= 0,
+		OutputHousehold						= 0,
+		OutputInfType						= 0,
+		OutputNonSeverity					= 0,
+		OutputNonSummaryResults				= 0,
+		OutputAdUnitAge						= 0,
+		OutputInfTree						= 0, 
+		
 		...
 )
 {
@@ -91,22 +129,27 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	
 	PreParamList = list()
 	
-	PreParamList[["Output every realisation"]] = 1
-	PreParamList[["Output bitmap"]] = OutputBitmap
-	PreParamList[["OutputAge"]] = 1
-	PreParamList[["OutputSeverityAdminUnit"]] = 1
-	PreParamList[["OutputR0"]] = 0
-	PreParamList[["OutputControls"]] = 0
-	PreParamList[["OutputCountry"]] = 0
-	PreParamList[["OutputAdUnitVar"]] = 0
-	PreParamList[["OutputHousehold"]] = 0
-	PreParamList[["OutputInfType"]] = 0
-	PreParamList[["OutputNonSeverity"]] = 0
-	PreParamList[["OutputNonSummaryResults"]] = 0
-	PreParamList[["OutputAdUnitAge"]] = 0
+	# which outputs?
+	PreParamList[["Output every realisation"	]] = OutputEveryRealisation
+	PreParamList[["Output bitmap"				]] = OutputBitmap
+	PreParamList[["OutputAge"					]] = OutputAge
+	PreParamList[["OutputSeverity"				]] = OutputSeverity
+	PreParamList[["OutputSeverityAge"			]] = OutputSeverityAge
+	PreParamList[["OutputSeverityAdminUnit"		]] = OutputSeverityAdminUnit
+	PreParamList[["OutputR0"					]] = OutputR0
+	PreParamList[["OutputControls"				]] = OutputControls
+	PreParamList[["OutputCountry"				]] = OutputCountry
+	PreParamList[["OutputAdUnitVar"				]] = OutputAdUnitVar
+	PreParamList[["OutputHousehold"				]] = OutputHousehold
+	PreParamList[["OutputInfType"				]] = OutputInfType
+	PreParamList[["OutputNonSeverity"			]] = OutputNonSeverity
+	PreParamList[["OutputNonSummaryResults"		]] = OutputNonSummaryResults
+	PreParamList[["OutputAdUnitAge"				]] = OutputAdUnitAge
+	PreParamList[["Output infection tree"		]] = OutputInfTree
 	PreParamList[["Output incidence by administrative unit"]] = 0
-	PreParamList[["Output infection tree"]] = 0
 	PreParamList[["Only output non-extinct realisations"]] = 0
+	
+	
 	PreParamList[["Include administrative units within countries"]] = 1
 	PreParamList[["Update timestep"]] = 0.25
 	PreParamList[["Equilibriation time"]] = 0
@@ -118,17 +161,10 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Initial immunity profile by age"]] = rep(0, NUM_AGE_GROUPS)
 	PreParamList[["Initial immunity applied to all household members"]] = 1
 	PreParamList[["Relative spatial contact rates by age"]] = c(0.6, 0.7, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 0.5) ### (POLYMOD, averaging 20-70)
-	PreParamList[["Household attack rate"]] = HouseholdAttackRate
-	PreParamList[["Household transmission denominator power"]] = HouseholdTransmissionDenominatorPower
-	PreParamList[["Relative transmission rates for place types"]] = c(0.14, 0.14, 0.1, 0.07) ## (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1
 	PreParamList[["Delay from end of latent period to start of symptoms"]] = 0.5 ## (assume average time to symptom onset is half a day)
-	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = SymptInfectiousness
 	
-	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = 1.5
-	PreParamList[["Relative rate of random contacts if symptomatic"]] = 0.5
-	PreParamList[["Relative level of place attendance if symptomatic"]] = c(0.25, 0.25, 0.5, 0.5)
 	PreParamList[["Model symptomatic withdrawal to home as true absenteeism"]] = 1
 	PreParamList[["Maximum age of child at home for whom one adult also stays at home"]] = 16
 	PreParamList[["Proportion of children at home for whom one adult also stays at home"]] = 1
@@ -164,7 +200,24 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 			1.152944119	, 0.979149081	, 0.831549648	, 0.70620165	, 0.59974816	, 0.509342763	, 0.43256591	, 0.367362791	, 
 			0.311990061	, 0.264964778	, 0.22502858	, 0.19111364	, 0.162311178	, 0.137852214	, 0.117080312	, 0.099440002	, 
 			0.084459683	, 0.07173828	, 0.06093513	, 0.051761119	)
-	PreParamList[["Reproduction number"]] = ReproductionNumber
+	
+	
+	# transmission parameters
+	PreParamList[["Reproduction number"							]] = ReproductionNumber
+	if (!is.null(SpatialBeta))
+		PreParamList[["Beta for spatial transmission"			]] = SpatialBeta
+	
+	PreParamList[["Relative transmission rates for place types"	]] = PlaceTypeTrans
+	PreParamList[["Household attack rate"						]] = HouseholdAttackRate
+	PreParamList[["Household transmission denominator power"	]] = HouseholdTransPow
+	
+	# symptomatic / asymptomatic parameters
+	PreParamList[["Symptomatic infectiousness relative to asymptomatic"	]] = SymptInfectiousness
+	PreParamList[["Asymptomatic infectiousness relative to symptomatic"	]] = AsymptInfectiousness
+	PreParamList[["Relative rate of random contacts if symptomatic"		]] = SymptSpatialContactRate
+	PreParamList[["Relative level of place attendance if symptomatic"	]] = SymptPlaceTypeContactRate
+	PreParamList[["k of individual variation in infectiousness"			]] = InfectiousnessSD
+	
 	PreParamList[["Power of scaling of spatial R0 with density"]] = 0
 	PreParamList[["Include latent period"]] = 1
 	PreParamList[["Model time varying infectiousness"]] = 1
@@ -177,7 +230,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 			0.00489096	, 0.004067488	, 0.003381102	, 0.00280931	, 0.002333237	, 0.001937064	, 0.001607543	, 0.001333589	,
 			0.001105933	, 0.00091683	, 0.000759816	, 0.000629496	, 0.000521372	, 0.000431695	, 0.000357344	, 0.000295719	, 
 			0.000244659	)
-	PreParamList[["k of individual variation in infectiousness"]] = 1
 	
 	# Trigger parameters
 	PreParamList[["Use global triggers for interventions"]] 				= DoGlobalTriggers
@@ -197,6 +249,12 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Day of year trigger is reached"]] 									= DateTriggerReached_CalTime  
 	PreParamList[["Number of days to accummulate cases/deaths before alert"]] 			= WindowToEvaluateTriggerAlert
 	PreParamList[["Alert trigger starts after interventions"]] 							= DoAlertTriggerAfterInterv
+	
+	if (!is.null(SeedingScaling))
+		PreParamList[["Scaling of infection seeding"]] 									= SeedingScaling
+	if (!is.null(InitialInfectionCalTime))
+		PreParamList[["Day of year of start of seeding"]] 								= InitialInfectionCalTime
+	
 	
 	
 	PreParamList[["Proportion of cases detected for treatment"]] = PropCasesDetectedForTreatment
@@ -234,6 +292,7 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Mean_CritRecovToRecov"					]] = Mean_CritRecovToRecov 			
 	PreParamList[["Mean_StepdownToDeath"					]] = Mean_StepdownToDeath			
 	
+	PreParamList[["Factor to scale IFR"						]] = ScaleIFR			
 	PreParamList[["MeanTimeToTest"							]] = MeanTimeToTest 						
 	PreParamList[["MeanTimeToTestOffset"					]] = MeanTimeToTestOffset 				
 	PreParamList[["MeanTimeToTestCriticalOffset"			]] = MeanTimeToTestCriticalOffset 		
@@ -253,8 +312,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["CriticalToDeath_icdf"					]] = CriticalToDeath_icdf 		
 	PreParamList[["CritRecovToRecov_icdf"					]] = CritRecovToRecov_icdf 	
 	PreParamList[["StepdownToDeath_icdf"					]] = StepdownToDeath_icdf 	
-	
-	
 	
 	# Transition probabilities
 	PreParamList[["Proportion symptomatic by age group"		]] = ProportionSymptomatic
@@ -292,6 +349,15 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Old Pers Age"]] = 60
 	PreParamList[["Three Child Five Pers Prob"]] = 0.5
 	PreParamList[["Older Gen Gap"]] = 19
+	
+	## Care home parameters
+	PreParamList[["Scaling of household contacts for care home residents"]] 			= CareHomeResidentHouseholdScaling
+	PreParamList[["Scaling of spatial contacts for care home residents"]] 				= CareHomeResidentSpatialScaling
+	PreParamList[["Scaling of between group (home) contacts for care home residents"]] 	= CareHomeResidentPlaceScaling
+	PreParamList[["Scaling of within group (home) contacts for care home workers"]] 	= CareHomeWorkerGroupScaling
+	PreParamList[["Relative probability that care home residents are hospitalised"]] 	= CareHomeRelProbHosp
+	
+	
 	
 	return(PreParamList)
 }

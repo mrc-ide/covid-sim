@@ -73,7 +73,7 @@ Mean_ILIToSARI = Mean_MildToRecovery
 ILIToSARI_icdf = MildToRecovery_icdf 
 
 # 6. ILI -> Death. Sum of I_C^i -> G_D -> Death. Sojourn time from I_C^i -> G_D = Mean_ILIToSARI = Mean_ILIToRecovery = Mean_MildToRecovery
-Mean_ILIToDeath = rep(Mean_ILIToRecovery + (2/0.4), NUM_AGE_GROUPS)
+Mean_ILIToDeath = Mean_ILIToRecovery + (2/0.4)
 # create samples
 ILI_to_Death_Samples 	= rgamma(n = N_Samples, shape = 1, rate = 0.25) + rgamma(n = N_Samples, shape = 2, rate = 0.4)
 Mean_ILIToDeath_Samples = mean(ILI_to_Death_Samples) ## check this equals Mean_ILIToDeath (roughly)
@@ -173,11 +173,8 @@ PreParamList = MakePreParamList(
 )
 
 WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_NewICDFs.txt")
-
-
-
-
-WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_test.txt")
+# make default pre-param file
+WriteParamList(MakePreParamList(), OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_test.txt")
 
 
 #### Parameter files corresponding to following set of interventions:
@@ -217,7 +214,6 @@ MakeAndWriteParamList(OutputDir = OutputDir, OutputFileName = "p_SD.txt",
 		HQuarantineTimeStartBase 			= ArbitrarilyLargeNonStartTime, 	
 		PlaceCloseTimeStartBase 			= ArbitrarilyLargeNonStartTime) 
 
-
 #### Write parameter files with varying "efficacies" over time. 
 MakeAndWriteParamList(OutputDir = OutputDir, OutputFileName = "p_PC_CI_HQ_SDEase_DCT.txt", 
 		
@@ -227,11 +223,11 @@ MakeAndWriteParamList(OutputDir = OutputDir, OutputFileName = "p_PC_CI_HQ_SDEase
 		Num_SD_ChangeTimes = 6, SD_ChangeTimes = c(0, 60, 120, 180, 240, 300), ### by default, initialize first time to non-variable time start, then all other times to be arbitrarily large. 
 		
 		SD_PlaceEffects_OverTime 		= matrix(c(	1, 1, 0.2, 0.2, 
-						1, 1, 0.3, 0.3, 
-						1, 1, 0.4, 0.4, 
-						1, 1, 0.5, 0.5, 
-						1, 1, 0.6, 0.6, 
-						1, 1, 0.7, 0.7), nrow = 6, byrow = TRUE),
+													1, 1, 0.3, 0.3, 
+													1, 1, 0.4, 0.4, 
+													1, 1, 0.5, 0.5, 
+													1, 1, 0.6, 0.6, 
+													1, 1, 0.7, 0.7), nrow = 6, byrow = TRUE),
 		SD_HouseholdEffects_OverTime 	= c(1.2, 1.2, 1.15, 1.15, 1.1, 1.0), 
 		SD_SpatialEffects_OverTime		= c(0.1, 0.2, 0.3, 0.4, 0.5, 0.5)	)	
 

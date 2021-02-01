@@ -7,7 +7,7 @@ MakeParamList = function(NUM_AGE_GROUPS = 17,
 		#### Interventions are turned on when BOTH start time has passed (and start time + duration has not), AND when trigger threshold exceeded. See https://github.com/mrc-ide/covid-sim/blob/master/docs/intervention-description.md for further discussion.
 		#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
 		
-		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, 
+		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, UseWildCards = 0,
 		
 		# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
 		# = # = # = # = # = # = # = # = # = # = 	CASE ISOLATION PARAMETERS
@@ -296,6 +296,57 @@ MakeParamList = function(NUM_AGE_GROUPS = 17,
 	ParamList[["Relative spatial contact rates over time given enhanced social distancing"]] 				= Enhanced_SD_SpatialEffects_OverTime
 	ParamList[["Trigger incidence per cell for social distancing over time"]] 								= SD_CellIncThresh_OverTime
 	
+	# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
+	# = # = # = # = # = # = # = # = # = # = 	DIGITAL CONTACT TRACING PARAMETERS
+	
+	ParamList[["Include digital contact tracing"]] 	= DoDigitalContactTracing
+	ParamList[["Output digital contact tracing"]] 	= OutputDigitalContactTracing	
+	
+	ParamList[["Digital contact tracing start time"]] = DigitalContactTracingTimeStartBase	
+	ParamList[["Cluster digital app clusters by household"]] = ClusterDigitalContactUsers
+	ParamList[["Proportion of population or households covered by digital contact tracing"]] = PropPopUsingDigitalContactTracing # If we cluster by household, then we select a proportion of households to be potential app users, if not then we select people over the whole population
+	ParamList[["Proportion of smartphone users by age"]] = ProportionSmartphoneUsersByAge
+	ParamList[["Proportion of digital contacts who self-isolate"]] = ProportionDigitalContactsIsolate
+	
+	ParamList[["Delay between symptom onset and isolation for index case"]] = DelayFromIndexCaseDetectionToDCTIsolation  # This is added on to the time at which an case is detected and the delay for the case to be isolated, so in reality the delay is slightly longer than this - could change back if confusing?
+	ParamList[["Delay between isolation of index case and contacts"]] 		= DigitalContactTracingDelay
+	ParamList[["Delay to test index case"]] 			= DelayToTestIndexCase
+	ParamList[["Delay to test DCT contacts"]] 			= DelayToTestDCTContacts
+	
+	ParamList[["Test index cases and contacts"]] 					= DoDCTTest
+	ParamList[["Remove contacts of a negative index case"]] 		= RemoveContactsOfNegativeIndexCase
+	ParamList[["Length of self-isolation for digital contacts"]] 	= LengthDigitalContactIsolation
+	
+	#ParamList[["Include household contacts in digital contact tracing"]] = 1
+	#ParamList[["Include place group contacts in digital contact tracing"]] = 1
+	
+	ParamList[["Spatial scaling factor - digital contact tracing"]] = ScalingFactorSpatialDigitalContacts 	## These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't result in infection)
+	ParamList[["Place scaling factor - digital contact tracing"]] 	= ScalingFactorPlaceDigitalContacts		## These parameters allow us to oversample contacts in the InfectSweep loop, in order to generate more realistic numbers of contacts (these contacts won't all result in infection)
+	ParamList[["Digital contact tracing trigger incidence per cell"]] =	DigitalContactTracing_CellIncThresh
+	
+	ParamList[["Duration of digital contact tracing policy"]] = DigitalContactTracingPolicyDuration
+	ParamList[["Duration of digital contact tracing by admin unit"]] = DCT_Duration_byAdUnit
+	ParamList[["Delay to digital contact tracing by admin unit"]] = DCT_Delay_byAdUnit
+	ParamList[["Isolate index cases in digital contact tracing"]] = DCTIsolateIndexCases
+	
+	ParamList[["Residual contacts after digital contact tracing isolation"]] 			= DCTCaseIsolationEffectiveness
+	ParamList[["Residual household contacts after digital contact tracing isolation"]] 	= DCTCaseIsolationHouseEffectiveness
+	
+	ParamList[["Testing sensitivity - DCT"]] 			= SensitivityDCT
+	ParamList[["Testing specificity - DCT"]] 			= SpecificityDCT
+	ParamList[["Find contacts of digital contacts"]] 	= FindContactsOfDCTContacts
+	
+	ParamList[["Number of change times for levels of digital contact tracing"]] = Num_DCT_ChangeTimes;
+	ParamList[["Change times for levels of digital contact tracing"]] 			= DCT_ChangeTimes;
+	ParamList[["Residual contacts after digital contact tracing isolation over time"]] 				= DCT_SpatialAndPlaceEffects_OverTime;
+	ParamList[["Residual household contacts after digital contact tracing isolation over time"]]  	= DCT_HouseholdEffects_OverTime;
+	ParamList[["Proportion of digital contacts who self-isolate over time"]]  	= DCT_Prop_OverTime;
+	
+	### change # strings to factors.
+	if (UseWildCards)
+		for (ParamNum in 1:length(ParamList))
+			if ( (class(ParamList[[ParamNum]]) == "character") & (length(grep("#", ParamList[[ParamNum]])) > 0)	)
+				ParamList[[ParamNum]] = as.factor(ParamList[[ParamNum]])
 	
 	return(ParamList)
 }
