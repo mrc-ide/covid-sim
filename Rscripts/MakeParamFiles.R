@@ -115,9 +115,26 @@ StepdownToDeath_icdf = qgamma(QUANTILES, shape = 1, rate = 1)
 Mean_CritRecovToRecov = rep(2/0.16, NUM_AGE_GROUPS)
 CritRecovToRecov_icdf = qgamma(QUANTILES, shape = 2, rate = 2) 
 
+#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
+#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # Add in WAIFW matrix using POLYMOD/socialmixr
+library(socialmixr)
+
+Ages 			= seq(0,75,5)
+POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits = Ages)
+WAIFW_Matrix 	= POLYMOD_UK$matrix
+## contact_matrix only returns as high as 75+. CovidSim wants 75-80 and 80+.
+## For now assume that [75,80) = 80+ = 75+. Check this
+WAIFW_Matrix = rbind(Matrix, Matrix[nrow(Matrix),]) # add row to matrix
+WAIFW_Matrix = cbind(Matrix, Matrix[,ncol(Matrix)]) # add col to matrix
+
+
 
 #### Write non-US, non-Canada pre-parameter file
 PreParamList = MakePreParamList(
+		
+		WAIFW_Matrix = WAIFW_Matrix,
 		
 		# 1. Latent -> Infectious
 		LatentPeriod 		= LatentPeriod 		, 
@@ -172,9 +189,12 @@ PreParamList = MakePreParamList(
 		StepdownToDeath_icdf = StepdownToDeath_icdf,
 )
 
-WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_NewICDFs.txt")
+WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_NewICDFs_WAIFWmat.txt")
 # make default pre-param file
 WriteParamList(MakePreParamList(), OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_test.txt")
+
+
+
 
 
 #### Parameter files corresponding to following set of interventions:

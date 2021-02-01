@@ -6,6 +6,7 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		PlaceTypeTrans			= c(0.14, 0.14, 0.1, 0.07),  	# Place betas. (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
 		HouseholdAttackRate 	= 0.1,							# Household beta. (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
 		HouseholdTransPow 		= 0.8,  						# (Cauchemez 2004)
+		WAIFW_Matrix 			= NULL, 
 		
 		# symptomatic / asymptomatic parameters
 		SymptInfectiousness 		= 1,
@@ -161,6 +162,9 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Initial immunity profile by age"]] = rep(0, NUM_AGE_GROUPS)
 	PreParamList[["Initial immunity applied to all household members"]] = 1
 	PreParamList[["Relative spatial contact rates by age"]] = c(0.6, 0.7, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 0.5) ### (POLYMOD, averaging 20-70)
+	if (!is.null(WAIFW_Matrix))
+		PreParamList[["WAIFW matrix"]] = WAIFW_Matrix
+		
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1
 	PreParamList[["Delay from end of latent period to start of symptoms"]] = 0.5 ## (assume average time to symptom onset is half a day)
@@ -206,7 +210,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Reproduction number"							]] = ReproductionNumber
 	if (!is.null(SpatialBeta))
 		PreParamList[["Beta for spatial transmission"			]] = SpatialBeta
-	
 	PreParamList[["Relative transmission rates for place types"	]] = PlaceTypeTrans
 	PreParamList[["Household attack rate"						]] = HouseholdAttackRate
 	PreParamList[["Household transmission denominator power"	]] = HouseholdTransPow
