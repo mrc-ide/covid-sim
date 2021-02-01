@@ -1,4 +1,4 @@
-MakePreParamList = function(
+MakePreParamList = function(NUM_AGE_GROUPS = 17, 
 		
 		## calibration parameters
 		
@@ -42,22 +42,29 @@ MakePreParamList = function(
 		CFR_Critical_ByAge 			= c(0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896	,	0.5234896    ) ,  
 		
 		# Mean of delay distributions / sojourn times,
-		Mean_MildToRecovery 				= 7       ,
-		Mean_ILIToRecovery 					= 7       ,
-		Mean_ILIToSARI 						= 5       ,
-		Mean_ILIToDeath 					= 7       ,
-		Mean_SARIToRecovery 				= 1       ,
-		Mean_SARIToDeath 					= 1       ,
-		Mean_SARIToCritical 				= 1       ,
-		Mean_CriticalToCritRecov 			= 1       ,
-		Mean_CriticalToDeath 				= 1       ,
-		Mean_CritRecovToRecov 				= 1       ,
-		MeanTimeToTest 						= 4       ,
-		MeanTimeToTestOffset 				= 1       ,
-		MeanTimeToTestCriticalOffset 		= 3.3     ,
-		MeanTimeToTestCritRecovOffset 		= 9.32    ,
+		LatentPeriod					= 4.59	, # Mean latent period - minus half a day to account for infectiousness pre symptom onset
+		InfectiousPeriod 				= 14 	,
+		Mean_MildToRecovery 			= rep(7, 		NUM_AGE_GROUPS),
+		Mean_ILIToRecovery 				= rep(7, 		NUM_AGE_GROUPS),
+		Mean_ILIToSARI 					= rep(5, 		NUM_AGE_GROUPS),
+		Mean_ILIToDeath 				= rep(7, 		NUM_AGE_GROUPS),
+		Mean_SARIToRecovery 			= rep(1, 		NUM_AGE_GROUPS),
+		Mean_SARIToDeath 				= rep(1, 		NUM_AGE_GROUPS),
+		Mean_SARIToCritical 			= rep(1, 		NUM_AGE_GROUPS),
+		Mean_CriticalToCritRecov 		= rep(1, 		NUM_AGE_GROUPS),
+		Mean_CriticalToDeath 			= rep(1, 		NUM_AGE_GROUPS),
+		Mean_CritRecovToRecov 			= rep(1, 		NUM_AGE_GROUPS),
+		Mean_StepdownToDeath 			= rep(1/0.12, 	NUM_AGE_GROUPS),
 		
-		# Inverse cumulative distribution functions / quantiles (at 5% resolution)
+
+		MeanTimeToTest 					= 4		,
+		MeanTimeToTestOffset 			= 1		,
+		MeanTimeToTestCriticalOffset 	= 3.3	,
+		MeanTimeToTestCritRecovOffset 	= 9.32	,
+		
+		# Inverse cumulative distribution functions / quantiles (at 5% intervals resolution)
+		latent_icdf 				= c(0	, 0.098616903	, 0.171170649	, 0.239705594	, 0.307516598	, 0.376194441	, 0.446827262	, 0.520343677	, 0.597665592	, 0.679808341	, 0.767974922	, 0.863671993	, 0.968878064	, 1.086313899	, 1.219915022	, 1.37573215	, 1.563841395	, 1.803041398	, 2.135346254	, 2.694118208	, 3.964172493	) , 
+		infectious_icdf				= c(0	, 0.171566836	, 0.424943468	, 0.464725594	, 0.50866631	, 0.55773764	, 0.613298069	, 0.67732916	, 0.752886568	, 0.843151261	, 0.895791527	, 0.955973422	, 1.026225109	, 1.110607115	, 1.216272375	, 1.336349102	, 1.487791911	, 1.701882384	, 1.865779085	, 2.126940581	, 2.524164972	) ,
 		MildToRecovery_icdf 		= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
 		ILIToRecovery_icdf  		= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
 		ILIToSARI_icdf 				= c(0	, 0.341579599	, 0.436192391	, 0.509774887	, 0.574196702	, 0.633830053	, 0.690927761	, 0.74691114	, 0.802830695	, 0.859578883	, 0.918015187	, 0.97906363	, 1.043815683	, 1.113669859	, 1.190557274	, 1.277356871	, 1.378761429	, 1.50338422	, 1.670195767	, 1.938414132	, 2.511279379	) , 
@@ -68,6 +75,7 @@ MakePreParamList = function(
 		CriticalToCritRecov_icdf 	= c(0	, 1.308310071	, 1.87022015	, 2.338694632	, 2.76749788	, 3.177830401	, 3.581381361	, 3.986127838	, 4.398512135	, 4.824525291	, 5.270427517	, 5.743406075	, 6.252370864	, 6.809125902	, 7.430338867	, 8.141231404	, 8.983341913	, 10.03350866	, 11.46214198	, 13.80540164	, 18.95469153	) , 
 		CriticalToDeath_icdf 		= c(0	, 1.60649128	, 2.291051747	, 2.860938008	, 3.382077741	, 3.880425012	, 4.37026577	, 4.861330415	, 5.361460943	, 5.877935626	, 6.4183471		, 6.991401405	, 7.607881726	, 8.282065409	, 9.034104744	, 9.894486491	, 10.91341144	, 12.18372915	, 13.9113346	, 16.74394356	, 22.96541429	) , 
 		CritRecovToRecov_icdf 		= c(0	, 0.133993315	, 0.265922775	, 0.402188416	, 0.544657341	, 0.694774487	, 0.853984373	, 1.023901078	, 1.206436504	, 1.403942719	, 1.619402771	, 1.856711876	, 2.121118605	, 2.419957988	, 2.763950408	, 3.169692564	, 3.664959893	, 4.301777536	, 5.196849239	, 6.7222126		, 10.24997697	) ,  
+		StepdownToDeath_icdf 		= CritRecovToRecov_icdf,
 		
 		HouseholdAttackRate 					= 0.1,	 ## (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
 		HouseholdTransmissionDenominatorPower 	= 0.8,  ## (Cauchemez 2004)
@@ -116,7 +124,6 @@ MakePreParamList = function(
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1
 	PreParamList[["Delay from end of latent period to start of symptoms"]] = 0.5 ## (assume average time to symptom onset is half a day)
-	PreParamList[["Proportion symptomatic by age group"]] = ProportionSymptomatic
 	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = SymptInfectiousness
 	
 	PreParamList[["Symptomatic infectiousness relative to asymptomatic"]] = 1.5
@@ -160,11 +167,6 @@ MakePreParamList = function(
 	PreParamList[["Reproduction number"]] = ReproductionNumber
 	PreParamList[["Power of scaling of spatial R0 with density"]] = 0
 	PreParamList[["Include latent period"]] = 1
-	PreParamList[["Latent period"]] = 4.59 # - minus half a day to account for infectiousness pre symptom onset
-	PreParamList[["Latent period inverse CDF"]] = c(
-			0			, 0.098616903	, 0.171170649	, 0.239705594	, 0.307516598,	0.376194441,	0.446827262	, 
-			0.520343677	, 0.597665592	, 0.679808341	, 0.767974922	, 0.863671993,	0.968878064,	1.086313899	,	
-			1.219915022	, 1.37573215	, 1.563841395	, 1.803041398	, 2.135346254,	2.694118208,	3.964172493	) 
 	PreParamList[["Model time varying infectiousness"]] = 1
 	PreParamList[["Infectiousness profile"]] = c(
 			0.487464241	, 1				, 1.229764827	, 1.312453175	, 1.307955665	, 1.251658756	, 1.166040358	, 1.065716869	, 
@@ -175,11 +177,6 @@ MakePreParamList = function(
 			0.00489096	, 0.004067488	, 0.003381102	, 0.00280931	, 0.002333237	, 0.001937064	, 0.001607543	, 0.001333589	,
 			0.001105933	, 0.00091683	, 0.000759816	, 0.000629496	, 0.000521372	, 0.000431695	, 0.000357344	, 0.000295719	, 
 			0.000244659	)
-	PreParamList[["Infectious period"]] = 14
-	PreParamList[["Infectious period inverse CDF"]] = c(
-			0			, 0.171566836	, 0.424943468, 0.464725594	, 0.50866631	, 0.55773764	, 0.613298069, 
-			0.67732916	, 0.752886568	, 0.843151261, 0.895791527	, 0.955973422	, 1.026225109	, 1.110607115, 
-			1.216272375	, 1.336349102	, 1.487791911, 1.701882384	, 1.865779085	, 2.126940581	, 2.524164972)
 	PreParamList[["k of individual variation in infectiousness"]] = 1
 	
 	# Trigger parameters
@@ -222,22 +219,29 @@ MakePreParamList = function(
 	
 	PreParamList[["Do Severity Analysis"]] = 1
 	
-	PreParamList[["Mean_MildToRecovery"						]] = Mean_MildToRecovery 				
-	PreParamList[["Mean_ILIToRecovery"						]] = Mean_ILIToRecovery 					
-	PreParamList[["Mean_ILIToSARI"							]] = Mean_ILIToSARI 		
-	PreParamList[["Mean_ILIToDeath"							]] = Mean_ILIToDeath 		
-	PreParamList[["Mean_SARIToRecovery"						]] = Mean_SARIToRecovery 				
-	PreParamList[["Mean_SARIToDeath"						]] = Mean_SARIToDeath 					
-	PreParamList[["Mean_SARIToCritical"						]] = Mean_SARIToCritical 				
-	PreParamList[["Mean_CriticalToCritRecov"				]] = Mean_CriticalToCritRecov 			
-	PreParamList[["Mean_CriticalToDeath"					]] = Mean_CriticalToDeath 				
-	PreParamList[["Mean_CritRecovToRecov"					]] = Mean_CritRecovToRecov 				
+	# Mean of delay distributions / sojourn times,
+	PreParamList[["Latent period"							]] = LatentPeriod
+	PreParamList[["Infectious period"						]] = InfectiousPeriod
+	PreParamList[["Mean_MildToRecovery"						]] = Mean_MildToRecovery 			
+	PreParamList[["Mean_ILIToRecovery"						]] = Mean_ILIToRecovery 				
+	PreParamList[["Mean_ILIToSARI"							]] = Mean_ILIToSARI 		    
+	PreParamList[["Mean_ILIToDeath"							]] = Mean_ILIToDeath 		    
+	PreParamList[["Mean_SARIToRecovery"						]] = Mean_SARIToRecovery 			
+	PreParamList[["Mean_SARIToDeath"						]] = Mean_SARIToDeath 				
+	PreParamList[["Mean_SARIToCritical"						]] = Mean_SARIToCritical 			
+	PreParamList[["Mean_CriticalToCritRecov"				]] = Mean_CriticalToCritRecov 		
+	PreParamList[["Mean_CriticalToDeath"					]] = Mean_CriticalToDeath 			
+	PreParamList[["Mean_CritRecovToRecov"					]] = Mean_CritRecovToRecov 			
+	PreParamList[["Mean_StepdownToDeath"					]] = Mean_StepdownToDeath			
 	
 	PreParamList[["MeanTimeToTest"							]] = MeanTimeToTest 						
 	PreParamList[["MeanTimeToTestOffset"					]] = MeanTimeToTestOffset 				
 	PreParamList[["MeanTimeToTestCriticalOffset"			]] = MeanTimeToTestCriticalOffset 		
-	PreParamList[["MeanTimeToTestCritRecovOffset"			]] = MeanTimeToTestCritRecovOffset
+	PreParamList[["MeanTimeToTestCritRecovOffset"			]] = MeanTimeToTestCritRecovOffset  
 	
+	# Inverse cumulative distribution functions / quantiles 
+	PreParamList[["Latent period inverse CDF"				]] = latent_icdf 
+	PreParamList[["Infectious period inverse CDF"			]] = infectious_icdf
 	PreParamList[["MildToRecovery_icdf"						]] = MildToRecovery_icdf 			
 	PreParamList[["ILIToRecovery_icdf"						]] = ILIToRecovery_icdf  		
 	PreParamList[["ILIToSARI_icdf"							]] = ILIToSARI_icdf 				
@@ -247,13 +251,19 @@ MakePreParamList = function(
 	PreParamList[["SARIToCritical_icdf"						]] = SARIToCritical_icdf  		
 	PreParamList[["CriticalToCritRecov_icdf"				]] = CriticalToCritRecov_icdf 	
 	PreParamList[["CriticalToDeath_icdf"					]] = CriticalToDeath_icdf 		
-	PreParamList[["CritRecovToRecov_icdf"					]] = CritRecovToRecov_icdf 		
+	PreParamList[["CritRecovToRecov_icdf"					]] = CritRecovToRecov_icdf 	
+	PreParamList[["StepdownToDeath_icdf"					]] = StepdownToDeath_icdf 	
 	
+	
+	
+	# Transition probabilities
+	PreParamList[["Proportion symptomatic by age group"		]] = ProportionSymptomatic
 	PreParamList[["Prop_Mild_ByAge"              			]] = Prop_Mild_ByAge 		
 	PreParamList[["Prop_ILI_ByAge"               			]] = Prop_ILI_ByAge 		
 	PreParamList[["Prop_SARI_ByAge"							]] = Prop_SARI_ByAge 		
 	PreParamList[["Prop_Critical_ByAge"						]] = Prop_Critical_ByAge 	
 	
+	# Case Fatality Ratios
 	PreParamList[["CFR_ILI_ByAge"							]] = CFR_ILI_ByAge 		
 	PreParamList[["CFR_SARI_ByAge"							]] = CFR_SARI_ByAge 		
 	PreParamList[["CFR_Critical_ByAge"						]] = CFR_Critical_ByAge 	

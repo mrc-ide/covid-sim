@@ -17,5 +17,6 @@ WriteParamList = function(ParamList, OutputDir, OutputFileName, PrintToConsole =
 		
 		ListString = paste0(ListString, ParamValueString, "\n")
 	}
-	write.table(ListString, file = paste0(OutputDir, OutputFileName, ".txt"), row.names = F, col.names = F, quote = F, sep = "\t")
+	
+	write.table(ListString, file = file.path(OutputDir, OutputFileName), row.names = F, col.names = F, quote = F, sep = "\t")
 }
