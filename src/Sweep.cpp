@@ -1405,15 +1405,15 @@ int TreatSweep(double t)
 	int nckwp;
 
 	//// time steps
-	unsigned short int ts;		////  time-step now.
-	unsigned short int tstf;	////  time-step treatment finish
-	unsigned short int tstb;	////  time-step treatment begin
-	unsigned short int tsvb;	////  time-step vaccination begin
-	unsigned short int tspf;	////  time-step place closure finish
-	unsigned short int tsmb;	////  time-step movement restriction begin
-	unsigned short int tsmf;	////  time-step movement restriction finish
-	unsigned short int tssdf;	////  time-step social distancing finish
-	unsigned short int tskwpf;	////  time-step key worker place closure finish
+	unsigned short int ts;								////  time-step now.
+	unsigned short int t_TreatStart;					////  time-step treatment begin
+	unsigned short int t_TreatEnd;						////  time-step treatment finish
+	unsigned short int t_VacStart;						////  time-step vaccination begin
+	unsigned short int t_PlaceClosure_End;				////  time-step place closure finish
+	unsigned short int t_MoveRestrict_Start;			////  time-step movement restriction begin
+	unsigned short int t_MoveRestrict_End;				////  time-step movement restriction finish
+	unsigned short int t_SocDist_End;					////  time-step social distancing finish
+	unsigned short int t_KeyWorkerPlaceClosure_End;		////  time-step key worker place closure finish
 	int global_trig;
 	double r;
 
@@ -1432,10 +1432,10 @@ int TreatSweep(double t)
 	///// block loops over places and determines whom to prophylactically treat
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
 	{
-		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
+		t_TreatEnd = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
 
 #pragma omp parallel for private(f) reduction(+:f1) schedule(static,1) default(none) \
-			shared(P, StateT, Places, Hosts, ts, tstf)
+			shared(P, StateT, Places, Hosts, ts, t_TreatEnd)
 		for (int i = 0; i < P.NumThreads; i++)
 			for (int j = 0; j < P.PlaceTypeNum; j++)
 			{
@@ -1466,7 +1466,7 @@ int TreatSweep(double t)
 						if ((Places[j][l].treat) && (!PLACE_TREATED(j, l)))
 						{
 							f1 = 1;
-							Places[j][l].treat_end_time = tstf;
+							Places[j][l].treat_end_time = t_TreatEnd;
 							for (int m = 0; m < Places[j][l].n; m++)
 								if (!HOST_TO_BE_TREATED(Places[j][l].members[m]))
 								{
@@ -1495,18 +1495,18 @@ int TreatSweep(double t)
 		}
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
-		tstf = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatProphCourseLength) - 1);
-		tstb = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean));
-		tsvb = (unsigned short int) (P.TimeStepsPerDay * (t + P.VaccDelayMean));
-		tspf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
-		tsmf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
-		tsmb = (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
-		tssdf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationCurrent));
-		tskwpf = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
+		t_TreatStart				= (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean));
+		t_TreatEnd					= (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatProphCourseLength) - 1);
+		t_VacStart					= (unsigned short int) (P.TimeStepsPerDay * (t + P.VaccDelayMean));
+		t_PlaceClosure_End			= (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + P.PlaceCloseDuration));
+		t_MoveRestrict_Start		= (unsigned short int) floor(P.TimeStepsPerDay * (t + P.MoveDelayMean));
+		t_MoveRestrict_End			= (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.MoveRestrDuration));
+		t_SocDist_End				= (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.SocDistDurationCurrent));
+		t_KeyWorkerPlaceClosure_End = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
 #pragma omp parallel for private(f2,f3,f4,r) reduction(+:f) schedule(static,1) default(none) \
-			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, tstf, tstb, tsvb, tspf, tsmf, tsmb, tssdf, tskwpf, nckwp)
+			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
 			{
@@ -1535,7 +1535,7 @@ int TreatSweep(double t)
 						f = 1;
 						Mcells[b].treat = 2;
 						Mcells[b].treat_trig = 0;
-						Mcells[b].treat_end_time = tstf;
+						Mcells[b].treat_end_time = t_TreatEnd;
 						for (int i = 0; i < Mcells[b].n; i++)
 						{
 							int l = Mcells[b].members[i];
@@ -1580,7 +1580,7 @@ int TreatSweep(double t)
 										f = f2 = 1;
 										if ((Mcells[k].n > 0) && (Mcells[k].treat == 0))
 										{
-											Mcells[k].treat_start_time = tstb;
+											Mcells[k].treat_start_time = t_TreatStart;
 											Mcells[k].treat = 1;
 											maxx += Mcells[k].n;
 										}
@@ -1671,7 +1671,7 @@ int TreatSweep(double t)
 											Mcells[k].vacc = 3;
 										else if ((Mcells[k].n > 0) && (Mcells[k].vacc == 0))
 										{
-											Mcells[k].vacc_start_time = tsvb;
+											Mcells[k].vacc_start_time = t_VacStart;
 											Mcells[k].vacc = 1;
 										}
 									}
@@ -1764,7 +1764,7 @@ int TreatSweep(double t)
 									if (P.DoInterventionDelaysByAdUnit)
 										Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
 									else
-										Mcells[b].place_end_time = tspf;
+										Mcells[b].place_end_time = t_PlaceClosure_End;
 									Mcells[b].place_trig = 0;
 									Mcells[b].placeclose = 2;
 									for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
@@ -1791,7 +1791,7 @@ int TreatSweep(double t)
 						f = 1;
 						Mcells[b].moverest = 2;
 						Mcells[b].move_trig = 0;
-						Mcells[b].move_end_time = tsmf;
+						Mcells[b].move_end_time = t_MoveRestrict_End;
 					}
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig >= P.MoveRestrCellIncThresh);
@@ -1830,7 +1830,7 @@ int TreatSweep(double t)
 										f = f2 = 1;
 										if ((Mcells[k].n > 0) && (Mcells[k].moverest == 0))
 										{
-											Mcells[k].move_start_time = tsmb;
+											Mcells[k].move_start_time = t_MoveRestrict_Start;
 											Mcells[k].moverest = 1;
 										}
 									}
@@ -1907,7 +1907,7 @@ int TreatSweep(double t)
 								if (P.DoInterventionDelaysByAdUnit)
 									Mcells[b].socdist_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + AdUnits[Mcells[b].adunit].SocialDistanceDuration));
 								else
-									Mcells[b].socdist_end_time = tssdf;
+									Mcells[b].socdist_end_time = t_SocDist_End;
 							}
 					}
 
@@ -1951,7 +1951,7 @@ int TreatSweep(double t)
 									{
 										Mcells[k].keyworkerproph = 2;
 										Mcells[k].keyworkerproph_trig = 0;
-										Mcells[k].keyworkerproph_end_time = tskwpf;
+										Mcells[k].keyworkerproph_end_time = t_KeyWorkerPlaceClosure_End;
 										for (int i2 = 0; i2 < Mcells[k].n; i2++)
 										{
 											int j2 = Mcells[k].members[i2];
