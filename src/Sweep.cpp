@@ -1712,10 +1712,14 @@ int TreatSweep(double t)
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
 						f2 = (Mcells[b].treat_trig < trig_thresh);
 					}
-					if ((Mcells[b].placeclose == 2) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
+					if ((Mcells[b].placeclose == TreatStat::Treated) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 					{
 						f = 1;
-						Mcells[b].placeclose = P.DoPlaceCloseOnceOnly;
+						if (P.DoPlaceCloseOnceOnly)
+							Mcells[b].placeclose = TreatStat::DontTreatAgain;
+						else
+							Mcells[b].placeclose = TreatStat::Untreated;
+
 						Mcells[b].place_end_time = ts;
 						Mcells[b].place_trig = 0;
 						if (f2)
@@ -1728,7 +1732,7 @@ int TreatSweep(double t)
 					}
 
 
-					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == 0))
+					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
 					{
 						///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
 
@@ -1758,7 +1762,7 @@ int TreatSweep(double t)
 
 							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
-								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == 0))
+								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == TreatStat::Untreated))
 								{
 									//if doing intervention delays and durations by admin unit based on global triggers
 									if (P.DoInterventionDelaysByAdUnit)
@@ -1766,7 +1770,7 @@ int TreatSweep(double t)
 									else
 										Mcells[b].place_end_time = t_PlaceClosure_End;
 									Mcells[b].place_trig = 0;
-									Mcells[b].placeclose = 2;
+									Mcells[b].placeclose = TreatStat::Treated;
 									for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 										if (j2 != P.HotelPlaceType)
 											for (int i2 = 0; i2 < Mcells[b].np[j2]; i2++)

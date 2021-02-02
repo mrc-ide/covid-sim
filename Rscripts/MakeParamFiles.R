@@ -50,8 +50,6 @@ N_Samples = 1000000
 NUM_AGE_GROUPS = 17
 QUANTILES = c(seq(0, 0.95, 0.05), 0.99)
 
-
-
 # 1. Latent -> Infectious
 LatentPeriod 		= 2/0.44
 latent_icdf 		= qgamma(QUANTILES, shape = 2, rate = 2)

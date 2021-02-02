@@ -33,11 +33,10 @@ struct Microcell
 
 	int* places[NUM_PLACE_TYPES];
 	unsigned short int np[NUM_PLACE_TYPES];
-	unsigned short int moverest, placeclose, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
+	unsigned short int moverest, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
 	unsigned short int move_start_time, move_end_time;
 	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
-	//unsigned short int treat, vacc;
-	TreatStat treat, vacc;
+	TreatStat treat, vacc, placeclose;
 	unsigned short int treat_trig, vacc_trig;
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;

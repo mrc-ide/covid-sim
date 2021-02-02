@@ -1593,7 +1593,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure start time", "%lf", (void*) & (P.PlaceCloseTimeStartBase), 1, 1, 0)) P.PlaceCloseTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second start time", "%lf", (void*) & (P.PlaceCloseTimeStartBase2), 1, 1, 0)) P.PlaceCloseTimeStartBase2 = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Places close only once", "%i", (void*) & (P.DoPlaceCloseOnceOnly), 1, 1, 0)) P.DoPlaceCloseOnceOnly = 0;
-	if (P.DoPlaceCloseOnceOnly) P.DoPlaceCloseOnceOnly = 4;
+	//if (P.DoPlaceCloseOnceOnly) P.DoPlaceCloseOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure incidence threshold", "%i", (void*) & (P.PlaceCloseIncTrig1), 1, 1, 0)) P.PlaceCloseIncTrig1 = 1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure second incidence threshold", "%i", (void*)&(P.PlaceCloseIncTrig2), 1, 1, 0)) P.PlaceCloseIncTrig2 = P.PlaceCloseIncTrig1;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place closure fractional incidence threshold", "%lf", (void*) & (P.PlaceCloseFracIncTrig), 1, 1, 0)) P.PlaceCloseFracIncTrig = 0;
@@ -2730,9 +2730,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
 		Mcells[i].treat_trig = Mcells[i].vacc_trig = 0;
-		Mcells[i].vacc = Mcells[i].treat = TreatStat::Untreated;
+		Mcells[i].vacc = Mcells[i].treat = Mcells[i].placeclose = TreatStat::Untreated;
 		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
-			Mcells[i].placeclose = Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
+			Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
 		Mcells[i].move_start_time = USHRT_MAX - 1;
 		Mcells[i].place_end_time = Mcells[i].move_end_time =
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
