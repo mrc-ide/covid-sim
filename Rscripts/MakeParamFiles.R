@@ -40,9 +40,10 @@ POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits 
 WAIFW_Matrix 	= POLYMOD_UK$matrix
 ## contact_matrix only returns as high as 75+. CovidSim wants 75-80 and 80+.
 ## For now assume that [75,80) = 80+ = 75+. Check this
-WAIFW_Matrix = rbind(Matrix, Matrix[nrow(Matrix),]) # add row to matrix
-WAIFW_Matrix = cbind(Matrix, Matrix[,ncol(Matrix)]) # add col to matrix
-
+WAIFW_Matrix = rbind(WAIFW_Matrix, WAIFW_Matrix[nrow(WAIFW_Matrix),]) # add row to WAIFW_Matrix
+WAIFW_Matrix = cbind(WAIFW_Matrix, WAIFW_Matrix[,ncol(WAIFW_Matrix)]) # add col to WAIFW_Matrix
+dim(WAIFW_Matrix)
+dim(POLYMOD_UK$matrix)
 
 #### Write non-US, non-Canada pre-parameter file
 PreParamList = MakePreParamList(
