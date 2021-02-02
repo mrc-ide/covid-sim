@@ -1870,10 +1870,15 @@ int TreatSweep(double t)
 					}
 
 					//// if: policy of social distancing has started AND this microcell cell has been labelled to as undergoing social distancing, AND either trigger not reached (note definition of f2 changes in next few lines) or end time has passed.
-					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == 2) && ((f2) || (ts >= Mcells[mcellnum].socdist_end_time)))
+					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Treated) && ((f2) || (ts >= Mcells[mcellnum].socdist_end_time)))
 					{
 						f = 1;
-						Mcells[mcellnum].socdist = P.DoSocDistOnceOnly; //// i.e. if P.DoSocDistOnceOnly set to false, socdist set to 0 here, hence will be picked up upon some subsequent call to TreatSweep if required trigger passes threshold.
+						if (P.DoSocDistOnceOnly)
+							Mcells[mcellnum].socdist = TreatStat::DontTreatAgain;
+						else
+							Mcells[mcellnum].socdist = TreatStat::Untreated;
+
+
 						Mcells[mcellnum].socdist_trig = 0;	//// reset trigger
 						Mcells[mcellnum].socdist_end_time = ts; //// record end time.
 					}
@@ -1889,7 +1894,7 @@ int TreatSweep(double t)
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
 						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
-					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == 0) && (f2))
+					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Untreated) && (f2))
 					{
 						//some code to try and deal with intervention delays and durations by admin unit based on global triggers
 						int interventionFlag; //added this as a way to help filter out when interventions start
@@ -1901,9 +1906,9 @@ int TreatSweep(double t)
 								interventionFlag = 0;
 
 						if (interventionFlag == 1)
-							if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].socdist == 0)) //// if microcell populated and not currently undergoing social distancing
+							if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].socdist == TreatStat::Untreated)) //// if microcell populated and not currently undergoing social distancing
 							{
-								Mcells[mcellnum].socdist = 2; //// update flag to denote that cell is undergoing social distancing
+								Mcells[mcellnum].socdist = TreatStat::Treated; //// update flag to denote that cell is undergoing social distancing
 								Mcells[mcellnum].socdist_trig = 0; /// reset trigger
 								//// set (admin-specific) social distancing end time.
 								if (P.DoInterventionDelaysByAdUnit)
@@ -1989,8 +1994,9 @@ int TreatSweep(double t)
 			StateT[i].cumT = StateT[i].cumUT = StateT[i].cumTP = 0; //StateT[i].cumV=0;
 		}
 	}
-	f += f1;
 
+
+	f += f1;
 
 	return (f > 0);
 }

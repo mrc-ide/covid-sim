@@ -1656,7 +1656,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rate given enhanced social distancing after change", "%lf", (void*)&P.EnhancedSocDistSpatialEffect2, 1, 1, 0)) P.EnhancedSocDistSpatialEffect2 = P.EnhancedSocDistSpatialEffect;
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Social distancing only once", "%i", (void*) & (P.DoSocDistOnceOnly), 1, 1, 0)) P.DoSocDistOnceOnly = 0;
-	if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4;
+	//if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4;  //// don't need this anymore with TreatStat option. Keep it as a boolean.
 
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Airport closure effectiveness", "%lf", (void*) & (P.AirportCloseEffectiveness), 1, 1, 0)) P.AirportCloseEffectiveness = 0;
 	P.AirportCloseEffectiveness = 1.0 - P.AirportCloseEffectiveness;
@@ -2730,9 +2730,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
 		Mcells[i].treat_trig = Mcells[i].vacc_trig = 0;
-		Mcells[i].vacc = Mcells[i].treat = Mcells[i].placeclose = TreatStat::Untreated;
+		Mcells[i].vacc = Mcells[i].treat = Mcells[i].placeclose = Mcells[i].socdist = TreatStat::Untreated;
 		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
-			Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
+			Mcells[i].moverest = Mcells[i].keyworkerproph = 0;
 		Mcells[i].move_start_time = USHRT_MAX - 1;
 		Mcells[i].place_end_time = Mcells[i].move_end_time =
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
@@ -5064,7 +5064,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == 2) k++;
+	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == TreatStat::Treated) k++;
 	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NMC);
 
 	//update contact number distribution in State
