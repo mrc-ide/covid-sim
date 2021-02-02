@@ -1510,8 +1510,8 @@ int TreatSweep(double t)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
 			{
-				int b = (int)(McellLookup[bs] - Mcells); //// microcell number
-				int adi = (P.DoAdUnits) ? Mcells[b].adunit : -1;
+				int mcellnum = (int)(McellLookup[bs] - Mcells); //// microcell number
+				int adi = (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
 				int ad = (P.DoAdUnits) ? AdUnits[adi].id : 0;
 
 					//// Code block goes through various types of treatments/interventions (vaccination/movement restrictions etc.),
@@ -1519,26 +1519,24 @@ int TreatSweep(double t)
 					//// and then implements those treatments by setting various flags (i.e. .treat/ .vacc etc.) by microcell.
 					//// Further, this block assigns all microcells that are within this admin unit (and around this microcell) to be treated, using the flags set to avoid duplication.
 
-
-
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 					//// **** //// **** //// **** //// **** TREATMENT
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-					if ((Mcells[b].treat == TreatStat::Treated) && (ts >= Mcells[b].treat_end_time))
+					if ((Mcells[mcellnum].treat == TreatStat::Treated) && (ts >= Mcells[mcellnum].treat_end_time))
 					{
 						f = 1;
-						Mcells[b].treat = TreatStat::Untreated;
+						Mcells[mcellnum].treat = TreatStat::Untreated;
 					}
-					if ((Mcells[b].treat == TreatStat::ToBeTreated) && (ts >= Mcells[b].treat_start_time))
+					if ((Mcells[mcellnum].treat == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].treat_start_time))
 					{
 						f = 1;
-						Mcells[b].treat				= TreatStat::Treated;
-						Mcells[b].treat_trig		= 0;
-						Mcells[b].treat_end_time	= t_TreatEnd;
-						for (int i = 0; i < Mcells[b].n; i++)
+						Mcells[mcellnum].treat				= TreatStat::Treated;
+						Mcells[mcellnum].treat_trig		= 0;
+						Mcells[mcellnum].treat_end_time	= t_TreatEnd;
+						for (int i = 0; i < Mcells[mcellnum].n; i++)
 						{
-							int l = Mcells[b].members[i];
+							int l = Mcells[mcellnum].members[i];
 							if ((!HOST_TO_BE_TREATED(l)) && ((P.TreatPropRadial == 1) || (ranf_mt(tn) < P.TreatPropRadial)))
 								DoProphNoDelay(l, ts, tn, 1);
 						}
@@ -1552,14 +1550,14 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
-						f2 = (Mcells[b].treat_trig >= trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
+						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
-					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == TreatStat::Untreated) && (f2) && (P.TreatRadius2 > 0))
+					if ((t >= P.TreatTimeStart) && (Mcells[mcellnum].treat == TreatStat::Untreated) && (f2) && (P.TreatRadius2 > 0))
 					{
-						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 						Direction j = Direction::Right;
-						int k = b;
+						int k = mcellnum;
 						int maxx = 0;
 						int i, m, l;
 						i = m = f2 = 0;
@@ -1574,7 +1572,7 @@ int TreatSweep(double t)
 									if (P.TreatByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.TreatRadius2);
+										f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.TreatRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1611,15 +1609,15 @@ int TreatSweep(double t)
 
 
 					//// vaccinates proportion VaccProp of people in microcell (or at least adds them to geovacc_queue).
-					if ((Mcells[b].vacc == TreatStat::ToBeTreated) && (ts >= Mcells[b].vacc_start_time))
+					if ((Mcells[mcellnum].vacc == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].vacc_start_time))
 					{
 						f = 1;
-						Mcells[b].vacc_trig = 0;
-						//if(State.cumVG+P.NumThreads*Mcells[b].n<P.VaccMaxCourses) //changed to VG - commented this out for now, we'll add everyone to queues and deal with the number of doses available in the vaccination function
+						Mcells[mcellnum].vacc_trig = 0;
+						//if(State.cumVG+P.NumThreads*Mcells[mcellnum].n<P.VaccMaxCourses) //changed to VG - commented this out for now, we'll add everyone to queues and deal with the number of doses available in the vaccination function
 						{
-							for (int i = 0; i < Mcells[b].n; i++)
+							for (int i = 0; i < Mcells[mcellnum].n; i++)
 							{
-								int l = Mcells[b].members[i];
+								int l = Mcells[mcellnum].members[i];
 								//#pragma omp critical (state_cumV_daily) //added this
 								if (((P.VaccProp == 1) || (ranf_mt(tn) < P.VaccProp)))
 								{
@@ -1627,7 +1625,7 @@ int TreatSweep(double t)
 									DoVaccNoDelay(l,ts);
 								}
 							}
-							Mcells[b].vacc = TreatStat::Treated;
+							Mcells[mcellnum].vacc = TreatStat::Treated;
 						}
 					}
 					if (P.DoGlobalTriggers)
@@ -1639,14 +1637,14 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
-						f2 = (Mcells[b].treat_trig >= trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
+						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
-					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == TreatStat::Untreated) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
+					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[mcellnum].vacc == TreatStat::Untreated) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
-						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 						Direction j = Direction::Right;
-						int k = b;
+						int k = mcellnum;
 						int i, l, m;
 						i = m = f2 = 0;
 						l = f3 = 1;
@@ -1663,7 +1661,7 @@ int TreatSweep(double t)
 										r = 1e20;
 									}
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.VaccRadius2);
+										f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.VaccRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1709,30 +1707,30 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
-						f2 = (Mcells[b].treat_trig < trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
+						f2 = (Mcells[mcellnum].treat_trig < trig_thresh);
 					}
-					if ((Mcells[b].placeclose == TreatStat::Treated) && ((f2) || (ts >= Mcells[b].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
+					if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((f2) || (ts >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 					{
 						f = 1;
 						if (P.DoPlaceCloseOnceOnly)
-							Mcells[b].placeclose = TreatStat::DontTreatAgain;
+							Mcells[mcellnum].placeclose = TreatStat::DontTreatAgain;
 						else
-							Mcells[b].placeclose = TreatStat::Untreated;
+							Mcells[mcellnum].placeclose = TreatStat::Untreated;
 
-						Mcells[b].place_end_time = ts;
-						Mcells[b].place_trig = 0;
+						Mcells[mcellnum].place_end_time = ts;
+						Mcells[mcellnum].place_trig = 0;
 						if (f2)
 						{
 							for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 								if (j2 != P.HotelPlaceType)
-									for (int i2 = 0; i2 < Mcells[b].np[j2]; i2++)
-										DoPlaceOpen(j2, Mcells[b].places[j2][i2], ts);
+									for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
+										DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], ts);
 						}
 					}
 
 
-					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[b].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
+					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[mcellnum].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
 					{
 						///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
 
@@ -1747,34 +1745,34 @@ int TreatSweep(double t)
 						}
 						else
 						{
-							int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
-							f2 = (Mcells[b].treat_trig >= trig_thresh);
+							int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
+							f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 						}
-						if (((P.PlaceCloseByAdminUnit) && (AdUnits[Mcells[b].adunit].place_close_trig < USHRT_MAX - 1)
-							&& (((double)AdUnits[Mcells[b].adunit].place_close_trig) / ((double)AdUnits[Mcells[b].adunit].NP) > P.PlaceCloseAdunitPropThresh))
+						if (((P.PlaceCloseByAdminUnit) && (AdUnits[Mcells[mcellnum].adunit].place_close_trig < USHRT_MAX - 1)
+							&& (((double)AdUnits[Mcells[mcellnum].adunit].place_close_trig) / ((double)AdUnits[Mcells[mcellnum].adunit].NP) > P.PlaceCloseAdunitPropThresh))
 							|| ((!P.PlaceCloseByAdminUnit) && (f2)))
 						{
-							//							if(P.PlaceCloseByAdminUnit) AdUnits[Mcells[b].adunit].place_close_trig=USHRT_MAX-1; // This means schools only close once
+							//							if(P.PlaceCloseByAdminUnit) AdUnits[Mcells[mcellnum].adunit].place_close_trig=USHRT_MAX-1; // This means schools only close once
 							int interventionFlag; //added this as a way to help filter out when interventions start
 							interventionFlag = 1;
-							if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[b].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[b].adunit].PlaceCloseTimeStart + AdUnits[Mcells[b].adunit].PlaceCloseDuration))))
+							if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
 									interventionFlag = 0;
 
 							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
-								if ((Mcells[b].n > 0) && (Mcells[b].placeclose == TreatStat::Untreated))
+								if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].placeclose == TreatStat::Untreated))
 								{
 									//if doing intervention delays and durations by admin unit based on global triggers
 									if (P.DoInterventionDelaysByAdUnit)
-										Mcells[b].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[b].adunit].PlaceCloseDuration));
+										Mcells[mcellnum].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration));
 									else
-										Mcells[b].place_end_time = t_PlaceClosure_End;
-									Mcells[b].place_trig = 0;
-									Mcells[b].placeclose = TreatStat::Treated;
+										Mcells[mcellnum].place_end_time = t_PlaceClosure_End;
+									Mcells[mcellnum].place_trig = 0;
+									Mcells[mcellnum].placeclose = TreatStat::Treated;
 									for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 										if (j2 != P.HotelPlaceType)
-											for (int i2 = 0; i2 < Mcells[b].np[j2]; i2++)
-												DoPlaceClose(j2, Mcells[b].places[j2][i2], ts, tn, 1);
+											for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
+												DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], ts, tn, 1);
 								}
 							}
 						}
@@ -1785,17 +1783,17 @@ int TreatSweep(double t)
 					//// **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-					if ((Mcells[b].moverest == 2) && (ts >= Mcells[b].move_end_time))
+					if ((Mcells[mcellnum].moverest == 2) && (ts >= Mcells[mcellnum].move_end_time))
 					{
 						f = 1;
-						Mcells[b].moverest = P.DoMoveRestrOnceOnly;
+						Mcells[mcellnum].moverest = P.DoMoveRestrOnceOnly;
 					}
-					if ((Mcells[b].moverest == 1) && (ts >= Mcells[b].move_start_time))
+					if ((Mcells[mcellnum].moverest == 1) && (ts >= Mcells[mcellnum].move_start_time))
 					{
 						f = 1;
-						Mcells[b].moverest = 2;
-						Mcells[b].move_trig = 0;
-						Mcells[b].move_end_time = t_MoveRestrict_End;
+						Mcells[mcellnum].moverest = 2;
+						Mcells[mcellnum].move_trig = 0;
+						Mcells[mcellnum].move_end_time = t_MoveRestrict_End;
 					}
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig >= P.MoveRestrCellIncThresh);
@@ -1806,15 +1804,15 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
-						f2 = (Mcells[b].treat_trig >= trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
+						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
 
-					if ((t >= P.MoveRestrTimeStart) && (Mcells[b].moverest == 0) && (f2))
+					if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == 0) && (f2))
 					{
-						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 						Direction j = Direction::Right;
-						int k = b;
+						int k = mcellnum;
 						int i, l, m;
 						i = m = f2 = 0;
 						l = f3 = 1;
@@ -1828,7 +1826,7 @@ int TreatSweep(double t)
 									if (P.MoveRestrByAdminUnit)
 										f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 									else
-										f4 = ((r = dist2_mm(Mcells + b, Mcells + k)) < P.MoveRestrRadius2);
+										f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.MoveRestrRadius2);
 									if (f4)
 									{
 										f = f2 = 1;
@@ -1867,17 +1865,17 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
-						f2 = (Mcells[b].treat_trig < trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
+						f2 = (Mcells[mcellnum].treat_trig < trig_thresh);
 					}
 
 					//// if: policy of social distancing has started AND this microcell cell has been labelled to as undergoing social distancing, AND either trigger not reached (note definition of f2 changes in next few lines) or end time has passed.
-					if ((t >= P.SocDistTimeStart) && (Mcells[b].socdist == 2) && ((f2) || (ts >= Mcells[b].socdist_end_time)))
+					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == 2) && ((f2) || (ts >= Mcells[mcellnum].socdist_end_time)))
 					{
 						f = 1;
-						Mcells[b].socdist = P.DoSocDistOnceOnly; //// i.e. if P.DoSocDistOnceOnly set to false, socdist set to 0 here, hence will be picked up upon some subsequent call to TreatSweep if required trigger passes threshold.
-						Mcells[b].socdist_trig = 0;	//// reset trigger
-						Mcells[b].socdist_end_time = ts; //// record end time.
+						Mcells[mcellnum].socdist = P.DoSocDistOnceOnly; //// i.e. if P.DoSocDistOnceOnly set to false, socdist set to 0 here, hence will be picked up upon some subsequent call to TreatSweep if required trigger passes threshold.
+						Mcells[mcellnum].socdist_trig = 0;	//// reset trigger
+						Mcells[mcellnum].socdist_end_time = ts; //// record end time.
 					}
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig >= P.SocDistCellIncThresh);
@@ -1888,30 +1886,30 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
-						f2 = (Mcells[b].treat_trig >= trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
+						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
-					if ((t >= P.SocDistTimeStart) && (Mcells[b].socdist == 0) && (f2))
+					if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == 0) && (f2))
 					{
 						//some code to try and deal with intervention delays and durations by admin unit based on global triggers
 						int interventionFlag; //added this as a way to help filter out when interventions start
 						interventionFlag = 1;
 
 						if (P.DoInterventionDelaysByAdUnit)
-							if ((t <= AdUnits[Mcells[b].adunit].SocialDistanceTimeStart) ||
-								(t >= (AdUnits[Mcells[b].adunit].SocialDistanceTimeStart + AdUnits[Mcells[b].adunit].SocialDistanceDuration))) //// i.e. if outside window of social distancing for this admin unit.
+							if ((t <= AdUnits[Mcells[mcellnum].adunit].SocialDistanceTimeStart) ||
+								(t >= (AdUnits[Mcells[mcellnum].adunit].SocialDistanceTimeStart + AdUnits[Mcells[mcellnum].adunit].SocialDistanceDuration))) //// i.e. if outside window of social distancing for this admin unit.
 								interventionFlag = 0;
 
 						if (interventionFlag == 1)
-							if ((Mcells[b].n > 0) && (Mcells[b].socdist == 0)) //// if microcell populated and not currently undergoing social distancing
+							if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].socdist == 0)) //// if microcell populated and not currently undergoing social distancing
 							{
-								Mcells[b].socdist = 2; //// update flag to denote that cell is undergoing social distancing
-								Mcells[b].socdist_trig = 0; /// reset trigger
+								Mcells[mcellnum].socdist = 2; //// update flag to denote that cell is undergoing social distancing
+								Mcells[mcellnum].socdist_trig = 0; /// reset trigger
 								//// set (admin-specific) social distancing end time.
 								if (P.DoInterventionDelaysByAdUnit)
-									Mcells[b].socdist_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + AdUnits[Mcells[b].adunit].SocialDistanceDuration));
+									Mcells[mcellnum].socdist_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + AdUnits[Mcells[mcellnum].adunit].SocialDistanceDuration));
 								else
-									Mcells[b].socdist_end_time = t_SocDist_End;
+									Mcells[mcellnum].socdist_end_time = t_SocDist_End;
 							}
 					}
 
@@ -1920,10 +1918,10 @@ int TreatSweep(double t)
 					//// **** //// **** //// **** //// **** KEY-WORKER PROPHYLAXIS
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-					if ((Mcells[b].keyworkerproph == 2) && (ts >= Mcells[b].keyworkerproph_end_time))
+					if ((Mcells[mcellnum].keyworkerproph == 2) && (ts >= Mcells[mcellnum].keyworkerproph_end_time))
 					{
 						f = 1;
-						Mcells[b].keyworkerproph = P.DoKeyWorkerProphOnceOnly;
+						Mcells[mcellnum].keyworkerproph = P.DoKeyWorkerProphOnceOnly;
 					}
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig >= P.KeyWorkerProphCellIncThresh);
@@ -1934,21 +1932,21 @@ int TreatSweep(double t)
 					}
 					else
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
-						f2 = (Mcells[b].treat_trig >= trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
+						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
-					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[b].keyworkerproph == 0) && (f2))
+					if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[mcellnum].keyworkerproph == 0) && (f2))
 					{
-						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
+						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 						Direction j = Direction::Right;
-						int k = b;
+						int k = mcellnum;
 						int i, l, m;
 						i = m = f2 = 0;
 						l = f3 = 1;
 						do
 						{
 							if (P.is_in_bounds(min))
-								if (dist2_mm(Mcells + b, Mcells + k) < P.KeyWorkerProphRadius2)
+								if (dist2_mm(Mcells + mcellnum, Mcells + k) < P.KeyWorkerProphRadius2)
 								{
 									f = f2 = 1;
 									if ((Mcells[k].n > 0) && (Mcells[k].keyworkerproph == 0))

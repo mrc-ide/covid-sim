@@ -31,11 +31,8 @@ options("scipen" = 13) #### set high penalty for scientific display. (so e.g. 10
 ICDFs 		= readRDS(file = file.path(here("data/param_files/"), "SeverityICDFs.rds"))
 AS_Means 	= readRDS(file = file.path(here("data/param_files/"), "AS_SeverityProgMeans.rds"))
 
-
 #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
-#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# # # # # # # # # # Add in WAIFW matrix using POLYMOD/socialmixr
+#### ==== Add in WAIFW matrix using POLYMOD/socialmixr
 library(socialmixr)
 
 Ages 			= seq(0,75,5)
