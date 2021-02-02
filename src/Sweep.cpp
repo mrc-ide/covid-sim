@@ -454,7 +454,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 									}
 								}
 								// else if movement restrictions in effect in either household microcell or place microcell
-								else if ((mi->moverest != mp->moverest) && ((mi->moverest == 2) || (mp->moverest == 2)))
+								else if ((mi->moverest != mp->moverest) && ((mi->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
 								{
 									// multiply infectiousness of place by movement restriction effect
 									s3 *= P.MoveRestrEffect;
@@ -573,7 +573,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 											}
 											// else if movement restrictions are in place in either cell
-											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
+											else if ((mt->moverest != mp->moverest) && ((mt->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
 											{
 												// multiply susceptibility by movement restriction effect
 												s *= P.MoveRestrEffect;
@@ -675,7 +675,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 												}
 											}
 											// else if movement restrictions are in place in potential infectee's cell or hotel's cell
-											else if ((mt->moverest != mp->moverest) && ((mt->moverest == 2) || (mp->moverest == 2)))
+											else if ((mt->moverest != mp->moverest) && ((mt->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
 											{
 												// multiply susceptibility by movement restriction effect
 												s *= P.MoveRestrEffect;
@@ -899,7 +899,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 											Households[Hosts[i3].hh].loc.x, Households[Hosts[i3].hh].loc.y) > P.MoveRestrRadius2))
 											s *= P.MoveRestrEffect;
 									}
-									else if ((mt->moverest != mi->moverest) && ((mt->moverest == 2) || (mi->moverest == 2)))
+									else if ((mt->moverest != mi->moverest) && ((mt->moverest == TreatStat::Treated) || (mi->moverest == TreatStat::Treated)))
 										s *= P.MoveRestrEffect;
 									if ((!f)&& (HOST_ABSENT(i3))) //// if infector did not have place closed, loop over place types of infectee i3 to see if their places had closed. If they had, amend their susceptibility.
 									{
@@ -1758,7 +1758,7 @@ int TreatSweep(double t)
 							if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
 									interventionFlag = 0;
 
-							if ((interventionFlag == 1)&&((!P.PlaceCloseByAdminUnit) || (ad > 0)))
+							if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (ad > 0)))
 							{
 								if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].placeclose == TreatStat::Untreated))
 								{
@@ -1783,15 +1783,19 @@ int TreatSweep(double t)
 					//// **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-					if ((Mcells[mcellnum].moverest == 2) && (ts >= Mcells[mcellnum].move_end_time))
+					if ((Mcells[mcellnum].moverest == TreatStat::Treated) && (ts >= Mcells[mcellnum].move_end_time))
 					{
 						TreatFlag = 1;
-						Mcells[mcellnum].moverest = P.DoMoveRestrOnceOnly;
+						if (P.DoMoveRestrOnceOnly)
+							Mcells[mcellnum].moverest = TreatStat::DontTreatAgain;
+						else
+							Mcells[mcellnum].moverest = TreatStat::Untreated;
+
 					}
-					if ((Mcells[mcellnum].moverest == 1) && (ts >= Mcells[mcellnum].move_start_time))
+					if ((Mcells[mcellnum].moverest == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].move_start_time))
 					{
 						TreatFlag = 1;
-						Mcells[mcellnum].moverest = 2;
+						Mcells[mcellnum].moverest = TreatStat::Treated;
 						Mcells[mcellnum].move_trig = 0;
 						Mcells[mcellnum].move_end_time = t_MoveRestrict_End;
 					}
@@ -1808,7 +1812,7 @@ int TreatSweep(double t)
 						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
 
-					if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == 0) && (f2))
+					if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == TreatStat::Untreated) && (f2))
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 						Direction j = Direction::Right;
@@ -1830,10 +1834,10 @@ int TreatSweep(double t)
 									if (f4)
 									{
 										TreatFlag = f2 = 1;
-										if ((Mcells[k].n > 0) && (Mcells[k].moverest == 0))
+										if ((Mcells[k].n > 0) && (Mcells[k].moverest == TreatStat::Untreated))
 										{
 											Mcells[k].move_start_time = t_MoveRestrict_Start;
-											Mcells[k].moverest = 1;
+											Mcells[k].moverest = TreatStat::ToBeTreated;
 										}
 									}
 								}

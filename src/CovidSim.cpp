@@ -1426,7 +1426,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Movement restrictions start time", "%lf", (void*) & (P.MoveRestrTimeStartBase), 1, 1, 0)) P.MoveRestrTimeStartBase = USHRT_MAX / P.TimeStepsPerDay;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Impose blanket movement restrictions", "%i", (void*) & (P.DoBlanketMoveRestr), 1, 1, 0)) P.DoBlanketMoveRestr = 0;
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Movement restrictions only once", "%i", (void*) & (P.DoMoveRestrOnceOnly), 1, 1, 0)) P.DoMoveRestrOnceOnly = 0;
-	if (P.DoMoveRestrOnceOnly) P.DoMoveRestrOnceOnly = 4;
+	//if (P.DoMoveRestrOnceOnly) P.DoMoveRestrOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
 	if (P.DoAdUnits)
 	{
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Movement restrictions in administrative units rather than rings", "%i", (void*) & (P.MoveRestrByAdminUnit), 1, 1, 0)) P.MoveRestrByAdminUnit = 0;
@@ -2730,9 +2730,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
 		Mcells[i].treat_trig = Mcells[i].vacc_trig = 0;
-		Mcells[i].vacc = Mcells[i].treat = Mcells[i].placeclose = Mcells[i].socdist = TreatStat::Untreated;
-		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
-			Mcells[i].moverest = Mcells[i].keyworkerproph = 0;
+		Mcells[i].vacc = Mcells[i].treat = Mcells[i].placeclose = Mcells[i].socdist = Mcells[i].moverest = TreatStat::Untreated;
+		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig = Mcells[i].keyworkerproph = 0;
 		Mcells[i].move_start_time = USHRT_MAX - 1;
 		Mcells[i].place_end_time = Mcells[i].move_end_time =
 			Mcells[i].socdist_end_time = Mcells[i].keyworkerproph_end_time = 0;
