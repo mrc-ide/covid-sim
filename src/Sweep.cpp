@@ -1429,55 +1429,56 @@ int TreatSweep(double t)
 	else
 		global_trig = 0;
 
-	///// block loops over places and determines whom to prophylactically treat
+	///// block loops over places (or place groups if P.DoPlaceGroupTreat == 1) and determines whom to prophylactically treat
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
 	{
 		t_TreatEnd = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
 
 #pragma omp parallel for private(f) reduction(+:f1) schedule(static,1) default(none) \
 			shared(P, StateT, Places, Hosts, ts, t_TreatEnd)
-		for (int i = 0; i < P.NumThreads; i++)
-			for (int j = 0; j < P.PlaceTypeNum; j++)
+		for (int Thread = 0; Thread < P.NumThreads; Thread++)
+			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 			{
-				for (int k = 0; k < StateT[i].np_queue[j]; k++)
+				for (int PlaceNumQueueIndex = 0; PlaceNumQueueIndex < StateT[Thread].np_queue[PlaceType]; PlaceNumQueueIndex++) //// loop over all plaes IN QUEUE, not all a places
 				{
-					int l = StateT[i].p_queue[j][k];
+					int PlaceNum = StateT[Thread].p_queue[PlaceType][PlaceNumQueueIndex]; //// note PlaceNum is index of place, not index of place in place queue.
 					if (P.DoPlaceGroupTreat)
 					{
-						f = StateT[i].pg_queue[j][k];
-						for (int m = ((int)Places[j][l].group_start[f]); m < ((int)(Places[j][l].group_start[f] + Places[j][l].group_size[f])); m++)
+						int PlaceGroupIndex = StateT[Thread].pg_queue[PlaceType][PlaceNumQueueIndex];
+						f = PlaceGroupIndex; //// keep this as a flag 
+						for (int PG_member = ((int)Places[PlaceType][PlaceNum].group_start[PlaceGroupIndex]); PG_member < ((int)(Places[PlaceType][PlaceNum].group_start[PlaceGroupIndex] + Places[PlaceType][PlaceNum].group_size[PlaceGroupIndex])); PG_member++) // loop over people in place group.
 						{
-							/*							if((Places[j][l].members[m]<0)||(Places[j][l].members[m]>P.PopSize-1))
-															fprintf(stderr,"\n*** npq=%i gn=%i h=%i m=%i j=%i l=%i f=%i s=%i n=%i ***\n",
-																StateT[i].np_queue[j],
-																Places[j][l].n,
-																Places[j][l].members[m],
-																m,j,l,f,
-																(int) Places[j][l].group_start[f],
-																(int) Places[j][l].group_size[f]);
-														else
+							/*if((Places[PlaceType][PlaceNum].members[PG_member]<0)||(Places[PlaceType][PlaceNum].members[PG_member]>P.PopSize-1))
+								fprintf(stderr,"\n*** npq=%i gn=%i h=%i PG_member=%i PlaceType=%i PlaceNum=%i PlaceGroupIndex=%i s=%i n=%i ***\n",
+									StateT[Thread].np_queue[PlaceType],
+									Places[PlaceType][PlaceNum].n,
+									Places[PlaceType][PlaceNum].members[PG_member],
+									PG_member,PlaceType,PlaceNum,PlaceGroupIndex,
+									(int) Places[PlaceType][PlaceNum].group_start[PlaceGroupIndex],
+									(int) Places[PlaceType][PlaceNum].group_size[PlaceGroupIndex]);
+							else
 							*/
-							if ((!HOST_TO_BE_TREATED(Places[j][l].members[m])) && ((P.TreatPlaceTotalProp[j] == 1) || (ranf_mt(i) < P.TreatPlaceTotalProp[j])))
-								DoProph(Places[j][l].members[m], ts, i);
+							if ((!HOST_TO_BE_TREATED(Places[PlaceType][PlaceNum].members[PG_member])) && ((P.TreatPlaceTotalProp[PlaceType] == 1) || (ranf_mt(Thread) < P.TreatPlaceTotalProp[PlaceType])))
+								DoProph(Places[PlaceType][PlaceNum].members[PG_member], ts, Thread);
 						}
 					}
 					else
 					{
-						if ((Places[j][l].treat) && (!PLACE_TREATED(j, l)))
+						if ((Places[PlaceType][PlaceNum].treat) && (!PLACE_TREATED(PlaceType, PlaceNum)))
 						{
 							f1 = 1;
-							Places[j][l].treat_end_time = t_TreatEnd;
-							for (int m = 0; m < Places[j][l].n; m++)
-								if (!HOST_TO_BE_TREATED(Places[j][l].members[m]))
+							Places[PlaceType][PlaceNum].treat_end_time = t_TreatEnd;
+							for (int PG_member = 0; PG_member < Places[PlaceType][PlaceNum].n; PG_member++)
+								if (!HOST_TO_BE_TREATED(Places[PlaceType][PlaceNum].members[PG_member]))
 								{
-									if ((P.TreatPlaceTotalProp[j] == 1) || (ranf_mt(i) < P.TreatPlaceTotalProp[j]))
-										DoProph(Places[j][l].members[m], ts, i);
+									if ((P.TreatPlaceTotalProp[PlaceType] == 1) || (ranf_mt(Thread) < P.TreatPlaceTotalProp[PlaceType]))
+										DoProph(Places[PlaceType][PlaceNum].members[PG_member], ts, Thread);
 								}
 						}
-						Places[j][l].treat = 0;
+						Places[PlaceType][PlaceNum].treat = 0;
 					}
 				}
-				StateT[i].np_queue[j] = 0;
+				StateT[Thread].np_queue[PlaceType] = 0;
 			}
 	}
 
@@ -1696,7 +1697,6 @@ int TreatSweep(double t)
 					//// **** //// **** //// **** //// **** PLACE CLOSURE
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-
 					///// note that here f2 bool asks whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
 					if (P.DoGlobalTriggers)
 						f2 = (global_trig < P.PlaceCloseCellIncStopThresh);
@@ -1728,7 +1728,6 @@ int TreatSweep(double t)
 										DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], ts);
 						}
 					}
-
 
 					if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[mcellnum].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
 					{
