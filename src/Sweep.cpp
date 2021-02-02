@@ -1525,17 +1525,17 @@ int TreatSweep(double t)
 					//// **** //// **** //// **** //// **** TREATMENT
 					//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-					if ((Mcells[b].treat == 2) && (ts >= Mcells[b].treat_end_time))
+					if ((Mcells[b].treat == TreatStat::Treated) && (ts >= Mcells[b].treat_end_time))
 					{
 						f = 1;
-						Mcells[b].treat = 0;
+						Mcells[b].treat = TreatStat::Untreated;
 					}
-					if ((Mcells[b].treat == 1) && (ts >= Mcells[b].treat_start_time))
+					if ((Mcells[b].treat == TreatStat::ToBeTreated) && (ts >= Mcells[b].treat_start_time))
 					{
 						f = 1;
-						Mcells[b].treat = 2;
-						Mcells[b].treat_trig = 0;
-						Mcells[b].treat_end_time = t_TreatEnd;
+						Mcells[b].treat				= TreatStat::Treated;
+						Mcells[b].treat_trig		= 0;
+						Mcells[b].treat_end_time	= t_TreatEnd;
 						for (int i = 0; i < Mcells[b].n; i++)
 						{
 							int l = Mcells[b].members[i];
@@ -1555,7 +1555,7 @@ int TreatSweep(double t)
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
 						f2 = (Mcells[b].treat_trig >= trig_thresh);
 					}
-					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == 0) && (f2) && (P.TreatRadius2 > 0))
+					if ((t >= P.TreatTimeStart) && (Mcells[b].treat == TreatStat::Untreated) && (f2) && (P.TreatRadius2 > 0))
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
 						Direction j = Direction::Right;
@@ -1578,10 +1578,10 @@ int TreatSweep(double t)
 									if (f4)
 									{
 										f = f2 = 1;
-										if ((Mcells[k].n > 0) && (Mcells[k].treat == 0))
+										if ((Mcells[k].n > 0) && (Mcells[k].treat == TreatStat::Untreated))
 										{
 											Mcells[k].treat_start_time = t_TreatStart;
-											Mcells[k].treat = 1;
+											Mcells[k].treat = TreatStat::ToBeTreated;
 											maxx += Mcells[k].n;
 										}
 									}
@@ -1611,7 +1611,7 @@ int TreatSweep(double t)
 
 
 					//// vaccinates proportion VaccProp of people in microcell (or at least adds them to geovacc_queue).
-					if ((Mcells[b].vacc == 1) && (ts >= Mcells[b].vacc_start_time))
+					if ((Mcells[b].vacc == TreatStat::ToBeTreated) && (ts >= Mcells[b].vacc_start_time))
 					{
 						f = 1;
 						Mcells[b].vacc_trig = 0;
@@ -1627,7 +1627,7 @@ int TreatSweep(double t)
 									DoVaccNoDelay(l,ts);
 								}
 							}
-							Mcells[b].vacc = 2;
+							Mcells[b].vacc = TreatStat::Treated;
 						}
 					}
 					if (P.DoGlobalTriggers)
@@ -1642,7 +1642,7 @@ int TreatSweep(double t)
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[b].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
 						f2 = (Mcells[b].treat_trig >= trig_thresh);
 					}
-					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == 0) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
+					if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[b].vacc == TreatStat::Untreated) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 					{
 						MicroCellPosition min = P.get_micro_cell_position_from_cell_index(b);
 						Direction j = Direction::Right;
@@ -1668,11 +1668,11 @@ int TreatSweep(double t)
 									{
 										f = f2 = 1;
 										if (r < P.VaccMinRadius2)
-											Mcells[k].vacc = 3;
-										else if ((Mcells[k].n > 0) && (Mcells[k].vacc == 0))
+											Mcells[k].vacc = TreatStat::DontTreatAgain;
+										else if ((Mcells[k].n > 0) && (Mcells[k].vacc == TreatStat::Untreated))
 										{
 											Mcells[k].vacc_start_time = t_VacStart;
-											Mcells[k].vacc = 1;
+											Mcells[k].vacc = TreatStat::ToBeTreated;
 										}
 									}
 								}

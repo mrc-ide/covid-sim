@@ -2729,7 +2729,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		int i = (int)(McellLookup[l] - Mcells);
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
 		Mcells[i].treat_end_time = 0;
-		Mcells[i].treat_trig = Mcells[i].vacc_trig = Mcells[i].vacc = Mcells[i].treat = 0;
+		Mcells[i].treat_trig = Mcells[i].vacc_trig = 0;
+		Mcells[i].vacc = Mcells[i].treat = TreatStat::Untreated;
 		Mcells[i].place_trig = Mcells[i].move_trig = Mcells[i].socdist_trig = Mcells[i].keyworkerproph_trig =
 			Mcells[i].placeclose = Mcells[i].moverest = Mcells[i].socdist = Mcells[i].keyworkerproph = 0;
 		Mcells[i].move_start_time = USHRT_MAX - 1;
