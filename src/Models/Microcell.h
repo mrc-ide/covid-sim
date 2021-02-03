@@ -3,6 +3,19 @@
 
 #include "../IndexList.h"
 
+
+enum struct TreatStat { // treatment status
+
+	//// Untreated
+	Untreated = 0,
+	//// Untreated but flagged for treatment
+	ToBeTreated = 1,
+	//// Treated
+	Treated = 2,
+	//// Do not treat again (flag in TreatSweep there only to avoid code blocks being called again).
+	DontTreatAgain = 3,
+};
+
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
  *
@@ -20,10 +33,11 @@ struct Microcell
 
 	int* places[NUM_PLACE_TYPES];
 	unsigned short int np[NUM_PLACE_TYPES];
-	unsigned short int moverest, placeclose, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
+	unsigned short int keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
 	unsigned short int move_start_time, move_end_time;
 	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
-	unsigned short int treat, vacc, treat_trig, vacc_trig;
+	TreatStat moverest, treat, vacc, socdist, placeclose;
+	unsigned short int treat_trig, vacc_trig;
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
 	IndexList* AirportList;

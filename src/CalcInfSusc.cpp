@@ -54,20 +54,20 @@ double CalcPersonInf(int j, unsigned short int ts)
 double CalcHouseSusc(int ai, unsigned short int ts, int infector)
 {
 	return CalcPersonSusc(ai, ts, infector)
-		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistHouseholdEffectCurrent : P.SocDistHouseholdEffectCurrent) : 1.0)
+		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistHouseholdEffectCurrent : P.SocDistHouseholdEffectCurrent) : 1.0)
 		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationHouseEffectiveness : 1.0)
 		* ((Hosts[ai].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 }
 double CalcPlaceSusc(int ai, int k, unsigned short int ts)
 {
 	return		((HOST_QUARANTINED(ai) && (!Hosts[ai].care_home_resident) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantinePlaceEffect[k] : 1.0)
-		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0)
+		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[k] : P.SocDistPlaceEffectCurrent[k]) : 1.0)
 		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0);
 }
 double CalcSpatialSusc(int ai, unsigned short int ts)
 {
 	return	 ((HOST_QUARANTINED(ai) && (!Hosts[ai].care_home_resident) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantineSpatialEffect : 1.0)
-		* ((Mcells[Hosts[ai].mcell].socdist == 2) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0)
+		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0)
 		* ((Hosts[ai].digitalContactTraced == 1) ? P.DCTCaseIsolationEffectiveness : 1.0)
 		* P.RelativeSpatialContactSusc[HOST_AGE_GROUP(ai)];
 }
