@@ -2984,7 +2984,6 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
 }
 
-
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
 {
 	int j, k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
