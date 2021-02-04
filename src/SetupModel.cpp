@@ -692,17 +692,18 @@ void InitTransmissionCoeffs(void)
 				l = Households[Hosts[i].hh].FirstPerson;
 				m = l + Households[Hosts[i].hh].nh;
 
-        // loop over people in households. If household member susceptible (they will be unless already infected in this code block), 
-        // and ensuring person doesn't infect themselves, add to household infections, taking account of their age and whether they're a care home resident, 
-        // i.e. the usual stuff in CalcInfSusc.cpp, but without interventions
-				
-        for (int k = l; k < m; k++)
+				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), 
+				// and ensuring person doesn't infect themselves, add to household infections, taking account of their age and whether they're a care home resident, 
+				// i.e. the usual stuff in CalcInfSusc.cpp, but without interventions
+
+				for (int k = l; k < m; k++)
 				{
 					if ((Hosts[k].is_susceptible()) && (k != i))
 					{
 						s += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(i)] * ((Hosts[k].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 					}
 				}
+				shd += (double)(Households[Hosts[i].hh].nhr - 1); // add to household denominator
 			}
 			// calc spatial infections. Sum over number of days until recovery time, in two parts: before and after symptoms occur, as spatial contact rate differs between these periods.
 			q = (P.LatentToSymptDelay > Hosts[i].recovery_or_death_time * P.TimeStep) ? Hosts[i].recovery_or_death_time * P.TimeStep : P.LatentToSymptDelay;
