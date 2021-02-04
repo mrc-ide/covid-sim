@@ -143,7 +143,8 @@ int main(int argc, char* argv[])
 	P.FitIter = 0;
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
-		if (sep == std::string::npos) {
+		if (sep == std::string::npos)
+		{
 			ERR_CRITICAL("Expected argument value to be in the format '<D>,<S>' where <D> is the "
 							"timestep interval when a snapshot should be saved and <S> is the "
 							"filename in which to save the snapshot");
@@ -170,6 +171,11 @@ int main(int argc, char* argv[])
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
 	P.DoLoadSnapshot = 0;
 
+	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+	//// **** PARSE COMMAND-LINE ARGS
+	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+
+
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
@@ -183,11 +189,13 @@ int main(int argc, char* argv[])
 			I am not going to address here what happens if you specify both /CLP05: and /CLP5:
 	*/
 
-	for (int i = 0; i <= 99; i++) {
+	for (int i = 0; i <= 99; i++)
+	{
 		std::string param = "CLP" + std::to_string(i);
 		std::string description = "Overwrites #" + std::to_string(i) + " wildcard in parameter file";
 		args.add_double_option(param, P.clP[i], description);
-		if (i < 10) {
+		if (i < 10)
+		{
 			param = "CLP0" + std::to_string(i);
 			args.add_double_option(param, P.clP[i], description);
 		}
@@ -671,13 +679,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates by age", "%lf", (void*)P.RelativeSpatialContact, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.RelativeSpatialContact[i] = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i,1,1,0)) i=0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i, 1, 1, 0)) i = 0;
 		if(i)
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
+			for (i = 0; i < NUM_AGE_GROUPS; i++)	P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
 		else
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeSpatialContactSusc[i] =1.0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++)	P.RelativeSpatialContactSusc[i] = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent infectiousness", "%lf", (void*)P.AgeInfectiousness, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.AgeInfectiousness[i] = 1.0;
@@ -730,6 +736,36 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 						P.WAIFW_Matrix[i][j] = 1.0;
 			}
 		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "WAIFW matrix spatial infections only", "%lf", (void*)&P.WAIFW_Matrix_SpatialOnly[0][0], NUM_AGE_GROUPS * NUM_AGE_GROUPS, 1, 0))
+		{
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+					P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+		}
+		else
+		{
+			/* WAIFW matrix needs to be scaled to have max value of 1.
+			1st index of matrix specifies host being infected, second the infector.
+			Overall age variation in infectiousness/contact rates/susceptibility should be factored
+			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
+			t = 0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+					if (P.WAIFW_Matrix_SpatialOnly[i][j] > t) t = P.WAIFW_Matrix_SpatialOnly[i][j];
+			if (t > 0)
+			{
+				for (i = 0; i < NUM_AGE_GROUPS; i++)
+					for (j = 0; j < NUM_AGE_GROUPS; j++)
+						P.WAIFW_Matrix_SpatialOnly[i][j] /= t;
+			}
+			else
+			{
+				for (i = 0; i < NUM_AGE_GROUPS; i++)
+					for (j = 0; j < NUM_AGE_GROUPS; j++)
+						P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+			}
+		}
+
 		P.DoDeath = 0;
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	t += P.AgeInfectiousness[i] * P.PropAgeGroup[0][i];
@@ -5442,7 +5478,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		sumL = maxLL + log(exp(sumL - maxLL) + exp(LL - maxLL));
 	}
 
-	if (run + 1 == P.NumRealisations)
+	if (run + 1 == P.NumRealisations) // at final realisation, output log-likelihood
 	{
 		LL = sumL - log((double)P.NumRealisations);
 		std::string TmpFile = OutFileBase + ".ll.tmp";

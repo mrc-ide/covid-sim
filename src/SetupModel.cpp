@@ -684,7 +684,8 @@ void InitTransmissionCoeffs(void)
 				if (Hosts[i].care_home_resident) s2 *= P.CareHomeResidentHouseholdScaling;
 				s2 *= P.TimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[i].hh].nhr - 1]; 
 				d = 1.0; l = (int)Hosts[i].recovery_or_death_time;
-				for (int k = 0; k < l; k++) { // loop over days adding to force of infection, probability that other household members will be infected.
+				for (int k = 0; k < l; k++) // loop over days adding to force of infection, probability that other household members will be infected.
+				{ 
 					double y = 1.0 - s2 * P.infectiousness[k];
 					d *= ((y < 0) ? 0 : y);
 				}

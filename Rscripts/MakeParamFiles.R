@@ -42,13 +42,13 @@ WAIFW_Matrix 	= POLYMOD_UK$matrix
 ## For now assume that [75,80) = 80+ = 75+. Check this
 WAIFW_Matrix = rbind(WAIFW_Matrix, WAIFW_Matrix[nrow(WAIFW_Matrix),]) # add row to WAIFW_Matrix
 WAIFW_Matrix = cbind(WAIFW_Matrix, WAIFW_Matrix[,ncol(WAIFW_Matrix)]) # add col to WAIFW_Matrix
-dim(WAIFW_Matrix)
-dim(POLYMOD_UK$matrix)
+
 
 #### Write non-US, non-Canada pre-parameter file
 PreParamList = MakePreParamList(
 		
-		WAIFW_Matrix = WAIFW_Matrix,
+		#WAIFW_Matrix 				= WAIFW_Matrix,
+		#WAIFW_Matrix_SpatialOnly 	= WAIFW_Matrix,
 		
 		# Means
 		LatentPeriod 					= AS_Means$LatentPeriod 		, 
