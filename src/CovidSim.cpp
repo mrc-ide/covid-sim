@@ -4344,7 +4344,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	fprintf(stderr, ".");
 	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
+	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
@@ -4361,7 +4361,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 		}
 		for (j = 0; j < MAX_INTERVENTION_TYPES; j++) Cells[i].CurInterv[j] = -1; // turn interventions off in loaded image
 	}
-	for (i = 0; i < P.NMC; i++)
+	for (i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 			Mcells[i].members += CM_offset;
 
@@ -4419,7 +4419,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
+	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
@@ -5099,8 +5099,8 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == TreatStat::Treated) k++;
-	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NMC);
+	for (int i = k = 0; i < P.NumMicrocells; i++) if (Mcells[i].socdist == TreatStat::Treated) k++;
+	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NumMicrocells);
 
 	//update contact number distribution in State
 	for (int i = 0; i < (MAX_CONTACTS + 1); i++)

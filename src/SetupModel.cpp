@@ -179,10 +179,10 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_cells_.width = P.in_degrees_.width / ((double)P.ncw);
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
 	}
-	P.NMC = P.NMCL * P.NMCL * P.NumCells;
+	P.NumMicrocells = P.NMCL * P.NMCL * P.NumCells;
 	P.total_microcells_wide_ = P.ncw * P.NMCL;
 	P.total_microcells_high_ = P.nch * P.NMCL;
-	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
+	fprintf(stderr, "Number of microcells = %i\n", P.NumMicrocells);
 	P.scale.x = P.BitmapScale;
 	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
 	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox.width()) * P.scale.x);
@@ -819,13 +819,13 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 	// allocate memory
 	Cells = (Cell*)Memory::xcalloc(P.NumCells, sizeof(Cell));
-	Mcells = (Microcell*)Memory::xcalloc(P.NMC, sizeof(Microcell));
-	mcell_num = (int*)Memory::xcalloc(P.NMC, sizeof(int));
-	mcell_dens = (double*)Memory::xcalloc(P.NMC, sizeof(double));
-	mcell_country = std::vector<uint16_t>(P.NMC, 1);
-	mcell_adunits = (int*)Memory::xcalloc(P.NMC, sizeof(int));
+	Mcells = (Microcell*)Memory::xcalloc(P.NumMicrocells, sizeof(Microcell));
+	mcell_num = (int*)Memory::xcalloc(P.NumMicrocells, sizeof(int));
+	mcell_dens = (double*)Memory::xcalloc(P.NumMicrocells, sizeof(double));
+	mcell_country = std::vector<uint16_t>(P.NumMicrocells, 1);
+	mcell_adunits = (int*)Memory::xcalloc(P.NumMicrocells, sizeof(int));
 
-	for (j = 0; j < P.NMC; j++)
+	for (j = 0; j < P.NumMicrocells; j++)
 	{
 		Mcells[j].n = 0;
 		mcell_adunits[j] = -1;
@@ -889,7 +889,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				j = (int)floor((x - P.SpatialBoundingBox.bottom_left().x) / P.in_microcells_.width  + 0.1);
 				k = (int)floor((y - P.SpatialBoundingBox.bottom_left().y) / P.in_microcells_.height + 0.1);
 				l = j * P.total_microcells_high_ + k;
-				if (l < P.NMC)
+				if (l < P.NumMicrocells)
 				{
 					mr++;
 					mcell_dens[l] += t;
@@ -922,13 +922,13 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Memory::xfree(BinFileBuf);
 				P.DoBin = 1;
 				P.BinFileLen = 0;
-				for (l = 0; l < P.NMC; l++)
+				for (l = 0; l < P.NumMicrocells; l++)
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
 				BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 				BF = (BinFile*)BinFileBuf;
 				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
 				rn = 0;
-				for (l = 0; l < P.NMC; l++)
+				for (l = 0; l < P.NumMicrocells; l++)
 					if (mcell_adunits[l] >= 0)
 					{
 						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().x; //x
@@ -954,7 +954,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Memory::xfree(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
 		maxd = 0;
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NumMicrocells; i++)
 		{
 			if (mcell_num[i] > 0)
 			{
@@ -971,11 +971,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	else
 	{
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NumMicrocells; i++)
 		{
 			mcell_dens[i] = 1.0;
 		}
-		maxd = ((double)P.NMC);
+		maxd = ((double)P.NumMicrocells);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
 	if ((P.DoAdUnits) && !reg_demog_file.empty())
@@ -1085,7 +1085,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for (int i = 0; i < P.NumAdunits; i++)
 			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
 		maxd = 0;
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NumMicrocells; i++)
 		{
 			if (mcell_num[i] > 0)
             {
@@ -1102,7 +1102,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
 	}
 	t = 1.0;
-	for (int i = m = 0; i < (P.NMC - 1); i++)
+	for (int i = m = 0; i < (P.NumMicrocells - 1); i++)
 	{
 		s = mcell_dens[i] / maxd / t;
 		if (s > 1.0) s = 1.0;
@@ -1114,11 +1114,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
 	}
-	Mcells[P.NMC - 1].n = P.PopSize - m;
-	if (Mcells[P.NMC - 1].n > 0)
+	Mcells[P.NumMicrocells - 1].n = P.PopSize - m;
+	if (Mcells[P.NumMicrocells - 1].n > 0)
 	{
 		P.NMCP++;
-		AdUnits[mcell_adunits[P.NMC - 1]].n += Mcells[P.NMC - 1].n;
+		AdUnits[mcell_adunits[P.NumMicrocells - 1]].n += Mcells[P.NumMicrocells - 1].n;
 	}
 
 	Memory::xfree(mcell_dens);
@@ -1385,7 +1385,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	fprintf(stderr, "Checking cells...\n");
 	maxd = ((double)P.PopSize);
 	last_i = 0;
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0) last_i = i;
 	fprintf(stderr, "Allocating place/age groups...\n");
 	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
@@ -1433,7 +1433,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			for (int i = 0; i < m; i++)
 				Places[j][i].AvailByAge = (unsigned short int*)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
 			P.Nplace[j] = 0;
-			for (int i = 0; i < P.NMC; i++) Mcells[i].np[j] = 0;
+			for (int i = 0; i < P.NumMicrocells; i++) Mcells[i].np[j] = 0;
 		}
 		mr = 0;
 		while (!feof(dat))
@@ -1458,7 +1458,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 		fclose(dat);
 		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
-		for (int i = 0; i < P.NMC; i++)
+		for (int i = 0; i < P.NumMicrocells; i++)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
 				{
@@ -1500,7 +1500,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Places[j2] = (Place*)Memory::xcalloc(P.Nplace[j2], sizeof(Place));
 				t = 1.0;
 				int k;
-				for (int i = m = k = 0; i < P.NMC; i++)
+				for (int i = m = k = 0; i < P.NumMicrocells; i++)
 				{
 					s = ((double) Mcells[i].n) / maxd / t;
 					if (s > 1.0) s = 1.0;
@@ -1539,7 +1539,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 						PropPlaces[k][l] = 1.0;
 				}
 /*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
-			for (i =0; i < P.NMC; i++)
+			for (i =0; i < P.NumMicrocells; i++)
 				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
 					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
 */		fprintf(stderr, "Places assigned\n");
@@ -1623,7 +1623,7 @@ void SetupAirports(void)
 	base = (IndexList*)Memory::xcalloc(_I64(P.NMCP) * NNA, sizeof(IndexList));
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 		{
 			Mcells[i].AirportList = cur;
@@ -1633,7 +1633,7 @@ void SetupAirports(void)
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(k,l,x,y,t,tmin) schedule(static,10000) default(none) \
 		shared(P, Airports, Mcells, stderr_shared)
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
@@ -1678,7 +1678,7 @@ void SetupAirports(void)
 	}
 #pragma omp parallel for private(k,l,t,tmin) schedule(static,10000) default(none) \
 		shared(P, Airports, Mcells, stderr_shared)
-	for (int i = 0; i < P.NMC; i++)
+	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 		{
 			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);

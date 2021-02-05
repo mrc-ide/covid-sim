@@ -44,7 +44,7 @@ struct Param
 	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
 	void *clP_ptr[100][MAX_CLP_COPIES];
 	int NumCells; // Number of cells
-	int NMC; // Number of microcells
+	int NumMicrocells; // Number of microcells
 	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
 	int NCP; /**< Number of populated cells  */
 	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
