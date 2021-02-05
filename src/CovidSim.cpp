@@ -114,7 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-int ns, DoInitUpdateProbs, InterruptRun = 0;
+int OutputTimeStepNumber; //// output timestep index. Global variable used in InitModel and RunModel
+int DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 /* int NumPC,NumPCD; */
@@ -480,10 +481,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.OutputTimeStep), 1, 1, 0);
 		if (P.ModelTimeStep > P.OutputTimeStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
 		t = ceil(P.OutputTimeStep / P.ModelTimeStep - 1e-6);
-		P.NumOutputTimeStepsPerModelTimeStep = (int)t;
+		P.NumModelTimeStepsPerOutputTimeStep = (int)t;
 		P.ModelTimeStep = P.OutputTimeStep / t;
 		P.TimeStepsPerDay = ceil(1.0 / P.ModelTimeStep - 1e-6);
-		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.ModelTimeStep, P.OutputTimeStep, P.NumOutputTimeStepsPerModelTimeStep, P.TimeStepsPerDay);
+		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.ModelTimeStep, P.OutputTimeStep, P.NumModelTimeStepsPerOutputTimeStep, P.TimeStepsPerDay);
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SimulationDuration), 1, 1, 0);
 		P.NumOutputTimeSteps = 1 + (int)ceil(P.SimulationDuration / P.OutputTimeStep);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
@@ -2551,7 +2552,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			bmInfected[p] = bmRecovered[p] = bmTreated[p] = 0;
 		}
 	}
-	ns = 0;
+	OutputTimeStepNumber = 0;
 	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
 	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDetectedCases = State.DCT = State.cumDCT
@@ -3022,43 +3023,12 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
 {
-	int j, k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
 	double t, cI, lcI, t2;
-	unsigned short int ts;
+	unsigned short int TimeStep; //// Timestep in simulation time.
 	int continueEvents = 1;
 
-
-/*	fprintf(stderr, "Checking consistency of initial state...\n");
-	int i, i2, k2;
-	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
-	{
-		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-		if (Hosts[i].inf == 0) j++;
-		if ((Hosts[i].pcell < P.NumCells) && (Hosts[i].pcell >= 0))
-		{
-			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
-			{
-				k++;
-				for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
-					fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-				if (!fs) NumSeedingInfections++;
-			}
-			else
-			{
-				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-			}
-			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
-			{
-				k2++;
-			}
-		}
-		else
-			fs2++;
-	}
-	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
-*/
 	InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck
 	lcI = 1;
 	if (!snapshot_load_file.empty())
@@ -3074,26 +3044,27 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	fs = 1;
 	fs2 = 0;
 
-	for (ns = 1; ((ns < P.NumOutputTimeSteps) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
+	for (OutputTimeStepNumber = 1; ((OutputTimeStepNumber < P.NumOutputTimeSteps) && (!InterruptRun)); OutputTimeStepNumber++) //&&(continueEvents) <-removed this. OutputTimeStepNumber starts from 1 here as is zero in InitModel
 	{
+		RecordSample(t, OutputTimeStepNumber - 1, output_file_base);
+		CalibrationThresholdCheck(t, OutputTimeStepNumber - 1);
 
-		RecordSample(t, ns - 1, output_file_base);
-		CalibrationThresholdCheck(t, ns - 1);
-
+		/// print various quantities to console
 		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
 			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
+
 		if (!InterruptRun)
 		{
 			//Only run to a certain number of infections: ggilani 28/10/14
 			if (P.LimitNumInfections) continueEvents = (State.cumI < P.MaxNumInfections);
 
-			for (j = 0; ((j < P.NumOutputTimeStepsPerModelTimeStep) && (!InterruptRun) && (continueEvents)); j++)
+			for (int ModelTimeStep = 0; ((ModelTimeStep < P.NumModelTimeStepsPerOutputTimeStep) && (!InterruptRun) && (continueEvents)); ModelTimeStep++) // local (int)ModelTimeStep not used, but t is updated by P.ModelTimeStep.
 			{
-				ts = (unsigned short int) (P.TimeStepsPerDay * t);
+				TimeStep = (unsigned short int) (P.TimeStepsPerDay * t);
 
 				//if we are to reset random numbers after an intervention event, specific time
 				if (P.ResetSeedsPostIntervention)
-					if ((P.ResetSeedsFlag == 0) && (ts >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
+					if ((P.ResetSeedsFlag == 0) && (TimeStep >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
 					{
 						setall(&P.nextRunSeed1, &P.nextRunSeed2);
 						P.ResetSeedsFlag = 1;
@@ -3127,7 +3098,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 								{
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
 								} while (Hosts[l].is_dead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
-								DoFalseCase(l, t, ts, 0);
+								DoFalseCase(l, t, TimeStep, 0);
 							}
 						}
 					}
@@ -3178,39 +3149,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		for (t2 = t; t2 <= t + MAX_TRAVEL_TIME; t2 += P.ModelTimeStep)
 			TravelReturnSweep(t2);
 	}
-/*	if (!InterruptRun)
-	{
-		fprintf(stderr, "Checking consistency of final state...\n");
-		int i, i2, k2;
-		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
-		{
-			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-			if (Hosts[i].inf == 0) j++;
-			if ((Hosts[i].pcell < P.NumCells) && (Hosts[i].pcell >= 0))
-			{
-				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
-				{
-					k++;
-					for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
-						fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-					if (!fs) NumSeedingInfections++;
-				}
-				else
-				{
-					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-				}
-				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
-				{
-					k2++;
-				}
-			}
-			else
-				fs2++;
-		}
-		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
-	}
-*/
+
 	if(!InterruptRun) RecordInfTypes();
 	return (InterruptRun);
 }

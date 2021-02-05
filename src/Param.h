@@ -37,7 +37,7 @@ struct Param
 	double SimulationDuration; /**< The number of days to run for */
 	double ModelTimeStep; /**< The length of a time step, in days */
 	double OutputTimeStep; /**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
-	int NumOutputTimeStepsPerModelTimeStep; /**< Number of time steps between samples. NumOutputTimeStepsPerModelTimeStep = OutputTimeStep / ModelTimeStep */
+	int NumModelTimeStepsPerOutputTimeStep; /**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
 	int NumOutputTimeSteps; /**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
 
 	CovidSim::TBD1::KernelLookup KernelLookup;
