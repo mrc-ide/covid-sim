@@ -309,7 +309,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	fprintf(stderr, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
-	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
 
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].keyworker = Hosts[i].care_home_resident = 0;
 	double nstaff = 0, nres = 0;
@@ -825,12 +825,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	mcell_country = std::vector<uint16_t>(P.NumMicrocells, 1);
 	mcell_adunits = (int*)Memory::xcalloc(P.NumMicrocells, sizeof(int));
 
-	for (j = 0; j < P.NumMicrocells; j++)
+	for (int mcell = 0; mcell < P.NumMicrocells; mcell++)
 	{
-		Mcells[j].n = 0;
-		mcell_adunits[j] = -1;
-		mcell_dens[j] = 0;
-		mcell_num[j] = 0;
+		Mcells[mcell].n = 0;
+		mcell_adunits[mcell] = -1;
+		mcell_dens[mcell] = 0;
+		mcell_num[mcell] = 0;
 	}
 	if (P.DoAdUnits)
 		for (int i = 0; i < MAX_ADUNITS; i++)
@@ -1109,7 +1109,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
 		t -= mcell_dens[i] / maxd;
 		if (Mcells[i].n > 0) {
-			P.NMCP++;
+			P.NumPopulatedMicrocells++;
 			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
 		}
@@ -1117,7 +1117,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	Mcells[P.NumMicrocells - 1].n = P.PopSize - m;
 	if (Mcells[P.NumMicrocells - 1].n > 0)
 	{
-		P.NMCP++;
+		P.NumPopulatedMicrocells++;
 		AdUnits[mcell_adunits[P.NumMicrocells - 1]].n += Mcells[P.NumMicrocells - 1].n;
 	}
 
@@ -1126,9 +1126,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	Memory::xfree(mcell_adunits);
 	t = 0.0;
 
-	McellLookup = (Microcell **)Memory::xcalloc(P.NMCP, sizeof(Microcell*));
+	McellLookup = (Microcell **)Memory::xcalloc(P.NumPopulatedMicrocells, sizeof(Microcell*));
 	State.CellMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
-	P.NCP = 0;
+	P.NumPopulatedCells = 0;
 	for (int i = i2 = j2 = 0; i < P.NumCells; i++)
 	{
 		Cells[i].n = 0;
@@ -1147,14 +1147,14 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					j2 += Mcells[j].n;
 				}
 			}
-		if (Cells[i].n > 0) P.NCP++;
+		if (Cells[i].n > 0) P.NumPopulatedCells++;
 	}
 	fprintf(stderr, "Number of hosts assigned = %i\n", j2);
 	if (!P.DoAdUnits) P.AdunitLevel1Lookup[0] = 0;
-	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NCP);
-	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NMCP);
+	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NumPopulatedCells);
+	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NumPopulatedMicrocells);
 
-	CellLookup = (Cell **)Memory::xcalloc(P.NCP, sizeof(Cell*));
+	CellLookup = (Cell **)Memory::xcalloc(P.NumPopulatedCells, sizeof(Cell*));
 	State.CellSuscMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
 	int susceptibleAccumulator = 0;
 	i2 = 0;
@@ -1165,20 +1165,20 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			Cells[j].susceptible = State.CellSuscMemberArray + susceptibleAccumulator;
 			susceptibleAccumulator += Cells[j].n;
 		}
-	if (i2 > P.NCP) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NCP, i2);
+	if (i2 > P.NumPopulatedCells) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NumPopulatedCells, i2);
 	i2 = 0;
 
 	Hosts = (Person*)Memory::xcalloc(P.PopSize, sizeof(Person));
 	HostsQuarantine = std::vector<PersonQuarantine>(P.PopSize, PersonQuarantine());
 	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.NumPopulatedCells; i++)
 	{
 		Cell *c = CellLookup[i];
 		if (c->n > 0)
 		{
 			c->InvCDF = (int*)Memory::xcalloc(1025, sizeof(int));
-			c->max_trans = (float*)Memory::xcalloc(P.NCP, sizeof(float));
-			c->cum_trans = (float*)Memory::xcalloc(P.NCP, sizeof(float));
+			c->max_trans = (float*)Memory::xcalloc(P.NumPopulatedCells, sizeof(float));
+			c->cum_trans = (float*)Memory::xcalloc(P.NumPopulatedCells, sizeof(float));
 		}
 	}
 	for (int i = 0; i < P.NumCells; i++)
@@ -1190,7 +1190,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NH = 0;
 	int numberOfPeople = 0;
-	for (j2 = 0; j2 < P.NMCP; j2++)
+	for (j2 = 0; j2 < P.NumPopulatedMicrocells; j2++)
 	{
 		j = (int)(McellLookup[j2] - Mcells);
 		l = ((j / P.total_microcells_high_) / P.NMCL) * P.nch + ((j % P.total_microcells_high_) / P.NMCL);
@@ -1228,7 +1228,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
 		shared(P, Households, Hosts, Mcells, McellLookup, AdUnits, reg_demog_file, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
-		for (j2 = tn; j2 < P.NMCP; j2 += P.NumThreads)
+		for (j2 = tn; j2 < P.NumPopulatedMicrocells; j2 += P.NumThreads)
 		{
 			j = (int)(McellLookup[j2] - Mcells);
 			x = (double)(j / P.total_microcells_high_);
@@ -1618,9 +1618,9 @@ void SetupAirports(void)
 
 	P.Kernel = P.AirportKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
-	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
-	Airports[0].DestMcells = (IndexList*)Memory::xcalloc(_I64(P.NMCP) * NNA, sizeof(IndexList));
-	base = (IndexList*)Memory::xcalloc(_I64(P.NMCP) * NNA, sizeof(IndexList));
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
+	Airports[0].DestMcells = (IndexList*)Memory::xcalloc(_I64(P.NumPopulatedMicrocells) * NNA, sizeof(IndexList));
+	base = (IndexList*)Memory::xcalloc(_I64(P.NumPopulatedMicrocells) * NNA, sizeof(IndexList));
 	for (int i = 0; i < P.Nairports; i++) Airports[i].num_mcell = 0;
 	cur = base;
 	for (int i = 0; i < P.NumMicrocells; i++)
@@ -1777,7 +1777,7 @@ void SetupAirports(void)
 	for (int i = 0; i < P.Nplace[P.HotelPlaceType]; i++) Places[P.HotelPlaceType][i].n = 0;
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
-	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
+	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
 	fprintf(stderr, "\nAirport initialisation completed successfully\n");
 }
 
@@ -1987,7 +1987,7 @@ void AssignPeopleToPlaces()
 			if (tp != P.HotelPlaceType)
 			{
 				cnt = 0;
-				for (a = 0; a < P.NCP; a++)
+				for (a = 0; a < P.NumPopulatedCells; a++)
 				{
 					Cell *c = CellLookup[a];
 					c->n = 0;
@@ -2011,7 +2011,7 @@ void AssignPeopleToPlaces()
 				}
 				PeopleArray = (int*)Memory::xcalloc(cnt, sizeof(int));
 				j2 = 0;
-				for (a = 0; a < P.NCP; a++)
+				for (a = 0; a < P.NumPopulatedCells; a++)
 				{
 					Cell *c = CellLookup[a];
 					for (j = 0; j < c->n; j++)
@@ -2206,7 +2206,7 @@ void AssignPeopleToPlaces()
 				P.Kernel.p3_ = P.PlaceTypeKernelP3[tp];
 				P.Kernel.p4_ = P.PlaceTypeKernelP4[tp];
 				P.KernelLookup.init(1.0, P.Kernel);
-				CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NCP);
+				CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
 				UpdateProbs(1);
 				ca = 0;
 				fprintf(stderr, "Allocating people to place type %i\n", tp);

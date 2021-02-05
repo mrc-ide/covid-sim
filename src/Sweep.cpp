@@ -332,7 +332,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 #pragma omp parallel for private(n,f,f2,s,s2,s3,s4,s5,s6,cq,ci,s3_scaled,s4_scaled) schedule(static,1) default(none) \
 		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, hbeta, sbeta, seasonality, ts, fp, bm, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
-		for (int b = tn; b < P.NCP; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
+		for (int b = tn; b < P.NumPopulatedCells; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
 			Cell* c = CellLookup[b]; // select Cell given by index b
 			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
@@ -994,7 +994,7 @@ void IncubRecoverySweep(double t)
 
 #pragma omp parallel for schedule(static,1) default(none) shared(t, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
-		for (int b = tn; b < P.NCP; b += P.NumThreads)	//// loop/step over populated cells
+		for (int b = tn; b < P.NumPopulatedCells; b += P.NumThreads)	//// loop/step over populated cells
 		{
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
@@ -1511,7 +1511,7 @@ int TreatSweep(double t)
 #pragma omp parallel for private(f2,f3,f4,r) reduction(+:TreatFlag) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int bs = tn; bs < P.NMCP; bs += P.NumThreads) //// loop over populated microcells
+			for (int bs = tn; bs < P.NumPopulatedMicrocells; bs += P.NumThreads) //// loop over populated microcells
 			{
 				int mcellnum = (int)(McellLookup[bs] - Mcells); //// microcell number
 				int adi = (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
