@@ -115,7 +115,8 @@ int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
 int OutputTimeStepNumber; //// output timestep index. Global variable used in InitModel and RunModel
-int DoInitUpdateProbs, InterruptRun = 0;
+int DoInitUpdateProbs;
+int InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck 
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 /* int NumPC,NumPCD; */
@@ -3023,14 +3024,21 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
 {
-	int k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
-	double ir; // infection import rate?;
-	double CurrSimTime, cI, lcI, t2;
+	//// **** Structure of function is as follows. For each timestep: 
+		// i) Seed Infections with SeedInfection function
+		// ii) Have infected people infect other people via InfectSweep function
+		// iii) Move people along their disease progression via IncubRecoverySweep function
+		// iv) Digitially contact trace them with DigitalContactTracingSweep function
+		// v) Treat infected people with TreatSweep function
+		// Calculate/Record Model output if timestep is an output timestep. 
+
+	int KeepRunning = 1, IsEpidemicStillGoing = 0, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	double InfectionImportRate; // infection import rate?;
+	double CurrSimTime, ProportionSusceptible = 1, PreviousProportionSusceptible = 1, t2;
 	unsigned short int CurrTimeStep; //// Timestep in simulation time.
 	int continueEvents = 1;
 
 	InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck
-	lcI = 1;
 	if (snapshot_load_file.empty())
 	{
 		CurrSimTime = 0;
@@ -3041,10 +3049,8 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
 		CurrSimTime = ((double)P.ts_age) * P.ModelTimeStep;
 	}
-	fs = 1;
-	fs2 = 0;
 
-	for (OutputTimeStepNumber = 1; ((OutputTimeStepNumber < P.NumOutputTimeSteps) && (!InterruptRun)); OutputTimeStepNumber++) //&&(continueEvents) <-removed this. OutputTimeStepNumber starts from 1 here as is zero in InitModel
+	for (OutputTimeStepNumber = 1; ((OutputTimeStepNumber < P.NumOutputTimeSteps) && (!InterruptRun)); OutputTimeStepNumber++) // OutputTimeStepNumber starts from 1 here as is zero in InitModel
 	{
 		RecordSample				(CurrSimTime, OutputTimeStepNumber - 1, output_file_base);
 		CalibrationThresholdCheck	(CurrSimTime, OutputTimeStepNumber - 1);
@@ -3070,64 +3076,84 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 						P.ResetSeedsFlag = 1;
 					}
 
-				if (fs)
+				if (KeepRunning)
 				{
 					if (P.DoAirports) TravelDepartSweep(CurrSimTime);
-					k = (int)CurrSimTime;
+
+					// calculate importation rate (if appropriate)
 					if (P.DurImportTimeProfile > 0)
 					{
-						if (k < P.DurImportTimeProfile)
-							ir = P.ImportInfectionTimeProfile[k] * ((CurrSimTime > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
+						if ((int)CurrSimTime < P.DurImportTimeProfile)
+							InfectionImportRate = P.ImportInfectionTimeProfile[(int)CurrSimTime] * ((CurrSimTime > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
 						else
-							ir = 0;
+							InfectionImportRate = 0;
 					}
-					else	ir = (CurrSimTime > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
-					if (ir > 0) //// if infection import rate > 0, seed some infections
+					else	InfectionImportRate = (CurrSimTime > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
+
+					// Calculated number of seeding infections (and seed infections).
+					if (InfectionImportRate > 0) //// if infection import rate > 0, seed some infections
 					{
-						for (k = NumSeedingInfections = 0; k < P.NumSeedLocations; k++) NumSeedingInfections += (NumSeedingInfections_byLocation[k] = (int)ignpoi(P.ModelTimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
-						if (NumSeedingInfections > 0)		SeedInfection(CurrSimTime, NumSeedingInfections_byLocation, 1, run);
+						for (int SeedLoc = NumSeedingInfections = 0; SeedLoc < P.NumSeedLocations; SeedLoc++)
+						{
+							// sample number imported infections in this location from from Poisson distribution.
+							NumSeedingInfections_byLocation[SeedLoc] = (int)ignpoi(P.ModelTimeStep * InfectionImportRate * P.InitialInfectionsAdminUnitWeight[SeedLoc] * P.SeedingScaling); 
+							// Add to total
+							NumSeedingInfections += NumSeedingInfections_byLocation[SeedLoc];
+						}
+						// ** // ** SeedInfection
+						if (NumSeedingInfections > 0)	SeedInfection(CurrSimTime, NumSeedingInfections_byLocation, 1, run);
 					}
+
 					if (P.FalsePositivePerCapitaIncidence > 0)
 					{
 						NumSeedingInfections = (int)ignpoi(P.ModelTimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
+
 						if (NumSeedingInfections > 0)
 						{
-							for (k = 0; k < NumSeedingInfections; k++)
+							int Person = 0; 
+							for (int SeedLoc = 0; SeedLoc < NumSeedingInfections; SeedLoc++)
 							{
 								do
 								{
-									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
-								} while (Hosts[l].is_dead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
-								DoFalseCase(l, CurrSimTime, CurrTimeStep, 0);
+									Person = (int)(((double)P.PopSize) * ranf()); //// choose person lPerson randomly from entire population. (but change person if they're dead or not a false positive)
+								} while (Hosts[Person].is_dead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(Person)]));
+								DoFalseCase(Person, CurrSimTime, CurrTimeStep, 0);
 							}
 						}
 					}
-					InfectSweep(CurrSimTime, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
-					//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If CurrSimTime is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
+
+					// ** // ** Infected Sweep: loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
+					InfectSweep(CurrSimTime, run);  //
+					// ** // ** IncubRecoverySweep: loops over all infecteds (either latent or infectious). If CurrSimTime is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also adds them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
 					if (!P.DoSI) IncubRecoverySweep(CurrSimTime);
-					// If doing new contact tracing, update numbers of people under contact tracing after each time step
+					// ** // ** DigitalContactTracingSweep: If doing new contact tracing, update numbers of people under contact tracing after each time step
+					if (P.DoDigitalContactTracing)
+						DigitalContactTracingSweep(CurrSimTime);
 
-					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(CurrSimTime);
+					IsEpidemicStillGoing = ((P.DoDeath) || (State.L + State.I > 0) || (InfectionImportRate > 0) || (P.FalsePositivePerCapitaIncidence > 0));
 
-					fs2 = ((P.DoDeath) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));
-
-					///// TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
-					if (!TreatSweep(CurrSimTime))
-						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0))
-							if ((ir == 0) && (((int)CurrSimTime) > P.DurImportTimeProfile)) fs = 0;
+					// ** // ** TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
+					if (!TreatSweep(CurrSimTime)) // TreatSweep will return zero if no treatments are used at CurrSimTime
+						if ((!IsEpidemicStillGoing) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) // i.e. if no more infections and no false positives
+							if ((InfectionImportRate == 0) && (((int)CurrSimTime) > P.DurImportTimeProfile)) KeepRunning = 0;
 
 					if (P.DoAirports) TravelReturnSweep(CurrSimTime);
 					UpdateHostClosure();
 				}
 				CurrSimTime += P.ModelTimeStep;
+
 				if (P.DoDeath) P.ts_age++;
+				// save snapshot (possibly)
 				if (!snapshot_save_file.empty() && (CurrSimTime <= P.SnapshotSaveTime) && (CurrSimTime + P.ModelTimeStep > P.SnapshotSaveTime)) SaveSnapshot(snapshot_save_file);
+				// Add to Maximum number of treatment courses
 				if (CurrSimTime > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.ModelTimeStep * P.TreatNewCoursesRate;
+				// Add to Maximum number of vaccine courses
 				if ((CurrSimTime > P.VaccNewCoursesStartTime) && (CurrSimTime < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.ModelTimeStep * P.VaccNewCoursesRate;
-				cI = ((double)(State.S)) / ((double)P.PopSize);
-				if ((lcI - cI) > 0.2)
+
+				ProportionSusceptible = ((double)(State.S)) / ((double)P.PopSize);
+				if ((PreviousProportionSusceptible - ProportionSusceptible) > 0.2)
 				{
-					lcI = cI;
+					PreviousProportionSusceptible = ProportionSusceptible;
 					UpdateProbs(0);
 					DoInitUpdateProbs = 1;
 				}
@@ -3137,10 +3163,9 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	if (!InterruptRun) RecordSample(CurrSimTime, P.NumOutputTimeSteps - 1, output_file_base);
 	fprintf(stderr, "\nEnd of run\n");
 	t2 = CurrSimTime + P.SimulationDuration;
-//	if(!InterruptRun)
-	while (fs)
+	while (KeepRunning)
 	{
-		fs = TreatSweep(t2);
+		KeepRunning = TreatSweep(t2);
 		t2 += P.OutputTimeStep;
 	}
 	//	fprintf(stderr,"End RunModel\n");

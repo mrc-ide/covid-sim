@@ -279,7 +279,7 @@ void TravelDepartSweep(double t)
 	}
 }
 
-void InfectSweep(double t, int run) //added run number as argument in order to record it in event log
+void InfectSweep(double t, int run) // added run number as argument in order to record it in event log
 {
 	//// This function takes the day number (t) and run number (run) as inputs. It loops over infected people, and decides whom to infect. Structure is 1) #pragma loop over all cells then 1a) infectious people, which chooses who they will infect, adds them to a queue
 	//// Next 2) #pragma loop infects those people from queue (using DoInfect function). This is to avoid race conditions.
@@ -2000,9 +2000,7 @@ int TreatSweep(double t)
 		}
 	}
 
-
 	TreatFlag += TreatFlag1;
-
 	return (TreatFlag > 0);
 }
 
