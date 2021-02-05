@@ -26,7 +26,7 @@ enum struct BitmapFormats
 struct Param
 {
 	int PopSize; /**< Population size */
-	int NH; // Number of households
+	int NumHouseholds; // Number of households
 	int NumRealisations; /**< Number of Realisations */
 	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;

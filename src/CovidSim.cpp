@@ -4320,7 +4320,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	}
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
 	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
@@ -4340,7 +4340,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 
 	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, ".");
@@ -4389,7 +4389,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4415,7 +4415,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, "## %i\n", i++);

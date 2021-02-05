@@ -420,7 +420,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				shared(P, Households, Hosts)
 			for (int tn = 0; tn < P.NumThreads; tn++)
 			{
-				for (int i = tn; i < P.NH; i += P.NumThreads)
+				for (int i = tn; i < P.NumHouseholds; i += P.NumThreads)
 				{
 					if (ranf_mt(tn) < P.PropPopUsingDigitalContactTracing)
 					{
@@ -446,7 +446,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 			P.NDigitalContactUsers = l;
 			P.NDigitalHouseholdUsers = m;
-			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NH);
+			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NumHouseholds);
 			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
@@ -493,7 +493,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
 	{
-		for (int i = 0; i < P.NH; i++)
+		for (int i = 0; i < P.NumHouseholds; i++)
 		{
 			l = Households[i].FirstPerson;
 			m = l + Households[i].nh;
@@ -1188,7 +1188,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	fprintf(stderr, "Cells assigned\n");
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
-	P.NH = 0;
+	P.NumHouseholds = 0;
 	int numberOfPeople = 0;
 	for (j2 = 0; j2 < P.NumPopulatedMicrocells; j2++)
 	{
@@ -1213,14 +1213,14 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Cells[l].members[Cells[l].cumTC++] = numberOfPeople + i2;
 				Hosts[numberOfPeople + i2].pcell = l;
 				Hosts[numberOfPeople + i2].mcell = j;
-				Hosts[numberOfPeople + i2].hh = P.NH;
+				Hosts[numberOfPeople + i2].hh = P.NumHouseholds;
 			}
-			P.NH++;
+			P.NumHouseholds++;
 			numberOfPeople += m;
 			k += m;
 		}
 	}
-	Households = (Household*)Memory::xcalloc(P.NH, sizeof(Household));
+	Households = (Household*)Memory::xcalloc(P.NumHouseholds, sizeof(Household));
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
 	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
 
