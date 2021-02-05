@@ -5381,7 +5381,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				{
 					double m = Data[row][col]; // numerator
 					double N = Data[row][col + 1]; // denominator
-					double ModelValue;
+					double ModelValue = 0.0;
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
 						double prob_seroconvert = P.SeroConvMaxSens * (1.0 - 0.5 * ((exp(-((double)(_I64(day) - k)) * P.SeroConvP1) + 1.0) * exp(-((double)(_I64(day) - k)) * P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
