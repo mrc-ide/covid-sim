@@ -25,7 +25,7 @@ enum struct TreatStat { // treatment status
  */
 struct Microcell
 {
-	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
+	/* Note use of short int here limits max run time to USHRT_MAX*ModelTimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
 

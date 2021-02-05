@@ -28,7 +28,7 @@ void TravelReturnSweep(double t)
 	// Convince static analysers that values are set correctly:
 	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
-	if (floor(1 + t + P.TimeStep) != floor(1 + t))
+	if (floor(1 + t + P.ModelTimeStep) != floor(1 + t))
 	{
 		nr = ner = 0;
 		int floorOfTime = (int)floor(t);
@@ -81,7 +81,7 @@ void TravelDepartSweep(double t)
 	// Convince static analysers that values are set correctly:
 	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
-	if (floor(1 + t - P.TimeStep) != floor(1 + t))
+	if (floor(1 + t - P.ModelTimeStep) != floor(1 + t))
 	{
 		bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 		mps = 2 * ((int)P.PlaceTypeMeanSize[P.HotelPlaceType]) - P.NumThreads - 1;
@@ -316,7 +316,7 @@ void InfectSweep(double t, int run) //added run number as argument in order to r
 	// ts = the timestep number of the start of the current day
 	ts = (unsigned short int) (P.TimeStepsPerDay * t); 
 	// fp = false positive
-	fp = P.TimeStep / (1 - P.FalsePositiveRate);
+	fp = P.ModelTimeStep / (1 - P.FalsePositiveRate);
 	// sbeta seasonality beta
 	sbeta = seasonality * fp * P.LocalBeta;
 	
@@ -966,7 +966,7 @@ void IncubRecoverySweep(double t)
 		for (int i = 0; i < P.NumHolidays; i++)
 		{
 			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
-			if ((t + P.TimeStep >= ht) && (t < ht))
+			if ((t + P.ModelTimeStep >= ht) && (t < ht))
 			{
 //				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
@@ -1007,8 +1007,8 @@ void IncubRecoverySweep(double t)
 				Person* si = Hosts + ci;		//// person
 
 				unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
-				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep))*/
-				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// time that person si/ci becomes case (symptomatic)...
+				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep))*/
+				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep)); //// time that person si/ci becomes case (symptomatic)...
 				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
 					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
 

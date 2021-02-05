@@ -32,8 +32,14 @@ struct Param
 	int NRactual;
 	int NRactE;
 	int NRactNE;
-	int UpdatesPerSample; /**< Number of time steps between samples */
-	int NumSamples; /**< Total number of samples that will be made */
+
+	// Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep).
+	double SimulationDuration; /**< The number of days to run for */
+	double ModelTimeStep; /**< The length of a time step, in days */
+	double OutputTimeStep; /**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
+	int NumOutputTimeStepsPerModelTimeStep; /**< Number of time steps between samples. NumOutputTimeStepsPerModelTimeStep = OutputTimeStep / ModelTimeStep */
+	int NumOutputTimeSteps; /**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
+
 	CovidSim::TBD1::KernelLookup KernelLookup;
 	CovidSim::TBD1::KernelStruct Kernel;
 	CovidSim::TBD1::KernelStruct MoveKernel;
@@ -87,9 +93,6 @@ struct Param
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 
-	double TimeStep; // The length of a time step, in days
-	double SampleTime; // The number of days to run for
-	double SampleStep; // The length of a sampling step, in days
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	
