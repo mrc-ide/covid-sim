@@ -2079,20 +2079,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.usCaseIsolationDuration = ((unsigned short int) (P.CaseIsolationDuration * P.TimeStepsPerDay));
 	P.usCaseAbsenteeismDuration = ((unsigned short int) (P.CaseAbsenteeismDuration * P.TimeStepsPerDay));
 	P.usCaseAbsenteeismDelay = ((unsigned short int) (P.CaseAbsenteeismDelay * P.TimeStepsPerDay));
-	if (P.DoUTM_coords)
-	{
-		for (i = 0; i <= 1000; i++)
-		{
-			asin2sqx[i] = asin(sqrt(i / 1000.0));
-			asin2sqx[i] = asin2sqx[i] * asin2sqx[i];
-		}
-		for (i = 0; i <= DEGREES_PER_TURN; i++)
-		{
-			t = PI * i / 180;
-			sinx[i] = sin(t);
-			cosx[i] = cos(t);
-		}
-	}
+
+	P.distance_ = CovidSim::Geometry::DistanceFactory::create(P.DoUTM_coords, P.DoPeriodicBoundaries, P.SpatialBoundingBox, P.in_degrees_);
+
 	if (P.R0scale != 1.0)
 	{
 		P.HouseholdTrans *= P.R0scale;
@@ -2480,7 +2469,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 			for (j = 0; j < Airports[i].num_connected; j++)
 			{
 				k = (int)Airports[i].conn_airports[j];
-				traf = floor(sqrt(dist2_raw(Airports[i].loc.x, Airports[i].loc.y, Airports[k].loc.x, Airports[k].loc.y)) / OUTPUT_DIST_SCALE);
+				traf = floor(sqrt(P.distance_->distance_squared(Airports[i].loc, Airports[k].loc)) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
 				//fprintf(stderr,"%(%i) ",l);
 				if (l < MAX_DIST)
@@ -3214,7 +3203,7 @@ void SaveDistribs(std::string const& output_file_base)
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
 						k = Hosts[i].PlaceLinks[j];
-						s = sqrt(dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y, Places[j][k].loc.x, Places[j][k].loc.y)) / OUTPUT_DIST_SCALE;
+						s = sqrt(P.distance_->distance_squared(Households[Hosts[i].hh].loc, Places[j][k].loc)) / OUTPUT_DIST_SCALE;
 						k = (int)s;
 						if (k < MAX_DIST) PlaceDistDistrib[j][k]++;
 					}

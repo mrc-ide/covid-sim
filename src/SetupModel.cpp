@@ -1645,7 +1645,7 @@ void SetupAirports(void)
 			for (int j = 0; j < P.Nairports; j++)
 				if (Airports[j].total_traffic > 0)
 				{
-					t = P.KernelLookup.num(dist2_raw(x, y, Airports[j].loc.x, Airports[j].loc.y)) * Airports[j].total_traffic;
+					t = P.KernelLookup.num(P.distance_->distance_squared(CovidSim::Geometry::Vector2d(x, y), CovidSim::Geometry::Vector2d(Airports[j].loc))) * Airports[j].total_traffic;
 					if (k < NNA)
 					{
 						Mcells[i].AirportList[k].id = j;
@@ -1744,16 +1744,14 @@ void SetupAirports(void)
 				tmin += 0.25 * MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL;
 				Airports[i].num_place = 0;
 				for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-					if (dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
-						Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y) < tmin)
+					if (P.distance_->distance_squared(Airports[i].loc, Places[P.HotelPlaceType][j].loc) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
 			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
 			Airports[i].DestPlaces = (IndexList*)Memory::xcalloc(Airports[i].num_place, sizeof(IndexList));
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
-				if ((t = dist2_raw(Airports[i].loc.x, Airports[i].loc.y,
-					Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y)) < tmin)
+				if ((t = P.distance_->distance_squared(Airports[i].loc, Places[P.HotelPlaceType][j].loc)) < tmin)
 				{
 					Airports[i].DestPlaces[Airports[i].num_place].prob = (float)P.KernelLookup.num(t);
 					Airports[i].DestPlaces[Airports[i].num_place].id = j;
@@ -2243,8 +2241,7 @@ void AssignPeopleToPlaces()
 											auto const place_idx = cur_cell.places[tp][cnt];
 											if (place_idx >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
 											auto const& cur_place = Places[tp][place_idx];
-											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
-												cur_place.loc.x, cur_place.loc.y);
+											t = P.distance_->distance_squared(Households[Hosts[i].hh].loc, cur_place.loc);
 											s = P.KernelLookup.num(t);
 											if (tp < P.nsp)
 											{
@@ -2383,7 +2380,7 @@ void AssignPeopleToPlaces()
 										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
-									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
+									t = P.distance_->distance_squared(Households[Hosts[k].hh].loc, Places[tp][j].loc);
 									s = ((double)ct->S) / ((double)ct->S0) * P.KernelLookup.num(t) / Cells[i].max_trans[l];
 									if ((P.DoAdUnits) && (P.InhibitInterAdunitPlaceAssignment[tp] > 0))
 									{
