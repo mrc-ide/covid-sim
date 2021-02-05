@@ -1,12 +1,14 @@
 MakePreParamList = function(NUM_AGE_GROUPS = 17, 
 		
 		# transmission parameters
-		ReproductionNumber 		= 2, 							# R_0
-		SpatialBeta				= NULL, 							# Spatial beta. P.LocalBeta in Cpp code. 
-		PlaceTypeTrans			= c(0.14, 0.14, 0.1, 0.07),  	# Place betas. (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
-		HouseholdAttackRate 	= 0.1,							# Household beta. (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
-		HouseholdTransPow 		= 0.8,  						# (Cauchemez 2004)
-		WAIFW_Matrix 			= NULL, 
+		ReproductionNumber 			= 2, 							# R_0
+		SpatialBeta					= NULL, 							# Spatial beta. P.LocalBeta in Cpp code. 
+		PlaceTypeTrans				= c(0.14, 0.14, 0.1, 0.07),  	# Place betas. (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
+		HouseholdAttackRate 		= 0.1,							# Household beta. (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
+		HouseholdTransPow 			= 0.8,  						# (Cauchemez 2004)
+		WAIFW_Matrix 				= NULL, 
+		WAIFW_Matrix_SpatialOnly	= NULL, 						# If WAIFW matrix should be used only for spatial susceptibility (and not in Person Susceptibility, which carries through to household, place and spatial levels).  
+		RelativeSpatialContact 	= c(0.6, 0.7, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 0.5), ### (POLYMOD, averaging 20-70)
 		
 		# symptomatic / asymptomatic parameters
 		SymptInfectiousness 		= 1,
@@ -128,6 +130,8 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	### === Parameters are hard-coded except those that may change between countries or model runs. These are given as arguments.
 	### === For changes to hard-coded parameters, please add them to function arguments.
 	
+	if (!is.null(WAIFW_Matrix) & !is.null(WAIFW_Matrix_SpatialOnly)) stop("Cannot have both WAIFW_Matrix and WAIFW_Matrix_SpatialOnly")
+	
 	PreParamList = list()
 	
 	# which outputs?
@@ -161,9 +165,14 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Number of micro-cells per spatial cell width"]] = 9
 	PreParamList[["Initial immunity profile by age"]] = rep(0, NUM_AGE_GROUPS)
 	PreParamList[["Initial immunity applied to all household members"]] = 1
-	PreParamList[["Relative spatial contact rates by age"]] = c(0.6, 0.7, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 0.5) ### (POLYMOD, averaging 20-70)
+	PreParamList[["Relative spatial contact rates by age"]] = RelativeSpatialContact 
+	PreParamList[["Apply spatial contact rates by age to susceptibles as well as infecteds"]] = 0 
+	
+	## WAIFW matrices
 	if (!is.null(WAIFW_Matrix))
 		PreParamList[["WAIFW matrix"]] = WAIFW_Matrix
+	if (!is.null(WAIFW_Matrix_SpatialOnly))
+		PreParamList[["WAIFW matrix spatial infections only"]] = WAIFW_Matrix_SpatialOnly
 		
 	PreParamList[["Proportion of between group place links"]] = c(0.25, 0.25, 0.25, 0.25) ## (25% of within-group contacts)
 	PreParamList[["Include symptoms"]] = 1

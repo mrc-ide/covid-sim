@@ -8,24 +8,24 @@
 #include "../InfStat.h"
 
 struct Person
-{
-	int pcell;			// place cell, Cells[person->pcell] holds this person
-	int mcell;			// microcell, Mcells[person->mcell] holds this person
-	int hh;				// Household[person->hh] holds this person
-	int infector;		// If >=0, Hosts[person->infector] was who infected this person
-	int listpos;		// Goes up to at least MAX_SEC_REC, also used as a temp variable?
+{ 
+	int pcell;			/**< place cell that person belongs to. Cells[person->pcell] holds this person */
+	int mcell;			/**< microcell that person belongs to., Mcells[person->mcell] holds this person */
+	int hh;				/**< household that person belongs to. Household[person->hh] holds this person */
+	int infector;		/**< If >=0, Hosts[person->infector] was who infected this person */
+	int listpos;		/**< Goes up to at least MAX_SEC_REC, also used as a temp variable? */
 
 	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
-	float infectiousness, susc,ProbAbsent,ProbCare;
+	float infectiousness, susc, ProbAbsent, ProbCare;
 
-	unsigned int esocdist_comply : 1;
-	unsigned int keyworker : 1;				// also used to binary index cumI_keyworker[] and related arrays
+	unsigned int esocdist_comply : 1; /**< boolean: compliant with enhanced social distancing? */
+	unsigned int keyworker : 1;			// also used to binary index cumI_keyworker[] and related arrays
 	unsigned int to_die : 1;
 	unsigned int detected : 1; //added hospitalisation flag: ggilani 28/10/2014, added flag to determined whether this person's infection is detected or not
-	unsigned int care_home_resident : 1;
+	unsigned int care_home_resident : 1; /**< boolean: care home resident? */
 	unsigned int quar_comply : 2;		// can be 0, 1, or 2
-	unsigned int digitalContactTracingUser : 1;
-	unsigned int digitalContactTraced : 1;
+	unsigned int digitalContactTracingUser : 1; /**< boolean: digitalContactTracingUser? */
+	unsigned int digitalContactTraced : 1; /**< boolean: digitalContactTraced? */
 	unsigned int index_case_dct : 2;
 
 	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME

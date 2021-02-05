@@ -114,7 +114,8 @@ int32_t *bmInfected; // The number of infected people in each bitmap pixel.
 int32_t *bmRecovered; // The number of recovered people in each bitmap pixel.
 int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 
-int ns, DoInitUpdateProbs, InterruptRun = 0;
+int OutputTimeStepNumber; //// output timestep index. Global variable used in InitModel and RunModel
+int DoInitUpdateProbs, InterruptRun = 0;
 int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 /* int NumPC,NumPCD; */
@@ -143,7 +144,8 @@ int main(int argc, char* argv[])
 	P.FitIter = 0;
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
 		auto sep = input.find_first_of(',');
-		if (sep == std::string::npos) {
+		if (sep == std::string::npos)
+		{
 			ERR_CRITICAL("Expected argument value to be in the format '<D>,<S>' where <D> is the "
 							"timestep interval when a snapshot should be saved and <S> is the "
 							"filename in which to save the snapshot");
@@ -170,6 +172,11 @@ int main(int argc, char* argv[])
 	P.KernelOffsetScale = P.KernelPowerScale = 1.0;
 	P.DoLoadSnapshot = 0;
 
+	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+	//// **** PARSE COMMAND-LINE ARGS
+	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
+
+
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
@@ -183,11 +190,13 @@ int main(int argc, char* argv[])
 			I am not going to address here what happens if you specify both /CLP05: and /CLP5:
 	*/
 
-	for (int i = 0; i <= 99; i++) {
+	for (int i = 0; i <= 99; i++)
+	{
 		std::string param = "CLP" + std::to_string(i);
 		std::string description = "Overwrites #" + std::to_string(i) + " wildcard in parameter file";
 		args.add_double_option(param, P.clP[i], description);
-		if (i < 10) {
+		if (i < 10)
+		{
 			param = "CLP0" + std::to_string(i);
 			args.add_double_option(param, P.clP[i], description);
 		}
@@ -372,7 +381,7 @@ int main(int argc, char* argv[])
 				if (!data_file.empty()) CalcLikelihood(Realisation, data_file, output_file_base);
 				if (P.OutputNonSummaryResults)
 				{
-					if (((!TimeSeries[P.NumSamples - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
+					if (((!TimeSeries[P.NumOutputTimeSteps - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
 					{
 						SaveResults(output_file);
 					}
@@ -468,16 +477,16 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, AdminFile_dat, "Longitude cut line", "%lf", (void*)&(P.LongitudeCutLine), 1, 1, 0)) {
 			P.LongitudeCutLine = -360.0;
 		}
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*)&(P.TimeStep), 1, 1, 0);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.SampleStep), 1, 1, 0);
-		if (P.TimeStep > P.SampleStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
-		t = ceil(P.SampleStep / P.TimeStep - 1e-6);
-		P.UpdatesPerSample = (int)t;
-		P.TimeStep = P.SampleStep / t;
-		P.TimeStepsPerDay = ceil(1.0 / P.TimeStep - 1e-6);
-		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.TimeStep, P.SampleStep, P.UpdatesPerSample, P.TimeStepsPerDay);
-		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SampleTime), 1, 1, 0);
-		P.NumSamples = 1 + (int)ceil(P.SampleTime / P.SampleStep);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Update timestep", "%lf", (void*)&(P.ModelTimeStep), 1, 1, 0);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling timestep", "%lf", (void*)&(P.OutputTimeStep), 1, 1, 0);
+		if (P.ModelTimeStep > P.OutputTimeStep) ERR_CRITICAL("Update step must be smaller than sampling step\n");
+		t = ceil(P.OutputTimeStep / P.ModelTimeStep - 1e-6);
+		P.NumModelTimeStepsPerOutputTimeStep = (int)t;
+		P.ModelTimeStep = P.OutputTimeStep / t;
+		P.TimeStepsPerDay = ceil(1.0 / P.ModelTimeStep - 1e-6);
+		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.ModelTimeStep, P.OutputTimeStep, P.NumModelTimeStepsPerOutputTimeStep, P.TimeStepsPerDay);
+		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SimulationDuration), 1, 1, 0);
+		P.NumOutputTimeSteps = 1 + (int)ceil(P.SimulationDuration / P.OutputTimeStep);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
 		if (P.NumRealisations == 0)
 		{
@@ -490,7 +499,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-		P.NC = -1;
+		P.NumCells = -1;
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*)&(P.NMCL), 1, 1, 0);
 		//added parameter to reset seeds after every run
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*)&(P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
@@ -671,13 +680,11 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Relative spatial contact rates by age", "%lf", (void*)P.RelativeSpatialContact, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.RelativeSpatialContact[i] = 1;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i,1,1,0)) i=0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Apply spatial contact rates by age to susceptibles as well as infecteds", "%i", &i, 1, 1, 0)) i = 0;
 		if(i)
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
+			for (i = 0; i < NUM_AGE_GROUPS; i++)	P.RelativeSpatialContactSusc[i] = P.RelativeSpatialContact[i];
 		else
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				P.RelativeSpatialContactSusc[i] =1.0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++)	P.RelativeSpatialContactSusc[i] = 1.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Age-dependent infectiousness", "%lf", (void*)P.AgeInfectiousness, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.AgeInfectiousness[i] = 1.0;
@@ -730,6 +737,36 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 						P.WAIFW_Matrix[i][j] = 1.0;
 			}
 		}
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "WAIFW matrix spatial infections only", "%lf", (void*)&P.WAIFW_Matrix_SpatialOnly[0][0], NUM_AGE_GROUPS * NUM_AGE_GROUPS, 1, 0))
+		{
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+					P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+		}
+		else
+		{
+			/* WAIFW matrix needs to be scaled to have max value of 1.
+			1st index of matrix specifies host being infected, second the infector.
+			Overall age variation in infectiousness/contact rates/susceptibility should be factored
+			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
+			t = 0;
+			for (i = 0; i < NUM_AGE_GROUPS; i++)
+				for (j = 0; j < NUM_AGE_GROUPS; j++)
+					if (P.WAIFW_Matrix_SpatialOnly[i][j] > t) t = P.WAIFW_Matrix_SpatialOnly[i][j];
+			if (t > 0)
+			{
+				for (i = 0; i < NUM_AGE_GROUPS; i++)
+					for (j = 0; j < NUM_AGE_GROUPS; j++)
+						P.WAIFW_Matrix_SpatialOnly[i][j] /= t;
+			}
+			else
+			{
+				for (i = 0; i < NUM_AGE_GROUPS; i++)
+					for (j = 0; j < NUM_AGE_GROUPS; j++)
+						P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+			}
+		}
+
 		P.DoDeath = 0;
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	t += P.AgeInfectiousness[i] * P.PropAgeGroup[0][i];
@@ -1041,14 +1078,14 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < INFPROF_RES; i++)
 				P.infectious_prof[i] = 1;
 		}
-		k = (int)ceil(P.InfectiousPeriod / P.TimeStep);
+		k = (int)ceil(P.InfectiousPeriod / P.ModelTimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		s = 0;
 		P.infectious_prof[INFPROF_RES] = 0;
 		for (i = 0; i < MAX_INFECTIOUS_STEPS; i++)	P.infectiousness[i] = 0;
 		for (i = 0; i < k; i++)
 		{
-			t = (((double)i) * P.TimeStep / P.InfectiousPeriod * INFPROF_RES);
+			t = (((double)i) * P.ModelTimeStep / P.InfectiousPeriod * INFPROF_RES);
 			j = (int)t;
 			t -= (double)j;
 			if (j < INFPROF_RES)
@@ -1066,7 +1103,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		{
 			P.infectious_icdf.set_neg_log(ICDF_START);
 		}
-		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.TimeStep);
+		k = (int)ceil(P.InfectiousPeriod * P.infectious_icdf[CDF_RES] / P.ModelTimeStep);
 		if (k >= MAX_INFECTIOUS_STEPS) ERR_CRITICAL("MAX_INFECTIOUS_STEPS not big enough\n");
 		for (i = 0; i < k; i++) P.infectiousness[i] = 1.0;
 		P.infectiousness[k] = 0;
@@ -1503,9 +1540,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Proportion of digital contacts who self-isolate", "%lf", (void*) & (P.ProportionDigitalContactsIsolate), 1, 1, 0)) P.ProportionDigitalContactsIsolate = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of contacts to trace per index case", "%i", (void*)&(P.MaxDigitalContactsToTrace), 1, 1, 0)) P.MaxDigitalContactsToTrace = MAX_CONTACTS;
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay between isolation of index case and contacts", "%lf", (void*) & (P.DigitalContactTracingDelay), 1, 1, 0)) P.DigitalContactTracingDelay = P.TimeStep;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Delay between isolation of index case and contacts", "%lf", (void*) & (P.DigitalContactTracingDelay), 1, 1, 0)) P.DigitalContactTracingDelay = P.ModelTimeStep;
 		//we really need one timestep between to make sure contact is not processed before index
-		if (P.DigitalContactTracingDelay == 0) P.DigitalContactTracingDelay = P.TimeStep;
+		if (P.DigitalContactTracingDelay == 0) P.DigitalContactTracingDelay = P.ModelTimeStep;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Length of self-isolation for digital contacts", "%lf", (void*) & (P.LengthDigitalContactIsolation), 1, 1, 0)) P.LengthDigitalContactIsolation = 0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Spatial scaling factor - digital contact tracing", "%lf", (void*) & (P.ScalingFactorSpatialDigitalContacts), 1, 1, 0)) P.ScalingFactorSpatialDigitalContacts = 1;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Place scaling factor - digital contact tracing", "%lf", (void*)&(P.ScalingFactorPlaceDigitalContacts), 1, 1, 0)) P.ScalingFactorPlaceDigitalContacts = 1;
@@ -2515,7 +2552,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			bmInfected[p] = bmRecovered[p] = bmTreated[p] = 0;
 		}
 	}
-	ns = 0;
+	OutputTimeStepNumber = 0;
 	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
 	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDetectedCases = State.DCT = State.cumDCT
@@ -2673,7 +2710,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NC; i+=P.NumThreads)
+		for (int i = tn; i < P.NumCells; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
@@ -2725,7 +2762,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, Mcells, McellLookup)
-	for (int l = 0; l < P.NMCP; l++)
+	for (int l = 0; l < P.NumPopulatedMicrocells; l++)
 	{
 		int i = (int)(McellLookup[l] - Mcells);
 		Mcells[i].vacc_start_time = Mcells[i].treat_start_time = USHRT_MAX - 1;
@@ -2986,78 +3023,48 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int r
 
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
 {
-	int j, k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int k, l, fs, fs2, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double ir; // infection import rate?;
-	double t, cI, lcI, t2;
-	unsigned short int ts;
+	double CurrSimTime, cI, lcI, t2;
+	unsigned short int CurrTimeStep; //// Timestep in simulation time.
 	int continueEvents = 1;
 
-
-/*	fprintf(stderr, "Checking consistency of initial state...\n");
-	int i, i2, k2;
-	for (i = j = k = ni = fs2 = i2 = 0; i < P.N; i++)
-	{
-		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-		if (Hosts[i].inf == 0) j++;
-		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
-		{
-			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
-			{
-				k++;
-				for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
-					fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-				if (!fs) NumSeedingInfections++;
-			}
-			else
-			{
-				if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-				if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-			}
-			if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
-			{
-				k2++;
-			}
-		}
-		else
-			fs2++;
-	}
-	fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
-*/
 	InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck
 	lcI = 1;
-	if (!snapshot_load_file.empty())
+	if (snapshot_load_file.empty())
 	{
-		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
-		t = ((double)P.ts_age) * P.TimeStep;
+		CurrSimTime = 0;
+		P.ts_age = 0;
 	}
 	else
 	{
-		t = 0;
-		P.ts_age = 0;
+		P.ts_age = (int)(P.SnapshotLoadTime * P.TimeStepsPerDay);
+		CurrSimTime = ((double)P.ts_age) * P.ModelTimeStep;
 	}
 	fs = 1;
 	fs2 = 0;
 
-	for (ns = 1; ((ns < P.NumSamples) && (!InterruptRun)); ns++) //&&(continueEvents) <-removed this
+	for (OutputTimeStepNumber = 1; ((OutputTimeStepNumber < P.NumOutputTimeSteps) && (!InterruptRun)); OutputTimeStepNumber++) //&&(continueEvents) <-removed this. OutputTimeStepNumber starts from 1 here as is zero in InitModel
 	{
+		RecordSample				(CurrSimTime, OutputTimeStepNumber - 1, output_file_base);
+		CalibrationThresholdCheck	(CurrSimTime, OutputTimeStepNumber - 1);
 
-		RecordSample(t, ns - 1, output_file_base);
-		CalibrationThresholdCheck(t, ns - 1);
-
-		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", t,
+		/// print various quantities to console
+		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", CurrSimTime,
 			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
+
 		if (!InterruptRun)
 		{
 			//Only run to a certain number of infections: ggilani 28/10/14
 			if (P.LimitNumInfections) continueEvents = (State.cumI < P.MaxNumInfections);
 
-			for (j = 0; ((j < P.UpdatesPerSample) && (!InterruptRun) && (continueEvents)); j++)
+			for (int ModelTimeStep = 0; ((ModelTimeStep < P.NumModelTimeStepsPerOutputTimeStep) && (!InterruptRun) && (continueEvents)); ModelTimeStep++) // local (int)ModelTimeStep not used, but CurrSimTime is updated by P.ModelTimeStep.
 			{
-				ts = (unsigned short int) (P.TimeStepsPerDay * t);
+				CurrTimeStep = (unsigned short int) (P.TimeStepsPerDay * CurrSimTime);
 
 				//if we are to reset random numbers after an intervention event, specific time
 				if (P.ResetSeedsPostIntervention)
-					if ((P.ResetSeedsFlag == 0) && (ts >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
+					if ((P.ResetSeedsFlag == 0) && (CurrTimeStep >= (P.TimeToResetSeeds * P.TimeStepsPerDay)))
 					{
 						setall(&P.nextRunSeed1, &P.nextRunSeed2);
 						P.ResetSeedsFlag = 1;
@@ -3065,24 +3072,24 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 
 				if (fs)
 				{
-					if (P.DoAirports) TravelDepartSweep(t);
-					k = (int)t;
+					if (P.DoAirports) TravelDepartSweep(CurrSimTime);
+					k = (int)CurrSimTime;
 					if (P.DurImportTimeProfile > 0)
 					{
 						if (k < P.DurImportTimeProfile)
-							ir = P.ImportInfectionTimeProfile[k] * ((t > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
+							ir = P.ImportInfectionTimeProfile[k] * ((CurrSimTime > P.InfectionImportChangeTime) ? (P.InfectionImportRate2 / P.InfectionImportRate1) : 1.0);
 						else
 							ir = 0;
 					}
-					else	ir = (t > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
+					else	ir = (CurrSimTime > P.InfectionImportChangeTime) ? P.InfectionImportRate2 : P.InfectionImportRate1;
 					if (ir > 0) //// if infection import rate > 0, seed some infections
 					{
-						for (k = NumSeedingInfections = 0; k < P.NumSeedLocations; k++) NumSeedingInfections += (NumSeedingInfections_byLocation[k] = (int)ignpoi(P.TimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
-						if (NumSeedingInfections > 0)		SeedInfection(t, NumSeedingInfections_byLocation, 1, run);
+						for (k = NumSeedingInfections = 0; k < P.NumSeedLocations; k++) NumSeedingInfections += (NumSeedingInfections_byLocation[k] = (int)ignpoi(P.ModelTimeStep * ir * P.InitialInfectionsAdminUnitWeight[k] * P.SeedingScaling)); //// sample number imported infections from Poisson distribution.
+						if (NumSeedingInfections > 0)		SeedInfection(CurrSimTime, NumSeedingInfections_byLocation, 1, run);
 					}
 					if (P.FalsePositivePerCapitaIncidence > 0)
 					{
-						NumSeedingInfections = (int)ignpoi(P.TimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
+						NumSeedingInfections = (int)ignpoi(P.ModelTimeStep * P.FalsePositivePerCapitaIncidence * ((double)P.PopSize));
 						if (NumSeedingInfections > 0)
 						{
 							for (k = 0; k < NumSeedingInfections; k++)
@@ -3091,31 +3098,32 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 								{
 									l = (int)(((double)P.PopSize) * ranf()); //// choose person l randomly from entire population. (but change l if while condition not satisfied?)
 								} while (Hosts[l].is_dead() || (ranf() > P.FalsePositiveAgeRate[HOST_AGE_GROUP(l)]));
-								DoFalseCase(l, t, ts, 0);
+								DoFalseCase(l, CurrSimTime, CurrTimeStep, 0);
 							}
 						}
 					}
-					InfectSweep(t, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
-					//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If t is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
-					if (!P.DoSI) IncubRecoverySweep(t);
+					InfectSweep(CurrSimTime, run);  // loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
+					//// IncubRecoverySweep loops over all infecteds (either latent or infectious). If CurrSimTime is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also add them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
+					if (!P.DoSI) IncubRecoverySweep(CurrSimTime);
 					// If doing new contact tracing, update numbers of people under contact tracing after each time step
 
-					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(t);
+					if (P.DoDigitalContactTracing) DigitalContactTracingSweep(CurrSimTime);
 
 					fs2 = ((P.DoDeath) || (State.L + State.I > 0) || (ir > 0) || (P.FalsePositivePerCapitaIncidence > 0));
+
 					///// TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
-					if (!TreatSweep(t))
-					{
-						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0)) { if ((ir == 0) && (((int)t) > P.DurImportTimeProfile)) fs = 0; }
-					}
-					if (P.DoAirports) TravelReturnSweep(t);
+					if (!TreatSweep(CurrSimTime))
+						if ((!fs2) && (State.L + State.I == 0) && (P.FalsePositivePerCapitaIncidence == 0))
+							if ((ir == 0) && (((int)CurrSimTime) > P.DurImportTimeProfile)) fs = 0;
+
+					if (P.DoAirports) TravelReturnSweep(CurrSimTime);
 					UpdateHostClosure();
 				}
-				t += P.TimeStep;
+				CurrSimTime += P.ModelTimeStep;
 				if (P.DoDeath) P.ts_age++;
-				if (!snapshot_save_file.empty() && (t <= P.SnapshotSaveTime) && (t + P.TimeStep > P.SnapshotSaveTime)) SaveSnapshot(snapshot_save_file);
-				if (t > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.TimeStep * P.TreatNewCoursesRate;
-				if ((t > P.VaccNewCoursesStartTime) && (t < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.TimeStep * P.VaccNewCoursesRate;
+				if (!snapshot_save_file.empty() && (CurrSimTime <= P.SnapshotSaveTime) && (CurrSimTime + P.ModelTimeStep > P.SnapshotSaveTime)) SaveSnapshot(snapshot_save_file);
+				if (CurrSimTime > P.TreatNewCoursesStartTime) P.TreatMaxCourses += P.ModelTimeStep * P.TreatNewCoursesRate;
+				if ((CurrSimTime > P.VaccNewCoursesStartTime) && (CurrSimTime < P.VaccNewCoursesEndTime)) P.VaccMaxCourses += P.ModelTimeStep * P.VaccNewCoursesRate;
 				cI = ((double)(State.S)) / ((double)P.PopSize);
 				if ((lcI - cI) > 0.2)
 				{
@@ -3126,55 +3134,23 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 			}
 		}
 	}
-	if (!InterruptRun) RecordSample(t, P.NumSamples - 1, output_file_base);
+	if (!InterruptRun) RecordSample(CurrSimTime, P.NumOutputTimeSteps - 1, output_file_base);
 	fprintf(stderr, "\nEnd of run\n");
-	t2 = t + P.SampleTime;
+	t2 = CurrSimTime + P.SimulationDuration;
 //	if(!InterruptRun)
 	while (fs)
 	{
 		fs = TreatSweep(t2);
-		t2 += P.SampleStep;
+		t2 += P.OutputTimeStep;
 	}
 	//	fprintf(stderr,"End RunModel\n");
 	if (P.DoAirports)
 	{
-		t2 = t;
-		for (t2 = t; t2 <= t + MAX_TRAVEL_TIME; t2 += P.TimeStep)
+		t2 = CurrSimTime;
+		for (t2 = CurrSimTime; t2 <= CurrSimTime + MAX_TRAVEL_TIME; t2 += P.ModelTimeStep)
 			TravelReturnSweep(t2);
 	}
-/*	if (!InterruptRun)
-	{
-		fprintf(stderr, "Checking consistency of final state...\n");
-		int i, i2, k2;
-		for (i = j = k = NumSeedingInfections = fs2 = i2 = 0; i < P.PopSize; i++)
-		{
-			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
-			if (Hosts[i].inf == 0) j++;
-			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
-			{
-				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
-				{
-					k++;
-					for (l = fs = 0; (l < Cells[Hosts[i].pcell].n) && (!fs); l++)
-						fs = (Cells[Hosts[i].pcell].susceptible[l] == i);
-					if (!fs) NumSeedingInfections++;
-				}
-				else
-				{
-					if ((Hosts[i].listpos > Cells[Hosts[i].pcell].S - 1) && (Hosts[i].inf == InfStat_Susceptible)) i2++;
-					if ((Hosts[i].listpos < Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I - 1) && (abs(Hosts[i].inf) == InfStat_Recovered)) i2++;
-				}
-				if ((Cells[Hosts[i].pcell].S + Cells[Hosts[i].pcell].L + Cells[Hosts[i].pcell].I + Cells[Hosts[i].pcell].R + Cells[Hosts[i].pcell].D) != Cells[Hosts[i].pcell].n)
-				{
-					k2++;
-				}
-			}
-			else
-				fs2++;
-		}
-		fprintf(stderr, "\n*** susceptibles=%i\nincorrect listpos=%i\nhosts not found in cell list=%i\nincorrect cell refs=%i\nincorrect positioning in cell susc list=%i\nwrong cell totals=%i\n", j, k, NumSeedingInfections, fs2, i2, k2);
-	}
-*/
+
 	if(!InterruptRun) RecordInfTypes();
 	return (InterruptRun);
 }
@@ -3302,7 +3278,7 @@ void SaveResults(std::string const& output_file_base)
 		outname = output_file_base + ".xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
 		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10ft%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].S, TimeSeries[i].L, TimeSeries[i].I,
@@ -3323,7 +3299,7 @@ void SaveResults(std::string const& output_file_base)
 		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name);
 
 		fprintf(dat, "\n");
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3352,7 +3328,7 @@ void SaveResults(std::string const& output_file_base)
 		}
 		fprintf(dat, "\n");
 		//print actual output
-		for(i=0; i<P.NumSamples; i++)
+		for(i=0; i<P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10lf", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3382,7 +3358,7 @@ void SaveResults(std::string const& output_file_base)
 		fclose(dat);
 	}
 
-	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
+	if(P.KeyWorkerProphTimeStartBase < P.SimulationDuration)
 	{
 		outname = output_file_base + ".keyworker.xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
@@ -3391,7 +3367,7 @@ void SaveResults(std::string const& output_file_base)
 		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tT%i", i);
 		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 			fprintf(dat, "%.10f", TimeSeries[i].t);
 			for(j = 0; j < 2; j++)
@@ -3419,7 +3395,7 @@ void SaveResults(std::string const& output_file_base)
 	int d, m, y, dml, f;
 #ifdef _WIN32
 	//if(P.OutputBitmap == 1) CloseAvi(avi);
-	//if((TimeSeries[P.NumSamples - 1].extinct) && (P.OutputOnlyNonExtinct))
+	//if((TimeSeries[P.NumOutputTimeSteps - 1].extinct) && (P.OutputOnlyNonExtinct))
 	//	{
 	//	outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + ".avi";
 	//	DeleteFile(outname);
@@ -3438,11 +3414,11 @@ void SaveResults(std::string const& output_file_base)
 		y = 2009;
 		m = 1;
 		d = 1;
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "<GroundOverlay>\n<name>Snapshot %i</name>\n", i + 1);
 			fprintf(dat, "<TimeSpan>\n<begin>%i-%02i-%02iT00:00:00Z</begin>\n", y, m, d);
-			d += (int)P.SampleStep; // SampleStep has to be an integer here.
+			d += (int)P.OutputTimeStep; // OutputTimeStep has to be an integer here.
 			do
 			{
 				f = 1;
@@ -3478,7 +3454,7 @@ void SaveResults(std::string const& output_file_base)
 		outname = output_file_base + ".severity.xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
 		fprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].Rdenom, TimeSeries[i].meanTG, TimeSeries[i].meanSI, TimeSeries[i].S, TimeSeries[i].I, TimeSeries[i].R, TimeSeries[i].incI,
@@ -3519,7 +3495,7 @@ void SaveResults(std::string const& output_file_base)
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for(i = 0; i < P.NumSamples; i++)
+			for(i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 				fprintf(dat, "%.10f", TimeSeries[i].t);
 
@@ -3553,7 +3529,7 @@ void SaveResults(std::string const& output_file_base)
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_SARI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_Critical_adunit[j]);
 
-				if(i != P.NumSamples - 1) fprintf(dat, "\n");
+				if(i != P.NumOutputTimeSteps - 1) fprintf(dat, "\n");
 			}
 			fclose(dat);
 		}
@@ -3579,7 +3555,7 @@ void SaveResults(std::string const& output_file_base)
 		fprintf(dat, "\n");
 
 		// Populate
-		for (int Time = 0; Time < P.NumSamples; Time++)
+		for (int Time = 0; Time < P.NumOutputTimeSteps; Time++)
 		{
 			fprintf(dat, "%.10f", TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -3616,7 +3592,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		c = 1 / ((double)P.NRactual);
 
 		//// populate table
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].L, c * TSMean[i].I, c * TSMean[i].R,
@@ -3648,7 +3624,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
 		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tvprClosed_%i", j);
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].incC, c * TSMean[i].incTC, c * TSMean[i].incFC,
@@ -3684,7 +3660,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
 			fprintf(dat, "\tD%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < NUM_AGE_GROUPS; j++)
@@ -3714,7 +3690,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%i", AdUnits[i].n);
 		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
 		fprintf(dat, "\n");
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < P.NumAdunits; j++)
@@ -3739,7 +3715,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
 			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
 			fprintf(dat, "\n");
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 				fprintf(dat, "%.10f", c * TSMean[i].t);
 				for (j = 0; j < P.NumAdunits; j++)
@@ -3771,7 +3747,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		}
 		fprintf(dat, "\n");
 		//print actual output
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%.10lf", c* TSMean[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
@@ -3789,7 +3765,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 
 	}
 
-	if(P.KeyWorkerProphTimeStartBase < P.SampleTime)
+	if(P.KeyWorkerProphTimeStartBase < P.SimulationDuration)
 	{
 		outname = output_file_base + ".keyworker.xls";
 		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
@@ -3801,7 +3777,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for(i = 0; i < 2; i++) fprintf(dat, "\tvC%i", i);
 		for(i = 0; i < 2; i++) fprintf(dat, "\tvT%i", i);
 		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
-		for(i = 0; i < P.NumSamples; i++)
+		for(i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 			fprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < 2; j++)
@@ -3830,7 +3806,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
 		for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\tRage_%i", j);
 		fprintf(dat, "\n");
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			fprintf(dat, "%lf\t%lf\t%lf\t%lf", c * TSMean[i].t, c * TSMean[i].Rdenom, c* TSMean[i].meanTG, c* TSMean[i].meanSI);
 			for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\t%lf", c * TSMean[i].Rtype[j]);
@@ -3920,7 +3896,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		sc3 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCriticalOffset / P.Mean_TimeToTest) : 0.0;
 		sc4 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestCritRecovOffset / P.Mean_TimeToTest) : 0.0;
 		incSARI = incCritical = incCritRecov = 0;
-		for (i = 0; i < P.NumSamples; i++)
+		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
 			if (i > 0)
 			{
@@ -4023,7 +3999,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
 				{
@@ -4113,7 +4089,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			fprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
-			for (i = 0; i < P.NumSamples; i++)
+			for (i = 0; i < P.NumOutputTimeSteps; i++)
 			{
 				for (j = 0; j < P.NumAdunits; j++)
 				{
@@ -4198,7 +4174,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		fprintf(dat, "\n");
 
 		// Populate
-		for (int Time = 0; Time < P.NumSamples; Time++)
+		for (int Time = 0; Time < P.NumOutputTimeSteps; Time++)
 		{
 			fprintf(dat, "%.10f", c * TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -4271,11 +4247,11 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 
 	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
 	fprintf(stderr, "Loading snapshot.");
-	Array_InvCDF = (int**)Memory::xcalloc(P.NCP, sizeof(int*));
-	Array_max_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
-	Array_cum_trans = (float**)Memory::xcalloc(P.NCP, sizeof(float*));
-	Array_tot_prob = (float*)Memory::xcalloc(P.NCP, sizeof(float));
-	for (i = 0; i < P.NCP; i++)
+	Array_InvCDF = (int**)Memory::xcalloc(P.NumPopulatedCells, sizeof(int*));
+	Array_max_trans = (float**)Memory::xcalloc(P.NumPopulatedCells, sizeof(float*));
+	Array_cum_trans = (float**)Memory::xcalloc(P.NumPopulatedCells, sizeof(float*));
+	Array_tot_prob = (float*)Memory::xcalloc(P.NumPopulatedCells, sizeof(float));
+	for (i = 0; i < P.NumPopulatedCells; i++)
 	{
 		Array_InvCDF[i] = Cells[i].InvCDF;
 		Array_max_trans[i] = Cells[i].max_trans;
@@ -4284,16 +4260,16 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	}
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
+	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
+	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
 	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
-	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.TimeStep) ERR_CRITICAL("Incorrect TimeStep in snapshot file.\n");
+	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.ModelTimeStep) ERR_CRITICAL("Incorrect ModelTimeStep in snapshot file.\n");
 	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
-	P.NumSamples = 1 + (int)ceil((P.SampleTime - P.SnapshotLoadTime) / P.SampleStep);
+	P.NumOutputTimeSteps = 1 + (int)ceil((P.SimulationDuration - P.SnapshotLoadTime) / P.OutputTimeStep);
 	fprintf(stderr, ".");
 	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
 	fprintf(stderr, ".");
@@ -4304,17 +4280,17 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 
 	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
+	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	for (i = 0; i < P.NC; i++)
+	for (i = 0; i < P.NumCells; i++)
 	{
 		if (Cells[i].n > 0)
 		{
@@ -4325,11 +4301,11 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 		}
 		for (j = 0; j < MAX_INTERVENTION_TYPES; j++) Cells[i].CurInterv[j] = -1; // turn interventions off in loaded image
 	}
-	for (i = 0; i < P.NMC; i++)
+	for (i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 			Mcells[i].members += CM_offset;
 
-	for (i = 0; i < P.NCP; i++)
+	for (i = 0; i < P.NumPopulatedCells; i++)
 	{
 		Cells[i].InvCDF = Array_InvCDF[i];
 		Cells[i].max_trans = Array_max_trans[i];
@@ -4353,11 +4329,11 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 
 	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NC), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.NumPopulatedCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4367,7 +4343,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.TimeStep), sizeof(double), 1, dat);
+	fwrite_big((void*) & (P.ModelTimeStep), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4379,11 +4355,11 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
+	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
+	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
@@ -4400,7 +4376,7 @@ void UpdateProbs(int DoPlace)
 	{
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, CellLookup)
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.NumPopulatedCells; j++)
 		{
 			CellLookup[j]->tot_prob = 0;
 			CellLookup[j]->S0 = CellLookup[j]->S + CellLookup[j]->L + CellLookup[j]->I;
@@ -4415,7 +4391,7 @@ void UpdateProbs(int DoPlace)
 	{
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, CellLookup)
-		for (int j = 0; j < P.NCP; j++)
+		for (int j = 0; j < P.NumPopulatedCells; j++)
 		{
 			CellLookup[j]->S0 = CellLookup[j]->S;
 			CellLookup[j]->tot_prob = 0;
@@ -4423,19 +4399,19 @@ void UpdateProbs(int DoPlace)
 	}
 #pragma omp parallel for schedule(static,500) default(none) \
 		shared(P, CellLookup)
-	for (int j = 0; j < P.NCP; j++)
+	for (int j = 0; j < P.NumPopulatedCells; j++)
 	{
 		int m, k;
 		float t;
 		CellLookup[j]->cum_trans[0] = ((float)(CellLookup[0]->S0)) * CellLookup[j]->max_trans[0];
 		t = ((float)CellLookup[0]->n) * CellLookup[j]->max_trans[0];
-		for (m = 1; m < P.NCP; m++)
+		for (m = 1; m < P.NumPopulatedCells; m++)
 		{
 				CellLookup[j]->cum_trans[m] = CellLookup[j]->cum_trans[m - 1] + ((float)(CellLookup[m]->S0)) * CellLookup[j]->max_trans[m];
 				t += ((float)CellLookup[m]->n) * CellLookup[j]->max_trans[m];
 		}
-		CellLookup[j]->tot_prob = CellLookup[j]->cum_trans[P.NCP - 1];
-		for (m = 0; m < P.NCP; m++)
+		CellLookup[j]->tot_prob = CellLookup[j]->cum_trans[P.NumPopulatedCells - 1];
+		for (m = 0; m < P.NumPopulatedCells; m++)
 			CellLookup[j]->cum_trans[m] /= CellLookup[j]->tot_prob;
 		CellLookup[j]->tot_prob /= t;
 		for (k = m = 0; k <= 1024; k++)
@@ -4642,7 +4618,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 
 #pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
 		shared(P, CellLookup)
-	for (int i = 0; i < P.NCP; i++)
+	for (int i = 0; i < P.NumPopulatedCells; i++)
 	{
 		Cell* ct = CellLookup[i];
 		S += (int)ct->S;
@@ -4742,8 +4718,8 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	TimeSeries[n].meanTG = TimeSeries[n].meanSI = 0;
 	if (nTG > 0) // record mean generation time and serial interval in timestep
 	{
-		TimeSeries[n].meanTG = P.TimeStep * ((double)cumTG) / ((double)nTG);
-		TimeSeries[n].meanSI = P.TimeStep * ((double)cumSI) / ((double)nTG);
+		TimeSeries[n].meanTG = P.ModelTimeStep * ((double)cumTG) / ((double)nTG);
+		TimeSeries[n].meanSI = P.ModelTimeStep * ((double)cumSI) / ((double)nTG);
 	}
 	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
@@ -5063,8 +5039,8 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 			State.NumPlacesClosed[i] = numPC;
 			TimeSeries[n].PropPlacesClosed[i] = ((double)numPC) / ((double)P.Nplace[i]);
 		}
-	for (int i = k = 0; i < P.NMC; i++) if (Mcells[i].socdist == TreatStat::Treated) k++;
-	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NMC);
+	for (int i = k = 0; i < P.NumMicrocells; i++) if (Mcells[i].socdist == TreatStat::Treated) k++;
+	TimeSeries[n].PropSocDist = ((double)k) / ((double)P.NumMicrocells);
 
 	//update contact number distribution in State
 	for (int i = 0; i < (MAX_CONTACTS + 1); i++)
@@ -5365,7 +5341,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 			for (int row = 0; row < nrows; row++)
 			{
 				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[row][col] >= -1) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				if ((Data[row][col] >= -1) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
 					double ModelValue;
 					if (ColTypes[col] == 0)
@@ -5401,7 +5377,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 			for (int row = 0; row < nrows; row++)
 			{
 				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				if ((Data[row][col] >= 0) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
 					double m = Data[row][col]; // numerator
 					double N = Data[row][col + 1]; // denominator
@@ -5422,7 +5398,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 			for (int row = 0; row < nrows; row++)
 			{
 				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
-				if ((Data[row][col] >= 0) && (day < P.NumSamples)) // data is not NA (-ve) and within time range of model run
+				if ((Data[row][col] >= 0) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
 					double m = Data[row][col]; // numerator
 					double N = Data[row][col + 1]; // denominator
@@ -5442,7 +5418,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		sumL = maxLL + log(exp(sumL - maxLL) + exp(LL - maxLL));
 	}
 
-	if (run + 1 == P.NumRealisations)
+	if (run + 1 == P.NumRealisations) // at final realisation, output log-likelihood
 	{
 		LL = sumL - log((double)P.NumRealisations);
 		std::string TmpFile = OutFileBase + ".ll.tmp";
@@ -5460,7 +5436,7 @@ void RecordInfTypes(void)
 	unsigned int nf;
 	double* res, * res_av, * res_var, t, s = 0;
 
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.NumOutputTimeSteps; n++)
 	{
 		for (i = 0; i < INFECT_TYPE_MASK; i++) TimeSeries[n].Rtype[i] = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++) TimeSeries[n].Rage[i] = 0;
@@ -5474,11 +5450,11 @@ void RecordInfTypes(void)
 	for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		for (j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household[i][j] = case_household[i][j] = 0;
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.NumCells; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 				Hosts[Cells[b].members[c]].listpos = 0;
-	//	for(b=0;b<P.NC;b++)
+	//	for(b=0;b<P.NumCells;b++)
 	//		if((Cells[b].S!=Cells[b].n)||(Cells[b].R>0))
 	{
 		j = k = l = lc = lc2 = 0; t = 1e10;
@@ -5489,8 +5465,8 @@ void RecordInfTypes(void)
 			if (j == 0) j = k = Households[Hosts[i].hh].nh;
 			if (!Hosts[i].is_susceptible() && !Hosts[i].is_immune_at_start())
 			{
-				if (Hosts[i].latent_time * P.TimeStep <= P.SampleTime)
-					TimeSeries[(int)(Hosts[i].latent_time * P.TimeStep / P.SampleStep)].Rdenom++;
+				if (Hosts[i].latent_time * P.ModelTimeStep <= P.SimulationDuration)
+					TimeSeries[(int)(Hosts[i].latent_time * P.ModelTimeStep / P.OutputTimeStep)].Rdenom++;
 				infcountry[mcell_country[Hosts[i].mcell]]++;
 				if (Hosts[i].is_susceptible_or_infected())
 				{
@@ -5503,23 +5479,23 @@ void RecordInfTypes(void)
 				if ((l >= 0) && (Hosts[i].is_recovered_symp() || Hosts[i].is_dead_was_symp()))
 				{
 					lc2++;
-					if (Hosts[i].latent_time * P.TimeStep <= t) // This convoluted logic is to pick up households where the index is symptomatic
+					if (Hosts[i].latent_time * P.ModelTimeStep <= t) // This convoluted logic is to pick up households where the index is symptomatic
 					{
-						lc = 1; t = Hosts[i].latent_time * P.TimeStep;
+						lc = 1; t = Hosts[i].latent_time * P.ModelTimeStep;
 					}
 				}
-				else if ((l > 0) && (Hosts[i].latent_time * P.TimeStep < t))
+				else if ((l > 0) && (Hosts[i].latent_time * P.ModelTimeStep < t))
 				{
-					lc = 0; t = Hosts[i].latent_time * P.TimeStep;
+					lc = 0; t = Hosts[i].latent_time * P.ModelTimeStep;
 				}
 				i2 = Hosts[i].infector;
 				if (i2 >= 0)
 				{
 					Hosts[i2].listpos++;
-					if (Hosts[i2].latent_time * P.TimeStep <= P.SampleTime)
+					if (Hosts[i2].latent_time * P.ModelTimeStep <= P.SimulationDuration)
 					{
-						TimeSeries[(int)(Hosts[i2].latent_time * P.TimeStep / P.SampleStep)].Rtype[Hosts[i].infect_type % INFECT_TYPE_MASK]++;
-						TimeSeries[(int)(Hosts[i2].latent_time * P.TimeStep / P.SampleStep)].Rage[HOST_AGE_GROUP(i)]++;
+						TimeSeries[(int)(Hosts[i2].latent_time * P.ModelTimeStep / P.OutputTimeStep)].Rtype[Hosts[i].infect_type % INFECT_TYPE_MASK]++;
+						TimeSeries[(int)(Hosts[i2].latent_time * P.ModelTimeStep / P.OutputTimeStep)].Rage[HOST_AGE_GROUP(i)]++;
 					}
 				}
 			}
@@ -5534,7 +5510,7 @@ void RecordInfTypes(void)
 			}
 		}
 	}
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.NumCells; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 			{
@@ -5545,7 +5521,7 @@ void RecordInfTypes(void)
 					if ((l < MAX_GEN_REC) && (Hosts[i].listpos < MAX_SEC_REC)) indivR0[Hosts[i].listpos][l]++;
 				}
 			}
-	/* 	if(!TimeSeries[P.NumSamples-1].extinct) */
+	/* 	if(!TimeSeries[P.NumOutputTimeSteps-1].extinct) */
 	{
 		for (i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] += inftype[i];
 		for (i = 0; i < MAX_COUNTRIES; i++)
@@ -5564,7 +5540,7 @@ void RecordInfTypes(void)
 			}
 	}
 	k = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.NumOutputTimeSteps; n++)
 	{
 		TimeSeries[n].t += k;
 		s = 0;
@@ -5578,7 +5554,7 @@ void RecordInfTypes(void)
 	nf = sizeof(Results) / sizeof(double);
 	if (!P.DoAdUnits) nf -= MAX_ADUNITS; // TODO: This still processes most of the AdUnit arrays; just not the last one
 
-	if (TimeSeries[P.NumSamples - 1].extinct)
+	if (TimeSeries[P.NumOutputTimeSteps - 1].extinct)
 	{
 		TSMean = TSMeanE; TSVar = TSVarE; P.NRactE++;
 	}
@@ -5589,11 +5565,11 @@ void RecordInfTypes(void)
 	lc = -k;
 
 	// This calculates sum and sum of squares of entire TimeSeries array
-	for (n = 0; n < P.NumSamples; n++)
+	for (n = 0; n < P.NumOutputTimeSteps; n++)
 	{
-		if ((n + lc >= 0) && (n + lc < P.NumSamples))
+		if ((n + lc >= 0) && (n + lc < P.NumOutputTimeSteps))
 		{
-			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.SampleStep * ((double)(_I64(n) + lc)); }
+			if (s < TimeSeries[n + lc].incC) { s = TimeSeries[n + lc].incC; t = P.OutputTimeStep * ((double)(_I64(n) + lc)); }
 			res = (double*)&TimeSeries[n + lc];
 			res_av = (double*)&TSMean[n];
 			res_var = (double*)&TSVar[n];
@@ -5614,7 +5590,7 @@ void RecordInfTypes(void)
 			if (TSMean[n].cumTmax < TimeSeries[n + lc].cumT) TSMean[n].cumTmax = TimeSeries[n + lc].cumT;
 			if (TSMean[n].cumVmax < TimeSeries[n + lc].cumV) TSMean[n].cumVmax = TimeSeries[n + lc].cumV;
 		}
-		TSMean[n].t += ((double) n )* P.SampleStep;
+		TSMean[n].t += ((double) n )* P.OutputTimeStep;
 	}
 	PeakHeightSum += s;
 	PeakHeightSS += s * s;
@@ -5640,7 +5616,7 @@ void CalcOriginDestMatrix_adunit()
 		shared(P, Cells, CellLookup, Mcells, StateT)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NCP; i += P.NumThreads)
+		for (int i = tn; i < P.NumPopulatedCells; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
 			double pop_dens_from[MAX_ADUNITS] = {};
@@ -5664,7 +5640,7 @@ void CalcOriginDestMatrix_adunit()
 				}
 			}
 
-			for (int j = i; j < P.NCP; j++)
+			for (int j = i; j < P.NumPopulatedCells; j++)
 			{
 				//reset pop density matrix to zero
 				double pop_dens_to[MAX_ADUNITS] = {};

@@ -25,14 +25,16 @@ enum struct TreatStat { // treatment status
  */
 struct Microcell
 {
-	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
+	/* Note use of short int here limits max run time to USHRT_MAX*ModelTimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
-	int n /*Number of people in microcell*/, adunit;
-	int* members;
 
-	int* places[NUM_PLACE_TYPES];
-	unsigned short int np[NUM_PLACE_TYPES];
+	int n; // Number of people in microcell
+	int adunit; // admin unit microcell belongs to
+	int* members; // array of members/hosts of microcell
+
+	int* places[NUM_PLACE_TYPES]; // list of places (of various place types) within microcell
+	unsigned short int np[NUM_PLACE_TYPES]; // number of places (of various place types) within mircocell
 	unsigned short int keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
 	unsigned short int move_start_time, move_end_time;
 	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
