@@ -150,11 +150,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_degrees_.height = ((double)P.nch) * P.in_cells_.height;
 		P.SpatialBoundingBox.top_right() = P.SpatialBoundingBox.bottom_left()
 			+ CovidSim::Geometry::Vector2d(P.in_degrees_.width, P.in_degrees_.height);
-		P.NC = P.ncw * P.nch;
+		P.NumCells = P.ncw * P.nch;
 		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
 				P.SpatialBoundingBox.bottom_left().x, P.SpatialBoundingBox.bottom_left().y,
 				P.SpatialBoundingBox.top_right().x,   P.SpatialBoundingBox.top_right().y);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NC, P.ncw, P.nch);
+		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NumCells, P.ncw, P.nch);
 		fprintf(stderr, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width > 180) {
 			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
@@ -167,9 +167,9 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	else
 	{
-		P.ncw = P.nch = (int)sqrt((double)P.NC);
-		P.NC = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NC, P.ncw);
+		P.ncw = P.nch = (int)sqrt((double)P.NumCells);
+		P.NumCells = P.ncw * P.nch;
+		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NumCells, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
 		P.SpatialBoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
 		P.SpatialBoundingBox.top_right() = CovidSim::Geometry::Vector2d(s, s);
@@ -179,7 +179,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_cells_.width = P.in_degrees_.width / ((double)P.ncw);
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
 	}
-	P.NMC = P.NMCL * P.NMCL * P.NC;
+	P.NMC = P.NMCL * P.NMCL * P.NumCells;
 	P.total_microcells_wide_ = P.ncw * P.NMCL;
 	P.total_microcells_high_ = P.nch * P.NMCL;
 	fprintf(stderr, "Number of microcells = %i\n", P.NMC);
@@ -299,7 +299,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
 
 	StratifyPlaces();
-	for (int i = 0; i < P.NC; i++)
+	for (int i = 0; i < P.NumCells; i++)
 	{
 		Cells[i].S = Cells[i].n;
 		Cells[i].L = Cells[i].I = Cells[i].R = 0;
@@ -488,7 +488,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		for (int j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household_av[i][j] = case_household_av[i][j] = 0;
 	DoInitUpdateProbs = 1;
-	for (int i = 0; i < P.NC; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
+	for (int i = 0; i < P.NumCells; i++)	Cells[i].tot_treat = 1;  //This makes sure InitModel intialises the cells.
 	P.NRactE = P.NRactNE = 0;
 	for (int i = 0; i < P.PopSize; i++) Hosts[i].esocdist_comply = (ranf() < P.EnhancedSocDistProportionCompliant[HOST_AGE_GROUP(i)]) ? 1 : 0;
 	if (P.EnhancedSocDistClusterByHousehold)
@@ -817,7 +817,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	double *mcell_dens;
 	int *mcell_adunits, *mcell_num;
 
-	Cells = (Cell*)Memory::xcalloc(P.NC, sizeof(Cell));
+	// allocate memory
+	Cells = (Cell*)Memory::xcalloc(P.NumCells, sizeof(Cell));
 	Mcells = (Microcell*)Memory::xcalloc(P.NMC, sizeof(Microcell));
 	mcell_num = (int*)Memory::xcalloc(P.NMC, sizeof(int));
 	mcell_dens = (double*)Memory::xcalloc(P.NMC, sizeof(double));
@@ -1128,7 +1129,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	McellLookup = (Microcell **)Memory::xcalloc(P.NMCP, sizeof(Microcell*));
 	State.CellMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
 	P.NCP = 0;
-	for (int i = i2 = j2 = 0; i < P.NC; i++)
+	for (int i = i2 = j2 = 0; i < P.NumCells; i++)
 	{
 		Cells[i].n = 0;
 		int k = (i / P.nch) * P.NMCL * P.total_microcells_high_ + (i % P.nch) * P.NMCL;
@@ -1157,7 +1158,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	State.CellSuscMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
 	int susceptibleAccumulator = 0;
 	i2 = 0;
-	for (j = 0; j < P.NC; j++)
+	for (j = 0; j < P.NumCells; j++)
 		if (Cells[j].n > 0)
 		{
 			CellLookup[i2++] = Cells + j;
@@ -1180,7 +1181,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			c->cum_trans = (float*)Memory::xcalloc(P.NCP, sizeof(float));
 		}
 	}
-	for (int i = 0; i < P.NC; i++)
+	for (int i = 0; i < P.NumCells; i++)
 	{
 		Cells[i].cumTC = 0;
 		for (j = 0; j < Cells[i].n; j++) Cells[i].members[j] = -1;
@@ -1544,7 +1545,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 */		fprintf(stderr, "Places assigned\n");
 	}
 	l = 0;
-	for (j = 0; j < P.NC; j++)
+	for (j = 0; j < P.NumCells; j++)
 		if (l < Cells[j].n) l = Cells[j].n;
 	SamplingQueue = (int**)Memory::xcalloc(P.NumThreads, sizeof(int*));
 	P.InfQueuePeakLength = P.PopSize / P.NumThreads / INF_QUEUE_SCALE;
@@ -1594,7 +1595,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 	}
 
-	for (int i = 0; i < P.NC; i++)
+	for (int i = 0; i < P.NumCells; i++)
 	{
 		Cells[i].cumTC = 0;
 		Cells[i].S = Cells[i].n;
@@ -1965,7 +1966,7 @@ void AssignPeopleToPlaces()
 	if (P.DoPlaces)
 	{
 		fprintf(stderr, "Assigning people to places....\n");
-		for (int i = 0; i < P.NC; i++)
+		for (int i = 0; i < P.NumCells; i++)
 		{
 			Cells[i].infected = Cells[i].susceptible;
 			Cells[i].susceptible = (int*)Memory::xcalloc(Cells[i].n, sizeof(int));
@@ -2083,7 +2084,7 @@ void AssignPeopleToPlaces()
 							k = j * P.nch + ((int)(Places[tp][i].loc.y / P.in_cells_.height));
 							Cells[k].I += (int)Places[tp][i].treat_end_time;
 						}
-					for (k = 0; k < P.NC; k++)
+					for (k = 0; k < P.NumCells; k++)
 					{
 						int i = k % P.nch;
 						j = k / P.nch;
@@ -2123,7 +2124,7 @@ void AssignPeopleToPlaces()
 						Cells[k].L = f3; Cells[k].R = f2;
 					}
 					m = f2 = f3 = f4 = 0;
-					for (k = 0; k < P.NC; k++)
+					for (k = 0; k < P.NumCells; k++)
 						if ((Cells[k].S > 0) && (Cells[k].I == 0))
 						{
 							f2 += Cells[k].S; f3++;
@@ -2142,7 +2143,7 @@ void AssignPeopleToPlaces()
 							}
 							m += ((int)Places[tp][i].treat_end_time);
 						}
-					for (int i = 0; i < P.NC; i++) Cells[i].L = Cells[i].I = Cells[i].R = 0;
+					for (int i = 0; i < P.NumCells; i++) Cells[i].L = Cells[i].I = Cells[i].R = 0;
 				}
 				t = ((double)m) / ((double)P.Nplace[tp]);
 				fprintf(stderr, "Adjusting place weights (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
@@ -2168,13 +2169,13 @@ void AssignPeopleToPlaces()
 				}
 				if (P.PlaceTypeNearestNeighb[tp] == 0)
 				{
-					for (int i = 0; i < P.NC; i++) Cells[i].S = 0;
+					for (int i = 0; i < P.NumCells; i++) Cells[i].S = 0;
 					for (j = 0; j < P.Nplace[tp]; j++)
 					{
 						int i = P.nch * ((int)(Places[tp][j].loc.x / P.in_cells_.width)) + ((int)(Places[tp][j].loc.y / P.in_cells_.height));
 						Cells[i].S += (int)Places[tp][j].treat_end_time;
 					}
-					for (int i = 0; i < P.NC; i++)
+					for (int i = 0; i < P.NumCells; i++)
 					{
 						if (Cells[i].S > Cells[i].cumTC)
 						{
@@ -2419,7 +2420,7 @@ void AssignPeopleToPlaces()
 				}
 			}
 		}
-		for (int i = 0; i < P.NC; i++)
+		for (int i = 0; i < P.NumCells; i++)
 		{
 			Cells[i].n = Cells[i].cumTC;
 			Cells[i].cumTC = 0;

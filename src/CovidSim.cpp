@@ -498,7 +498,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Maximum number of cases defining small outbreak", "%i", (void*) & (P.SmallEpidemicCases), 1, 1, 0)) P.SmallEpidemicCases = -1;
 
-		P.NC = -1;
+		P.NumCells = -1;
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Number of micro-cells per spatial cell width", "%i", (void*)&(P.NMCL), 1, 1, 0);
 		//added parameter to reset seeds after every run
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Reset seeds for every run", "%i", (void*)&(P.ResetSeeds), 1, 1, 0)) P.ResetSeeds = 0;
@@ -2709,7 +2709,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NC; i+=P.NumThreads)
+		for (int i = tn; i < P.NumCells; i+=P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
@@ -3035,7 +3035,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	{
 		if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
 		if (Hosts[i].inf == 0) j++;
-		if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
+		if ((Hosts[i].pcell < P.NumCells) && (Hosts[i].pcell >= 0))
 		{
 			if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
 			{
@@ -3186,7 +3186,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		{
 			if (i % 1000 == 0) fprintf(stderr, "\r*** %i              ", i);
 			if (Hosts[i].inf == 0) j++;
-			if ((Hosts[i].pcell < P.NC) && (Hosts[i].pcell >= 0))
+			if ((Hosts[i].pcell < P.NumCells) && (Hosts[i].pcell >= 0))
 			{
 				if (Cells[Hosts[i].pcell].susceptible[Hosts[i].listpos] != i)
 				{
@@ -4321,7 +4321,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NH) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NC) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NC);
+	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NCP) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
 	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
@@ -4342,7 +4342,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	fprintf(stderr, ".");
 	fread_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, ".");
 	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, ".");
@@ -4350,7 +4350,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	fprintf(stderr, ".");
 	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	for (i = 0; i < P.NC; i++)
+	for (i = 0; i < P.NumCells; i++)
 	{
 		if (Cells[i].n > 0)
 		{
@@ -4391,7 +4391,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NH), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NC), sizeof(int), 1, dat);
+	fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*) & (P.NCP), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -4417,7 +4417,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NH, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NC, dat);
+	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, "## %i\n", i++);
 	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NMC, dat);
 	fprintf(stderr, "## %i\n", i++);
@@ -5510,11 +5510,11 @@ void RecordInfTypes(void)
 	for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		for (j = 0; j <= MAX_HOUSEHOLD_SIZE; j++)
 			inf_household[i][j] = case_household[i][j] = 0;
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.NumCells; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 				Hosts[Cells[b].members[c]].listpos = 0;
-	//	for(b=0;b<P.NC;b++)
+	//	for(b=0;b<P.NumCells;b++)
 	//		if((Cells[b].S!=Cells[b].n)||(Cells[b].R>0))
 	{
 		j = k = l = lc = lc2 = 0; t = 1e10;
@@ -5570,7 +5570,7 @@ void RecordInfTypes(void)
 			}
 		}
 	}
-	for (b = 0; b < P.NC; b++)
+	for (b = 0; b < P.NumCells; b++)
 		if ((Cells[b].S != Cells[b].n) || (Cells[b].R > 0))
 			for (c = 0; c < Cells[b].n; c++)
 			{
