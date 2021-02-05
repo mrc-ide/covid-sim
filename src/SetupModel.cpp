@@ -972,9 +972,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	else
 	{
 		for (int i = 0; i < P.NumMicrocells; i++)
-		{
 			mcell_dens[i] = 1.0;
-		}
 		maxd = ((double)P.NumMicrocells);
 	}
 	if (!P.DoAdUnits) P.NumAdunits = 1;
@@ -1108,7 +1106,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		if (s > 1.0) s = 1.0;
 		m += (Mcells[i].n = (int)ignbin_mt((int32_t)(P.PopSize - m), s, 0));
 		t -= mcell_dens[i] / maxd;
-		if (Mcells[i].n > 0) {
+		if (Mcells[i].n > 0)
+		{
 			P.NumPopulatedMicrocells++;
 			if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing AdUnits)\n", i);
 			AdUnits[mcell_adunits[i]].n += Mcells[i].n;
@@ -1190,29 +1189,30 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NumHouseholds = 0;
 	int numberOfPeople = 0;
-	for (j2 = 0; j2 < P.NumPopulatedMicrocells; j2++)
+	int MCell = 0;
+	for (int PopMCellIndex = 0; PopMCellIndex < P.NumPopulatedMicrocells; PopMCellIndex++)
 	{
-		j = (int)(McellLookup[j2] - Mcells);
-		l = ((j / P.total_microcells_high_) / P.NMCL) * P.nch + ((j % P.total_microcells_high_) / P.NMCL);
-		ad = (!reg_demog_file.empty() && (P.DoAdUnits)) ? Mcells[j].adunit : 0;
-		for (int k = 0; k < Mcells[j].n;)
+		MCell = (int)(McellLookup[PopMCellIndex] - Mcells);
+		l = ((MCell / P.total_microcells_high_) / P.NMCL) * P.nch + ((MCell % P.total_microcells_high_) / P.NMCL);
+		ad = (!reg_demog_file.empty() && (P.DoAdUnits)) ? Mcells[MCell].adunit : 0;
+		for (int k = 0; k < Mcells[MCell].n;)
 		{
 			m = 1;
 			if (P.DoHouseholds)
 			{
 				s = ranf_mt(0);
-				while ((s > P.HouseholdSizeDistrib[ad][m - 1]) && (k + m < Mcells[j].n) && (m < MAX_HOUSEHOLD_SIZE)) m++;
+				while ((s > P.HouseholdSizeDistrib[ad][m - 1]) && (k + m < Mcells[MCell].n) && (m < MAX_HOUSEHOLD_SIZE)) m++;
 			}
 			denom_household[m]++;
 			for (i2 = 0; i2 < m; i2++)
 			{
 				//				fprintf(stderr,"%i ",i+i2);
 				Hosts[numberOfPeople + i2].listpos = m; //used temporarily to store household size
-				Mcells[j].members[k + i2] = numberOfPeople + i2;
+				Mcells[MCell].members[k + i2] = numberOfPeople + i2;
 				Cells[l].susceptible[Cells[l].cumTC] = numberOfPeople + i2;
 				Cells[l].members[Cells[l].cumTC++] = numberOfPeople + i2;
 				Hosts[numberOfPeople + i2].pcell = l;
-				Hosts[numberOfPeople + i2].mcell = j;
+				Hosts[numberOfPeople + i2].mcell = MCell;
 				Hosts[numberOfPeople + i2].hh = P.NumHouseholds;
 			}
 			P.NumHouseholds++;

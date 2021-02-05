@@ -26,28 +26,29 @@ enum struct BitmapFormats
 struct Param
 {
 	int PopSize; /**< Population size */
-	int NumHouseholds; // Number of households
+	int NumHouseholds; /**< Number of households */
 	int NumRealisations; /**< Number of Realisations */
 	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
 	int NRactNE;
-	int UpdatesPerSample; // Number of time steps between samples
-	int NumSamples; // Total number of samples that will be made
+	int UpdatesPerSample; /**< Number of time steps between samples */
+	int NumSamples; /**< Total number of samples that will be made */
 	CovidSim::TBD1::KernelLookup KernelLookup;
 	CovidSim::TBD1::KernelStruct Kernel;
 	CovidSim::TBD1::KernelStruct MoveKernel;
 	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot,FitIter;
+	int DoBin, DoSaveSnapshot, DoLoadSnapshot, FitIter;
 	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
 	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
 	void *clP_ptr[100][MAX_CLP_COPIES];
-	int NumCells; // Number of cells
-	int NumMicrocells; // Number of microcells
-	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
+	int NumCells; /**< Number of cells  */
+	int NumMicrocells; /**< Number of microcells  */
+	int NMCL; /**< Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL */
 	int NumPopulatedCells; /**< Number of populated cells  */
-	int NumPopulatedMicrocells, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NumPopulatedMicrocells; /**< Number of populated microcells  */
+	int ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 	int total_microcells_wide_, total_microcells_high_;
 
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
