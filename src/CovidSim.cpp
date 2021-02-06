@@ -2901,125 +2901,143 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	fprintf(stderr, "Finished InitModel.\n");
 }
 
-void SeedInfection(double t, int* NumSeedingInfections_byLocation, int rf, int run) //adding run number to pass it to event log
+void SeedInfection(double t, int* NumSeedingInfections_byLocation, int AlreadyInitialized, int run) //adding run number to pass it to event log
 {
 	/* *NumSeedingInfections_byLocation is an array of the number of seeding infections by location. During runtime, usually just a single int (given by a poisson distribution)*/
-	/*rf set to 0 when initializing model, otherwise set to 1 during runtime. */
+	/*AlreadyInitialized set to 0 when initializing model, otherwise set to 1 during runtime. i.e. when initial seeds are being set, not when imported cases are being set*/
 
-	int i /*seed location index*/;
-	int j /*microcell number*/;
-	int k, l /*k,l are grid coords at first, then l changed to be person within Microcell j, then k changed to be index of new infection*/;
-	int m = 0/*guard against too many infections and infinite loop*/;
-	int f /*range = {0, 1000}*/;
-	int n /*number of seed locations?*/;
+	int mcellnum /*microcell number*/;
+	int Person = 0, Mcell_x = 0, Mcell_y = 0;
+	int NumMCellSeedingChoices = 0; // Although inconsistently, zero coded as choice successful and no more choices needed. if NumMCellSeedingChoices = 0, RunningTotalGuesses = 0. 
+	int RunningTotalGuesses = 0 /*range = {0, 1000}*/;
+	int NumSeedLocations = ((AlreadyInitialized == 0) ? P.NumSeedLocations : 1); /*number of seed locations?*/;
 
-	n = ((rf == 0) ? P.NumSeedLocations : 1);
-	for (i = 0; i < n; i++)
+	for (int SeedLocation = 0; SeedLocation < NumSeedLocations; SeedLocation++)
 	{
-		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (rf))) //// either non-random locations, doing all initial infections in same location, and not initializing.
+		if ((!P.DoRandomInitialInfectionLoc) || ((P.DoAllInitialInfectioninSameLoc) && (AlreadyInitialized))) //// either non-random locations, doing all initial infections in same location, and not initializing.
 		{
-			k = (int)(P.LocationInitialInfection[i][0] / P.in_microcells_.width);
-			l = (int)(P.LocationInitialInfection[i][1] / P.in_microcells_.height);
-			j = k * P.total_microcells_high_ + l;
-			m = 0;
-			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
+			Mcell_x = (int)(P.LocationInitialInfection[SeedLocation][0] / P.in_microcells_.width);
+			Mcell_y = (int)(P.LocationInitialInfection[SeedLocation][1] / P.in_microcells_.height);
+			mcellnum = Mcell_x * P.total_microcells_high_ + Mcell_y;
+			NumMCellSeedingChoices = 0;
+			for (int Infection = 0; (Infection < NumSeedingInfections_byLocation[SeedLocation]) && (NumMCellSeedingChoices < 10000); Infection++)
 			{
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))]; //// randomly choose member of microcell j. Name this member l
-				if (Hosts[l].is_susceptible()) //// If Host l is uninfected.
+				int Person = Mcells[mcellnum].members[(int)(ranf() * ((double)Mcells[mcellnum].n))]; //// randomly choose member of microcell mcellnum. Name this member l
+				if (Hosts[Person].is_susceptible()) //// If Host l is uninfected.
 				{
-					if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType<0 || Hosts[l].PlaceLinks[P.CareHomePlaceType]<0))
+					if ((CalcPersonSusc(Person, 0, 0) > 0) && (Hosts[Person].age <= P.MaxAgeForInitialInfection) &&
+						(P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[Person].PlaceLinks[P.CareHomePlaceType] < 0))
 					{
-						//only reset the initial location if rf==0, i.e. when initial seeds are being set, not when imported cases are being set
-						if (rf == 0)
+						//only reset the initial location if AlreadyInitialized == 0, i.e. when initial seeds are being set, not when imported cases are being set
+						if (AlreadyInitialized == 0)
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
+							P.LocationInitialInfection[SeedLocation][0] = Households[Hosts[Person].hh].loc.x;
+							P.LocationInitialInfection[SeedLocation][1] = Households[Hosts[Person].hh].loc.y;
 						}
-						Hosts[l].infector = -2;
-						Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
-						m = 0;
+						Hosts[Person].infector = -2;
+						Hosts[Person].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(Person, t, 0, run); ///// guessing this updates a number of things about person l at time t in thread 0 for this run.
+						NumMCellSeedingChoices = 0;
 					}
 				}
-				else { k--; m++; } //// k-- means if person l chosen is already infected, go again. The m < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
+				else { Infection--; NumMCellSeedingChoices++; } //// k-- means if person l chosen is already infected, go again. The NumMCellSeedingChoices < 10000 is a guard against a) too many infections; b) an infinite loop if no more uninfected people left.
 			}
 		}
-		else if (P.DoAllInitialInfectioninSameLoc)
+		else if (P.DoAllInitialInfectioninSameLoc) // difference between this block and block below is that here you chosse a single microcell to distribute all seeding infections for this location. Block below chooses different microcells. 
 		{
-			f = 0;
-			do
+			RunningTotalGuesses = 0; // initialize to zero.
+			do // while RunningTotalGuesses between 1 and 999, i.e. while still need to choose person to seed infection into, but also while loop hasn't made more than 1000 attempts.
 			{
-				m = 0;
+				NumMCellSeedingChoices = 0; // initialize to zero.
+
+				// choose Person (in order to choose microcell, really just sampling microcells weighted by population. Peron within microcell will be re-chosen later)
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
-					//fprintf(stderr,"%i ",AdUnits[Mcells[j].adunit].id);
-				} while ((Mcells[j].n < NumSeedingInfections_byLocation[i]) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
-					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
-					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
+					Person = (int)(ranf() * ((double)P.PopSize));
+					mcellnum = Hosts[Person].mcell;
+
+				} while ((Mcells[mcellnum].n < NumSeedingInfections_byLocation[SeedLocation]) // choose person again if their microcell has fewer people than number seeded in this location
+					|| (Mcells[mcellnum].n > P.MaxPopDensForInitialInfection) // choose person again if their microcell has too many people
+					|| (Mcells[mcellnum].n < P.MinPopDensForInitialInfection) // choose person again if their microcell doesn't have enough people
+					|| ((P.InitialInfectionsAdminUnit[SeedLocation] > 0) && ((AdUnits[Mcells[mcellnum].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[SeedLocation] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
+
+				/// having chosen microcell, choose person to potentially infect
+				for (int Infection = 0; (Infection < NumSeedingInfections_byLocation[SeedLocation]) && (NumMCellSeedingChoices < 10000); Infection++)
 				{
-					l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-					if (Hosts[l].is_susceptible())
+					// choose Peron within microcell
+					Person = Mcells[mcellnum].members[(int)(ranf() * ((double)Mcells[mcellnum].n))];
+					if (Hosts[Person].is_susceptible())
 					{
-						if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age <= P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
+						if ((CalcPersonSusc(Person, 0, 0) > 0) && // if person has non-zero susceptibility
+							(Hosts[Person].age <= P.MaxAgeForInitialInfection) && // and they're not too young
+							(P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[Person].PlaceLinks[P.CareHomePlaceType] < 0))
 						{
-							P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-							P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
-							Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-							DoInfect(l, t, 0, run);
-							m = 0;
+							P.LocationInitialInfection[SeedLocation][0] = Households[Hosts[Person].hh].loc.x;
+							P.LocationInitialInfection[SeedLocation][1] = Households[Hosts[Person].hh].loc.y;
+							Hosts[Person].infector = -2; Hosts[Person].infect_type = INFECT_TYPE_MASK - 1;
+							DoInfect(Person, t, 0, run);
+							NumMCellSeedingChoices = 0; // can move on from do-while loop
 						}
 					}
 					else
 					{
-						k--; m++;
+						/// Choose person again. Increment number of choices 
+						Infection--;
+						NumMCellSeedingChoices++;
 					}
 				}
-				if (m)
-					f++;
+				if (NumMCellSeedingChoices)
+					RunningTotalGuesses++;
 				else
-					f = 0;
-			} while ((f > 0) && (f < 1000));
+					RunningTotalGuesses = 0;
+			} while ((RunningTotalGuesses > 0) && (RunningTotalGuesses < 1000));
 		}
-		else
+		else // difference between this block and block above is that above you chosse a single microcell to distribute all seeding infections for this location. Block here chooses different microcells. 
 		{
-			m = 0;
-			for (k = 0; (k < NumSeedingInfections_byLocation[i]) && (m < 10000); k++)
+			NumMCellSeedingChoices = 0;
+			for (int Infection = 0; (Infection < NumSeedingInfections_byLocation[SeedLocation]) && (NumMCellSeedingChoices < 10000); Infection++)
 			{
+				// choose Person (in order to choose microcell, really just sampling microcells weighted by population. Peron within microcell will be re-chosen later)
 				do
 				{
-					l = (int)(ranf() * ((double)P.PopSize));
-					j = Hosts[l].mcell;
-					//fprintf(stderr,"@@ %i %i ",AdUnits[Mcells[j].adunit].id, (int)(AdUnits[Mcells[j].adunit].id / P.CountryDivisor));
-				} while ((Mcells[j].n == 0) || (Mcells[j].n > P.MaxPopDensForInitialInfection)
-					|| (Mcells[j].n < P.MinPopDensForInitialInfection)
-					|| ((P.InitialInfectionsAdminUnit[i] > 0) && ((AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[i] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
-				l = Mcells[j].members[(int)(ranf() * ((double)Mcells[j].n))];
-				if (Hosts[l].is_susceptible())
+					Person = (int)(ranf() * ((double)P.PopSize));
+					mcellnum = Hosts[Person].mcell;
+
+				} while ((Mcells[mcellnum].n == 0) || (Mcells[mcellnum].n > P.MaxPopDensForInitialInfection) // choose again if microcell is unpopulated, not populated enough or too popuated
+					|| (Mcells[mcellnum].n < P.MinPopDensForInitialInfection)
+					|| ((P.InitialInfectionsAdminUnit[SeedLocation] > 0) && ((AdUnits[Mcells[mcellnum].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor != (P.InitialInfectionsAdminUnit[SeedLocation] % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor)));
+
+				/// having chosen microcell, choose person to potentially infect
+				Person = Mcells[mcellnum].members[(int)(ranf() * ((double)Mcells[mcellnum].n))];
+				if (Hosts[Person].is_susceptible())
 				{
-					if ((CalcPersonSusc(l, 0, 0) > 0) && (Hosts[l].age<=P.MaxAgeForInitialInfection) && (P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[l].PlaceLinks[P.CareHomePlaceType] < 0))
+					if ((CalcPersonSusc(Person, 0, 0) > 0) && // if person has non-zero susceptibility
+						(Hosts[Person].age <= P.MaxAgeForInitialInfection) && // and they're not too young
+						(P.CareHomeAllowInitialInfections || P.CareHomePlaceType < 0 || Hosts[Person].PlaceLinks[P.CareHomePlaceType] < 0))
 					{
-						P.LocationInitialInfection[i][0] = Households[Hosts[l].hh].loc.x;
-						P.LocationInitialInfection[i][1] = Households[Hosts[l].hh].loc.y;
-						Hosts[l].infector = -2; Hosts[l].infect_type = INFECT_TYPE_MASK - 1;
-						DoInfect(l, t, 0, run);
-						m = 0;
+						P.LocationInitialInfection[SeedLocation][0] = Households[Hosts[Person].hh].loc.x;
+						P.LocationInitialInfection[SeedLocation][1] = Households[Hosts[Person].hh].loc.y;
+						Hosts[Person].infector = -2; Hosts[Person].infect_type = INFECT_TYPE_MASK - 1;
+						DoInfect(Person, t, 0, run);
+						NumMCellSeedingChoices = 0;
 					}
 					else
 					{
-						k--; m++;
+						/// Choose person again. Increment number of choices
+						Infection--;
+						NumMCellSeedingChoices++;
 					}
 				}
 				else
 				{
-					k--; m++;
+					/// Choose person again. Increment number of choices
+					Infection--;
+					NumMCellSeedingChoices++;
 				}
 			}
 		}
 	}
-	if (m > 0) fprintf(stderr, "### Seeding error ###\n");
+	if (NumMCellSeedingChoices > 0) fprintf(stderr, "### Seeding error ###\n");
 }
 
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
