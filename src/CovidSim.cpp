@@ -1250,6 +1250,20 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
+		//// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
+		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "IncludeStepDownToDeath", "%i", (void*)&P.IncludeStepDownToDeath, 1, 1, 0))
+		//{
+		//	P.IncludeStepDownToDeath = 0;
+		//	for (int quantile = 0; quantile <= CDF_RES; quantile++)
+		//		P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile]; 
+		//}
+		//else
+		//{
+		//	P.IncludeStepDownToDeath = 1; 
+		//	GetInverseCdf(ParamFile_dat, PreParamFile_dat, "StepdownToDeath_icdf", &P.StepdownToDeath_icdf);
+		//}
+
+
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_Mild_ByAge[i] = 0.5;
@@ -5111,9 +5125,8 @@ void CalibrationThresholdCheck(double t,int n)
 	*/
 
 	trigAlertCases = State.cumDC;
-	if (n >= P.WindowToEvaluateTriggerAlert) {
+	if (n >= P.WindowToEvaluateTriggerAlert) 
 		trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
-	}
 
 	if (P.TriggerAlertOnDeaths)  //// if using deaths as trigger (as opposed to detected cases)
 	{
@@ -5121,9 +5134,7 @@ void CalibrationThresholdCheck(double t,int n)
 		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
 	}
 	else
-	{
 		trigAlert = trigAlertCases;
-	}
 
 	double RatioPredictedObserved, DesiredAccuracy; // calibration variables.
 
@@ -5169,7 +5180,7 @@ void CalibrationThresholdCheck(double t,int n)
 						else if (P.ModelCalibIteration == 2)
 							P.SeedingScaling /= pow(RatioPredictedObserved, 0.6);
 						else if (P.ModelCalibIteration > 2)
-							P.SeedingScaling /= pow(RatioPredictedObserved, 0.3 + 0.2 * ranf()); // include random number to prevent loops
+							P.SeedingScaling /= pow(RatioPredictedObserved, 0.3 + 0.2 * ranf()); // include random number to prevent infinite loops
 					}
 					else
 					{

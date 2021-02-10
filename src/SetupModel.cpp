@@ -615,8 +615,8 @@ int ReadFitIter(std::string const& FitFile)
 		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i", &(cl_index[index])); // extract indices of parameters to fit
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg", &P.clP[cl_index[index]]); // update values in clP array at those indices
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
 	}																						
 	fclose(FitFile_Iter_dat);
 	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)

@@ -80,6 +80,7 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		MeanTimeToTestOffset 			= 1		,
 		MeanTimeToTestCriticalOffset 	= 3.3	,
 		MeanTimeToTestCritRecovOffset 	= 9.32	,
+		IncludeStepDownToDeath			= 0		, 
 		
 		# Inverse cumulative distribution functions / quantiles (at 5% intervals resolution)
 		latent_icdf 				= c(0	, 0.098616903	, 0.171170649	, 0.239705594	, 0.307516598	, 0.376194441	, 0.446827262	, 0.520343677	, 0.597665592	, 0.679808341	, 0.767974922	, 0.863671993	, 0.968878064	, 1.086313899	, 1.219915022	, 1.37573215	, 1.563841395	, 1.803041398	, 2.135346254	, 2.694118208	, 3.964172493	) , 
@@ -323,7 +324,18 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["CriticalToCritRecov_icdf"				]] = CriticalToCritRecov_icdf 	
 	PreParamList[["CriticalToDeath_icdf"					]] = CriticalToDeath_icdf 		
 	PreParamList[["CritRecovToRecov_icdf"					]] = CritRecovToRecov_icdf 	
-	PreParamList[["StepdownToDeath_icdf"					]] = StepdownToDeath_icdf 	
+	
+	if (IncludeStepDownToDeath)
+	{
+		PreParamList[["IncludeStepDownToDeath"]] = 1
+		PreParamList[["StepdownToDeath_icdf"					]] = StepdownToDeath_icdf 	
+	
+	} else 
+	{
+		PreParamList[["IncludeStepDownToDeath"]] = 0
+		PreParamList[["StepdownToDeath_icdf"					]] = CritRecovToRecov_icdf 	
+	}
+	
 	
 	# Transition probabilities
 	PreParamList[["Proportion symptomatic by age group"		]] = ProportionSymptomatic

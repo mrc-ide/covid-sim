@@ -308,7 +308,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 		// set seasonality to 1
 		seasonality = 1.0;
 	}
-	else{
+	else
+	{
 		// otherwise pick seasonality from P.Seasonality array using day number in year
 		seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR];
 	}

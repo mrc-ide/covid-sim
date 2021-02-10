@@ -42,14 +42,17 @@ enum struct Severity {
 	//// Flag value.
 	Asymptomatic,
 	Mild,
+	// Influenza-like illness
 	ILI,
+	// Severe Acute Respiratory Infection
 	SARI,
+	// Critical (requires intensive care unit (ICU)
 	Critical,
 	//// Recovering from Critical (not recovered yet).
 	RecoveringFromCritical,
-	//// label to avoid double counting. Not sure you need.
+	//// label to avoid double counting. 
 	Dead,
-	//// label to avoid double counting. Not sure you need.
+	//// label to avoid double counting. 
 	Recovered
 };
 
