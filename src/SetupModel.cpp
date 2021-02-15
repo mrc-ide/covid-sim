@@ -676,6 +676,9 @@ void InitTransmissionCoeffs(void)
 			quantile -= ((double)j);
 			Hosts[Person].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(quantile * P.infectious_icdf[j + 1] + (1.0 - quantile) * P.infectious_icdf[j]) / P.ModelTimeStep));
 
+			// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+			// ** // ** Household Infections
+
 			if (P.DoHouseholds) // code block effectively same as household infections in InfectSweep
 			{
 				// choose multiplier of infectiousness
@@ -701,7 +704,11 @@ void InitTransmissionCoeffs(void)
 						HH_Infections += (1 - ProbSurvive) * P.AgeSusceptibility[HOST_AGE_GROUP(Person)] * ((Hosts[HouseholdMember].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 				HH_SAR_Denom += (double)(Households[Hosts[Person].hh].nhr - 1); // add to household denominator
 			}
-			// calc spatial infections. Sum over number of days until recovery time, in two parts: entire infection and after symptoms occur, as spatial contact rate differs between these periods.
+
+			// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+			// ** // ** Spatial Infections
+
+			// Sum over number of days until recovery time, in two parts: entire infection and after symptoms occur, as spatial contact rate differs between these periods.
 			LatentToSympDelay = (P.LatentToSymptDelay > Hosts[Person].recovery_or_death_time * P.ModelTimeStep) ? Hosts[Person].recovery_or_death_time * P.ModelTimeStep : P.LatentToSymptDelay;
 			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
@@ -723,7 +730,8 @@ void InitTransmissionCoeffs(void)
 	P.R0household = HH_Infections / ((double)P.PopSize);
 	fprintf(stderr, "Household R0=%lg\n", P.R0household);
 
-	// Loop below sums "place" infections
+	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+	// ** // ** Place Infections
 	if (P.DoPlaces)
 		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 			if (PlaceType != P.HotelPlaceType)
