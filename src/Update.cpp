@@ -1234,7 +1234,8 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 	}
 }
 
-void UpdateHostClosure() {
+void UpdateHostClosure()
+{
 	for (int hcq_thread_no = 0; hcq_thread_no < P.NumThreads; hcq_thread_no++)
 	{
 		for (int host_closure = 0; host_closure < StateT[hcq_thread_no].host_closure_queue_size; host_closure++)
