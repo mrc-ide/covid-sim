@@ -1,5 +1,5 @@
 name: CI for different Linux distributions
-0
+
 on:
   pull_request:
     branches:
