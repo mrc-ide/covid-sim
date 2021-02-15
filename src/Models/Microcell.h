@@ -3,6 +3,19 @@
 
 #include "../IndexList.h"
 
+
+enum struct TreatStat { // treatment status
+
+	//// Untreated
+	Untreated = 0,
+	//// Untreated but flagged for treatment
+	ToBeTreated = 1,
+	//// Treated
+	Treated = 2,
+	//// Do not treat again (flag in TreatSweep there only to avoid code blocks being called again).
+	DontTreatAgain = 3,
+};
+
 /**
  * @brief The basic unit of the simulation and is associated to a geographical location.
  *
@@ -12,18 +25,21 @@
  */
 struct Microcell
 {
-	/* Note use of short int here limits max run time to USHRT_MAX*TimeStep - e.g. 65536*0.25=16384 days=44 yrs.
+	/* Note use of short int here limits max run time to USHRT_MAX*ModelTimeStep - e.g. 65536*0.25=16384 days=44 yrs.
 	   Global search and replace of 'unsigned short int' with 'int' would remove this limit, but use more memory.
 	*/
-	int n /*Number of people in microcell*/, adunit;
-	int* members;
 
-	int* places[NUM_PLACE_TYPES];
-	unsigned short int np[NUM_PLACE_TYPES];
-	unsigned short int moverest, placeclose, socdist, keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
+	int n; // Number of people in microcell
+	int adunit; // admin unit microcell belongs to
+	int* members; // array of members/hosts of microcell
+
+	int* places[NUM_PLACE_TYPES]; // list of places (of various place types) within microcell
+	unsigned short int np[NUM_PLACE_TYPES]; // number of places (of various place types) within mircocell
+	unsigned short int keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
 	unsigned short int move_start_time, move_end_time;
 	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
-	unsigned short int treat, vacc, treat_trig, vacc_trig;
+	TreatStat moverest, treat, vacc, socdist, placeclose;
+	unsigned short int treat_trig, vacc_trig;
 	unsigned short int treat_start_time, treat_end_time;
 	unsigned short int vacc_start_time;
 	IndexList* AirportList;

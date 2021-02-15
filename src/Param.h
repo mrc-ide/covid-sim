@@ -26,28 +26,35 @@ enum struct BitmapFormats
 struct Param
 {
 	int PopSize; /**< Population size */
-	int NH; // Number of households
+	int NumHouseholds; /**< Number of households */
 	int NumRealisations; /**< Number of Realisations */
 	int NumNonExtinctRealisations; /**< Number of non-extinct realisations */
 	int NRactual;
 	int NRactE;
 	int NRactNE;
-	int UpdatesPerSample; // Number of time steps between samples
-	int NumSamples; // Total number of samples that will be made
+
+	// Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep).
+	double SimulationDuration; /**< The number of days to run for */
+	double ModelTimeStep; /**< The length of a time step, in days */
+	double OutputTimeStep; /**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
+	int NumModelTimeStepsPerOutputTimeStep; /**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
+	int NumOutputTimeSteps; /**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
+
 	CovidSim::TBD1::KernelLookup KernelLookup;
 	CovidSim::TBD1::KernelStruct Kernel;
 	CovidSim::TBD1::KernelStruct MoveKernel;
 	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot,FitIter;
+	int DoBin, DoSaveSnapshot, DoLoadSnapshot, FitIter;
 	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
 	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
 	void *clP_ptr[100][MAX_CLP_COPIES];
-	int NC; // Number of cells
-	int NMC; // Number of microcells
-	int NMCL; // Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL
-	int NCP; /**< Number of populated cells  */
-	int NMCP, ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
+	int NumCells; /**< Number of cells  */
+	int NumMicrocells; /**< Number of microcells  */
+	int NMCL; /**< Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL */
+	int NumPopulatedCells; /**< Number of populated cells  */
+	int NumPopulatedMicrocells; /**< Number of populated microcells  */
+	int ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
 	int total_microcells_wide_, total_microcells_high_;
 
 	MicroCellPosition get_micro_cell_position_from_cell_index(int cell_index) const;
@@ -86,9 +93,6 @@ struct Param
 	int ts_age;
 	int DoSeverity; // Non-zero (true) if severity analysis should be done
 
-	double TimeStep; // The length of a time step, in days
-	double SampleTime; // The number of days to run for
-	double SampleStep; // The length of a sampling step, in days
 	double BitmapAspectScale; // Height of bitmap / Width of bitmap
 	double LongitudeCutLine; // Longitude to image earth is cut at to produce a flat map.  Default -360 degrees (effectively -180).  Use to ensure countries have a contiguous boundary
 	
@@ -128,6 +132,7 @@ struct Param
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS], RelativeSpatialContactSusc[NUM_AGE_GROUPS];
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
+	double WAIFW_Matrix_SpatialOnly[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
 

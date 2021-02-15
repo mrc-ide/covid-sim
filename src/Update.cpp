@@ -437,7 +437,7 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 		}
 		else
 		{
-			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.TimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
+			int CaseTime = a->latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep)); //// base severity times on CaseTime, not latent time. Otherwise there are edge cases where recovery time is zero days after latent_time and therefore before DoCase called in IncubRecoverySweep (i.e. people can recover before they've become a case!).
 
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
