@@ -689,8 +689,8 @@ void InitTransmissionCoeffs(void)
 				ProbSurvive = 1.0;
 				for (int InfectiousDay = 0; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++) // loop over days adding to force of infection, probability that other household members will be infected.
 				{ 
-					double y = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
-					ProbSurvive *= ((y < 0) ? 0 : y);
+					double ProbSurviveToday = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
+					ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 				}
 
 				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), 
@@ -743,15 +743,15 @@ void InitTransmissionCoeffs(void)
 						int InfectiousDay; 
 						for (InfectiousDay = 0; InfectiousDay < NumDaysInfectiousNotSymptomatic; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							ProbSurvive *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - x * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
 						s3 = ((double)(_I64(Places[PlaceType][PlaceNum].group_size[Hosts[Person].PlaceGroupLinks[PlaceType]]) - 1));
 						x *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? (P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
 						for (; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							ProbSurvive *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - x * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
 
 						t3 = ProbSurvive;
@@ -768,8 +768,8 @@ void InitTransmissionCoeffs(void)
 						x *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? (P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
 						for (; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							ProbSurvive *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - x * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
 						PlaceInfections += (1 - t3 * ProbSurvive) * s3 + (1 - ProbSurvive) * (((double)(_I64(Places[PlaceType][PlaceNum].n) - 1)) - s3);
 					}
