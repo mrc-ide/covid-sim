@@ -1250,18 +1250,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "SARIToDeath_icdf", &P.SARIToDeath_icdf);
 		GetInverseCdf(ParamFile_dat, PreParamFile_dat, "CriticalToDeath_icdf", &P.CriticalToDeath_icdf);
 
-		//// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
-		//if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "IncludeStepDownToDeath", "%i", (void*)&P.IncludeStepDownToDeath, 1, 1, 0))
-		//{
-		//	P.IncludeStepDownToDeath = 0;
-		//	for (int quantile = 0; quantile <= CDF_RES; quantile++)
-		//		P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile]; 
-		//}
-		//else
-		//{
-		//	P.IncludeStepDownToDeath = 1; 
-		//	GetInverseCdf(ParamFile_dat, PreParamFile_dat, "StepdownToDeath_icdf", &P.StepdownToDeath_icdf);
-		//}
+		// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "IncludeStepDownToDeath", "%i", (void*)&P.IncludeStepDownToDeath, 1, 1, 0)) P.IncludeStepDownToDeath = 0;
+		if (P.IncludeStepDownToDeath == 0)
+			for (int quantile = 0; quantile <= CDF_RES; quantile++)
+				P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile]; 
+		else
+			GetInverseCdf(ParamFile_dat, PreParamFile_dat, "StepdownToDeath_icdf", &P.StepdownToDeath_icdf);
 
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
