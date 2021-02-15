@@ -1,5 +1,5 @@
 name: CI for different Linux distributions
-
+0
 on:
   pull_request:
     branches:
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container_image: ["fedora:latest", "debian:10", "archlinux/base", "ubuntu:bionic", "centos:7", "opensuse/tumbleweed", "alpine:latest"]
+        container_image: ["fedora:latest", "debian:10", "ubuntu:bionic", "centos:7", "opensuse/tumbleweed", "alpine:latest"]
         include:
         - container_image: "fedora:latest"
           cmake: "cmake"
@@ -44,9 +44,6 @@ jobs:
         - container_image: "debian:10"
           cmake: "cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
-        - container_image: "archlinux/base"
-          cmake: "cmake"
-          ctest: "ctest"
         - container_image: "ubuntu:bionic"
           cmake: "../cmake-3.18.2-Linux-x86_64/bin/cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
