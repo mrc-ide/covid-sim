@@ -66,6 +66,8 @@ PreParamList = MakePreParamList(
 		Mean_StepdownToDeath 			= AS_Means$Mean_StepdownToDeath,
 		
 		# quantiles / ICDFs
+		
+		#IncludeStepDownToDeath			= 1, 
 		latent_icdf 					= ICDFs$latent_icdf 		, 
 		infectious_icdf 				= ICDFs$infectious_icdf 	, 
 		MildToRecovery_icdf				= ICDFs$MildToRecovery_icdf	, 

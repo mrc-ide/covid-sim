@@ -615,8 +615,8 @@ int ReadFitIter(std::string const& FitFile)
 		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i", &(cl_index[index])); // extract indices of parameters to fit
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg", &P.clP[cl_index[index]]); // update values in clP array at those indices
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
+		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
 	}																						
 	fclose(FitFile_Iter_dat);
 	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
@@ -625,7 +625,8 @@ int ReadFitIter(std::string const& FitFile)
 void InitTransmissionCoeffs(void)
 {
 	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be, given infectious period, per infection at household, place and spatial levels. 
-	double d, s3, t3;
+	double NumPeopleInPlaceGroup;
+	double ProbSurvive, ProbSurviveNonCareHome;
 	double quantile, LatentToSympDelay;
 	double HH_Infections = 0; // total number of spatial infections summed over entire population in #pragma loop below.
 	double SpatialInfections = 0; // total number of spatial infections summed over entire population in #pragma loop below.
@@ -647,7 +648,7 @@ void InitTransmissionCoeffs(void)
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
-#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,d) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts)
+#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts)
 	for (int Thread = 0; Thread < P.NumThreads; Thread++) // loop over threads
 	{
 		for (int Person = Thread; Person < P.PopSize; Person += P.NumThreads) // loop over people
@@ -675,6 +676,9 @@ void InitTransmissionCoeffs(void)
 			quantile -= ((double)j);
 			Hosts[Person].recovery_or_death_time = (unsigned short int) floor(0.5 - (P.InfectiousPeriod * log(quantile * P.infectious_icdf[j + 1] + (1.0 - quantile) * P.infectious_icdf[j]) / P.ModelTimeStep));
 
+			// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+			// ** // ** Household Infections
+
 			if (P.DoHouseholds) // code block effectively same as household infections in InfectSweep
 			{
 				// choose multiplier of infectiousness
@@ -685,11 +689,11 @@ void InitTransmissionCoeffs(void)
 				// Care home residents less likely to infect via "household" contacts.
 				if (Hosts[Person].care_home_resident) HH_Infectiousness *= P.CareHomeResidentHouseholdScaling;
 				HH_Infectiousness *= P.ModelTimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[Person].hh].nhr - 1];
-				d = 1.0; 
+				ProbSurvive = 1.0;
 				for (int InfectiousDay = 0; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++) // loop over days adding to force of infection, probability that other household members will be infected.
 				{ 
-					double y = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
-					d *= ((y < 0) ? 0 : y);
+					double ProbSurviveToday = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
+					ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 				}
 
 				// loop over people in households. If household member susceptible (they will be unless already infected in this code block), 
@@ -697,10 +701,14 @@ void InitTransmissionCoeffs(void)
 				// Person.e. the usual stuff in CalcInfSusc.cpp, but without interventions
 				for (int HouseholdMember = Households[Hosts[Person].hh].FirstPerson; HouseholdMember < Households[Hosts[Person].hh].FirstPerson + Households[Hosts[Person].hh].nh; HouseholdMember++)
 					if ((Hosts[HouseholdMember].is_susceptible()) && (HouseholdMember != Person))
-						HH_Infections += (1 - d) * P.AgeSusceptibility[HOST_AGE_GROUP(Person)] * ((Hosts[HouseholdMember].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+						HH_Infections += (1 - ProbSurvive) * P.AgeSusceptibility[HOST_AGE_GROUP(Person)] * ((Hosts[HouseholdMember].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 				HH_SAR_Denom += (double)(Households[Hosts[Person].hh].nhr - 1); // add to household denominator
 			}
-			// calc spatial infections. Sum over number of days until recovery time, in two parts: entire infection and after symptoms occur, as spatial contact rate differs between these periods.
+
+			// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+			// ** // ** Spatial Infections
+
+			// Sum over number of days until recovery time, in two parts: entire infection and after symptoms occur, as spatial contact rate differs between these periods.
 			LatentToSympDelay = (P.LatentToSymptDelay > Hosts[Person].recovery_or_death_time * P.ModelTimeStep) ? Hosts[Person].recovery_or_death_time * P.ModelTimeStep : P.LatentToSymptDelay;
 			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
@@ -722,55 +730,60 @@ void InitTransmissionCoeffs(void)
 	P.R0household = HH_Infections / ((double)P.PopSize);
 	fprintf(stderr, "Household R0=%lg\n", P.R0household);
 
-	// Loop below sums "place" infections
+	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
+	// ** // ** Place Infections
 	if (P.DoPlaces)
 		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 			if (PlaceType != P.HotelPlaceType)
 			{
 				double PreviousTotalPlaceInfections = PlaceInfections;
-#pragma omp parallel for private(d,LatentToSympDelay,Place_Infectiousness,s3,t3) schedule(static,1000) reduction(+:PlaceInfections) default(none) shared(P, Hosts, Places, PlaceType)
+#pragma omp parallel for private(ProbSurvive,LatentToSympDelay,Place_Infectiousness,NumPeopleInPlaceGroup,ProbSurviveNonCareHome) schedule(static,1000) reduction(+:PlaceInfections) default(none) shared(P, Hosts, Places, PlaceType)
 				for (int Person = 0; Person < P.PopSize; Person++)
 				{
 					int PlaceNum = Hosts[Person].PlaceLinks[PlaceType];
-					if (PlaceNum >= 0)
+					if (PlaceNum >= 0) //// i.e. if person has a link to a particular Place of this PlaceType.
 					{
 						LatentToSympDelay = (P.LatentToSymptDelay > Hosts[Person].recovery_or_death_time * P.ModelTimeStep) ? Hosts[Person].recovery_or_death_time * P.ModelTimeStep : P.LatentToSymptDelay;
 						Place_Infectiousness = fabs(Hosts[Person].infectiousness) * P.ModelTimeStep * P.PlaceTypeTrans[PlaceType];
-						double x = Place_Infectiousness / P.PlaceTypeGroupSizeParam1[PlaceType];
-						d = 1.0;
+						double PlaceInf_Scaled = Place_Infectiousness / P.PlaceTypeGroupSizeParam1[PlaceType];
+						ProbSurvive = 1.0;
 						int NumDaysInfectiousNotSymptomatic = (int)(LatentToSympDelay / P.ModelTimeStep);
 						int InfectiousDay; 
 						for (InfectiousDay = 0; InfectiousDay < NumDaysInfectiousNotSymptomatic; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							d *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - PlaceInf_Scaled * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
-						s3 = ((double)(_I64(Places[PlaceType][PlaceNum].group_size[Hosts[Person].PlaceGroupLinks[PlaceType]]) - 1));
-						x *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? (P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
+						NumPeopleInPlaceGroup = ((double)(_I64(Places[PlaceType][PlaceNum].group_size[Hosts[Person].PlaceGroupLinks[PlaceType]]) - 1));
+						PlaceInf_Scaled *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? // if person symptomatic and not a care home resident
+							(P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
 						for (; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							d *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - PlaceInf_Scaled * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
 
-						t3 = d;
-						x = P.PlaceTypePropBetweenGroupLinks[PlaceType] * Place_Infectiousness / ((double)Places[PlaceType][PlaceNum].n);
+						ProbSurviveNonCareHome = ProbSurvive;
+						PlaceInf_Scaled = P.PlaceTypePropBetweenGroupLinks[PlaceType] * Place_Infectiousness / ((double)Places[PlaceType][PlaceNum].n);
+
 						// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
 						// calculation uses average proportion of care home "members" who are residents.
-						if (Hosts[Person].care_home_resident) x *= (1.0 - P.CareHomePropResidents) + P.CareHomePropResidents * (P.CareHomeWorkerGroupScaling * (((double)Places[PlaceType][PlaceNum].n - 1) - s3) + s3) / ((double)Places[PlaceType][PlaceNum].n - 1);
-						d = 1.0;
+						if (Hosts[Person].care_home_resident)
+							PlaceInf_Scaled *= (1.0 - P.CareHomePropResidents) + P.CareHomePropResidents * (P.CareHomeWorkerGroupScaling * (((double)Places[PlaceType][PlaceNum].n - 1) - NumPeopleInPlaceGroup) + NumPeopleInPlaceGroup) / ((double)Places[PlaceType][PlaceNum].n - 1);
+						ProbSurvive = 1.0;
 						for (InfectiousDay = 0; InfectiousDay < NumDaysInfectiousNotSymptomatic; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							d *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - PlaceInf_Scaled * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
-						x *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? (P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
+						PlaceInf_Scaled *= (((Hosts[Person].infectiousness < 0) && (!Hosts[Person].care_home_resident)) ? (P.SymptPlaceTypeContactRate[PlaceType] * (1 - P.SymptPlaceTypeWithdrawalProp[PlaceType])) : 1);
 						for (; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++)
 						{
-							double y = 1.0 - x * P.infectiousness[InfectiousDay];
-							d *= ((y < 0) ? 0 : y);
+							double ProbSurviveToday = 1.0 - PlaceInf_Scaled * P.infectiousness[InfectiousDay];
+							ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 						}
-						PlaceInfections += (1 - t3 * d) * s3 + (1 - d) * (((double)(_I64(Places[PlaceType][PlaceNum].n) - 1)) - s3);
+						// add to PlaceInfections. Weighted sum of PlaceGroup and non-place group infectins within that place.
+						PlaceInfections += (1 - ProbSurviveNonCareHome * ProbSurvive) * NumPeopleInPlaceGroup + (1 - ProbSurvive) * (((double)(_I64(Places[PlaceType][PlaceNum].n) - 1)) - NumPeopleInPlaceGroup);
 					}
 				}
 				fprintf(stderr, "%lg  ", (PlaceInfections - PreviousTotalPlaceInfections) / ((double)P.PopSize));
