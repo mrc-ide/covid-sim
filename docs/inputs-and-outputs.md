@@ -287,7 +287,7 @@ Contains time-stamped statistics per [admin unit](./model-glossary.md#Admin-unit
 | ------------- |-------------:|
 | t |  time |
 | I(admincode) ... | Incidence of infection in each admin unit (the number of columns equals the number of admin units used) |
-| C(admincode) ... | Incidence of cases in each admin unit. |
+| C(admincode) ... | Incidence of cases (symptomatic) in each admin unit. |
 | DC(admincode) ... | Incidence of detected cases in each admin unit |
 | T(admincode) ... | Incidence of treated cases in each admin unit |
 | value ... | A sequence of column values of the population of each admin unit |
@@ -297,8 +297,8 @@ Contains time-stamped statistics per [admin unit](./model-glossary.md#Admin-unit
 | column | meaning |
 | ------------- |-------------:|
 | t |  time |
-| I(age band) ... | incidence of cases in each age band |
-| C(age band) ... | incidence of critical cases in each age band |
+| I(age band) ... | incidence of infections in each age band |
+| C(age band) ... | incidence of cases (symptomatic) in each age band |
 | D(age band) ... | incidence of deaths in each age band |
 
 ### `name.avNE.severity.xls`
