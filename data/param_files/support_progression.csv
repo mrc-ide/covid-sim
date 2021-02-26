@@ -1,0 +1,17 @@
+"parameter","value"
+"k_ICU_pre",1
+"gamma_ICU_pre",0.399933722019326
+"k_H_D",2
+"gamma_H_D",0.193524191024684
+"k_H_R",1
+"gamma_H_R",0.0936863971757944
+"k_ICU_D",2
+"gamma_ICU_D",0.169567056448408
+"k_ICU_W_D",1
+"gamma_ICU_W_D",0.143524483464586
+"k_ICU_W_R",1
+"gamma_ICU_W_R",0.0640500295424515
+"k_W_D",1
+"gamma_W_D",0.124122540356809
+"k_W_R",2
+"gamma_W_R",0.163636517713287
