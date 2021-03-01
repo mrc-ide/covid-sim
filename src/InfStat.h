@@ -49,8 +49,8 @@ enum struct Severity {
 	SARI,
 	// Critical (requires intensive care unit (ICU)
 	Critical,
-	//// Recovering from Critical (not recovered yet).
-	RecoveringFromCritical,
+	//// Stepdown from ICU. Recovering from Critical (not recovered yet). Although depending on param.IncludeStepDownToDeath, can still die at Stepdown.
+	Stepdown,
 	//// label to avoid double counting. 
 	Dead,
 	//// label to avoid double counting. 

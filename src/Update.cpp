@@ -315,7 +315,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity::Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
-			a->Severity_Current = Severity::RecoveringFromCritical;
+			a->Severity_Current = Severity::Stepdown;
 			FromCritical(tn, a->mcell, ai);
 			ToCritRecov(tn, a->mcell, ai);
 		}
@@ -352,7 +352,7 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 			case Severity::Dead:
 			case Severity::Mild:
 			case Severity::Recovered:
-			case Severity::RecoveringFromCritical:
+			case Severity::Stepdown:
 				break;
 		}
 	}
@@ -388,7 +388,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 					a->Severity_Current = Severity::Recovered;
 					break;
 
-				case Severity::RecoveringFromCritical:
+				case Severity::Stepdown:
 					FromCritRecov(tn, a->mcell, ai);
 					a->Severity_Current = Severity::Recovered;
 					break;
