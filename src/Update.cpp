@@ -466,11 +466,21 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
 				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
+				{
+					if (P.IncludeStepDownToDeath == 1)
+					{
+						a->Stepdown_time			= a->Critical_time + P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov	[age], tn, P.TimeStepsPerDay);
+						a->recovery_or_death_time	= a->Stepdown_time + P.StepdownToDeath_icdf.	choose(P.Mean_CriticalToDeath		[age], tn, P.TimeStepsPerDay);
+					}
+					else
+					{
+						a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
+					}
+				}
 				else
 				{
-					a->RecoveringFromCritical_time	= a->Critical_time					+ P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
-					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
+					a->Stepdown_time			= a->Critical_time + P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
+					a->recovery_or_death_time	= a->Stepdown_time + P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
 				}
 			}
 			else if (a->Severity_Final == Severity::SARI)
