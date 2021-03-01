@@ -37,7 +37,7 @@ void Files::xsscanf(const char* s, int n_expected, const char* format, ...) noex
   int rc = sscanf(s, format, args);
   va_end(args);
   if (rc != n_expected) {
-    ERR_CRITICAL_FMT("Error, xsscanf expected %d matches, got %d\n", n_expected, rc);
+    ERR_CRITICAL_FMT("Error, xsscanf looking for %s in %s, expected %d matches, got %d\n", format, s, n_expected, rc);
   }
 }
 
@@ -48,6 +48,6 @@ void Files::xfscanf(FILE* stream, int n_expected, const char* format, ...) noexc
   int rc = fscanf(stream, format, args);
   va_end(args);
   if (rc != n_expected) {
-    ERR_CRITICAL_FMT("Error, xfscanf expected %d matches, got %d\n", n_expected, rc);
+    ERR_CRITICAL_FMT("Error, fsscanf looking for %s, expected %d matches, got %d\n", format, n_expected, rc);
   }
 }
