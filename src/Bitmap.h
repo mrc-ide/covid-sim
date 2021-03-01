@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include "Files.h"
 
 #ifdef UNIX
 #define DIRECTORY_SEPARATOR "/"

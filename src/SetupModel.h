@@ -2,6 +2,7 @@
 #define COVIDSIM_SETUPMODEL_H_INCLUDED_
 
 #include <string>
+#include "Files.h"
 
 int ReadFitIter(std::string const&);
 void ResetTimeSeries(void);

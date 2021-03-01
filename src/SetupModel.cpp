@@ -47,7 +47,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (!density_file.empty())
 	{
 		fprintf(stderr, "Scanning population density file\n");
-		if (!(dat = fopen(density_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open density file\n");
+		dat = Files::xfopen(density_file.c_str(), "rb");
 		unsigned int density_file_header;
 		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
@@ -605,7 +605,7 @@ int ReadFitIter(std::string const& FitFile)
 			Clock_2 = ((double)clock()) / CLOCKS_PER_SEC;
 		}
 		while ((Clock_2 > Clock_1) && (Clock_2 < Clock_1 + 1.0)); // first condition by definition true on first go of inner do-while, won't be true for very long if inner do-while not called and Clock_2 not reset, which it will be if more than 1 second has elapsed between setting of Clock_2 and resetting of Clock_1. 
-	} while (!(FitFile_Iter_dat = fopen(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
+	} while (!(FitFile_Iter_dat = Files::xfopen_if_exists(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
 
 	// Extract iteration number and number of parameter numbers to fit from FitFile_Iter_dat
 	fscanf(FitFile_Iter_dat, "%i %i", &i, &n);
@@ -851,7 +851,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if (!density_file.empty())
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
-		//		if(!(dat2=fopen("EnvTest.txt","w"))) ERR_CRITICAL("Unable to open test file\n");
+		//		dat2 = Files::xfopen("EnvTest.txt","w");
 		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
@@ -956,7 +956,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 
 		if (!out_density_file.empty())
 		{
-			if (!(dat2 = fopen(out_density_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open output density file\n");
+			dat2 = Files::xfopen(out_density_file.c_str(), "wb");
 			rn = 0xf0f0f0f0;
 			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
@@ -994,7 +994,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		State.InvAgeDist = (int**)Memory::xcalloc(P.NumAdunits, sizeof(int*));
 		for (int i = 0; i < P.NumAdunits; i++)
 			State.InvAgeDist[i] = (int*)Memory::xcalloc(1000, sizeof(int));
-		if (!(dat = fopen(reg_demog_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open regional demography file\n");
+		dat = Files::xfopen(reg_demog_file.c_str(), "rb");
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			for (int i = 0; i < NUM_AGE_GROUPS; i++)
@@ -1437,7 +1437,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if (!school_file.empty() && (P.DoPlaces))
 	{
 		fprintf(stderr, "Reading school file\n");
-		if (!(dat = fopen(school_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open school file\n");
+		dat = Files::xfopen(school_file.c_str(), "rb");
 		fscanf(dat, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -2586,7 +2586,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	FILE* dat;
 	int fileversion;
 
-	if (!(dat = fopen(load_network_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open network file for loading\n");
+	dat = Files::xfopen(load_network_file.c_str(), "rb");
 	fread_big(&fileversion, sizeof(fileversion), 1, dat);
 	if (fileversion != NETWORK_FILE_VERSION)
 	{
@@ -2644,7 +2644,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 	int fileversion = NETWORK_FILE_VERSION;
 
 	npt = P.PlaceTypeNoAirNum;
-	if (!(dat = fopen(save_network_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open network file for saving\n");
+	dat = Files::xfopen(save_network_file.c_str(), "wb");
 	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
 	if (P.PlaceTypeNum > 0)
@@ -2679,7 +2679,7 @@ void SaveAgeDistrib(std::string const& output_file_base)
 	std::string outname;
 
 	outname = output_file_base + ".agedist.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+	dat = Files::xfopen(outname.c_str(), "wb");
 	if (P.DoDeath)
 	{
 		fprintf(dat, "age\tfreq\tlifeexpect\n");

@@ -98,6 +98,7 @@
     <ClCompile Include="src\CLI.cpp" />
     <ClCompile Include="src\Dist.cpp" />
     <ClCompile Include="src\Error.cpp" />
+    <ClCompile Include="src\Files.cpp" />
     <ClCompile Include="src\Kernels.cpp" />
     <ClCompile Include="src\Memory.cpp" />
     <ClCompile Include="src\Person.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="src\Country.h" />
     <ClInclude Include="src\Dist.h" />
     <ClInclude Include="src\Error.h" />
+    <ClInclude Include="src\Files.h" />
     <ClInclude Include="src\IndexList.h" />
     <ClInclude Include="src\InfStat.h" />
     <ClInclude Include="src\Kernels.h" />

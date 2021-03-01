@@ -137,7 +137,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  using namespace Magick;
 	  fprintf(stderr, "\noutputing ImageMagick stuff");
 	  sprintf(buf, "%s.bmp", OutF);
-	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
+	  dat = Files::xfopen(buf, "wb");
 	  fprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
 	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
@@ -183,14 +183,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
 	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
-	  FILE* dat;
-	  if (!(dat = fopen(buf, "wb"))) {
-	    char* errMsg = strerror(errno);
-	    if (errMsg == nullptr) {
-	      ERR_CRITICAL("strerror failed.\n");
-	    }
-	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
-	  }
+	  FILE* dat = Files::xfopen(buf, "wb");
 	  fprintf(dat, "BM");
 	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
 	  fclose(dat);
