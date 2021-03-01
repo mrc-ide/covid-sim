@@ -1252,7 +1252,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 		// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "IncludeStepDownToDeath", "%i", (void*)&P.IncludeStepDownToDeath, 1, 1, 0)) P.IncludeStepDownToDeath = 0;
-		if (P.IncludeStepDownToDeath == 0) /// for backwards compatibility. If Stepdown to death not included (or unspecified), set stepdown->death = stepdown->recoverty..
+		if (P.IncludeStepDownToDeath == 0) /// for backwards compatibility. If Stepdown to death not included (or if unspecified), set stepdown->death = stepdown->recovery.
 		{
 			for (int quantile = 0; quantile <= CDF_RES; quantile++)
 				P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile];
