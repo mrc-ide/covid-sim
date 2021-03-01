@@ -2162,29 +2162,22 @@ void ReadInterventions(std::string const& IntFile)
 
 	fprintf(stderr, "Reading intervention file.\n");
 	dat = Files::xfopen(IntFile.c_str(), "rb");
-	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
-	if(fscanf(dat, "<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
+
+	Files::xfscanf(dat, 0, "%*[^<]");
+	Files::xfscanf(dat, 1, "<%[^>]", txt);
+
 	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ERR_CRITICAL("Intervention file not XML.\n");
-	if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
+
+	Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 	if (strcmp(txt, "InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level.\n");
 	ni = 0;
 	while (!feof(dat))
 	{
-		if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-            ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-        }
+		Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 		if (strcmp(txt, "intervention") == 0)
 		{
 			ni++;
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if (strcmp(txt, "parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			if (strcmp(txt, "Treatment") == 0)
@@ -2200,81 +2193,77 @@ void ReadInterventions(std::string const& IntFile)
 			else if (strcmp(txt, "MSAT") == 0)
 				CurInterv.InterventionType = 5;
 			else
-				sscanf(txt, "%i", &CurInterv.InterventionType);
+				Files::xsscanf(txt, 1, "%i", &CurInterv.InterventionType);
 			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%i", &CurInterv.DoAUThresh);
+			Files::xsscanf(txt, 1, "%i", &CurInterv.DoAUThresh);
 			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartTime);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartTime);
 			startt = CurInterv.StartTime;
 			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StopTime);
+		  Files::xsscanf(txt, 1, "%lf", &CurInterv.StopTime);
 			stopt = CurInterv.StopTime;
 			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.MinDuration);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.MinDuration);
 			CurInterv.MinDuration *= DAYS_PER_YEAR;
 			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.RepeatInterval);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.RepeatInterval);
 			CurInterv.RepeatInterval *= DAYS_PER_YEAR;
 			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartThresholdHigh);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartThresholdHigh);
 			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartThresholdLow);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartThresholdLow);
 			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StopThreshold);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StopThreshold);
 			if (GetXMLNode(dat, "NoStartAfterMinDur", "parameters", txt, 1))
-				sscanf(txt, "%i", &CurInterv.NoStartAfterMin);
+				Files::xsscanf(txt, 1, "%i", &CurInterv.NoStartAfterMin);
 			else
 				CurInterv.NoStartAfterMin = 0;
 			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.Level);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.Level);
 			if (GetXMLNode(dat, "LevelCellVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelCellVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelCellVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelAUVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelAUVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelAUVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelCountryVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelCountryVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelCountryVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelClustering", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelClustering);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelClustering);
 			else
 				CurInterv.LevelClustering = 0;
 			if (GetXMLNode(dat, "ControlParam", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.ControlParam);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.ControlParam);
 			else
 				CurInterv.ControlParam = 0;
 			if (GetXMLNode(dat, "TimeOffset", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.TimeOffset);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.TimeOffset);
 			else
 				CurInterv.TimeOffset = 0;
 
 			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%u", &CurInterv.MaxRounds);
+			Files::xsscanf(txt, 1, "%u", &CurInterv.MaxRounds);
 			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%u", &CurInterv.MaxResource);
+			Files::xsscanf(txt, 1, "%u", &CurInterv.MaxResource);
 			if (GetXMLNode(dat, "NumSequentialReplicas", "parameters", txt, 1))
-				sscanf(txt, "%i", &nsr);
+			Files::xsscanf(txt, 1, "%i", &nsr);
 			else
 				nsr = 0;
 			do {
-                if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                    ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-                }
-            } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
+			    Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
+      } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
 			if (strcmp(txt, "/parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ERR_CRITICAL("Incomplete adunits/countries specification in intervention file\n");
 			if (strcmp(txt, "adunits") == 0)
 			{
 				while (GetXMLNode(dat, "A", "adunits", buf, 0))
 				{
-					sscanf(buf, "%s", txt);
+					Files::xsscanf(buf, 1, "%s", txt);
 					j = atoi(txt);
 					if (j == 0)
 					{
@@ -2328,7 +2317,7 @@ void ReadInterventions(std::string const& IntFile)
 				while (GetXMLNode(dat, "C", "countries", buf, 0))
 				{
 					s = (2.0 * ranf() - 1) * CurInterv.LevelCountryVar;
-					sscanf(buf, "%s", txt);
+					Files::xsscanf(buf, 1, "%s", txt);
 					j = atoi(txt);
 					for (au = 0; au < P.NumAdunits; au++)
 						if (((j == 0) && (strcmp(txt, AdUnits[au].cnt_name) == 0)) || ((j > 0) && (j == AdUnits[au].cnt_id)))
@@ -2349,9 +2338,7 @@ void ReadInterventions(std::string const& IntFile)
 						}
 				}
 			}
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if (strcmp(txt, "/intervention") != 0) ERR_CRITICAL("Incorrect intervention specification in intervention file\n");
 		}
 	}
@@ -2371,23 +2358,17 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	CurPos = ftell(dat);
 	do
 	{
-		if(fscanf(dat, "%*[^<]<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+		Files::xfscanf(dat, 1, "%*[^<]<%[^>]", buf);
 	} while ((strcmp(buf, CloseParent) != 0) && (strcmp(buf, NodeName) != 0) && (!feof(dat)));
 	if (strcmp(buf, CloseParent) == 0)
 		ret = 0;
 	else
 	{
 		if (strcmp(buf, NodeName) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
-		if(fscanf(dat, ">%[^<]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+		Files::xfscanf(dat, 1, ">%[^<]", buf);
 		if (strlen(buf) < 2048) strcpy(Value, buf);
 		//		fprintf(stderr,"# %s=%s\n",NodeName,Value);
-		if(fscanf(dat, "<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+		Files::xfscanf(dat, 1, "<%[^>]", buf);
 		sprintf(CloseNode, "/%s", NodeName);
 		if (strcmp(buf, CloseNode) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
 		ret = 1;
@@ -2407,9 +2388,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 
 	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
 	dat = Files::xfopen(air_travel_file.c_str(), "rb");
-	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
-        ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-    }
+	Files::xfscanf(dat, 2, "%i %i", &P.Nairports, &P.Air_popscale);
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
@@ -2417,9 +2396,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
-		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
-            ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-        }
+		Files::xfscanf(dat, 3, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf);
 		traf *= (P.AirportTrafficScale * sc);
 		if (!P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(Airports[i].loc)))
 		{
@@ -2435,9 +2412,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		t = 0;
 		for (j = k = 0; j < P.Nairports; j++)
 		{
-			if(fscanf(dat, "%f", buf + j) != 1) {
-                ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-            }
+			Files::xfscanf(dat, 1, "%f", buf + j);
 			if (buf[j] > 0) { k++; t += buf[j]; }
 		}
 		Airports[i].num_connected = k;
@@ -5320,7 +5295,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		char FieldName[1024];
 		dat = Files::xfopen(DataFile.c_str(), "r");
 		// Extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution, from Data file
-		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
+		Files::xfscanf(dat, 3, "%i %i %lg", &nrows, &ncols, &NegBinK);
 
 		// allocate memory
 		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
@@ -5332,7 +5307,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		for (int i = 0; i < ncols; i++)
 		{
 			ColTypes[i] = -100;
-			fscanf(dat, "%s", FieldName);
+			Files::xfscanf(dat, 1, "%s", FieldName);
 			if (!strcmp(FieldName, "day"))
 			{
 				ColTypes[i] = -1;
@@ -5363,7 +5338,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		// extract data into Data array.
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
-				fscanf(dat, "%lg", &(Data[i][j]));
+				Files::xfscanf(dat, 1, "%lg", &(Data[i][j]));
 		fclose(dat);
 		DataAlreadyRead = 1;
 	}
@@ -5848,7 +5823,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 		{
 			if (NumItem == 1)
 			{
-				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+				Files::xfscanf(dat, 1, "%s", match);
 				if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 				{
 					int cln;
@@ -5868,24 +5843,24 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 					else if (n == 2)
 						*((int*)ItemPtr) = (int)P.clP[cln];
 					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
+						Files::xsscanf(match, 1, "%s", (char*)ItemPtr);
 				}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
 					FindFlag++;
 					if (n == 1)
-						sscanf(match, "%lf", (double*)ItemPtr);
+						Files::xsscanf(match, 1, "%lf", (double*)ItemPtr);
 					else if (n == 2)
-						sscanf(match, "%i", (int*)ItemPtr);
+						Files::xsscanf(match, 1, "%i", (int*)ItemPtr);
 					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
+						Files::xsscanf(match, 1, "%s", (char*)ItemPtr);
 				}
 			}
 			else
 			{
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					Files::xfscanf(dat, 1, "%s", match);
 					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						int cln;
@@ -5917,17 +5892,17 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 							}
 						}
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double*)ItemPtr) + CurPos + Offset);
+							Files::xsscanf(match, 1, "%lf", ((double*)ItemPtr) + CurPos + Offset);
 						else if (n == 2)
-							sscanf(match, "%i", ((int*)ItemPtr) + CurPos + Offset);
+							Files::xsscanf(match, 1, "%i", ((int*)ItemPtr) + CurPos + Offset);
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else
 						CurPos = NumItem;
@@ -5940,7 +5915,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{ //added these braces
 				for (i = 0; i < NumItem2; i++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					Files::xfscanf(dat, 1, "%s", match);
 					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						FindFlag++;
@@ -5972,15 +5947,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 							}
 						}
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else if((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
+							Files::xsscanf(match, 1, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
 						else
-							sscanf(match, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
+							Files::xsscanf(match, 1, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
 					}
 					else
 					{

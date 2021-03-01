@@ -80,14 +80,14 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
 				if (P.DoAdUnits)
 				{
-					sscanf(buf, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
+					Files::xsscanf(buf, 5, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
 					if (l / P.CountryDivisor != i2)
 					{
 						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
 					}
 				}
 				else {
-					sscanf(buf, "%lg %lg %lg %i", &x, &y, &t, &i2);
+					Files::xsscanf(buf, 4, "%lg %lg %lg %i", &x, &y, &t, &i2);
 					l = 0;
 				}
 				// Ensure we use an x which gives us a contiguous whole for the
@@ -608,15 +608,15 @@ int ReadFitIter(std::string const& FitFile)
 	} while (!(FitFile_Iter_dat = Files::xfopen_if_exists(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
 
 	// Extract iteration number and number of parameter numbers to fit from FitFile_Iter_dat
-	fscanf(FitFile_Iter_dat, "%i %i", &i, &n);
+	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &i, &n);
 	if (n <= 0)
 		fprintf(stderr, "Stop code read from file (iteration number <=0)\n");
 	else if (i != P.FitIter)
 		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
-		for (int index = 0; index < n; index++) fscanf(FitFile_Iter_dat, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
+		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
+		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
 	}																						
 	fclose(FitFile_Iter_dat);
 	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
@@ -1007,30 +1007,30 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		{
 			fgets(buf, 2047, dat);
 			col = strtok(buf, delimiters);
-			sscanf(col, "%i", &l);
+			Files::xsscanf(col, 1, "%i", &l);
 			m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 			int k = P.AdunitLevel1Lookup[m];
 			if (k >= 0)
 				if (l / P.AdunitLevel1Mask == AdUnits[k].id / P.AdunitLevel1Mask)
 				{
 					col = strtok(NULL, delimiters);
-					sscanf(col, "%lg", &x);
+					Files::xsscanf(col, 1, "%lg", &x);
 					P.PopByAdunit[k][1] += x;
 					t = 0;
 					for (int i = 0; i < NUM_AGE_GROUPS; i++)
 					{
 						col = strtok(NULL, delimiters);
-						sscanf(col, "%lg", &s);
+						Files::xsscanf(col, 1, "%lg", &s);
 						P.PropAgeGroup[k][i] += s;
 					}
 					col = strtok(NULL, delimiters);
 					if (P.DoHouseholds)
 					{
-						sscanf(col, "%lg", &y);
+						Files::xsscanf(col, 1, "%lg", &y);
 						for (int i = 0; i < MAX_HOUSEHOLD_SIZE; i++)
 						{
 							col = strtok(NULL, delimiters);
-							sscanf(col, "%lg", &s);
+							Files::xsscanf(col, 1, "%lg", &s);
 							P.HouseholdSizeDistrib[k][i] += y * s;
 						}
 					}
@@ -1438,10 +1438,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	{
 		fprintf(stderr, "Reading school file\n");
 		dat = Files::xfopen(school_file.c_str(), "rb");
-		fscanf(dat, "%i", &P.nsp);
+		Files::xfscanf(dat, 1, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
 		{
-			fscanf(dat, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
+			Files::xfscanf(dat, 2, "%i %i", &m, &(P.PlaceTypeMaxAgeRead[j]));
 			Places[j] = (Place*)Memory::xcalloc(m, sizeof(Place));
 			for (int i = 0; i < m; i++)
 				Places[j][i].AvailByAge = (unsigned short int*)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
@@ -1451,8 +1451,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		mr = 0;
 		while (!feof(dat))
 		{
-			fscanf(dat, "%lg %lg %i %i", &x, &y, &j, &m);
-			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) fscanf(dat, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
+			Files::xfscanf(dat, 4, "%lg %lg %i %i", &x, &y, &j, &m);
+			for (int i = 0; i < P.PlaceTypeMaxAgeRead[j]; i++) Files::xfscanf(dat, 1, "%hu", &(Places[j][P.Nplace[j]].AvailByAge[i]));
 			Places[j][P.Nplace[j]].loc.x = (float)(x - P.SpatialBoundingBox.bottom_left().x);
 			Places[j][P.Nplace[j]].loc.y = (float)(y - P.SpatialBoundingBox.bottom_left().y);
 			if (P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(x, y)))

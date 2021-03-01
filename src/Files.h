@@ -49,10 +49,10 @@ namespace Files
 
   void xsscanf(const char* s, int n_expected, const char* format, ...) noexcept;
 
-/** \brief            Wrapper around fscanf that aborts on error.
+/** \brief             Wrapper around fscanf that aborts on error.
  *  \param  stream     The file stream to read from
  *  \param  n_expected Expected number of arguments
- *  \param  format     The format string for sscanf
+ *  \param  format     The format string for fscanf
  *  \param  ...        Destinations for each placeholder
  *
  */
