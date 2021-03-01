@@ -30,6 +30,7 @@ options("scipen" = 13) #### set high penalty for scientific display. (so e.g. 10
 
 ICDFs 		= readRDS(file = file.path(here("data/param_files/"), "SeverityICDFs.rds"))
 AS_Means 	= readRDS(file = file.path(here("data/param_files/"), "AS_SeverityProgMeans.rds"))
+TransProbs 	= readRDS(file = file.path(here("data/param_files/"), "AS_SeverityTransitionProbs.rds"))
 
 #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
 #### ==== Add in WAIFW matrix using POLYMOD/socialmixr
@@ -69,7 +70,6 @@ PreParamList = MakePreParamList(
 		Mean_StepdownToDeath 			= AS_Means$Mean_StepdownToDeath,
 		
 		# quantiles / ICDFs
-		
 		#IncludeStepDownToDeath			= 1, 
 		latent_icdf 					= ICDFs$latent_icdf 		, 
 		infectious_icdf 				= ICDFs$infectious_icdf 	, 
@@ -84,6 +84,16 @@ PreParamList = MakePreParamList(
 		CriticalToStepdownDeath_icdf 	= ICDFs$CriticalToStepdownDeath_icdf, 
 		CriticalToCritRecov_icdf 		= ICDFs$CriticalToCritRecov_icdf,
 		StepdownToDeath_icdf 			= ICDFs$StepdownToDeath_icdf,
+		
+		# Transition Probabilities
+		ProportionSymptomatic			= TransProbs$ProportionSymptomatic, 
+		Prop_Mild_ByAge					= TransProbs$Prop_Mild_ByAge, 
+		Prop_ILI_ByAge					= TransProbs$Prop_ILI_ByAge, 
+		Prop_SARI_ByAge					= TransProbs$Prop_SARI_ByAge, 
+		Prop_Critical_ByAge				= TransProbs$Prop_Critical_ByAge, 
+		CFR_ILI_ByAge					= TransProbs$CFR_ILI_ByAge, 
+		CFR_SARI_ByAge					= TransProbs$CFR_SARI_ByAge, 
+		CFR_Critical_ByAge				= TransProbs$CFR_Critical_ByAge 
 )
 
 WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_NewICDFs_WAIFWmat.txt")

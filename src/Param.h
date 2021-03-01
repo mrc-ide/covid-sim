@@ -123,7 +123,7 @@ struct Param
 	double R0household, R0places, R0spatial;
 	double Seasonality[DAYS_PER_YEAR];
 	double SusceptibilitySD, InfectiousnessSD, R0DensityScalePower;
-	double ProportionSymptomatic[NUM_AGE_GROUPS], LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
+	double LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
 	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
 	int CareHomePlaceType, CareHomeResidentMinimumAge, CareHomeAllowInitialInfections;
 	double CareHomeResidentHouseholdScaling, CareHomeResidentSpatialScaling, CareHomeWorkerGroupScaling, CareHomeResidentPlaceScaling, CareHomeRelProbHosp, CareHomePropResidents;
@@ -163,12 +163,18 @@ struct Param
 	
 	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
 	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, StepdownToDeath_icdf, CriticalToDeath_icdf;
-	int IncludeStepDownToDeath; 
 	/// means for above icdf's.
 	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS];
 	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
 	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
+
+	// Severity transition probilities
+	double ProportionSymptomatic[NUM_AGE_GROUPS];
+	int IncludeStepDownToDeath; // possible to die from Stepdown / RecoveringFrom Critical? 
+	//int UseFinalDiseaseSeverity; // Default to 1. Old interpretataion kept in for back compatibility. If set to one, use Prop_Mild_ByAge, Prop_ILI_ByAge etc. to choose Person.Severity_Final with ChooseFinalDiseaseSeverity. If set to 0, p_ILI_if_Symp, p_SARI_if_ILI, and p_Crit_if_SARI etc.
+	// Proportions of cases that where final severity is Mild, ILI, SARI Critical by age. Used to determine Peron.Severity_Final. Therefore if Person.Severity_Final == Severity::SARI, they do not go on to Critical condition/ICU. Used if UseFinalDiseaseSeverity == 1.
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
+	//double p_Mild_if_Symp[NUM_AGE_GROUPS], p_ILI_if_Symp[NUM_AGE_GROUPS], p_SARI_if_ILI[NUM_AGE_GROUPS], p_Crit_if_SARI[NUM_AGE_GROUPS], p_Stepdown_if_Crit; // same as above but not final severities and not all conditional on being symptomatic, as variables above. Used if UseFinalDiseaseSeverity == 0. 
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
 	
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;

@@ -9,14 +9,39 @@ library(here) ## assumes that getwd() will return root "covid-19-spatial-sim" fo
 OutputDir  = here("data/param_files/") ## change as appropriate
 
 ## Import Erlang/Gamma rate and shape parameters for progression / sojourn times
-ErlangInfo = read.csv(here("data/param_files/support_progression.csv"))
-ProgParams = ErlangInfo$value
-names(ProgParams) = as.character(ErlangInfo$parameter)
+ErlangInfo 			= read.csv(here("data/param_files/support_progression.csv"))
+ProgParams 			= ErlangInfo$value
+names(ProgParams) 	= as.character(ErlangInfo$parameter)
 
 # Import transition probabilities
-TransitionProbabilites = read.csv(here("data/param_files/support_severity.csv"))
+TP 				= read.csv(here("data/param_files/support_severity.csv"))
+AgeGroupNames 	= c("[0,5)", "[5,10)", "[10,15)", "[15,20)", "[20,25)", "[25,30)", "[30,35)", "[35,40)", "[40,45)", "[45,50)", "[50,55)", "[55,60)", "[60,65)", "[65,70)", "[70,75)", "[75,80)", "80+") 
+rownames(TP) 	= TP$Name
+TP$Name 		= NULL
+TP 				= t(TP)
+rownames(TP) 	= AgeGroupNames
+TP 				= as.data.frame(TP)
 
-# Extract transition probabilities to match naming in CovidSim.
+# Extract transition probabilities to match naming in CovidSim. Slightly cumbersome definitions and interpretations to be fixed later. 
+ProportionSymptomatic 	= TP$p_C
+Prop_Mild_ByAge 	    = rep(0, NUM_AGE_GROUPS)
+Prop_ILI_ByAge 		    = 1 - TP$p_H
+Prop_SARI_ByAge 	    = TP$p_H * (1 - TP$p_G_D) * (1 - TP$p_ICU) # 1 - p_G_D = 1 but leave as is in case this changes. (1 - TP$p_ICU) included as these probabilities refer to Final disease severity - hence SARI means SARI and not Critical. 
+Prop_Critical_ByAge     = TP$p_H * (1 - TP$p_G_D) * TP$p_ICU
+# check. Should some to 1 (rounding/floating point errors notwithstanding). 
+Prop_Mild_ByAge + Prop_ILI_ByAge + Prop_SARI_ByAge + Prop_Critical_ByAge
+
+# Case Fatality Ratios
+CFR_ILI_ByAge 			= TP$p_H * (TP$p_G_D) ## will make this 
+CFR_SARI_ByAge			= TP$p_H_D
+CFR_Critical_ByAge 		= TP$p_ICU_D + ((1 - TP$p_ICU_D) * TP$p_W_D) # i.e. p(Death from ICU) + p(Death from Stepdown from ICU)
+
+# Write output
+TransitionProbs = data.frame(ProportionSymptomatic, 
+		Prop_Mild_ByAge, Prop_ILI_ByAge, Prop_SARI_ByAge, Prop_Critical_ByAge, 
+		CFR_ILI_ByAge, CFR_SARI_ByAge, CFR_Critical_ByAge)
+saveRDS(TransitionProbs, file = file.path(OutputDir, "AS_SeverityTransitionProbs.rds"))
+
 
 
 #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
@@ -112,7 +137,6 @@ CritRecovToRecov_icdf = qgamma(QUANTILES, shape = ProgParams["k_W_R"], rate = Pr
 
 
 
-
 ## Save output
 AgeSpecificMeans = data.frame(LatentPeriod, InfectiousPeriod, Mean_MildToRecovery, 
 		Mean_ILIToRecovery, Mean_ILIToSARI, Mean_ILIToSARI, Mean_ILIToDeath, 
@@ -132,28 +156,7 @@ saveRDS(ICDFs, file = file.path(OutputDir, "SeverityICDFs.rds"))
 
 
 
-#AgeSpecificSeverityScalings = matrix(c(
-#				
-#				0.039, 0.243, 0.039, 0.282, 0.091, 0, 
-#				0.001, 0.289, 0.037, 0.286, 0.083, 0, 
-#				0.006, 0.338, 0.035, 0.291, 0.077, 0, 
-#				0.009, 0.389, 0.035, 0.299, 0.074, 0, 
-#				0.026, 0.443, 0.036, 0.310, 0.074, 0, 
-#				0.040, 0.503, 0.039, 0.328, 0.076, 0, 
-#				0.042, 0.570, 0.045, 0.353, 0.080, 0, 
-#				0.045, 0.653, 0.055, 0.390, 0.086, 0, 
-#				0.050, 0.756, 0.074, 0.446, 0.093, 0, 
-#				0.074, 0.866, 0.107, 0.520, 0.102, 0, 
-#				0.138, 0.954, 0.157, 0.604, 0.117, 0, 
-#				0.198, 1.000, 0.238, 0.705, 0.148, 0, 
-#				0.247, 0.972, 0.353, 0.806, 0.211, 0, 
-#				0.414, 0.854, 0.502, 0.899, 0.332, 0, 
-#				0.638, 0.645, 0.675, 0.969, 0.526, 0, 
-#				1.000, 0.402, 0.832, 1.000, 0.753, 0, 
-#				0.873, 0.107, 1.000, 0.918, 1.000, 0), ncol = 6, byrow = TRUE)
 
-AgeGroupNames = c("[0,5)", "[5,10)", "[10,15)", "[15,20)", "[20,25)", "[25,30)", "[30,35)", "[35,40)", "[40,45)", 
-		"[45,50)", "[50,55)", "[55,60)", "[60,65)", "[65,70)", "[70,75)", "[75,80)", "80+") 
 
 
 

@@ -1258,7 +1258,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		else
 			GetInverseCdf(ParamFile_dat, PreParamFile_dat, "StepdownToDeath_icdf", &P.StepdownToDeath_icdf);
 
-
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				P.Prop_Mild_ByAge[i] = 0.5;

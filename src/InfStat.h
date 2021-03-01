@@ -39,6 +39,7 @@ enum struct InfStat {
 
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
 enum struct Severity {
+
 	//// Flag value.
 	Asymptomatic,
 	Mild,
