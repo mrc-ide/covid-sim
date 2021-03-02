@@ -5,7 +5,6 @@
 #include <cstring>
 #include <string>
 
-#include "BinIO.h"
 #include "Bitmap.h"
 #include "Error.h"
 #include "Param.h"
@@ -185,7 +184,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat = Files::xfopen(buf, "wb");
 	  fprintf(dat, "BM");
-	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
+		Files::fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
 	  fclose(dat);
 	}
 	else

@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "CovidSim.h"
-#include "BinIO.h"
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"
@@ -4279,36 +4278,36 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 		Array_tot_prob[i] = Cells[i].tot_prob;
 	}
 
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
-	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.ModelTimeStep) ERR_CRITICAL("Incorrect ModelTimeStep in snapshot file.\n");
-	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
+	Files::fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
+	Files::fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
+	Files::fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
+	Files::fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.ModelTimeStep) ERR_CRITICAL("Incorrect ModelTimeStep in snapshot file.\n");
+	Files::fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumOutputTimeSteps = 1 + (int)ceil((P.SimulationDuration - P.SnapshotLoadTime) / P.OutputTimeStep);
 	fprintf(stderr, ".");
-	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
+	Files::fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)& CellSuscMemberArray, sizeof(int*), 1, dat);
+	Files::fread_big((void*)& CellSuscMemberArray, sizeof(int*), 1, dat);
 	fprintf(stderr, ".");
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
+	Files::fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
+	Files::fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
+	Files::fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
+	Files::fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
-	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, ".");
 	for (i = 0; i < P.NumCells; i++)
 	{
@@ -4346,44 +4345,44 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 
 	FILE* dat = Files::xfopen(snapshot_save_file.c_str(), "wb");
 
-	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumPopulatedCells), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.NumPopulatedCells), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
+	Files::fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
+	Files::fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
+	Files::fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ModelTimeStep), sizeof(double), 1, dat);
+	Files::fwrite_big((void*) & (P.ModelTimeStep), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
+	Files::fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
+	Files::fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-
-	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
-
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
+	Files::fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
+
 	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
+	fprintf(stderr, "## %i\n", i++);
+	Files::fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
+	fprintf(stderr, "## %i\n", i++);
+	Files::fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
+	fprintf(stderr, "## %i\n", i++);
+
+	Files::fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	fprintf(stderr, "## %i\n", i++);
+	Files::fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
 
 	fclose(dat);

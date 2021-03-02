@@ -92,7 +92,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\BinIO.cpp" />
     <ClCompile Include="src\Bitmap.cpp" />
     <ClCompile Include="src\CalcInfSusc.cpp" />
     <ClCompile Include="src\CLI.cpp" />
@@ -113,7 +112,6 @@
     <ClCompile Include="src\InverseCdf.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\BinIO.h" />
     <ClInclude Include="src\Bitmap.h" />
     <ClInclude Include="src\CalcInfSusc.h" />
     <ClInclude Include="src\CLI.h" />

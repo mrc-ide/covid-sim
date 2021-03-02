@@ -7,7 +7,6 @@
 #include <vector>
 #define __STDC_FORMAT_MACROS 1
 
-#include "BinIO.h"
 #include "Error.h"
 #include "Rand.h"
 #include "Kernels.h"
@@ -49,13 +48,13 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		fprintf(stderr, "Scanning population density file\n");
 		dat = Files::xfopen(density_file.c_str(), "rb");
 		unsigned int density_file_header;
-		fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
+		Files::fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
 		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
-			fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+			Files::fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
 			BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-			fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
+			Files::fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
 			BF = (BinFile*)BinFileBuf;
 			fclose(dat);
 		}
@@ -958,10 +957,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		{
 			dat2 = Files::xfopen(out_density_file.c_str(), "wb");
 			rn = 0xf0f0f0f0;
-			fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
+			Files::fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
-			fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
-			fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
+			Files::fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
+			Files::fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 			fclose(dat2);
 		}
 		Memory::xfree(BinFileBuf);
@@ -2587,17 +2586,17 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	int fileversion;
 
 	dat = Files::xfopen(load_network_file.c_str(), "rb");
-	fread_big(&fileversion, sizeof(fileversion), 1, dat);
+	Files::fread_big(&fileversion, sizeof(fileversion), 1, dat);
 	if (fileversion != NETWORK_FILE_VERSION)
 	{
 		ERR_CRITICAL("Incompatible network file - please rebuild using '/S:'.\n");
 	}
 
 	npt = P.PlaceTypeNoAirNum;
-	fread_big(&i, sizeof(int), 1, dat);
-	fread_big(&j, sizeof(int), 1, dat);
-	fread_big(&s1, sizeof(int32_t), 1, dat);
-	fread_big(&s2, sizeof(int32_t), 1, dat);
+	Files::fread_big(&i, sizeof(int), 1, dat);
+	Files::fread_big(&j, sizeof(int), 1, dat);
+	Files::fread_big(&s1, sizeof(int32_t), 1, dat);
+	Files::fread_big(&s2, sizeof(int32_t), 1, dat);
 	if (i != npt) ERR_CRITICAL("Number of place types does not match saved value\n");
 	if (j != P.PopSize) ERR_CRITICAL("Population size does not match saved value\n");
 	if ((s1 != P.setupSeed1) || (s2 != P.setupSeed2))
@@ -2611,7 +2610,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	for (i = i2 = 0; i < k; i++)
 	{
 		l = (i < k - 1) ? 1000000 : (P.PopSize - 1000000 * (k - 1));
-		fread_big(&netbuf, sizeof(int), _I64(npt) * l, dat);
+		Files::fread_big(&netbuf, sizeof(int), _I64(npt) * l, dat);
 		for (j = 0; j < l; j++)
 		{
 			n = j * npt;
@@ -2645,19 +2644,19 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 
 	npt = P.PlaceTypeNoAirNum;
 	dat = Files::xfopen(save_network_file.c_str(), "wb");
-	fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
+	Files::fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
 	if (P.PlaceTypeNum > 0)
 	{
-		fwrite_big(&npt, sizeof(int), 1, dat);
-		fwrite_big(&(P.PopSize), sizeof(int), 1, dat);
-		fwrite_big(&P.setupSeed1, sizeof(int32_t), 1, dat);
-		fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
+		Files::fwrite_big(&npt, sizeof(int), 1, dat);
+		Files::fwrite_big(&(P.PopSize), sizeof(int), 1, dat);
+		Files::fwrite_big(&P.setupSeed1, sizeof(int32_t), 1, dat);
+		Files::fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
 		for (i = 0; i < P.PopSize; i++)
 		{
 			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
-			/*			fwrite_big(&(Hosts[i].spatial_norm),sizeof(float),1,dat);
-			*/			fwrite_big(&(Hosts[i].PlaceLinks[0]), sizeof(int), npt, dat);
+			/*			Files::fwrite_big(&(Hosts[i].spatial_norm),sizeof(float),1,dat);
+			*/			Files::fwrite_big(&(Hosts[i].PlaceLinks[0]), sizeof(int), npt, dat);
 			for (j = 0; j < npt; j++)
 				if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 				{

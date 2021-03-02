@@ -59,6 +59,26 @@ namespace Files
 
   void xfscanf(FILE* stream, int n_expected, const char* format, ...) noexcept;
 
+/** \brief             Wrapper around fscanf that aborts on error.
+ *  \param  buffer     The file stream to read from
+ *  \param  size       Expected number of arguments
+ *  \param  count      The format string for fscanf
+ *  \param  stream     Destinations for each placeholder
+ *
+ */
+  size_t fwrite_big(void* buffer, size_t size, size_t count, FILE* stream);
+  
+  /** \brief             Wrapper around fscanf that aborts on error.
+   *  \param  buffer     The file stream to read from
+   *  \param  size       Expected number of arguments
+   *  \param  count      The format string for fscanf
+   *  \param  stream     Destinations for each placeholder
+   *
+   */
+
+  size_t fread_big(void* buffer, size_t size, size_t count, FILE* stream);
+
+
 } // namespace Files
 
 #endif // FILES_H_INCLUDED_
