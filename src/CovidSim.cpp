@@ -1252,12 +1252,19 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 		// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "IncludeStepDownToDeath", "%i", (void*)&P.IncludeStepDownToDeath, 1, 1, 0)) P.IncludeStepDownToDeath = 0;
-		if (P.IncludeStepDownToDeath == 0)
+		if (P.IncludeStepDownToDeath == 0) /// for backwards compatibility. If Stepdown to death not included (or if unspecified), set stepdown->death = stepdown->recovery.
+		{
 			for (int quantile = 0; quantile <= CDF_RES; quantile++)
-				P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile]; 
+				P.StepdownToDeath_icdf[quantile] = P.CritRecovToRecov_icdf[quantile];
+			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+				P.Mean_StepdownToDeath[AgeGroup] = P.Mean_CritRecovToRecov[AgeGroup];
+		}
 		else
+		{
+			GetInputParameter(ParamFile_dat, PreParamFile_dat, "Mean_StepdownToDeath", "%lf", (void*)(P.Mean_StepdownToDeath), NUM_AGE_GROUPS, 1, 0);
 			GetInverseCdf(ParamFile_dat, PreParamFile_dat, "StepdownToDeath_icdf", &P.StepdownToDeath_icdf);
 
+		}
 
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Prop_Mild_ByAge", "%lf", (void*)P.Prop_Mild_ByAge, NUM_AGE_GROUPS, 1, 0))
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
@@ -2709,7 +2716,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			{
 				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
 				Hosts[k].Critical_time = USHRT_MAX - 1;
-				Hosts[k].RecoveringFromCritical_time = USHRT_MAX - 1;
+				Hosts[k].Stepdown_time = USHRT_MAX - 1;
 				Hosts[k].Severity_Current = Severity::Asymptomatic;
 				Hosts[k].Severity_Final = Severity::Asymptomatic;
 				Hosts[k].set_susceptible();

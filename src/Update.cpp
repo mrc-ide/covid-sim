@@ -315,7 +315,7 @@ void DoRecoveringFromCritical(int ai, int tn)
 		Person* a = Hosts + ai;
 		if (a->Severity_Current == Severity::Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 		{
-			a->Severity_Current = Severity::RecoveringFromCritical;
+			a->Severity_Current = Severity::Stepdown;
 			FromCritical(tn, a->mcell, ai);
 			ToCritRecov(tn, a->mcell, ai);
 		}
@@ -352,7 +352,7 @@ void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 			case Severity::Dead:
 			case Severity::Mild:
 			case Severity::Recovered:
-			case Severity::RecoveringFromCritical:
+			case Severity::Stepdown:
 				break;
 		}
 	}
@@ -388,7 +388,7 @@ void DoRecover_FromSeverity(int ai, int tn)
 					a->Severity_Current = Severity::Recovered;
 					break;
 
-				case Severity::RecoveringFromCritical:
+				case Severity::Stepdown:
 					FromCritRecov(tn, a->mcell, ai);
 					a->Severity_Current = Severity::Recovered;
 					break;
@@ -443,10 +443,11 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
 			/// choose outcome recovery or death
-			if (((a->Severity_Final == Severity::Critical) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age])) ||
-					((a->Severity_Final == Severity::SARI) && (ranf_mt(tn) < P.CFR_SARI_ByAge[age])) ||
-					((a->Severity_Final == Severity::ILI) && (ranf_mt(tn) < P.CFR_ILI_ByAge[age])))
+			if (	((a->Severity_Final == Severity::Critical	) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age]	)) ||
+					((a->Severity_Final == Severity::SARI		) && (ranf_mt(tn) < P.CFR_SARI_ByAge	[age]	)) ||
+					((a->Severity_Final == Severity::ILI		) && (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]	)) )
 				a->to_die = 1;
+
 			if ((a->care_home_resident) && ((a->Severity_Final == Severity::Critical) || (a->Severity_Final == Severity::SARI))&&(ranf_mt(tn)>P.CareHomeRelProbHosp))
 			{
 				// care home residents who weren't hospitalised but would otherwise have needed critical care will all die
@@ -457,19 +458,29 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 			}
 			//// choose events and event times
 			if (a->Severity_Final == Severity::Mild)
-      {
+			{
 				a->recovery_or_death_time = CaseTime + P.MildToRecovery_icdf.choose(P.Mean_MildToRecovery[age], tn, P.TimeStepsPerDay);
-      }
+			}
 			else if (a->Severity_Final == Severity::Critical)
 			{
 				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
 				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
 				if (a->to_die)
-					a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
+				{
+					if (P.IncludeStepDownToDeath == 1)
+					{
+						a->Stepdown_time			= a->Critical_time + P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov	[age], tn, P.TimeStepsPerDay);
+						a->recovery_or_death_time	= a->Stepdown_time + P.StepdownToDeath_icdf.	choose(P.Mean_StepdownToDeath		[age], tn, P.TimeStepsPerDay);
+					}
+					else
+					{
+						a->recovery_or_death_time = a->Critical_time + P.CriticalToDeath_icdf.choose(P.Mean_CriticalToDeath[age], tn, P.TimeStepsPerDay);
+					}
+				}
 				else
 				{
-					a->RecoveringFromCritical_time	= a->Critical_time					+ P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
-					a->recovery_or_death_time		= a->RecoveringFromCritical_time	+ P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
+					a->Stepdown_time			= a->Critical_time + P.CriticalToCritRecov_icdf.choose(P.Mean_CriticalToCritRecov[age], tn, P.TimeStepsPerDay);
+					a->recovery_or_death_time	= a->Stepdown_time + P.CritRecovToRecov_icdf.choose(P.Mean_CritRecovToRecov[age], tn, P.TimeStepsPerDay);
 				}
 			}
 			else if (a->Severity_Final == Severity::SARI)
@@ -1476,12 +1487,10 @@ static void ToInfected(int tn, short infectType, int personIndex, double radiusS
 	StateT[tn].cumIa[HOST_AGE_GROUP(personIndex)]++;
 	StateT[tn].sumRad2 += radiusSquared;
 }
-
 static void FromMild(int tn, int microCellIndex, int personIndex)
 {
 	FromSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, microCellIndex, personIndex);
 }
-
 static void ToMild(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].Mild, StateT[tn].Mild_age, StateT[tn].Mild_adunit, 
@@ -1490,46 +1499,38 @@ static void ToMild(int tn, int microCellIndex, int personIndex)
 		microCellIndex, personIndex);
 
 }
-
 static void FromCritRecov(int tn, int microCellIndex, int personIndex)
 {
 	//// decrement CritRecov, not critical.
 	FromSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, personIndex);
 }
-
 static void ToCritRecov(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].CritRecov, StateT[tn].CritRecov_age, StateT[tn].CritRecov_adunit, microCellIndex, personIndex);
 	ToSeverity(StateT[tn].cumCritRecov, StateT[tn].cumCritRecov_age, StateT[tn].cumCritRecov_adunit, microCellIndex, personIndex);
 }
-
 static void FromSARI(int tn, int microCellIndex, int personIndex)
 {
 	FromSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, personIndex);
 }
-
 static void ToSARI(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].SARI, StateT[tn].SARI_age, StateT[tn].SARI_adunit, microCellIndex, personIndex);
 	ToSeverity(StateT[tn].cumSARI, StateT[tn].cumSARI_age, StateT[tn].cumSARI_adunit, microCellIndex, personIndex);
 }
-
 static void FromILI(int tn, int microCellIndex, int personIndex)
 {
 	FromSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, personIndex);
 }
-
 static void ToILI(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].ILI, StateT[tn].ILI_age, StateT[tn].ILI_adunit, microCellIndex, personIndex);
 	ToSeverity(StateT[tn].cumILI, StateT[tn].cumILI_age, StateT[tn].cumILI_adunit, microCellIndex, personIndex);
 }
-
 static void FromCritical(int tn, int microCellIndex, int personIndex)
 {
 	FromSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, personIndex);
 }
-
 static void ToCritical(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].Critical, StateT[tn].Critical_age, StateT[tn].Critical_adunit, microCellIndex, personIndex);
@@ -1541,12 +1542,10 @@ static void ToDeathSARI(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].cumDeath_SARI, StateT[tn].cumDeath_SARI_age, StateT[tn].cumDeath_SARI_adunit, microCellIndex, personIndex);
 }
-
 static void ToDeathCritical(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].cumDeath_Critical, StateT[tn].cumDeath_Critical_age, StateT[tn].cumDeath_Critical_adunit, microCellIndex, personIndex);
 }
-
 static void ToDeathILI(int tn, int microCellIndex, int personIndex)
 {
 	ToSeverity(StateT[tn].cumDeath_ILI, StateT[tn].cumDeath_ILI_age, StateT[tn].cumDeath_ILI_adunit, microCellIndex, personIndex);

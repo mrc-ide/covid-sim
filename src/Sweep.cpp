@@ -1015,9 +1015,9 @@ void IncubRecoverySweep(double t)
 
 				if (P.DoSeverity)
 				{
-					if (ts >= si->SARI_time)					DoSARI(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
-					if (ts >= si->Critical_time)				DoCritical(ci, tn);
-					if (ts >= si->RecoveringFromCritical_time)	DoRecoveringFromCritical(ci, tn);
+					if (ts >= si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
+					if (ts >= si->Critical_time)	DoCritical				(ci, tn);
+					if (ts >= si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
 					if (ts >= si->recovery_or_death_time)
 					{
 						if (si->to_die)

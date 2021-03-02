@@ -39,6 +39,7 @@ enum struct InfStat {
 
 //// SeverityClass definitions / labels (numbers arbitrary but must be different to each other).
 enum struct Severity {
+
 	//// Flag value.
 	Asymptomatic,
 	Mild,
@@ -48,8 +49,8 @@ enum struct Severity {
 	SARI,
 	// Critical (requires intensive care unit (ICU)
 	Critical,
-	//// Recovering from Critical (not recovered yet).
-	RecoveringFromCritical,
+	//// Stepdown from ICU. Recovering from Critical (not recovered yet). Although depending on param.IncludeStepDownToDeath, can still die at Stepdown.
+	Stepdown,
 	//// label to avoid double counting. 
 	Dead,
 	//// label to avoid double counting. 

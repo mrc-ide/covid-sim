@@ -30,13 +30,17 @@ options("scipen" = 13) #### set high penalty for scientific display. (so e.g. 10
 
 ICDFs 		= readRDS(file = file.path(here("data/param_files/"), "SeverityICDFs.rds"))
 AS_Means 	= readRDS(file = file.path(here("data/param_files/"), "AS_SeverityProgMeans.rds"))
+TransProbs 	= readRDS(file = file.path(here("data/param_files/"), "AS_SeverityTransitionProbs.rds"))
 
 #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
 #### ==== Add in WAIFW matrix using POLYMOD/socialmixr
 library(socialmixr)
 
 Ages 			= seq(0,75,5)
+## POLYMOD Contact Matrix - all contacts
 POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits = Ages)
+## POLYMOD Contact Matrix - excluding household, school and workplace contacts. CovidSim interprets this as "spatial" or "community" contacts.
+POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits = Ages, filter = list(cnt_home = 0, cnt_school = 0, cnt_work = 0))
 WAIFW_Matrix 	= POLYMOD_UK$matrix
 ## contact_matrix only returns as high as 75+. CovidSim wants 75-80 and 80+.
 ## For now assume that [75,80) = 80+ = 75+. Check this
@@ -66,7 +70,6 @@ PreParamList = MakePreParamList(
 		Mean_StepdownToDeath 			= AS_Means$Mean_StepdownToDeath,
 		
 		# quantiles / ICDFs
-		
 		#IncludeStepDownToDeath			= 1, 
 		latent_icdf 					= ICDFs$latent_icdf 		, 
 		infectious_icdf 				= ICDFs$infectious_icdf 	, 
@@ -81,6 +84,16 @@ PreParamList = MakePreParamList(
 		CriticalToStepdownDeath_icdf 	= ICDFs$CriticalToStepdownDeath_icdf, 
 		CriticalToCritRecov_icdf 		= ICDFs$CriticalToCritRecov_icdf,
 		StepdownToDeath_icdf 			= ICDFs$StepdownToDeath_icdf,
+		
+		# Transition Probabilities
+		ProportionSymptomatic			= TransProbs$ProportionSymptomatic, 
+		Prop_Mild_ByAge					= TransProbs$Prop_Mild_ByAge, 
+		Prop_ILI_ByAge					= TransProbs$Prop_ILI_ByAge, 
+		Prop_SARI_ByAge					= TransProbs$Prop_SARI_ByAge, 
+		Prop_Critical_ByAge				= TransProbs$Prop_Critical_ByAge, 
+		CFR_ILI_ByAge					= TransProbs$CFR_ILI_ByAge, 
+		CFR_SARI_ByAge					= TransProbs$CFR_SARI_ByAge, 
+		CFR_Critical_ByAge				= TransProbs$CFR_Critical_ByAge 
 )
 
 WriteParamList(PreParamList, OutputDir = OutputDir, OutputFileName = "pre_R0_2.0_NewICDFs_WAIFWmat.txt")
