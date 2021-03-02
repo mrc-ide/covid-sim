@@ -10,5 +10,5 @@ void ErrorCritical(const char* fmt, const char* file, int line, ...)
     fprintf(stderr, "[%s line %i] ", file, line);
     vfprintf(stderr, fmt, args);
     va_end(args);
-    exit(1);
+    //exit(1);
 }
