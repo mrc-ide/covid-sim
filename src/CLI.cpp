@@ -51,11 +51,11 @@ void parse_integer(std::string const& input, int& output)
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected integer got %s\n", input.c_str());
+		ERR_CRITICAL_FMT("%s: Expected integer got %s\n", input.c_str(), e.what());
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %d to %d. Got %s\n",
+		ERR_CRITICAL_FMT("%s: Input integer is out of range. Expected %d to %d. Got %s\n", e.what(),
 						std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), input.c_str());
 	}
 }
@@ -73,12 +73,12 @@ void parse_double(std::string const& input, double& output)
 	}
 	catch (const std::invalid_argument& e)
 	{
-		ERR_CRITICAL_FMT("EINVAL: Expected double got %s\n", input.c_str());
+		ERR_CRITICAL_FMT("%s, expected double got %s\n", e.what(), input.c_str());
 	}
 	catch (const std::out_of_range& e)
 	{
-		ERR_CRITICAL_FMT("ERANGE: Input integer is out of range. Expected %.4e to %.4e. Got %s\n",
-						std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), input.c_str());
+		ERR_CRITICAL_FMT("%s: Input integer is out of range. Expected %.4e to %.4e. Got %s\n",
+						e.what(), std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), input.c_str());
 	}
 }
 
