@@ -5441,7 +5441,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		dat = Files::xfopen(TmpFile.c_str(), "w");
 		fprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
 		fclose(dat);
-		rename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
+		Files::xrename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
 	}
 }
 

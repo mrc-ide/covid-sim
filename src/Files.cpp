@@ -89,3 +89,13 @@ size_t Files::fread_big(void* buffer, size_t size, size_t count, FILE* stream)
 	ret += (fread(buf2, size, (size_t)(count - n * st), stream));
 	return ret;
 }
+
+void Files::xrename(const char* oldname, const char* newname) noexcept
+{
+  int rc = rename(oldname, newname);
+  if (rc != 0)
+  {
+    ERR_CRITICAL_FMT("Error %d renaming file %s to %s - %s\n", errno, oldname, newname, strerror(errno));
+  }
+}
+

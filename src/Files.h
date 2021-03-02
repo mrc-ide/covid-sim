@@ -59,25 +59,36 @@ namespace Files
 
   void xfscanf(FILE* stream, int n_expected, const char* format, ...) noexcept;
 
-/** \brief             Wrapper around fscanf that aborts on error.
- *  \param  buffer     The file stream to read from
- *  \param  size       Expected number of arguments
- *  \param  count      The format string for fscanf
- *  \param  stream     Destinations for each placeholder
+/** \brief             Write data with compatibility for large types
+ *  \param  buffer     Buffer to write from
+ *  \param  size       How many elements
+ *  \param  count      Size of each element
+ *  \param  stream     File stream to write to
+ *  \return            Number of elements written
  *
  */
+
   size_t fwrite_big(void* buffer, size_t size, size_t count, FILE* stream);
   
-  /** \brief             Wrapper around fscanf that aborts on error.
-   *  \param  buffer     The file stream to read from
-   *  \param  size       Expected number of arguments
-   *  \param  count      The format string for fscanf
-   *  \param  stream     Destinations for each placeholder
-   *
+  /** \brief             Read data with compatibility for large types
+   *  \param  buffer     Buffer to write from
+   *  \param  size       How many elements
+   *  \param  count      Size of each element
+   *  \param  stream     File stram to read from
+   *  \return            Number of elements read
    */
 
   size_t fread_big(void* buffer, size_t size, size_t count, FILE* stream);
 
+  /** \brief             Wrapper around rename that aborts on error.
+   *  \param  oldname    Original name of file
+   *  \param  newname       How many elements
+   *  \param  count      Size of each element
+   *  \param  stream     File stram to read from
+   *
+   */
+
+  void xrename(const char* oldname, const char* newname) noexcept;
 
 } // namespace Files
 
