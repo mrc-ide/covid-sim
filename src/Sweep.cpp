@@ -6,6 +6,7 @@
 #include "CalcInfSusc.h"
 #include "Dist.h"
 #include "Error.h"
+#include "Files.h"
 #include "InfStat.h"
 #include "Kernels.h"
 #include "Rand.h"
@@ -48,9 +49,9 @@ void TravelReturnSweep(double t)
 					{
 						n--;
 						/*						if((n<0)||(Places[P.HotelPlaceType][j].members[n]<0)||(Places[P.HotelPlaceType][j].members[n]>=P.PopSize))
-													{fprintf(stderr,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
+													{Files::xfprintf_stderr(4, ,"### %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else if((k<0)||(k>n))
-													{fprintf(stderr,"@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
+													{Files::xfprintf_stderr(4, "@ %i %i %i %i\n",j,k,n,Places[P.HotelPlaceType][j].members[n]);ner++;}
 												else
 						*/
 						if (k != n)
@@ -60,7 +61,8 @@ void TravelReturnSweep(double t)
 						nr++;
 						if (Hosts[i].PlaceLinks[P.HotelPlaceType] != j)
 						{
-							ner++; fprintf(stderr_shared, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
+							ner++;
+							Files::xfprintf(stderr_shared, 2, "(%i %i) ", j, Hosts[i].PlaceLinks[P.HotelPlaceType]);
 						}
 						Hosts[i].PlaceLinks[P.HotelPlaceType] = -1;
 						Hosts[i].Travelling = 0;
@@ -69,7 +71,7 @@ void TravelReturnSweep(double t)
 				Places[P.HotelPlaceType][j].n = n;
 			}
 		}
-		fprintf(stderr, " d=%i e=%i>", nr, ner);
+		Files::xfprintf_stderr(2, " d=%i e=%i>", nr, ner);
 	}
 }
 
@@ -195,7 +197,7 @@ void TravelDepartSweep(double t)
 							j++;
 					}
 				}
-		fprintf(stderr, "<ar=%i as=%i", nad, nsk);
+		Files::xfprintf_stderr(2, "<ar=%i as=%i", nad, nsk);
 		nl = ((double)P.PlaceTypeMeanSize[P.HotelPlaceType]) * P.HotelPropLocal / P.MeanLocalJourneyTime;
 		nsk = 0;
 #pragma omp parallel for reduction(+:nld,nsk) schedule(static,1) default(none) \
@@ -275,7 +277,7 @@ void TravelDepartSweep(double t)
 					} while (f);
 				}
 			}
-		fprintf(stderr, " l=%i ls=%i ", nld, nsk);
+		Files::xfprintf_stderr, (2, " l=%i ls=%i ", nld, nsk);
 	}
 }
 
@@ -499,7 +501,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									// if infectiousness is < 0, we have an error - end the program
 									if (s4_scaled < 0)
 									{
-										fprintf(stderr_shared, "@@@ %lg\n", s4_scaled);
+										Files::xfprintf(stderr_shared, 1, "@@@ %lg\n", s4_scaled);
 										exit(1);
 									}
 									// else if infectiousness == 1 (should never be more than 1 due to capping above)
@@ -551,7 +553,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 												}
 												else
 												{
-													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+													Files::xfprintf(stderr_shared, 2, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
 										}
@@ -651,7 +653,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 												}
 												else
 												{
-													fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+													Files::xfprintf(stderr_shared, 2, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 												}
 											}
 										}
@@ -882,7 +884,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											}
 											else
 											{
-												fprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+												Files::xfprintf(stderr_shared, 2, "No more space in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 											}
 										}
 									}
@@ -969,7 +971,7 @@ void IncubRecoverySweep(double t)
 			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
 			if ((t + P.ModelTimeStep >= ht) && (t < ht))
 			{
-//				fprintf(stderr, "Holiday %i t=%lg\n", i, t);
+//				Files::xfprintf_stderr(2, "Holiday %i t=%lg\n", i, t);
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
 #pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
@@ -1211,8 +1213,8 @@ void DigitalContactTracingSweep(double t)
 								}
 								else
 								{
-									fprintf(stderr_shared, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, AdUnits[i].n);
-									fprintf(stderr_shared, "Error!\n");
+									Files::xfprintf(stderr_shared, 3, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", i, AdUnits[i].ndct, AdUnits[i].n);
+									Files::xfprintf(stderr_shared, 0, "Error!\n");
 									k++;
 								}
 							}
@@ -1452,7 +1454,7 @@ int TreatSweep(double t)
 						for (int PG_member = ((int)Places[PlaceType][PlaceNum].group_start[PlaceGroupIndex]); PG_member < ((int)(Places[PlaceType][PlaceNum].group_start[PlaceGroupIndex] + Places[PlaceType][PlaceNum].group_size[PlaceGroupIndex])); PG_member++) // loop over people in place group.
 						{
 							/*if((Places[PlaceType][PlaceNum].members[PG_member]<0)||(Places[PlaceType][PlaceNum].members[PG_member]>P.PopSize-1))
-								fprintf(stderr,"\n*** npq=%i gn=%i h=%i PG_member=%i PlaceType=%i PlaceNum=%i PlaceGroupIndex=%i s=%i n=%i ***\n",
+								Files::xfprintf_stderr(9, "\n*** npq=%i gn=%i h=%i PG_member=%i PlaceType=%i PlaceNum=%i PlaceGroupIndex=%i s=%i n=%i ***\n",
 									StateT[Thread].np_queue[PlaceType],
 									Places[PlaceType][PlaceNum].n,
 									Places[PlaceType][PlaceNum].members[PG_member],

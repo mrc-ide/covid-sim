@@ -716,8 +716,8 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 			else
 			{
-				fprintf(stderr, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[j].ndct, AdUnits[ad].n);
-				fprintf(stderr, "Error!\n");
+				Files::xfprintf_stderr(3, "No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[j].ndct, AdUnits[ad].n);
+				Files::xfprintf_stderr(0, "Error!\n");
 			}
 		}
 		//currently commenting this out as household members will likely be picked up by household quarantine.
@@ -742,7 +742,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//			}
 		//			else
 		//			{
-		//				fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+		//				Files::xfprintf_stderr(2, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 		//			}
 		//		}
 		//	}
@@ -775,7 +775,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		//					}
 		//					else
 		//					{
-		//						fprintf(stderr, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
+		//						Files::xfprintf_stderr(2, "No space left in queue! Thread: %i, AdUnit: %i\n", tn, ad);
 		//					}
 		//
 		//				}
@@ -944,7 +944,7 @@ void DoRecover(int ai, int tn)
 		}
 	}
 	//else
-	//fprintf(stderr, "\n ### %i %i  \n", ai, a->inf);
+	//Files::xfprintf_stderr(2, "\n ### %i %i  \n", ai, a->inf);
 }
 
 void DoDeath(int ai, int tn)
@@ -1102,7 +1102,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 
 	f2 = 0;
 	/*	if((j<0)||(j>=P.Nplace[i]))
-			fprintf(stderr,"** %i %i *\n",i,j);
+			Files::xfprintf_stderr(2, "** %i %i *\n",i,j);
 		else
 	*/
 	t_new = (unsigned short)(((double)ts) / P.TimeStepsPerDay);
@@ -1140,7 +1140,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
 						&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
-						//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
+						//Files::xfprintf_stderr,(5, "** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
 						k = Mcells[Places[i][j].mcell].adunit;
 						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
 					}
@@ -1151,7 +1151,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
 						&& (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
-						//fprintf(stderr,"** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
+						//Files::xfprintf_stderr(5, "** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
 						k = Mcells[Places[i][j].mcell].adunit;
 						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
 					}
@@ -1199,7 +1199,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 						if (Hosts[ai].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
 						{
 							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-							if ((j1 < 0) || (j2 > P.PopSize)) fprintf(stderr, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
+							if ((j1 < 0) || (j2 > P.PopSize)) Files::xfprintf_stderr(6, "++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
 							f = 0;
 
 							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).

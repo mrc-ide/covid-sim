@@ -45,7 +45,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.DoBin = -1;
 	if (!density_file.empty())
 	{
-		fprintf(stderr, "Scanning population density file\n");
+		Files::xfprintf_stderr(0, "Scanning population density file\n");
 		dat = Files::xfopen(density_file.c_str(), "rb");
 		unsigned int density_file_header;
 		Files::fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
@@ -82,7 +82,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 					Files::xsscanf(buf, 5, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
 					if (l / P.CountryDivisor != i2)
 					{
-						//fprintf(stderr,"# %lg %lg %lg %i %i\n",x,y,t,i2,l);
+						//Files::xfprintf_stderr(5, "# %lg %lg %lg %i %i\n",x,y,t,i2,l);
 					}
 				}
 				else {
@@ -123,7 +123,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				t = BF[rn].pop;
 				int i2 = BF[rn].cnt;
 				l = BF[rn].ad;
-				//					fprintf(stderr,"# %lg %lg %lg %i\t",x,y,t,l);
+				//					Files::xfprintf_stderr(4, "# %lg %lg %lg %i\t",x,y,t,l);
 
 				m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
 				if (P.AdunitLevel1Lookup[m] >= 0)
@@ -150,16 +150,16 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.SpatialBoundingBox.top_right() = P.SpatialBoundingBox.bottom_left()
 			+ CovidSim::Geometry::Vector2d(P.in_degrees_.width, P.in_degrees_.height);
 		P.NumCells = P.ncw * P.nch;
-		fprintf(stderr, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
+		Files::xfprintf_stderr(4, "Adjusted bounding box = (%lg, %lg)- (%lg, %lg)\n",
 				P.SpatialBoundingBox.bottom_left().x, P.SpatialBoundingBox.bottom_left().y,
 				P.SpatialBoundingBox.top_right().x,   P.SpatialBoundingBox.top_right().y);
-		fprintf(stderr, "Number of cells = %i (%i x %i)\n", P.NumCells, P.ncw, P.nch);
-		fprintf(stderr, "Population size = %i \n", P.PopSize);
+		Files::xfprintf_stderr(3, "Number of cells = %i (%i x %i)\n", P.NumCells, P.ncw, P.nch);
+		Files::xfprintf_stderr(1, "Population size = %i \n", P.PopSize);
 		if (P.in_degrees_.width > 180) {
-			fprintf(stderr, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
+			Files::xfprintf_stderr(0, "WARNING: Width of bounding box > 180 degrees.  Results may be inaccurate.\n");
 		}
 		if (P.in_degrees_.height > 90) {
-			fprintf(stderr, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
+			Files::xfprintf_stderr(0, "WARNING: Height of bounding box > 90 degrees.  Results may be inaccurate.\n");
 		}
 		s = 1;
 		P.DoPeriodicBoundaries = 0;
@@ -168,12 +168,12 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	{
 		P.ncw = P.nch = (int)sqrt((double)P.NumCells);
 		P.NumCells = P.ncw * P.nch;
-		fprintf(stderr, "Number of cells adjusted to be %i (%i^2)\n", P.NumCells, P.ncw);
+		Files::xfprintf_stderr(2, "Number of cells adjusted to be %i (%i^2)\n", P.NumCells, P.ncw);
 		s = floor(sqrt((double)P.PopSize));
 		P.SpatialBoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
 		P.SpatialBoundingBox.top_right() = CovidSim::Geometry::Vector2d(s, s);
 		P.PopSize = (int)(s * s);
-		fprintf(stderr, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
+		Files::xfprintf_stderr(2, "Population size adjusted to be %i (%lg^2)\n", P.PopSize, s);
 		P.in_degrees_.width = P.in_degrees_.height = s;
 		P.in_cells_.width = P.in_degrees_.width / ((double)P.ncw);
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
@@ -181,7 +181,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.NumMicrocells = P.NMCL * P.NMCL * P.NumCells;
 	P.total_microcells_wide_ = P.ncw * P.NMCL;
 	P.total_microcells_high_ = P.nch * P.NMCL;
-	fprintf(stderr, "Number of microcells = %i\n", P.NumMicrocells);
+	Files::xfprintf_stderr(1, "Number of microcells = %i\n", P.NumMicrocells);
 	P.scale.x = P.BitmapScale;
 	P.scale.y = P.BitmapAspectScale * P.BitmapScale;
 	P.b.width = (int)(P.in_degrees_.width * (P.BoundingBox.width()) * P.scale.x);
@@ -190,7 +190,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	P.b.height = (int)(P.in_degrees_.height * (P.BoundingBox.height()) * P.scale.y);
 	P.b.height += (4 - P.b.height % 4) % 4;
 	P.bheight2 = P.b.height + 20; // space for colour legend
-	fprintf(stderr, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
+	Files::xfprintf_stderr(2, "Bitmap width = %i\nBitmap height = %i\n", P.b.width, P.b.height);
 	P.bmin.x = (int)(P.in_degrees_.width * P.BoundingBox.bottom_left().x * P.scale.x);
 	P.bmin.y = (int)(P.in_degrees_.height * P.BoundingBox.bottom_left().y * P.scale.y);
 	P.in_microcells_.width = P.in_cells_.width / ((double)P.NMCL);
@@ -208,8 +208,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (th > t) t = th;
 	if (P.DoPeriodicBoundaries) t *= 0.25;
 	P.KernelLookup.setup(t);
-	//	fprintf(stderr,"** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
-	fprintf(stderr, "Coords xmcell=%lg m   ymcell = %lg m\n",
+	//	Files::xfprintf_stderr(9, "** %i %lg %lg %lg %lg | %lg %lg %lg %lg \n",P.DoUTM_coords,P.SpatialBoundingBox[0],P.SpatialBoundingBox[1],P.SpatialBoundingBox[2],P.SpatialBoundingBox[3],P.width,P.height,t,P.KernelDelta);
+	Files::xfprintf_stderr(2, "Coords xmcell=%lg m   ymcell = %lg m\n",
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2 + P.in_microcells_.width, P.in_degrees_.height / 2)),
 		sqrt(dist2_raw(P.in_degrees_.width / 2, P.in_degrees_.height / 2, P.in_degrees_.width / 2, P.in_degrees_.height / 2 + P.in_microcells_.height)));
 
@@ -280,7 +280,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 
 	if(P.OutputNonSeverity) SaveAgeDistrib(out_file_base);
 
-	fprintf(stderr, "Initialising places...\n");
+	Files::xfprintf_stderr(0, "Initialising places...\n");
 	if (P.DoPlaces)
 	{
 		if (!load_network_file.empty())
@@ -305,7 +305,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		//Cells[i].susceptible=Cells[i].members; //added this line
 	}
 
-	fprintf(stderr, "Initialising kernel...\n");
+	Files::xfprintf_stderr(0, "Initialising kernel...\n");
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
@@ -329,7 +329,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	else
 		P.CareHomePropResidents = 0.0;
-	fprintf(stderr, "%lg care home residents\n%lg care home workers\n", nres, nstaff);
+	Files::xfprintf_stderr(2, "%lg care home residents\n%lg care home workers\n", nres, nstaff);
 	P.KeyWorkerNum = P.KeyWorkerIncHouseNum = m = l = 0;
 	if (P.DoPlaces)
 	{
@@ -367,7 +367,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				for (int i2 = 0; (m < P.KeyWorkerPlaceNum[j]) && (i2 < Places[j][k].n); i2++)
 				{
 					int i = Places[j][k].members[i2];
-					if ((i < 0) || (i >= P.PopSize)) fprintf(stderr, "## %i # ", i);
+					if ((i < 0) || (i >= P.PopSize)) Files::xfprintf_stderr(1, "## %i # ", i);
 					if ((Hosts[i].keyworker) || (ranf_mt(0) >= P.KeyWorkerPropInKeyPlaces[j]))
 						l++;
 					else
@@ -389,7 +389,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 			}
 		}
-		if (P.KeyWorkerNum > 0) fprintf(stderr, "%i key workers selected in total\n", P.KeyWorkerNum);
+		if (P.KeyWorkerNum > 0) Files::xfprintf_stderr(1, "%i key workers selected in total\n", P.KeyWorkerNum);
 		if (P.DoAdUnits)
 		{
 			for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].NP = 0;
@@ -401,7 +401,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 		}
 	}
-	fprintf(stderr, "Places intialised.\n");
+	Files::xfprintf_stderr(0, "Places intialised.\n");
 
 	//Set up the population for digital contact tracing here... - ggilani 09/03/20
 	if (P.DoDigitalContactTracing)
@@ -445,8 +445,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 			P.NDigitalContactUsers = l;
 			P.NDigitalHouseholdUsers = m;
-			fprintf(stderr, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NumHouseholds);
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+			Files::xfprintf_stderr(2, "Number of digital contact tracing households: %i, out of total number of households: %i\n", P.NDigitalHouseholdUsers, P.NumHouseholds);
+			Files::xfprintf_stderr(2, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
 		}
 		else // Just go through the population and assign people to the digital contact tracing app based on probability by age.
 		{
@@ -469,7 +469,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				}
 			}
 			P.NDigitalContactUsers = l;
-			fprintf(stderr, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
+			Files::xfprintf_stderr(2, "Number of digital contact tracing users: %i, out of population size: %i\n", P.NDigitalContactUsers, P.PopSize);
 		}
 	}
 
@@ -477,7 +477,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	if (P.DoAirports) SetupAirports();
 
 	TSMean = TSMeanNE; TSVar = TSVarNE;
-	fprintf(stderr, "Calculated approx cell probabilities\n");
+	Files::xfprintf_stderr(0, "Calculated approx cell probabilities\n");
 	for (int i = 0; i < INFECT_TYPE_MASK; i++) inftype_av[i] = 0;
 	for (int i = 0; i < MAX_COUNTRIES; i++) infcountry_av[i] = infcountry_num[i] = 0;
 	for (int i = 0; i < MAX_SEC_REC; i++)
@@ -533,7 +533,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			}
 		}
 		State.n_mvacc = queueIndex;
-		fprintf(stderr, "Number to be vaccinated=%i\n", State.n_mvacc);
+		Files::xfprintf_stderr(1, "Number to be vaccinated=%i\n", State.n_mvacc);
 		for (int i = 0; i < 2; i++)
 		{
 			for (int j = 0; j < vaccineCount; j++)
@@ -551,23 +551,23 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				State.mvacc_queue[l] = m;
 			}
 		}
-		fprintf(stderr, "Configured mass vaccination queue.\n");
+		Files::xfprintf_stderr(0, "Configured mass vaccination queue.\n");
 	}
 	PeakHeightSum = PeakHeightSS = PeakTimeSum = PeakTimeSS = 0;
 	int i = (P.ncw / 2) * P.nch + P.nch / 2;
 	int j = (P.ncw / 2 + 2) * P.nch + P.nch / 2;
-	fprintf(stderr, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+	Files::xfprintf_stderr(2, "UTM dist horiz=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
 	j = (P.ncw / 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+	Files::xfprintf_stderr(2, "UTM dist vert=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
 	j = (P.ncw / 2 + 2) * P.nch + P.nch / 2 + 2;
-	fprintf(stderr, "UTM dist diag=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
+	Files::xfprintf_stderr(2, "UTM dist diag=%lg %lg\n", sqrt(dist2_cc(Cells + i, Cells + j)), sqrt(dist2_cc(Cells + j, Cells + i)));
 
 	//if(P.OutputBitmap)
 	//{
 	//	CaptureBitmap();
 	//	OutputBitmap(0);
 	//}
-	fprintf(stderr, "Model configuration complete.\n");
+	Files::xfprintf_stderr(0, "Model configuration complete.\n");
 }
 
 void ResetTimeSeries()
@@ -609,9 +609,9 @@ int ReadFitIter(std::string const& FitFile)
 	// Extract iteration number and number of parameter numbers to fit from FitFile_Iter_dat
 	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &i, &n);
 	if (n <= 0)
-		fprintf(stderr, "Stop code read from file (iteration number <=0)\n");
+		Files::xfprintf_stderr(0, "Stop code read from file (iteration number <=0)\n");
 	else if (i != P.FitIter)
-		fprintf(stderr, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
+		Files::xfprintf_stderr(3, "Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
 	if (n > 0)
 	{
 		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
@@ -643,7 +643,7 @@ void InitTransmissionCoeffs(void)
 		HouseholdMeanSize += ((double)(INT64_C(1) + HH_Size)) * (P.HouseholdSizeDistrib[0][HH_Size] - CumulativeHHSizeDist); // note here that HouseholdSizeDistrib is the cumulative distribution.
 		CumulativeHHSizeDist = P.HouseholdSizeDistrib[0][HH_Size];
 	}
-	fprintf(stderr, "Household mean size=%lg\n", HouseholdMeanSize);
+	Files::xfprintf_stderr(1, "Household mean size=%lg\n", HouseholdMeanSize);
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
@@ -724,10 +724,10 @@ void InitTransmissionCoeffs(void)
 	// Divide total spatial infections by PopSize to get Spatial R0. 
 	double Spatial_R0 = SpatialInfections  / (double)P.PopSize;
 	// Divide total household infections by summed household denominators to get household secondary attack rate
-	fprintf(stderr, "Household SAR=%lg\n", HH_Infections / HH_SAR_Denom);
+	Files::xfprintf_stderr(1, "Household SAR=%lg\n", HH_Infections / HH_SAR_Denom);
 	// Divide total household infections by PopSize to get household R0
 	P.R0household = HH_Infections / ((double)P.PopSize);
-	fprintf(stderr, "Household R0=%lg\n", P.R0household);
+	Files::xfprintf_stderr(1, "Household R0=%lg\n", P.R0household);
 
 	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
 	// ** // ** Place Infections
@@ -785,7 +785,7 @@ void InitTransmissionCoeffs(void)
 						PlaceInfections += (1 - ProbSurviveNonCareHome * ProbSurvive) * NumPeopleInPlaceGroup + (1 - ProbSurvive) * (((double)(_I64(Places[PlaceType][PlaceNum].n) - 1)) - NumPeopleInPlaceGroup);
 					}
 				}
-				fprintf(stderr, "%lg  ", (PlaceInfections - PreviousTotalPlaceInfections) / ((double)P.PopSize));
+				Files::xfprintf_stderr(1, "%lg  ", (PlaceInfections - PreviousTotalPlaceInfections) / ((double)P.PopSize));
 			}
 	double recovery_time_days = 0;
 	double recovery_time_timesteps = 0;
@@ -801,7 +801,7 @@ void InitTransmissionCoeffs(void)
 	P.R0places = PlaceInfections / ((double)P.PopSize);
 	recovery_time_days /= ((double)P.PopSize);
 	recovery_time_timesteps /= ((double)P.PopSize);
-	fprintf(stderr, "\nR0 for places = %lg\n", P.R0places);
+	Files::xfprintf_stderr(1, "\nR0 for places = %lg\n", P.R0places);
 	if (!P.FixLocalBeta)
 	{
 		if (P.DoSI)
@@ -809,12 +809,12 @@ void InitTransmissionCoeffs(void)
 		else
 			P.LocalBeta = (P.R0 - P.R0household - P.R0places) / Spatial_R0;
 		if (P.LocalBeta < 0) P.LocalBeta = 0;
-		fprintf(stderr, "Set spatial beta to %lg\n", P.LocalBeta);
+		Files::xfprintf_stderr(1, "Set spatial beta to %lg\n", P.LocalBeta);
 	}
 	P.R0spatial = Spatial_R0 * P.LocalBeta;
 	P.R0 = P.R0household + P.R0places + P.R0spatial;
-	fprintf(stderr, "R0 for random spatial = %lg\nOverall R0 = %lg\n", P.R0spatial, P.R0);
-	fprintf(stderr, "Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
+	Files::xfprintf_stderr(2, "R0 for random spatial = %lg\nOverall R0 = %lg\n", P.R0spatial, P.R0);
+	Files::xfprintf_stderr(2, "Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
 }
 
 void SetupPopulation(std::string const& density_file, std::string const& out_density_file, std::string const& school_file, std::string const& reg_demog_file)
@@ -851,7 +851,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
 		//		dat2 = Files::xfopen("EnvTest.txt","w");
-		fprintf(stderr, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
+		Files::xfprintf_stderr(1, "Density file contains %i datapoints.\n", (int)P.BinFileLen);
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			int k;
@@ -911,7 +911,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					if (P.DoAdUnits)
 					{
 						mcell_adunits[l] = P.AdunitLevel1Lookup[m];
-						if (mcell_adunits[l] < 0) fprintf(stderr, "Microcell %i has adunits<0\n", l);
+						if (mcell_adunits[l] < 0) Files::xfprintf_stderr(1, "Microcell %i has adunits<0\n", l);
 						P.PopByAdunit[P.AdunitLevel1Lookup[m]][0] += t;
 					}
 					else
@@ -925,7 +925,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		}
 		//		Files::xfclose(dat2);
-		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
+		Files::xfprintf_stderr(1, "%i valid microcells read from density file.\n", mr);
 		if (!out_density_file.empty() && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
 		{
@@ -938,7 +938,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
 				BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 				BF = (BinFile*)BinFileBuf;
-				fprintf(stderr, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
+				Files::xfprintf_stderr(1, "Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
 				rn = 0;
 				for (l = 0; l < P.NumMicrocells; l++)
 					if (mcell_adunits[l] >= 0)
@@ -958,13 +958,13 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			dat2 = Files::xfopen(out_density_file.c_str(), "wb");
 			rn = 0xf0f0f0f0;
 			Files::fwrite_big((void*)& rn, sizeof(unsigned int), 1, dat2);
-			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
+			Files::xfprintf_stderr(1, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
 			Files::fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
 			Files::fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
 			Files::xfclose(dat2);
 		}
 		Memory::xfree(BinFileBuf);
-		fprintf(stderr, "Population files read.\n");
+		Files::xfprintf_stderr(0, "Population files read.\n");
 		maxd = 0;
 		for (int i = 0; i < P.NumMicrocells; i++)
 		{
@@ -1093,7 +1093,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if ((P.DoAdUnits) && !reg_demog_file.empty() && (P.DoCorrectAdunitPop))
 	{
 		for (int i = 0; i < P.NumAdunits; i++)
-			fprintf(stderr, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
+			Files::xfprintf_stderr(4, "%i\t%i\t%lg\t%lg\n", i, (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor, P.PropAgeGroup[i][0], P.HouseholdSizeDistrib[i][0]);
 		maxd = 0;
 		for (int i = 0; i < P.NumMicrocells; i++)
 		{
@@ -1109,7 +1109,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			t += P.PopByAdunit[i][1];
 		int i = P.PopSize;
 		P.PopSize = (int)t;
-		fprintf(stderr, "Population size reset from %i to %i\n", i, P.PopSize);
+		Files::xfprintf_stderr(2, "Population size reset from %i to %i\n", i, P.PopSize);
 	}
 	t = 1.0;
 	for (int i = m = 0; i < (P.NumMicrocells - 1); i++)
@@ -1160,10 +1160,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			}
 		if (Cells[i].n > 0) P.NumPopulatedCells++;
 	}
-	fprintf(stderr, "Number of hosts assigned = %i\n", j2);
+	Files::xfprintf_stderr(1, "Number of hosts assigned = %i\n", j2);
 	if (!P.DoAdUnits) P.AdunitLevel1Lookup[0] = 0;
-	fprintf(stderr, "Number of cells with non-zero population = %i\n", P.NumPopulatedCells);
-	fprintf(stderr, "Number of microcells with non-zero population = %i\n", P.NumPopulatedMicrocells);
+	Files::xfprintf_stderr(1, "Number of cells with non-zero population = %i\n", P.NumPopulatedCells);
+	Files::xfprintf_stderr(1, "Number of microcells with non-zero population = %i\n", P.NumPopulatedMicrocells);
 
 	CellLookup = (Cell **)Memory::xcalloc(P.NumPopulatedCells, sizeof(Cell*));
 	State.CellSuscMemberArray = (int*)Memory::xcalloc(P.PopSize, sizeof(int));
@@ -1176,12 +1176,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			Cells[j].susceptible = State.CellSuscMemberArray + susceptibleAccumulator;
 			susceptibleAccumulator += Cells[j].n;
 		}
-	if (i2 > P.NumPopulatedCells) fprintf(stderr, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NumPopulatedCells, i2);
+	if (i2 > P.NumPopulatedCells) Files::xfprintf_stderr(2, "######## Over-run on CellLookup array NCP=%i i2=%i ###########\n", P.NumPopulatedCells, i2);
 	i2 = 0;
 
 	Hosts = (Person*)Memory::xcalloc(P.PopSize, sizeof(Person));
 	HostsQuarantine = std::vector<PersonQuarantine>(P.PopSize, PersonQuarantine());
-	fprintf(stderr, "sizeof(Person)=%i\n", (int) sizeof(Person));
+	Files::xfprintf_stderr(1, "sizeof(Person)=%i\n", (int) sizeof(Person));
 	for (int i = 0; i < P.NumPopulatedCells; i++)
 	{
 		Cell *c = CellLookup[i];
@@ -1197,7 +1197,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Cells[i].cumTC = 0;
 		for (j = 0; j < Cells[i].n; j++) Cells[i].members[j] = -1;
 	}
-	fprintf(stderr, "Cells assigned\n");
+	Files::xfprintf_stderr(0, "Cells assigned\n");
 	for (int i = 0; i <= MAX_HOUSEHOLD_SIZE; i++) denom_household[i] = 0;
 	P.NumHouseholds = 0;
 	int numberOfPeople = 0;
@@ -1218,7 +1218,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			denom_household[m]++;
 			for (i2 = 0; i2 < m; i2++)
 			{
-				//				fprintf(stderr,"%i ",i+i2);
+				//				Files::xfprintf_stderr(1, "%i ",i+i2);
 				Hosts[numberOfPeople + i2].listpos = m; //used temporarily to store household size
 				Mcells[MCell].members[k + i2] = numberOfPeople + i2;
 				Cells[l].susceptible[Cells[l].cumTC] = numberOfPeople + i2;
@@ -1234,7 +1234,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	Households = (Household*)Memory::xcalloc(P.NumHouseholds, sizeof(Household));
 	for (j = 0; j < NUM_AGE_GROUPS; j++) AgeDist[j] = AgeDist2[j] = 0;
-	if (P.DoHouseholds) fprintf(stderr, "Household sizes assigned to %i people\n", numberOfPeople);
+	if (P.DoHouseholds) Files::xfprintf_stderr(1, "Household sizes assigned to %i people\n", numberOfPeople);
 
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for private(j2,j,x,y,xh,yh,i2,m) schedule(static,1) default(none) \
@@ -1247,7 +1247,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			y = (double)(j % P.total_microcells_high_);
 			int i = Mcells[j].members[0];
 			if (j % 100 == 0)
-				fprintf(stderr_shared, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+				Files::xfprintf(stderr_shared, 4, "%i=%i (%i %i)            \r", j, Mcells[j].n, Mcells[j].adunit, (AdUnits[Mcells[j].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 			for (int k = 0; k < Mcells[j].n;)
 			{
 				m = Hosts[i].listpos;
@@ -1325,9 +1325,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				AgeDistCorrB[i][j] /= AgeDistAd[i][j];
 			}
 			// output problematic adjustments (these should be 0.0f)
-			//fprintf(stderr, "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
-			//fprintf(stderr, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
-			//fprintf(stderr, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
+			//Files::xfprintf_stderr(2. "AgeDistCorrB[%i][0] = %f\n", i, AgeDistCorrB[i][0]); // push down from youngest age group
+			//Files::xfprintf_stderr(2, "AgeDistCorrF[%i][NUM_AGE_GROUPS - 1] = %f\n", i, AgeDistCorrF[i][NUM_AGE_GROUPS - 1]); // push up from oldest age group
+			//Files::xfprintf_stderr(2, "AgeDistCorrB[%i][NUM_AGE_GROUPS] = %f\n", i, AgeDistCorrB[i][NUM_AGE_GROUPS]); // push down from oldest age group + 1
 		}
 
 		// make age adjustments to population
@@ -1363,7 +1363,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 		AgeDist[HOST_AGE_GROUP(i)]++;
 	}
-	fprintf(stderr, "Ages/households assigned\n");
+	Files::xfprintf_stderr(0, "Ages/households assigned\n");
 
 	if (!P.DoRandomInitialInfectionLoc)
 	{
@@ -1394,12 +1394,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		if (Mcells[j].n < P.NumInitialInfections[0])
 			ERR_CRITICAL("Too few people in seed microcell to start epidemic with required number of initial infectionz.\n");
 	}
-	fprintf(stderr, "Checking cells...\n");
+	Files::xfprintf_stderr(0, "Checking cells...\n");
 	maxd = ((double)P.PopSize);
 	last_i = 0;
 	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0) last_i = i;
-	fprintf(stderr, "Allocating place/age groups...\n");
+	Files::xfprintf_stderr(0, "Allocating place/age groups...\n");
 	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 	{
 		for (l = 0; l < P.PlaceTypeNum; l++)
@@ -1421,8 +1421,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for(l=0;l<P.PlaceTypeNum;l++)
 			{
 			for(k=0;k<NUM_AGE_GROUPS*AGE_GROUP_WIDTH;k++)
-				fprintf(stderr, "%i:%lg ",k,PropPlaces[k][l]);
-			fprintf(stderr,"\n");
+				Files::xfprintf_stderr("%i:%lg ",k,PropPlaces[k][l]);
+			Files::xfprintf_stderr(0,"\n");
 			}
 	*/
 	/*	if((P.DoAdUnits)&&(P.DoAdunitDemog))
@@ -1435,7 +1435,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
 	if (!school_file.empty() && (P.DoPlaces))
 	{
-		fprintf(stderr, "Reading school file\n");
+		Files::xfprintf_stderr(0, "Reading school file\n");
 		dat = Files::xfopen(school_file.c_str(), "rb");
 		Files::xfscanf(dat, 1, "%i", &P.nsp);
 		for (j = 0; j < P.nsp; j++)
@@ -1465,11 +1465,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Mcells[j2].np[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
-				if (P.Nplace[j] % 1000 == 0) fprintf(stderr, "%i read    \r", P.Nplace[j]);
+				if (P.Nplace[j] % 1000 == 0) Files::xfprintf_stderr(1, "%i read    \r", P.Nplace[j]);
 			}
 		}
 		Files::xfclose(dat);
-		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
+		Files::xfprintf_stderr(2, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
 		for (int i = 0; i < P.NumMicrocells; i++)
 			for (j = 0; j < P.nsp; j++)
 				if (Mcells[i].np[j] > 0)
@@ -1488,7 +1488,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				Mcells[k].places[j][Mcells[k].np[j]++] = i;
 				s += (double)Places[j][i].n;
 			}
-			fprintf(stderr, "School type %i: capacity=%lg demand=%lg\n", j, s, t);
+			Files::xfprintf_stderr(3, "School type %i: capacity=%lg demand=%lg\n", j, s, t);
 			t /= s;
 			for (int i = 0; i < P.Nplace[j]; i++)
 				Places[j][i].n = (int)ceil(((double)Places[j][i].n) * t);
@@ -1496,7 +1496,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	}
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Configuring places...\n");
+		Files::xfprintf_stderr(0, "Configuring places...\n");
 
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
 			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, mcell_country, stderr_shared)
@@ -1508,7 +1508,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				for (int i = 0; i < P.PopSize; i++)
 					t += PropPlaces[HOST_AGE_YEAR(i)][j2];
 				P.Nplace[j2] = (int)ceil(t / P.PlaceTypeMeanSize[j2]);
-				fprintf(stderr_shared, "[%i:%i %g] ", j2, P.Nplace[j2], t);
+				Files::xfprintf(stderr_shared, 3, "[%i:%i %g] ", j2, P.Nplace[j2], t);
 				Places[j2] = (Place*)Memory::xcalloc(P.Nplace[j2], sizeof(Place));
 				t = 1.0;
 				int k;
@@ -1553,8 +1553,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 /*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
 			for (i =0; i < P.NumMicrocells; i++)
 				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
-					fprintf(stderr, "\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
-*/		fprintf(stderr, "Places assigned\n");
+					Files::xfprintf_stderr("\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
+*/		Files::xfprintf_stderr(0, "Places assigned\n");
 	}
 	l = 0;
 	for (j = 0; j < P.NumCells; j++)
@@ -1613,8 +1613,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Cells[i].S = Cells[i].n;
 		Cells[i].L = Cells[i].I = 0;
 	}
-	fprintf(stderr, "Allocated cell and host memory\n");
-	fprintf(stderr, "Assigned hosts to cells\n");
+	Files::xfprintf_stderr(0, "Allocated cell and host memory\n");
+	Files::xfprintf_stderr(0, "Assigned hosts to cells\n");
 
 }
 
@@ -1624,7 +1624,7 @@ void SetupAirports(void)
 	double x, y, t, tmin;
 	IndexList* base, *cur;
 
-	fprintf(stderr, "Assigning airports to microcells\n");
+	Files::xfprintf_stderr(0, "Assigning airports to microcells\n");
 	// Convince static analysers that values are set correctly:
 	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
@@ -1648,7 +1648,7 @@ void SetupAirports(void)
 	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
+			if (i % 10000 == 0) Files::xfprintf(stderr_shared, 1, "\n%i           ", i);
 			x = (((double)(i / P.total_microcells_high_)) + 0.5) * P.in_microcells_.width;
 			y = (((double)(i % P.total_microcells_high_)) + 0.5) * P.in_microcells_.height;
 			k = l = 0;
@@ -1681,7 +1681,7 @@ void SetupAirports(void)
 				Airports[Mcells[i].AirportList[j].id].num_mcell++;
 		}
 	cur = Airports[0].DestMcells;
-	fprintf(stderr, "Microcell airport lists collated.\n");
+	Files::xfprintf_stderr(0, "Microcell airport lists collated.\n");
 	for (int i = 0; i < P.Nairports; i++)
 	{
 		Airports[i].DestMcells = cur;
@@ -1693,7 +1693,7 @@ void SetupAirports(void)
 	for (int i = 0; i < P.NumMicrocells; i++)
 		if (Mcells[i].n > 0)
 		{
-			if (i % 10000 == 0) fprintf(stderr_shared, "\n%i           ", i);
+			if (i % 10000 == 0) Files::xfprintf(stderr_shared, 1, "\n%i           ", i);
 			t = 0;
 			for (int j = 0; j < NNA; j++)
 			{
@@ -1711,7 +1711,7 @@ void SetupAirports(void)
 				tmin = Mcells[i].AirportList[j].prob;
 			}
 		}
-	fprintf(stderr, "Airport microcell lists collated.\n");
+	Files::xfprintf_stderr(0, "Airport microcell lists collated.\n");
 	for (int i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
 		{
@@ -1733,14 +1733,14 @@ void SetupAirports(void)
 				l += Mcells[Airports[i].DestMcells[j].id].np[P.HotelPlaceType];
 			if (l < 10)
 			{
-				fprintf(stderr, "(%i ", l);
+				Files::xfprintf_stderr(1, "(%i ", l);
 				l = 0;
 				for (int j = 0; j < Airports[i].num_mcell; j++)
 					l += Mcells[Airports[i].DestMcells[j].id].n;
-				fprintf(stderr, "%i %i) ", Airports[i].num_mcell, l);
+				Files::xfprintf_stderr(2, "%i %i) ", Airports[i].num_mcell, l);
 			}
 		}
-	fprintf(stderr, "\nInitialising hotel to airport lookup tables\n");
+	Files::xfprintf_stderr(0, "\nInitialising hotel to airport lookup tables\n");
 	Memory::xfree(base);
 #pragma omp parallel for private(l,m,t,tmin) schedule(static,1) default(none) shared(P, Airports, Places, stderr_shared)
 	for (int i = 0; i < P.Nairports; i++)
@@ -1748,7 +1748,7 @@ void SetupAirports(void)
 		{
 			m = (int)(Airports[i].total_traffic / HOTELS_PER_1000PASSENGER / 1000);
 			if (m < MIN_HOTELS_PER_AIRPORT) m = MIN_HOTELS_PER_AIRPORT;
-			fprintf(stderr_shared, "\n%i    ", i);
+			Files::xfprintf(stderr_shared, 1, "\n%i    ", i);
 			tmin = MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL * 0.75;
 			do
 			{
@@ -1759,7 +1759,7 @@ void SetupAirports(void)
 						Places[P.HotelPlaceType][j].loc.x, Places[P.HotelPlaceType][j].loc.y) < tmin)
 						Airports[i].num_place++;
 			} while (Airports[i].num_place < m);
-			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) fprintf(stderr_shared, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
+			if (tmin > MAX_DIST_AIRPORT_TO_HOTEL * MAX_DIST_AIRPORT_TO_HOTEL) Files::xfprintf(stderr_shared, 3, "*** %i : %lg %i ***\n", i, sqrt(tmin), Airports[i].num_place);
 			Airports[i].DestPlaces = (IndexList*)Memory::xcalloc(Airports[i].num_place, sizeof(IndexList));
 			Airports[i].num_place = 0;
 			for (int j = 0; j < P.Nplace[P.HotelPlaceType]; j++)
@@ -1790,7 +1790,7 @@ void SetupAirports(void)
 	P.Kernel = P.MoveKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
 	CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
-	fprintf(stderr, "\nAirport initialisation completed successfully\n");
+	Files::xfprintf_stderr(0, "\nAirport initialisation completed successfully\n");
 }
 
 const double PROP_OTHER_PARENT_AWAY = 0.0;
@@ -1977,7 +1977,7 @@ void AssignPeopleToPlaces()
 
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Assigning people to places....\n");
+		Files::xfprintf_stderr(0, "Assigning people to places....\n");
 		for (int i = 0; i < P.NumCells; i++)
 		{
 			Cells[i].infected = Cells[i].susceptible;
@@ -2088,7 +2088,7 @@ void AssignPeopleToPlaces()
 				if (tp < P.nsp)
 				{
 					t = ((double)m) / ((double)P.Nplace[tp]);
-					fprintf(stderr, "Adjusting place weights by cell (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
+					Files::xfprintf_stderr(3, "Adjusting place weights by cell (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
@@ -2142,7 +2142,7 @@ void AssignPeopleToPlaces()
 							f2 += Cells[k].S; f3++;
 							if (Cells[k].R == 0) f4 += Cells[k].S;
 						}
-					fprintf(stderr, "Demand in cells with no places=%i in %i cells\nDemand in cells with no places <=1 cell away=%i\n", f2, f3, f4);
+					Files::xfprintf_stderr(3, "Demand in cells with no places=%i in %i cells\nDemand in cells with no places <=1 cell away=%i\n", f2, f3, f4);
 					for (int i = 0; i < P.Nplace[tp]; i++)
 						if (Places[tp][i].treat_end_time > 0)
 						{
@@ -2158,7 +2158,7 @@ void AssignPeopleToPlaces()
 					for (int i = 0; i < P.NumCells; i++) Cells[i].L = Cells[i].I = Cells[i].R = 0;
 				}
 				t = ((double)m) / ((double)P.Nplace[tp]);
-				fprintf(stderr, "Adjusting place weights (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
+				Files::xfprintf_stderr(3, "Adjusting place weights (Capacity=%i Demand=%i  Av place size=%lg)\n", m, cnt, t);
 				for (int i = m = 0; i < P.Nplace[tp]; i++)
 				{
 					s = ((double)Places[tp][i].treat_end_time) * 43 / 40 - 1;
@@ -2221,7 +2221,7 @@ void AssignPeopleToPlaces()
 				CovidSim::TBD1::KernelLookup::init(P.KernelLookup, CellLookup, P.NumPopulatedCells);
 				UpdateProbs(1);
 				ca = 0;
-				fprintf(stderr, "Allocating people to place type %i\n", tp);
+				Files::xfprintf_stderr(1, "Allocating people to place type %i\n", tp);
 				a = cnt;
 				nn = P.PlaceTypeNearestNeighb[tp];
 				if (P.PlaceTypeNearestNeighb[tp] > 0)
@@ -2229,7 +2229,7 @@ void AssignPeopleToPlaces()
 					int tn = 0;
 					for (j = 0; j < a; j++)
 					{
-						if (j % 1000 == 0) fprintf(stderr, "(%i) %i      \r", tp, j);
+						if (j % 1000 == 0) Files::xfprintf_stderr(2, "(%i) %i      \r", tp, j);
 						for (i2 = 0; i2 < nn; i2++)	NearestPlacesProb[tn][i2] = 0;
 						l = 1; k = m = f2 = 0;
 						int i = PeopleArray[j];
@@ -2252,7 +2252,7 @@ void AssignPeopleToPlaces()
 										for (cnt = 0; cnt < place_type_count; cnt++)
 										{
 											auto const place_idx = cur_cell.places[tp][cnt];
-											if (place_idx >= P.Nplace[tp]) fprintf(stderr, "#%i %i %i  ", tp, ic, cnt);
+											if (place_idx >= P.Nplace[tp]) Files::xfprintf_stderr(3, "#%i %i %i  ", tp, ic, cnt);
 											auto const& cur_place = Places[tp][place_idx];
 											t = dist2_raw(Households[Hosts[i].hh].loc.x, Households[Hosts[i].hh].loc.y,
 												cur_place.loc.x, cur_place.loc.y);
@@ -2311,10 +2311,10 @@ void AssignPeopleToPlaces()
 							}
 
 							s = 0;
-							if (k > nn) fprintf(stderr, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
+							if (k > nn) Files::xfprintf_stderr(0, "*** k>P.PlaceTypeNearestNeighb[tp] ***\n");
 							if (k == 0)
 							{
-								fprintf(stderr, "# %i %i     \r", i, j);
+								Files::xfprintf_stderr(2, "# %i %i     \r", i, j);
 								Hosts[i].PlaceLinks[tp] = -1;
 							}
 							else
@@ -2334,7 +2334,7 @@ void AssignPeopleToPlaces()
 											Places[tp][Hosts[i].PlaceLinks[tp]].treat_end_time--;
 									}
 									if (!f) Hosts[i].PlaceLinks[tp] = -1;
-									if (NearestPlaces[tn][i2] >= P.Nplace[tp]) fprintf(stderr, "@%i %i %i  ", tp, i, j);
+									if (NearestPlaces[tn][i2] >= P.Nplace[tp]) Files::xfprintf_stderr(3, "@%i %i %i  ", tp, i, j);
 								}
 							}
 						}
@@ -2366,7 +2366,7 @@ void AssignPeopleToPlaces()
 						{
 							int tn = 0;
 							if (i2 % 10000 == 0)
-								fprintf(stderr, "(%i) %i            \r", tp, i2);
+								Files::xfprintf_stderr(2, "(%i) %i            \r", tp, i2);
 							k = PeopleArray[i2];
 							int i = Hosts[k].pcell;
 							f2 = 1;
@@ -2391,7 +2391,7 @@ void AssignPeopleToPlaces()
 									} while (j < 0);
 									if (j >= P.Nplace[tp])
 									{
-										fprintf(stderr, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
+										Files::xfprintf_stderr(4, "*%i %i: %i %i\n", k, tp, j, P.Nplace[tp]);
 										ERR_CRITICAL("Out of bounds place link\n");
 									}
 									t = dist2_raw(Households[Hosts[k].hh].loc.x, Households[Hosts[k].hh].loc.y, Places[tp][j].loc.x, Places[tp][j].loc.y);
@@ -2418,7 +2418,7 @@ void AssignPeopleToPlaces()
 						}
 					}
 				}
-				fprintf(stderr, "%i hosts assigned to placetype %i\n", ca, tp);
+				Files::xfprintf_stderr(2, "%i hosts assigned to placetype %i\n", ca, tp);
 				Memory::xfree(PeopleArray);
 				for (int i = 0; i < P.Nplace[tp]; i++)
 				{
@@ -2447,7 +2447,7 @@ void StratifyPlaces(void)
 {
 	if (P.DoPlaces)
 	{
-		fprintf(stderr, "Initialising groups in places\n");
+		Files::xfprintf_stderr(0, "Initialising groups in places\n");
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, Hosts)
 		for (int i = 0; i < P.PopSize; i++)
@@ -2552,7 +2552,7 @@ void StratifyPlaces(void)
 				}
 			}
 		}
-		fprintf(stderr, "Groups initialised\n");
+		Files::xfprintf_stderr(0, "Groups initialised\n");
 		/*		s2=t2=0;
 				for(j=0;j<P.PlaceTypeNum;j++)
 					{
@@ -2566,14 +2566,14 @@ void StratifyPlaces(void)
 							}
 					s2+=s;
 					t2+=t;
-					fprintf(stderr,"Mean group size for place type %i = %lg\n",j,t/s);
+					Files::xfprintf_stderr(2, "Mean group size for place type %i = %lg\n",j,t/s);
 					}
 				t=0;
 				for(i=0;i<P.PopSize;i++)
 					for(j=0;j<P.PlaceTypeNum;j++)
 						if(Hosts[i].PlaceLinks[j]>=0)
 							t+=(double) Places[j][Hosts[i].PlaceLinks[j]].group_size[Hosts[i].PlaceGroupLinks[j]];
-				fprintf(stderr,"Overall mean group size = %lg (%lg)\n",t/((double) P.PopSize),t2/s2);
+				Files::xfprintf_stderr(2, "Overall mean group size = %lg (%lg)\n",t/((double) P.PopSize),t2/s2);
 		*/
 	}
 }
@@ -2619,21 +2619,21 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 				Hosts[i2].PlaceLinks[m] = netbuf[n + m];
 				if (Hosts[i2].PlaceLinks[m] >= P.Nplace[m])
 				{
-					fprintf(stderr, "*%i %i: %i %i\n", i2, m, Hosts[i2].PlaceLinks[m], P.Nplace[m]);
+					Files::xfprintf_stderr(4, "*%i %i: %i %i\n", i2, m, Hosts[i2].PlaceLinks[m], P.Nplace[m]);
 					ERR_CRITICAL("Out of bounds place link\n");
 				}
 			}
 			i2++;
 		}
-		fprintf(stderr, "%i loaded            \r", i * 1000000 + l);
+		Files::xfprintf_stderr(1, "%i loaded            \r", i * 1000000 + l);
 	}
 
 	/*	for(i=0;i<P.PopSize;i++)
 			{
-			if((i+1)%100000==0) fprintf(stderr,"%i loaded            \r",i+1);
+			if((i+1)%100000==0) Files::xfprintf_stderr(1, "%i loaded            \r",i+1);
 			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
 			}
-	*/	fprintf(stderr, "\n");
+	*/	Files::xfprintf_stderr(0, "\n");
 	Files::xfclose(dat);
 }
 void SavePeopleToPlaces(std::string const& save_network_file)
@@ -2654,20 +2654,19 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 		Files::fwrite_big(&P.setupSeed2, sizeof(int32_t), 1, dat);
 		for (i = 0; i < P.PopSize; i++)
 		{
-			if ((i + 1) % 100000 == 0) fprintf(stderr, "%i saved            \r", i + 1);
+			if ((i + 1) % 100000 == 0) Files::xfprintf_stderr(1, "%i saved            \r", i + 1);
 			/*			Files::fwrite_big(&(Hosts[i].spatial_norm),sizeof(float),1,dat);
 			*/			Files::fwrite_big(&(Hosts[i].PlaceLinks[0]), sizeof(int), npt, dat);
 			for (j = 0; j < npt; j++)
 				if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
 				{
-					fprintf(stderr, "*%i %i: %i %i\n", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
+					Files::xfprintf_stderr(4, "*%i %i: %i %i\n", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
 					ERR_CRITICAL("Out of bounds place link\n");
 				}
 		}
 	}
 
-	fprintf(stderr, "\n");
-	fflush(dat);
+	Files::xfprintf_stderr(0, "\n");
 	Files::xfclose(dat);
 }
 
@@ -2681,18 +2680,18 @@ void SaveAgeDistrib(std::string const& output_file_base)
 	dat = Files::xfopen(outname.c_str(), "wb");
 	if (P.DoDeath)
 	{
-		fprintf(dat, "age\tfreq\tlifeexpect\n");
+		Files::xfprintf(dat, 0, "age\tfreq\tlifeexpect\n");
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			fprintf(dat, "%i\ta%.10f\t%.10f\n", i, AgeDist[i], AgeDist2[i]);
-		fprintf(dat, "\np\tlife_expec\tage\n");
+			Files::xfprintf(dat, 3, "%i\ta%.10f\t%.10f\n", i, AgeDist[i], AgeDist2[i]);
+		Files::xfprintf(dat, 0, "\np\tlife_expec\tage\n");
 		for (i = 0; i <= 1000; i++)
-			fprintf(dat, "%.10f\t%.10f\t%i\n", ((double)i) / 1000, P.InvLifeExpecDist[0][i], State.InvAgeDist[0][i]);
+			Files::xfprintf(dat, 3, "%.10f\t%.10f\t%i\n", ((double)i) / 1000, P.InvLifeExpecDist[0][i], State.InvAgeDist[0][i]);
 	}
 	else
 	{
-		fprintf(dat, "age\tfreq\n");
+		Files::xfprintf(dat, 0, "age\tfreq\n");
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			fprintf(dat, "%i\t%.10f\n", i, AgeDist[i]);
+			Files::xfprintf(dat, 2, "%i\t%.10f\n", i, AgeDist[i]);
 	}
 
 	Files::xfclose(dat);
