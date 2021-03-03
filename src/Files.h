@@ -74,7 +74,7 @@ namespace Files
    *  \param  buffer     Buffer to write from
    *  \param  size       How many elements
    *  \param  count      Size of each element
-   *  \param  stream     File stram to read from
+   *  \param  stream     File stream to read from
    *  \return            Number of elements read
    */
 
@@ -82,13 +82,19 @@ namespace Files
 
   /** \brief             Wrapper around rename that aborts on error.
    *  \param  oldname    Original name of file
-   *  \param  newname       How many elements
+   *  \param  newname    How many elements
    *  \param  count      Size of each element
-   *  \param  stream     File stram to read from
+   *  \param  stream     File stream to read from
    *
    */
 
   void xrename(const char* oldname, const char* newname) noexcept;
+
+/** \brief             Wrapper around fclose that aborts on error.
+ *  \param  stream     File stream to close
+ */
+
+   void xfclose(FILE* stream) noexcept;
 
 } // namespace Files
 

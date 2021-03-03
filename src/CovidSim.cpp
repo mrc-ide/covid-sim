@@ -2089,9 +2089,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Older Gen Gap", "%i", (void*) & (P.OlderGenGap), 1, 1, 0)) P.OlderGenGap = 19;
 	}
 	// Close input files.
-	fclose(ParamFile_dat);
-	fclose(PreParamFile_dat);
-	fclose(AdminFile_dat);
+	Files::xfclose(ParamFile_dat);
+	Files::xfclose(PreParamFile_dat);
+	Files::xfclose(AdminFile_dat);
 
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
@@ -2343,7 +2343,7 @@ void ReadInterventions(std::string const& IntFile)
 	}
 	if (strcmp(txt, "/InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level closure.\n");
 	fprintf(stderr, "%i interventions read\n", ni);
-	fclose(dat);
+	Files::xfclose(dat);
 }
 int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Value, int ResetFilePos)
 {
@@ -2435,7 +2435,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 				fprintf(stderr, "%i ", i);
 		}
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 	Memory::xfree(buf);
 	fprintf(stderr, "\nAirport data read OK.\n");
 	for (i = 0; i < P.Nairports; i++)
@@ -2513,7 +2513,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	fprintf(dat, "dist\tfreq\n");
 	for (i = 0; i < MAX_DIST; i++)
 		fprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
@@ -3244,7 +3244,7 @@ void SaveDistribs(std::string const& output_file_base)
 					fprintf(dat, "\t%i", PlaceDistDistrib[j][i]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 		outname = output_file_base + ".placesize.xls";
 		dat = Files::xfopen(outname.c_str(), "wb");
 		fprintf(dat, "size");
@@ -3260,7 +3260,7 @@ void SaveDistribs(std::string const& output_file_base)
 					fprintf(dat, "\t%i", PlaceSizeDistrib[j][i]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 }
 void SaveOriginDestMatrix(std::string const& output_file_base)
@@ -3290,7 +3290,7 @@ void SaveOriginDestMatrix(std::string const& output_file_base)
 		}
 		fprintf(dat, "\n");
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void SaveResults(std::string const& output_file_base)
@@ -3312,7 +3312,7 @@ void SaveResults(std::string const& output_file_base)
 				TimeSeries[i].incR, TimeSeries[i].incFC, TimeSeries[i].incC, TimeSeries[i].incDC, TimeSeries[i].incTC, TimeSeries[i].incCT, TimeSeries[i].incCC,
 				TimeSeries[i].cumT, TimeSeries[i].cumTP, TimeSeries[i].cumV, TimeSeries[i].cumVG, TimeSeries[i].extinct, TimeSeries[i].rmsRad, TimeSeries[i].maxRad);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoAdUnits) && (P.DoAdunitOutput))
@@ -3336,7 +3336,7 @@ void SaveResults(std::string const& output_file_base)
 				fprintf(dat, "\t%.10f", TimeSeries[i].incDC_adunit[j]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
@@ -3367,7 +3367,7 @@ void SaveResults(std::string const& output_file_base)
 			}
 		fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
@@ -3381,7 +3381,7 @@ void SaveResults(std::string const& output_file_base)
 		{
 			fprintf(dat, "%i\t%i\n", i, State.contact_dist[i]);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SimulationDuration)
@@ -3394,7 +3394,7 @@ void SaveResults(std::string const& output_file_base)
 		for(i = 0; i < 2; i++) fprintf(dat, "\tT%i", i);
 		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
-			{
+		{
 			fprintf(dat, "%.10f", TimeSeries[i].t);
 			for(j = 0; j < 2; j++)
 				fprintf(dat, "\t%.10f", TimeSeries[i].incI_keyworker[j]);
@@ -3403,9 +3403,9 @@ void SaveResults(std::string const& output_file_base)
 			for(j = 0; j < 2; j++)
 				fprintf(dat, "\t%.10f", TimeSeries[i].cumT_keyworker[j]);
 			fprintf(dat, "\n");
-			}
-		fclose(dat);
 		}
+		Files::xfclose(dat);
+	}
 
 	if(P.DoInfectionTree)
 	{
@@ -3414,7 +3414,7 @@ void SaveResults(std::string const& output_file_base)
 		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
 				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 #if defined(_WIN32) || defined(IMAGE_MAGICK)
 	static int dm[13] ={0,31,28,31,30,31,30,31,31,30,31,30,31};
@@ -3467,7 +3467,7 @@ void SaveResults(std::string const& output_file_base)
 			fprintf(dat, "</GroundOverlay>\n");
 		}
 		fprintf(dat, "</Document>\n</kml>\n");
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 #endif
 
@@ -3487,7 +3487,7 @@ void SaveResults(std::string const& output_file_base)
 				TimeSeries[i].cumMild	, TimeSeries[i].cumILI	, TimeSeries[i].cumSARI	, TimeSeries[i].cumCritical	, TimeSeries[i].cumCritRecov, TimeSeries[i].D	,
 				TimeSeries[i].cumDeath_ILI, TimeSeries[i].cumDeath_SARI, TimeSeries[i].cumDeath_Critical);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		if((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
@@ -3554,7 +3554,7 @@ void SaveResults(std::string const& output_file_base)
 
 				if(i != P.NumOutputTimeSteps - 1) fprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 	}
 
@@ -3592,7 +3592,7 @@ void SaveResults(std::string const& output_file_base)
 					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 }
 
@@ -3635,7 +3635,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSVar[i].rmsRad - c * c * TSMean[i].rmsRad	* TSMean[i].rmsRad,
 				c * TSVar[i].maxRad - c * c * TSMean[i].maxRad	* TSMean[i].maxRad);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputControls)
@@ -3667,7 +3667,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\t%lf", TSVar[i].PropPlacesClosed[j]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
@@ -3698,7 +3698,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		for(j = 0; j < NUM_AGE_GROUPS; j++)
 			fprintf(dat, "\t%.10f", AgeDist[j]);
 		fprintf(dat, "\n");
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if((P.DoAdUnits) && (P.DoAdunitOutput))
@@ -3726,7 +3726,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				fprintf(dat, "\t%.10f", c * TSMean[i].cumT_adunit[j]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		if (P.OutputAdUnitVar)
 		{
@@ -3751,7 +3751,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 					fprintf(dat, "\t%.10f", c * TSVar[i].cumT_adunit[j] - c * c * TSMean[i].cumT_adunit[j] * TSMean[i].cumT_adunit[j]);
 				fprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 	}
 
@@ -3784,7 +3784,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			fprintf(dat, "\n");
 		}
 
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
@@ -3817,7 +3817,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				fprintf(dat, "\t%.10f", c * TSVar[i].cumT_keyworker[j] - c * c * TSMean[i].cumT_keyworker[j] * TSMean[i].cumT_keyworker[j]);
 			fprintf(dat, "\n");
 			}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputInfType)
@@ -3837,7 +3837,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%lf", c * TSMean[i].Rage[j]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputR0)
@@ -3851,7 +3851,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				fprintf(dat, "\t%.10f", c * indivR0_av[i][j]);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputHousehold)
@@ -3893,7 +3893,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				fprintf(dat, "\t%.10f", case_household_av[j][i] * c);
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputCountry)
@@ -3902,7 +3902,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		dat = Files::xfopen(outname.c_str(), "wb");
 		for (i = 0; i < MAX_COUNTRIES; i++)
 			fprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoSeverity)&&(P.OutputSeverity))
@@ -3979,7 +3979,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c* TSVar[i].cumDeath_SARI- c * TSMean[i].cumDeath_SARI* c * TSMean[i].cumDeath_SARI,
 				c* TSVar[i].cumDeath_Critical- c * TSMean[i].cumDeath_Critical* c * TSMean[i].cumDeath_Critical);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		const std::string colnames[] = {
 			// prevalence
@@ -4080,7 +4080,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_age[j]);
 				fprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
 			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
@@ -4171,7 +4171,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 
 				fprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
 			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
@@ -4211,7 +4211,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
 			fprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 }
@@ -4229,7 +4229,7 @@ void SaveRandomSeeds(std::string const& output_file_base)
 	std::string outname = output_file_base + ".seeds.xls";
 	FILE* dat = Files::xfopen(outname.c_str(), "wb");
 	fprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void SaveEvents(std::string const& output_file_base)
@@ -4252,7 +4252,7 @@ void SaveEvents(std::string const& output_file_base)
 		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
 			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void LoadSnapshot(std::string const& snapshot_load_file)
@@ -4336,7 +4336,7 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	Memory::xfree(Array_max_trans);
 	Memory::xfree(Array_InvCDF);
 	fprintf(stderr, "\n");
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void SaveSnapshot(std::string const& snapshot_save_file)
@@ -4385,7 +4385,7 @@ void SaveSnapshot(std::string const& snapshot_save_file)
 	Files::fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
 	fprintf(stderr, "## %i\n", i++);
 
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void UpdateProbs(int DoPlace)
@@ -5338,7 +5338,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
 				Files::xfscanf(dat, 1, "%lg", &(Data[i][j]));
-		fclose(dat);
+		Files::xfclose(dat);
 		DataAlreadyRead = 1;
 	}
 
@@ -5440,7 +5440,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		std::string OutFile = OutFileBase + ".ll.txt";
 		dat = Files::xfopen(TmpFile.c_str(), "w");
 		fprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
-		fclose(dat);
+		Files::xfclose(dat);
 		Files::xrename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
 	}
 }

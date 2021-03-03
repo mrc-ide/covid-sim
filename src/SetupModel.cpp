@@ -56,7 +56,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 			Files::fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
 			BF = (BinFile*)BinFileBuf;
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 		else
 		{
@@ -106,7 +106,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
 			// This shouldn't be able to happen, as we just counted the number of lines:
 			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 
 		if (P.DoAdunitBoundaries)
@@ -617,7 +617,7 @@ int ReadFitIter(std::string const& FitFile)
 		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
 		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
 	}																						
-	fclose(FitFile_Iter_dat);
+	Files::xfclose(FitFile_Iter_dat);
 	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
 }
 
@@ -924,7 +924,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				}
 			}
 		}
-		//		fclose(dat2);
+		//		Files::xfclose(dat2);
 		fprintf(stderr, "%i valid microcells read from density file.\n", mr);
 		if (!out_density_file.empty() && (P.DoBin)) P.BinFileLen = rn2;
 		if (P.DoBin == 0)
@@ -961,7 +961,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			fprintf(stderr, "Saving population density file with NC=%i...\n", (int)P.BinFileLen);
 			Files::fwrite_big((void*) & (P.BinFileLen), sizeof(unsigned int), 1, dat2);
 			Files::fwrite_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat2);
-			fclose(dat2);
+			Files::xfclose(dat2);
 		}
 		Memory::xfree(BinFileBuf);
 		fprintf(stderr, "Population files read.\n");
@@ -1035,7 +1035,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					}
 				}
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 		for (int k = 0; k < P.NumAdunits; k++)
 		{
 			t = 0;
@@ -1468,7 +1468,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				if (P.Nplace[j] % 1000 == 0) fprintf(stderr, "%i read    \r", P.Nplace[j]);
 			}
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 		fprintf(stderr, "%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
 		for (int i = 0; i < P.NumMicrocells; i++)
 			for (j = 0; j < P.nsp; j++)
@@ -2634,7 +2634,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
 			}
 	*/	fprintf(stderr, "\n");
-	fclose(dat);
+	Files::xfclose(dat);
 }
 void SavePeopleToPlaces(std::string const& save_network_file)
 {
@@ -2668,7 +2668,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 
 	fprintf(stderr, "\n");
 	fflush(dat);
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void SaveAgeDistrib(std::string const& output_file_base)
@@ -2695,5 +2695,5 @@ void SaveAgeDistrib(std::string const& output_file_base)
 			fprintf(dat, "%i\t%.10f\n", i, AgeDist[i]);
 	}
 
-	fclose(dat);
+	Files::xfclose(dat);
 }

@@ -139,9 +139,9 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  dat = Files::xfopen(buf, "wb");
 	  fprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
-	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
+	  Files::fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
 	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
-	  fclose(dat);
+	  Files::xfclose(dat);
 	  Image bmap(buf);
 	  sprintf(buf, "%s.%d.png", OutF, j);
 	  ColorRGB white(1.0, 1.0, 1.0);
@@ -185,7 +185,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  FILE* dat = Files::xfopen(buf, "wb");
 	  fprintf(dat, "BM");
 		Files::fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
-	  fclose(dat);
+	  Files::xfclose(dat);
 	}
 	else
 	{
