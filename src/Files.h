@@ -88,24 +88,22 @@ namespace Files
  *
  */
 
-  void xfprintf(FILE* stream, int n_expected, const char* format, ...) noexcept;
+  void xfprintf(FILE* stream, const char* format, ...) noexcept;
 
 
 
 /** \brief           stderr-specific wrapper around fprintf that aborts on error.
- *  \param  n_expected Expected number of arguments in fprintf format
  *  \param  format     The format string for fprintf
  *  \param  ...        Sources for each placeholder
  *
  */
 
- void xfprintf_stderr(int n_expected, const char* format, ...) noexcept;
+ void xfprintf_stderr(const char* format, ...) noexcept;
 
 
 
 /** \brief             Wrapper around fscanf that aborts on error.
  *  \param  stream     The file stream to read from
- *  \param  n_expected Expected number of arguments
  *  \param  format     The format string for fscanf
  *  \param  ...        Destinations for each placeholder
  *

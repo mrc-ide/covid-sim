@@ -110,7 +110,7 @@ double KernelLookup::num(double r2) const
 	double t = r2 / delta_;
 	if (t > size_)
 	{
-		Files::xfprintf_stderr(3, "** %lg  %lg  %lg**\n", r2, delta_, t);
+		Files::xfprintf_stderr("** %lg  %lg  %lg**\n", r2, delta_, t);
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
 

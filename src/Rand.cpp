@@ -101,9 +101,9 @@ int32_t mltmod(int32_t a, int32_t s, int32_t m)
 		  machine. On a different machine recompute H
 	*/
 	if (a <= 0 || a >= m || s <= 0 || s >= m) {
-		fputs(" a, m, s out of order in mltmod - ABORT!\n", stderr);
-		Files::xfprintf_stderr(3, " a = %12d s = %12d m = %12d\n", a, s, m);
-		fputs(" mltmod requires: 0 < a < m; 0 < s < m\n", stderr);
+		Files::xfprintf_stderr(" a, m, s out of order in mltmod - ABORT!\n");
+		Files::xfprintf_stderr(" a = %12d s = %12d m = %12d\n", a, s, m);
+		Files::xfprintf_stderr(" mltmod requires: 0 < a < m; 0 < s < m\n");
 		exit(1);
 	}
 
@@ -1172,7 +1172,7 @@ void SampleWithoutReplacement(int tn, int k, int n)
 	}
 	else
 	{
-		/* Files::xfprintf_stderr(2, "@%i %i:",k,n); */
+		/* Files::xfprintf_stderr("@%i %i:",k,n); */
 		t = (double)k;
 		r = sqrt(t);
 		a = sqrt(log(1 + t / 2 * PI));
@@ -1229,9 +1229,9 @@ void SampleWithoutReplacement(int tn, int k, int n)
 	*/
 	/*	if(k>2)
 			{
-			Files::xfprintf_stderr(1, "(%i) ",q);
-			for(i=0;i<q;i++) Files::xfprintf_stderr(1, "%i ",SamplingQueue[tn][i]);
-			Files::xfprintf_stderr(0,"\n");
+			Files::xfprintf_stderr("(%i) ",q);
+			for(i=0;i<q;i++) Files::xfprintf_stderr("%i ",SamplingQueue[tn][i]);
+			Files::xfprintf_stderr("\n");
 			}
 	*/	while (q > k)
 	{

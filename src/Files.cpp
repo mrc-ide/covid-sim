@@ -77,25 +77,25 @@ FILE* Files::xfopen_if_exists(const char* filename, const char* mode) noexcept
   return fopen(filename, mode);
 }
 
-void Files::xfprintf(FILE* stream, int n_expected, const char* format, ...) noexcept
+void Files::xfprintf(FILE* stream, const char* format, ...) noexcept
 {
   va_list args;
   va_start(args, format);
   int rc = vfprintf(stream, format, args);
   va_end(args);
-  if (rc != n_expected) {
-    ERR_CRITICAL_FMT("Error, fprintf looking for %s, expected %d writes, got %d\n", format, n_expected, rc);
+  if (rc < 0) {
+    ERR_CRITICAL_FMT("Error %d doing fprintf %s - %s\n", errno, format, strerror(errno));
   }
 }
 
-void Files::xfprintf_stderr(int n_expected, const char* format, ...) noexcept
+void Files::xfprintf_stderr(const char* format, ...) noexcept
 {
   va_list args;
   va_start(args, format);
   int rc = vfprintf(stderr, format, args);
   va_end(args);
-  if (rc != n_expected) {
-    ERR_CRITICAL_FMT("Error, fprintf looking for %s, expected %d writes, got %d\n", format, n_expected, rc);
+  if (rc < 0) {
+    ERR_CRITICAL_FMT("Error %d doing fprintf %s - %s\n", errno, format, strerror(errno));
   }
 }
 

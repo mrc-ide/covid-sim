@@ -134,10 +134,10 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
 	  using namespace Magick;
-	  Files::xfprintf_stderr(0, "\noutputing ImageMagick stuff");
+	  Files::xfprintf_stderr("\noutputing ImageMagick stuff");
 	  sprintf(buf, "%s.bmp", OutF);
 	  dat = Files::xfopen(buf, "wb");
-	  Files::xfprintf(dat, 0, "BM");
+	  Files::xfprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
 	  Files::fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
 	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
@@ -177,26 +177,26 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
 #else
-	  Files::xfprintf_stderr(0, "Do not know how to output PNG\n");
+	  Files::xfprintf_stderr("Do not know how to output PNG\n");
 #endif
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
 	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat = Files::xfopen(buf, "wb");
-	  Files::xfprintf(dat, 0, "BM");
+	  Files::xfprintf(dat, "BM");
 		Files::fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
 	  Files::xfclose(dat);
 	}
 	else
 	{
-	  Files::xfprintf_stderr(1, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
+	  Files::xfprintf_stderr("Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
 	}
 }
 void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
-	Files::xfprintf_stderr(0, "Initialising bitmap\n");
+	Files::xfprintf_stderr("Initialising bitmap\n");
 	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
@@ -277,9 +277,9 @@ void InitBMHead(std::string const& out_file_base)
 	char buf[1024+3];
 	sprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
-	if (!(CreateDirectory(buf, NULL))) Files::xfprintf_stderr(1, "Unable to create directory %s\n", buf);
+	if (!(CreateDirectory(buf, NULL))) Files::xfprintf_stderr("Unable to create directory %s\n", buf);
 #else
-	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) Files::xfprintf_stderr(1, "Unable to create directory %s\n", buf);
+	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) Files::xfprintf_stderr("Unable to create directory %s\n", buf);
 #endif
 }
 
