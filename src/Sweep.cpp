@@ -277,7 +277,7 @@ void TravelDepartSweep(double t)
 					} while (f);
 				}
 			}
-		Files::xfprintf_stderr, (" l=%i ls=%i ", nld, nsk);
+		Files::xfprintf_stderr(" l=%i ls=%i ", nld, nsk);
 	}
 }
 

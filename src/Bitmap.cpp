@@ -135,7 +135,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  FILE* dat;
 	  using namespace Magick;
 	  Files::xfprintf_stderr("\noutputing ImageMagick stuff");
-	  sprintf(buf, "%s.bmp", OutF);
+	  Files::xsprintf(buf, "%s.bmp", OutF);
 	  dat = Files::xfopen(buf, "wb");
 	  Files::xfprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
@@ -143,7 +143,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
 	  Files::xfclose(dat);
 	  Image bmap(buf);
-	  sprintf(buf, "%s.%d.png", OutF, j);
+	  Files::xsprintf(buf, "%s.%d.png", OutF, j);
 	  ColorRGB white(1.0, 1.0, 1.0);
 	  bmap.transparent(white);
 	  bmap.write(buf);
@@ -172,7 +172,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png
-	  sprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
+	  Files::xsprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
 	  mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
@@ -181,7 +181,7 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 #endif
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
-	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
+	  Files::xsprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
 	  FILE* dat = Files::xfopen(buf, "wb");
 	  Files::xfprintf(dat, "BM");
 		Files::fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
@@ -275,7 +275,7 @@ void InitBMHead(std::string const& out_file_base)
 #endif
 
 	char buf[1024+3];
-	sprintf(buf, "%s.ge", out_file_base.c_str());
+	Files::xsprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
 	if (!(CreateDirectory(buf, NULL))) Files::xfprintf_stderr("Unable to create directory %s\n", buf);
 #else

@@ -1140,7 +1140,7 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
 						&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
-						//Files::xfprintf_stderr,("** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
+						//Files::xfprintf_stderr("** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
 						k = Mcells[Places[i][j].mcell].adunit;
 						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
 					}

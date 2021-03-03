@@ -113,7 +113,18 @@ namespace Files
 
 
 
-  /** \brief             Wrapper around rename that aborts on error.
+  /** \brief             Wrapper around sprintf that aborts on error.
+   *  \param  str        The buffer to write result into
+   *  \param  format     The format string for sprintf
+   *  \param  ...        Sources for each placeholder
+   *
+   */
+
+  void xsprintf(char* str, const char* format, ...) noexcept;
+
+
+
+    /** \brief             Wrapper around rename that aborts on error.
    *  \param  oldname    Original name of file
    *  \param  newname    How many elements
    *  \param  count      Size of each element

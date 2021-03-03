@@ -906,7 +906,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					mr++;
 					mcell_dens[l] += t;
 					mcell_country[l] = country;
-					//fprintf(stderr,"mcell %i, country %i, pop %lg\n",l,country,t);
+					//Files::xfprintf_stderr("mcell %i, country %i, pop %lg\n",l,country,t);
 					mcell_num[l]++;
 					if (P.DoAdUnits)
 					{

@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
 			SaveSummaryResults(output_file);
 			P.NRactual = P.NRactE;
 			//TSMean = TSMeanE; TSVar = TSVarE;
-			//sprintf(OutFile, "%s.avE", OutFileBase);
+			//Files::xsprintf(OutFile, "%s.avE", OutFileBase);
 			//SaveSummaryResults();
 
 			Bitmap_Finalise();
@@ -2353,7 +2353,7 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	char buf[65536], CloseNode[2048], CloseParent[2048];
 	int CurPos, ret;
 
-	sprintf(CloseParent, "/%s", ParentName);
+	Files::xsprintf(CloseParent, "/%s", ParentName);
 	CurPos = ftell(dat);
 	do
 	{
@@ -2368,7 +2368,7 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 		if (strlen(buf) < 2048) strcpy(Value, buf);
 		//		Files::xfprintf_stderr("# %s=%s\n",NodeName,Value);
 		Files::xfscanf(dat, 1, "<%[^>]", buf);
-		sprintf(CloseNode, "/%s", NodeName);
+		Files::xsprintf(CloseNode, "/%s", NodeName);
 		if (strcmp(buf, CloseNode) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
 		ret = 1;
 	}
@@ -2527,7 +2527,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		//if (P.OutputBitmap == 1)
 		//{
 		//	char buf[200];
-		//	sprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
+		//	Files::xsprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
 		//	avi = CreateAvi(buf, P.BitmapMovieFrame, NULL);
 		//}
 #endif
@@ -5787,7 +5787,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 
 	n = 0;
 	fseek(dat, 0, 0);
-	sprintf(ItemName, "[%s]", SItemName);
+	Files::xsprintf(ItemName, "[%s]", SItemName);
 	while (!FindFlag)
 	{
 		if(!readString(SItemName, dat, match)) return 0;
