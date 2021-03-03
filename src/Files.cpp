@@ -97,7 +97,7 @@ void Files::xfprintf_stderr(const char* format, ...) noexcept
   if (rc < 0) {
     ERR_CRITICAL_FMT("Error %d doing fprintf %s - %s\n", errno, format, strerror(errno));
   }
-}/
+}*/
 
 void Files::xrename(const char* oldname, const char* newname) noexcept
 {
