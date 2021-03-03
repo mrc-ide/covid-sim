@@ -513,7 +513,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	}
 	if (P.DoMassVacc)
 	{
-		if (!(State.mvacc_queue = (int*)calloc(P.PopSize, sizeof(int)))) ERR_CRITICAL("Unable to allocate host storage\n");
+		State.mvacc_queue = (int*) Memory::xcalloc(P.PopSize, sizeof(int));
 		int queueIndex = 0;
 		for (int i = 0; i < P.PopSize; i++)
 		{

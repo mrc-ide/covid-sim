@@ -565,9 +565,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 		if (P.DoAdUnits)
 		{
-			char** AdunitNames, * AdunitNamesBuf;
-			if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		
+			char** AdunitNames = (char**) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*));
+			char* AdunitNamesBuf = (char*) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char));
 
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
@@ -5297,10 +5297,10 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		Files::xfscanf(dat, 3, "%i %i %lg", &nrows, &ncols, &NegBinK);
 
 		// allocate memory
-		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
-		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		ColTypes = (int*) Memory::xcalloc(ncols, sizeof(int));
+		Data = (double**) Memory::xcalloc(nrows, sizeof(double *));
 		for (int i = 0; i < nrows; i++)
-			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+			Data[i] = (double*) Memory::xcalloc(ncols, sizeof(double));
 
 		// cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
 		for (int i = 0; i < ncols; i++)
