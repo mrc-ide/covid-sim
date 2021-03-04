@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "CovidSim.h"
-#include "BinIO.h"
 #include "Rand.h"
 #include "Error.h"
 #include "Dist.h"
@@ -243,8 +242,8 @@ int main(int argc, char* argv[])
 	}
 
 	std::cerr << "Param=" << param_file << "\nOut=" << output_file_base << "\nDens=" << density_file << std::endl;
-	fprintf(stderr, "Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
-	fprintf(stderr, "sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
+	Files::xfprintf_stderr("Bitmap Format = *.%s\n", P.BitmapFormat == BitmapFormats::PNG ? "png" : "bmp");
+	Files::xfprintf_stderr("sizeof(int)=%i sizeof(long)=%i sizeof(float)=%i sizeof(double)=%i sizeof(unsigned short int)=%i sizeof(int *)=%i\n", (int)sizeof(int), (int)sizeof(long), (int)sizeof(float), (int)sizeof(double), (int)sizeof(unsigned short int), (int)sizeof(int*));
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** SET UP OMP / THREADS
@@ -255,17 +254,17 @@ int main(int argc, char* argv[])
 	if ((P.MaxNumThreads > 0) && (P.MaxNumThreads < P.NumThreads)) P.NumThreads = P.MaxNumThreads;
 	if (P.NumThreads > MAX_NUM_THREADS)
 	{
-		fprintf(stderr, "Assigned number of threads (%d) > MAX_NUM_THREADS (%d)\n", P.NumThreads, MAX_NUM_THREADS);
+		Files::xfprintf_stderr("Assigned number of threads (%d) > MAX_NUM_THREADS (%d)\n", P.NumThreads, MAX_NUM_THREADS);
 		P.NumThreads = MAX_NUM_THREADS;
 	}
-	fprintf(stderr, "Using %d threads\n", P.NumThreads);
+	Files::xfprintf_stderr("Using %d threads\n", P.NumThreads);
 	omp_set_num_threads(P.NumThreads);
 
 #pragma omp parallel default(shared)
 	{
-		fprintf(stderr, "Thread %i initialised\n", omp_get_thread_num());
+		Files::xfprintf_stderr("Thread %i initialised\n", omp_get_thread_num());
 	}
-	/* fprintf(stderr,"int=%i\tfloat=%i\tdouble=%i\tint *=%i\n",(int) sizeof(int),(int) sizeof(float),(int) sizeof(double),(int) sizeof(int *));	*/
+	/* Files::xfprintf_stderr(int=%i\tfloat=%i\tdouble=%i\tint *=%i\n",(int) sizeof(int),(int) sizeof(float),(int) sizeof(double),(int) sizeof(int *));	*/
 #else
 	P.NumThreads = 1;
 #endif
@@ -299,7 +298,7 @@ int main(int argc, char* argv[])
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 
-	fprintf(stderr, "Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
+	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -340,7 +339,7 @@ int main(int argc, char* argv[])
 				if (P.NumRealisations > 1)
 				{
 					output_file = output_file_base + "." + std::to_string(Realisation);
-					fprintf(stderr, "Realisation %i of %i  (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+					Files::xfprintf_stderr("Realisation %i of %i  (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
 				if (((Realisation == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
@@ -412,14 +411,14 @@ int main(int argc, char* argv[])
 			SaveSummaryResults(output_file);
 			P.NRactual = P.NRactE;
 			//TSMean = TSMeanE; TSVar = TSVarE;
-			//sprintf(OutFile, "%s.avE", OutFileBase);
+			//Files::xsprintf(OutFile, "%s.avE", OutFileBase);
 			//SaveSummaryResults();
 
 			Bitmap_Finalise();
 
-			fprintf(stderr, "Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-			fprintf(stderr, "Model ran in %lf seconds\n", ((double)clock() - cl) / CLOCKS_PER_SEC);
-			fprintf(stderr, "Model finished\n");
+			Files::xfprintf_stderr("Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
+			Files::xfprintf_stderr("Model ran in %lf seconds\n", ((double)clock() - cl) / CLOCKS_PER_SEC);
+			Files::xfprintf_stderr("Model finished\n");
 		}
 	}
 	while (!StopFit);
@@ -460,9 +459,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	char* CountryNames[MAX_COUNTRIES], * AdunitListNames[MAX_ADUNITS];
 
 	AgeSuscScale = 1.0;
-	if (!(ParamFile_dat = fopen(ParamFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open parameter file\n");
-	PreParamFile_dat = fopen(PreParamFile.c_str(), "rb");
-	if (!(AdminFile_dat = fopen(AdUnitFile.c_str(), "rb"))) AdminFile_dat = ParamFile_dat;
+	ParamFile_dat = Files::xfopen(ParamFile.c_str(), "rb");
+	PreParamFile_dat = Files::xfopen(PreParamFile.c_str(), "rb");
+	AdminFile_dat = Files::xfopen_fallback(AdUnitFile.c_str(), "rb", ParamFile_dat);
 
 	if (P.FitIter == 0)
 	{
@@ -485,7 +484,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.NumModelTimeStepsPerOutputTimeStep = (int)t;
 		P.ModelTimeStep = P.OutputTimeStep / t;
 		P.TimeStepsPerDay = ceil(1.0 / P.ModelTimeStep - 1e-6);
-		fprintf(stderr, "Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.ModelTimeStep, P.OutputTimeStep, P.NumModelTimeStepsPerOutputTimeStep, P.TimeStepsPerDay);
+		Files::xfprintf_stderr("Update step = %lf\nSampling step = %lf\nUpdates per sample=%i\nTimeStepsPerDay=%lf\n", P.ModelTimeStep, P.OutputTimeStep, P.NumModelTimeStepsPerOutputTimeStep, P.TimeStepsPerDay);
 		GetInputParameter(ParamFile_dat, PreParamFile_dat, "Sampling time", "%lf", (void*)&(P.SimulationDuration), 1, 1, 0);
 		P.NumOutputTimeSteps = 1 + (int)ceil(P.SimulationDuration / P.OutputTimeStep);
 		GetInputParameter(PreParamFile_dat, AdminFile_dat, "Population size", "%i", (void*)&(P.PopSize), 1, 1, 0);
@@ -566,9 +565,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for countries", "%i", (void*)&(P.CountryDivisor), 1, 1, 0)) P.CountryDivisor = 1;
 		if (P.DoAdUnits)
 		{
-			char** AdunitNames, * AdunitNamesBuf;
-			if (!(AdunitNames = (char**)malloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*)))) ERR_CRITICAL("Unable to allocate temp storage\n");
-			if (!(AdunitNamesBuf = (char*)malloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char)))) ERR_CRITICAL("Unable to allocate temp storage\n");
+		
+			char** AdunitNames = (char**) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*));
+			char* AdunitNamesBuf = (char*) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char));
 
 			for (i = 0; i < ADUNIT_LOOKUP_SIZE; i++)
 			{
@@ -595,7 +594,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 							P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
 							if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
 							if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
-							//						fprintf(stderr,"%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
+							//						Files::xfprintf_stderr("%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
 							P.NumAdunits++;
 						}
 			}
@@ -638,7 +637,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Draw administrative unit boundaries on maps", "%i", (void*)&(P.DoAdunitBoundaryOutput), 1, 1, 0)) P.DoAdunitBoundaryOutput = 0;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Correct administrative unit populations", "%i", (void*)&(P.DoCorrectAdunitPop), 1, 1, 0)) P.DoCorrectAdunitPop = 0;
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Fix population size at specified value", "%i", (void*)&(P.DoSpecifyPop), 1, 1, 0)) P.DoSpecifyPop = 0;
-			fprintf(stderr, "Using %i administrative units\n", P.NumAdunits);
+			Files::xfprintf_stderr("Using %i administrative units\n", P.NumAdunits);
 			if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Divisor for administrative unit codes for boundary plotting on bitmaps", "%i", (void*)&(P.AdunitBitmapDivisor), 1, 1, 0)) P.AdunitBitmapDivisor = 1;
 			if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Only output household to place distance distribution for one administrative unit", "%i", (void*)&(P.DoOutputPlaceDistForOneAdunit), 1, 1, 0)) P.DoOutputPlaceDistForOneAdunit = 0;
 			if (P.DoOutputPlaceDistForOneAdunit)
@@ -922,7 +921,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.MeanJourneyTime += ((double)(i)) * P.JourneyDurationDistrib[i];
 					P.MeanLocalJourneyTime += ((double)(i)) * P.LocalJourneyDurationDistrib[i];
 				}
-				fprintf(stderr, "Mean duration of local journeys = %lf days\n", P.MeanLocalJourneyTime);
+				Files::xfprintf_stderr("Mean duration of local journeys = %lf days\n", P.MeanLocalJourneyTime);
 				for (i = 1; i < MAX_TRAVEL_TIME; i++)
 				{
 					P.JourneyDurationDistrib[i] += P.JourneyDurationDistrib[i - 1];
@@ -991,7 +990,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(PreParamFile_dat, AdminFile_dat, "Number of seed locations", "%i", (void*)&(P.NumSeedLocations), 1, 1, 0)) P.NumSeedLocations = 1;
 	if (P.NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
 	{
-		fprintf(stderr, "Too many seed locations\n");
+		Files::xfprintf_stderr("Too many seed locations\n");
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
 	GetInputParameter(PreParamFile_dat, AdminFile_dat, "Initial number of infecteds", "%i", (void*)P.NumInitialInfections, P.NumSeedLocations, 1, 0);
@@ -1364,7 +1363,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		{
 			P.AlertTriggerAfterIntervThreshold = P.CaseOrDeathThresholdBeforeAlert;
 			P.CaseOrDeathThresholdBeforeAlert = 1000;
-			fprintf(stderr, "Threshold of %i deaths by day %lg\n", P.AlertTriggerAfterIntervThreshold, P.DateTriggerReached_CalTime);
+			Files::xfprintf_stderr("Threshold of %i deaths by day %lg\n", P.AlertTriggerAfterIntervThreshold, P.DateTriggerReached_CalTime);
 		}
 	}
 	else
@@ -2097,9 +2096,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (!GetInputParameter2all(ParamFile_dat, PreParamFile_dat,AdminFile_dat, "Older Gen Gap", "%i", (void*) & (P.OlderGenGap), 1, 1, 0)) P.OlderGenGap = 19;
 	}
 	// Close input files.
-	fclose(ParamFile_dat);
-	fclose(PreParamFile_dat);
-	fclose(AdminFile_dat);
+	Files::xfclose(ParamFile_dat);
+	Files::xfclose(PreParamFile_dat);
+	Files::xfclose(AdminFile_dat);
 
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
@@ -2155,9 +2154,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++) {
 			P.PlaceTypeTrans[place_type] *= P.R0scale;
 		}
-		fprintf(stderr, "Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
+		Files::xfprintf_stderr("Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
 	}
-	fprintf(stderr, "Parameters read\n");
+	Files::xfprintf_stderr("Parameters read\n");
 }
 void ReadInterventions(std::string const& IntFile)
 {
@@ -2167,31 +2166,24 @@ void ReadInterventions(std::string const& IntFile)
 	char buf[65536], txt[65536];
 	Intervention CurInterv;
 
-	fprintf(stderr, "Reading intervention file.\n");
-	if (!(dat = fopen(IntFile.c_str(), "rb"))) ERR_CRITICAL("Unable to open intervention file\n");
-	if(fscanf(dat, "%*[^<]") != 0) { // needs to be separate line because start of file
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
-	if(fscanf(dat, "<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
+	Files::xfprintf_stderr("Reading intervention file.\n");
+	dat = Files::xfopen(IntFile.c_str(), "rb");
+
+	Files::xfscanf(dat, 0, "%*[^<]");
+	Files::xfscanf(dat, 1, "<%[^>]", txt);
+
 	if (strcmp(txt, "\?xml version=\"1.0\" encoding=\"ISO-8859-1\"\?") != 0) ERR_CRITICAL("Intervention file not XML.\n");
-	if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-        ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-    }
+
+	Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 	if (strcmp(txt, "InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level.\n");
 	ni = 0;
 	while (!feof(dat))
 	{
-		if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-            ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-        }
+		Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 		if (strcmp(txt, "intervention") == 0)
 		{
 			ni++;
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if (strcmp(txt, "parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			if (!GetXMLNode(dat, "Type", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			if (strcmp(txt, "Treatment") == 0)
@@ -2207,81 +2199,77 @@ void ReadInterventions(std::string const& IntFile)
 			else if (strcmp(txt, "MSAT") == 0)
 				CurInterv.InterventionType = 5;
 			else
-				sscanf(txt, "%i", &CurInterv.InterventionType);
+				Files::xsscanf(txt, 1, "%i", &CurInterv.InterventionType);
 			if (!GetXMLNode(dat, "AUThresh", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%i", &CurInterv.DoAUThresh);
+			Files::xsscanf(txt, 1, "%i", &CurInterv.DoAUThresh);
 			if (!GetXMLNode(dat, "StartTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartTime);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartTime);
 			startt = CurInterv.StartTime;
 			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StopTime);
+		  Files::xsscanf(txt, 1, "%lf", &CurInterv.StopTime);
 			stopt = CurInterv.StopTime;
 			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.MinDuration);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.MinDuration);
 			CurInterv.MinDuration *= DAYS_PER_YEAR;
 			if (!GetXMLNode(dat, "RepeatInterval", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.RepeatInterval);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.RepeatInterval);
 			CurInterv.RepeatInterval *= DAYS_PER_YEAR;
 			if (!GetXMLNode(dat, "MaxPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartThresholdHigh);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartThresholdHigh);
 			if (!GetXMLNode(dat, "MinPrevAtStart", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StartThresholdLow);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartThresholdLow);
 			if (!GetXMLNode(dat, "MaxPrevAtStop", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.StopThreshold);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StopThreshold);
 			if (GetXMLNode(dat, "NoStartAfterMinDur", "parameters", txt, 1))
-				sscanf(txt, "%i", &CurInterv.NoStartAfterMin);
+				Files::xsscanf(txt, 1, "%i", &CurInterv.NoStartAfterMin);
 			else
 				CurInterv.NoStartAfterMin = 0;
 			if (!GetXMLNode(dat, "Level", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%lf", &CurInterv.Level);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.Level);
 			if (GetXMLNode(dat, "LevelCellVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelCellVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelCellVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelAUVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelAUVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelAUVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelCountryVar", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelCountryVar);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelCountryVar);
 			else
 				CurInterv.LevelCellVar = 0;
 			if (GetXMLNode(dat, "LevelClustering", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.LevelClustering);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.LevelClustering);
 			else
 				CurInterv.LevelClustering = 0;
 			if (GetXMLNode(dat, "ControlParam", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.ControlParam);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.ControlParam);
 			else
 				CurInterv.ControlParam = 0;
 			if (GetXMLNode(dat, "TimeOffset", "parameters", txt, 1))
-				sscanf(txt, "%lf", &CurInterv.TimeOffset);
+				Files::xsscanf(txt, 1, "%lf", &CurInterv.TimeOffset);
 			else
 				CurInterv.TimeOffset = 0;
 
 			if (!GetXMLNode(dat, "MaxRounds", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%u", &CurInterv.MaxRounds);
+			Files::xsscanf(txt, 1, "%u", &CurInterv.MaxRounds);
 			if (!GetXMLNode(dat, "MaxResource", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			sscanf(txt, "%u", &CurInterv.MaxResource);
+			Files::xsscanf(txt, 1, "%u", &CurInterv.MaxResource);
 			if (GetXMLNode(dat, "NumSequentialReplicas", "parameters", txt, 1))
-				sscanf(txt, "%i", &nsr);
+			Files::xsscanf(txt, 1, "%i", &nsr);
 			else
 				nsr = 0;
 			do {
-                if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                    ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-                }
-            } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
+			    Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
+      } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
 			if (strcmp(txt, "/parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ERR_CRITICAL("Incomplete adunits/countries specification in intervention file\n");
 			if (strcmp(txt, "adunits") == 0)
 			{
 				while (GetXMLNode(dat, "A", "adunits", buf, 0))
 				{
-					sscanf(buf, "%s", txt);
+					Files::xsscanf(buf, 1, "%s", txt);
 					j = atoi(txt);
 					if (j == 0)
 					{
@@ -2335,7 +2323,7 @@ void ReadInterventions(std::string const& IntFile)
 				while (GetXMLNode(dat, "C", "countries", buf, 0))
 				{
 					s = (2.0 * ranf() - 1) * CurInterv.LevelCountryVar;
-					sscanf(buf, "%s", txt);
+					Files::xsscanf(buf, 1, "%s", txt);
 					j = atoi(txt);
 					for (au = 0; au < P.NumAdunits; au++)
 						if (((j == 0) && (strcmp(txt, AdUnits[au].cnt_name) == 0)) || ((j > 0) && (j == AdUnits[au].cnt_id)))
@@ -2356,15 +2344,13 @@ void ReadInterventions(std::string const& IntFile)
 						}
 				}
 			}
-			if(fscanf(dat, "%*[^<]<%[^>]", txt) != 1) {
-                ERR_CRITICAL("fscanf failed in ReadInterventions\n");
-            }
+			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if (strcmp(txt, "/intervention") != 0) ERR_CRITICAL("Incorrect intervention specification in intervention file\n");
 		}
 	}
 	if (strcmp(txt, "/InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level closure.\n");
-	fprintf(stderr, "%i interventions read\n", ni);
-	fclose(dat);
+	Files::xfprintf_stderr("%i interventions read\n", ni);
+	Files::xfclose(dat);
 }
 int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Value, int ResetFilePos)
 {
@@ -2374,28 +2360,22 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	char buf[65536], CloseNode[2048], CloseParent[2048];
 	int CurPos, ret;
 
-	sprintf(CloseParent, "/%s", ParentName);
+	Files::xsprintf(CloseParent, "/%s", ParentName);
 	CurPos = ftell(dat);
 	do
 	{
-		if(fscanf(dat, "%*[^<]<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+		Files::xfscanf(dat, 1, "%*[^<]<%[^>]", buf);
 	} while ((strcmp(buf, CloseParent) != 0) && (strcmp(buf, NodeName) != 0) && (!feof(dat)));
 	if (strcmp(buf, CloseParent) == 0)
 		ret = 0;
 	else
 	{
 		if (strcmp(buf, NodeName) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
-		if(fscanf(dat, ">%[^<]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
+		Files::xfscanf(dat, 1, ">%[^<]", buf);
 		if (strlen(buf) < 2048) strcpy(Value, buf);
-		//		fprintf(stderr,"# %s=%s\n",NodeName,Value);
-		if(fscanf(dat, "<%[^>]", buf) != 1) {
-            ERR_CRITICAL("fscanf failed in GetXMLNode");
-        }
-		sprintf(CloseNode, "/%s", NodeName);
+		//		Files::xfprintf_stderr("# %s=%s\n",NodeName,Value);
+		Files::xfscanf(dat, 1, "<%[^>]", buf);
+		Files::xsprintf(CloseNode, "/%s", NodeName);
 		if (strcmp(buf, CloseNode) != 0) ERR_CRITICAL("Incomplete node specification in XML file\n");
 		ret = 1;
 	}
@@ -2412,11 +2392,9 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	std::string outname;
 	FILE* dat;
 
-	fprintf(stderr, "Reading airport data...\nAirports with no connections = ");
-	if (!(dat = fopen(air_travel_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open airport file\n");
-	if(fscanf(dat, "%i %i", &P.Nairports, &P.Air_popscale) != 2) {
-        ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-    }
+	Files::xfprintf_stderr("Reading airport data...\nAirports with no connections = ");
+	dat = Files::xfopen(air_travel_file.c_str(), "rb");
+	Files::xfscanf(dat, 2, "%i %i", &P.Nairports, &P.Air_popscale);
 	sc = (float)((double)P.PopSize / (double)P.Air_popscale);
 	if (P.Nairports > MAX_AIRPORTS) ERR_CRITICAL("Too many airports\n");
 	if (P.Nairports < 2) ERR_CRITICAL("Too few airports\n");
@@ -2424,9 +2402,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	Airports = (Airport*)Memory::xcalloc(P.Nairports, sizeof(Airport));
 	for (i = 0; i < P.Nairports; i++)
 	{
-		if(fscanf(dat, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf) != 3) {
-            ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-        }
+		Files::xfscanf(dat, 3, "%f %f %lf", &(Airports[i].loc.x), &(Airports[i].loc.y), &traf);
 		traf *= (P.AirportTrafficScale * sc);
 		if (!P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(Airports[i].loc)))
 		{
@@ -2442,9 +2418,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		t = 0;
 		for (j = k = 0; j < P.Nairports; j++)
 		{
-			if(fscanf(dat, "%f", buf + j) != 1) {
-                ERR_CRITICAL("fscanf failed in void ReadAirTravel\n");
-            }
+			Files::xfscanf(dat, 1, "%f", buf + j);
 			if (buf[j] > 0) { k++; t += buf[j]; }
 		}
 		Airports[i].num_connected = k;
@@ -2463,17 +2437,17 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		else
 		{
 			if (Airports[i].total_traffic > 0)
-				fprintf(stderr, "#%i# ", i);
+				Files::xfprintf_stderr("#%i# ", i);
 			else
-				fprintf(stderr, "%i ", i);
+				Files::xfprintf_stderr("%i ", i);
 		}
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 	Memory::xfree(buf);
-	fprintf(stderr, "\nAirport data read OK.\n");
+	Files::xfprintf_stderr("\nAirport data read OK.\n");
 	for (i = 0; i < P.Nairports; i++)
 	{
-		/*		fprintf(stderr,"(%f %i|",Airports[i].total_traffic,Airports[i].num_connected);
+		/*		Files::xfprintf_stderr("(%f %i|",Airports[i].total_traffic,Airports[i].num_connected);
 		*/		t = 0; k = 0;
 	for (j = Airports[i].num_connected - 1; j >= 0; j--)
 	{
@@ -2492,7 +2466,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		else if (Airports[i].prop_traffic[j] > 0)
 			k = 1;
 	}
-	/*		fprintf(stderr,"%f %i ",t,k);
+	/*		Files::xfprintf_stderr("%f %i ",t,k);
 	*/		t = 1.0f - t;
 	if (k)
 	{
@@ -2506,7 +2480,7 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		for (j = 0; j < Airports[i].num_connected; j++)
 			Airports[i].prop_traffic[j] /= t2;
 		/*			if((Airports[i].num_connected>0)&&(Airports[i].prop_traffic[Airports[i].num_connected-1]!=1))
-						fprintf(stderr,"<%f> ",Airports[i].prop_traffic[Airports[i].num_connected-1]);
+						Files::xfprintf_stderr("<%f> ",Airports[i].prop_traffic[Airports[i].num_connected-1]);
 		*/
 	}
 	else
@@ -2523,10 +2497,10 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 		}
 		Airports[i].Inv_prop_traffic[128] = Airports[i].num_connected - 1;
 	}
-	/*		fprintf(stderr,"%f) ",Airports[i].total_traffic);
+	/*		Files::xfprintf_stderr("%f) ",Airports[i].total_traffic);
 	*/
 	}
-	fprintf(stderr, "Airport data clipped OK.\n");
+	Files::xfprintf_stderr("Airport data clipped OK.\n");
 	for (i = 0; i < MAX_DIST; i++) AirTravelDist[i] = 0;
 	for (i = 0; i < P.Nairports; i++)
 		if (Airports[i].total_traffic > 0)
@@ -2536,17 +2510,17 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 				k = (int)Airports[i].conn_airports[j];
 				traf = floor(sqrt(dist2_raw(Airports[i].loc.x, Airports[i].loc.y, Airports[k].loc.x, Airports[k].loc.y)) / OUTPUT_DIST_SCALE);
 				l = (int)traf;
-				//fprintf(stderr,"%(%i) ",l);
+				//Files::xfprintf_stderr("%(%i) ",l);
 				if (l < MAX_DIST)
 					AirTravelDist[l] += (double) Airports[i].total_traffic * Airports[i].prop_traffic[j];
 			}
 		}
 	outname = output_file_base + ".airdist.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open air travel output file\n");
-	fprintf(dat, "dist\tfreq\n");
+	dat = Files::xfopen(outname.c_str(), "wb");
+	Files::xfprintf(dat, "dist\tfreq\n");
 	for (i = 0; i < MAX_DIST; i++)
-		fprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
-	fclose(dat);
+		Files::xfprintf(dat, "%i\t%.10f\n", i, AirTravelDist[i]);
+	Files::xfclose(dat);
 }
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
@@ -2560,7 +2534,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		//if (P.OutputBitmap == 1)
 		//{
 		//	char buf[200];
-		//	sprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
+		//	Files::xsprintf(buf, "%s.ge" DIRECTORY_SEPARATOR "%s.avi", OutFile, OutFile);
 		//	avi = CreateAvi(buf, P.BitmapMovieFrame, NULL);
 		//}
 #endif
@@ -2914,7 +2888,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		P.HolidaysStartDay_SimTime = -P.InitialInfectionCalTime;
 		P.DateTriggerReached_SimTime = P.Epidemic_StartDate_CalTime = P.Interventions_StartDate_CalTime - P.InitialInfectionCalTime;
 	}
-	fprintf(stderr, "Finished InitModel.\n");
+	Files::xfprintf_stderr("Finished InitModel.\n");
 }
 
 void SeedInfection(double t, int* NumSeedingInfections_byLocation, int AlreadyInitialized, int run) //adding run number to pass it to event log
@@ -3053,7 +3027,7 @@ void SeedInfection(double t, int* NumSeedingInfections_byLocation, int AlreadyIn
 			}
 		}
 	}
-	if (NumMCellSeedingChoices > 0) fprintf(stderr, "### Seeding error ###\n");
+	if (NumMCellSeedingChoices > 0) Files::xfprintf_stderr("### Seeding error ###\n");
 }
 
 int RunModel(int run, std::string const& snapshot_save_file, std::string const& snapshot_load_file, std::string const& output_file_base)
@@ -3090,7 +3064,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		CalibrationThresholdCheck	(CurrSimTime, OutputTimeStepNumber - 1);
 
 		/// print various quantities to console
-		fprintf(stderr, "\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", CurrSimTime,
+		Files::xfprintf_stderr("\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", CurrSimTime,
 			State.S, State.L, State.I, State.R, State.D, State.S + State.L + State.I + State.R + State.D, State.cumD, State.cumT, State.cumV, State.cumVG, sqrt(State.maxRad2) / 1000); //added State.cumVG
 
 		if (!InterruptRun)
@@ -3195,14 +3169,14 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		}
 	}
 	if (!InterruptRun) RecordSample(CurrSimTime, P.NumOutputTimeSteps - 1, output_file_base);
-	fprintf(stderr, "\nEnd of run\n");
+	Files::xfprintf_stderr("\nEnd of run\n");
 	t2 = CurrSimTime + P.SimulationDuration;
 	while (KeepRunning)
 	{
 		KeepRunning = TreatSweep(t2);
 		t2 += P.OutputTimeStep;
 	}
-	//	fprintf(stderr,"End RunModel\n");
+	//	Files::xfprintf_stderr(,"End RunModel\n");
 	if (P.DoAirports)
 	{
 		t2 = CurrSimTime;
@@ -3231,7 +3205,7 @@ void SaveDistribs(std::string const& output_file_base)
 				for (i = 0; i < P.PopSize; i++)
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
-						fprintf(stderr, "*%i %i: %i %i", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
+						Files::xfprintf_stderr("*%i %i: %i %i", i, j, Hosts[i].PlaceLinks[j], P.Nplace[j]);
 					else if (Hosts[i].PlaceLinks[j] >= 0)
 						Places[j][Hosts[i].PlaceLinks[j]].n++;
 				}
@@ -3244,7 +3218,7 @@ void SaveDistribs(std::string const& output_file_base)
 				if ((j != P.HotelPlaceType) && (Hosts[i].PlaceLinks[j] >= 0))
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
-						fprintf(stderr, "*%i %i: %i ", i, j, Hosts[i].PlaceLinks[j]);
+						Files::xfprintf_stderr("*%i %i: %i ", i, j, Hosts[i].PlaceLinks[j]);
 					else if ((!P.DoOutputPlaceDistForOneAdunit) ||
 						((AdUnits[Mcells[Hosts[i].mcell].adunit].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor == (P.OutputPlaceDistAdunit % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor))
 					{
@@ -3263,37 +3237,37 @@ void SaveDistribs(std::string const& output_file_base)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
 						PlaceSizeDistrib[j][Places[j][i].n]++;
 		outname = output_file_base + ".placedist.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "dist");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "dist");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
-				fprintf(dat, "\tfreq_p%i", j);
-		fprintf(dat, "\n");
+				Files::xfprintf(dat, "\tfreq_p%i", j);
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i < MAX_DIST; i++)
 		{
-			fprintf(dat, "%i", i);
+			Files::xfprintf(dat, "%i", i);
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if (j != P.HotelPlaceType)
-					fprintf(dat, "\t%i", PlaceDistDistrib[j][i]);
-			fprintf(dat, "\n");
+					Files::xfprintf(dat, "\t%i", PlaceDistDistrib[j][i]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 		outname = output_file_base + ".placesize.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "size");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "size");
 		for (j = 0; j < P.PlaceTypeNum; j++)
 			if (j != P.HotelPlaceType)
-				fprintf(dat, "\tfreq_p%i", j);
-		fprintf(dat, "\n");
+				Files::xfprintf(dat, "\tfreq_p%i", j);
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i < MAX_PLACE_SIZE; i++)
 		{
-			fprintf(dat, "%i", i);
+			Files::xfprintf(dat, "%i", i);
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if (j != P.HotelPlaceType)
-					fprintf(dat, "\t%i", PlaceSizeDistrib[j][i]);
-			fprintf(dat, "\n");
+					Files::xfprintf(dat, "\t%i", PlaceSizeDistrib[j][i]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 }
 void SaveOriginDestMatrix(std::string const& output_file_base)
@@ -3310,20 +3284,20 @@ void SaveOriginDestMatrix(std::string const& output_file_base)
 	FILE* dat;
 
 	std::string outname = output_file_base + ".origdestmat.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-	fprintf(dat, "0,");
-	for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
-	fprintf(dat, "\n");
+	dat = Files::xfopen(outname.c_str(), "wb");
+	Files::xfprintf(dat, "0,");
+	for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+	Files::xfprintf(dat, "\n");
 	for (i = 0; i < P.NumAdunits; i++)
 	{
-		fprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
+		Files::xfprintf(dat, "%i,", (AdUnits[i].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor);
 		for (j = 0; j < P.NumAdunits; j++)
 		{
-			fprintf(dat, "%.10f,", AdUnits[i].origin_dest[j]);
+			Files::xfprintf(dat, "%.10f,", AdUnits[i].origin_dest[j]);
 		}
-		fprintf(dat, "\n");
+		Files::xfprintf(dat, "\n");
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void SaveResults(std::string const& output_file_base)
@@ -3335,119 +3309,119 @@ void SaveResults(std::string const& output_file_base)
 	if (P.OutputNonSeverity)
 	{
 		outname = output_file_base + ".xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincFC\tincC\tincDC\tincTC\tincCT\tincCC\tcumT\tcumTP\tcumV\tcumVG\tExtinct\trmsRad\tmaxRad\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10ft%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+			Files::xfprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10ft%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].S, TimeSeries[i].L, TimeSeries[i].I,
 				TimeSeries[i].R, TimeSeries[i].D, TimeSeries[i].incI,
 				TimeSeries[i].incR, TimeSeries[i].incFC, TimeSeries[i].incC, TimeSeries[i].incDC, TimeSeries[i].incTC, TimeSeries[i].incCT, TimeSeries[i].incCC,
 				TimeSeries[i].cumT, TimeSeries[i].cumTP, TimeSeries[i].cumV, TimeSeries[i].cumVG, TimeSeries[i].extinct, TimeSeries[i].rmsRad, TimeSeries[i].maxRad);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		outname = output_file_base + ".adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-		for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name);
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
+		for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tI_%s", AdUnits[i].ad_name);
+		for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tC_%s", AdUnits[i].ad_name);
+		for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tDC_%s", AdUnits[i].ad_name);
 
-		fprintf(dat, "\n");
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f", TimeSeries[i].t);
+			Files::xfprintf(dat, "%.10f", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].incI_adunit[j]);
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incI_adunit[j]);
 			for (j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].incC_adunit[j]);
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incC_adunit[j]);
 			for (j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].incDC_adunit[j]);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incDC_adunit[j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		outname = output_file_base + ".digitalcontacttracing.xls"; //modifying to csv file
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-    		fprintf(dat, "t");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name);
+			Files::xfprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name);
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name);
+			Files::xfprintf(dat, "\tDCT_%s", AdUnits[i].ad_name);
 		}
-		fprintf(dat, "\n");
+		Files::xfprintf(dat, "\n");
 		//print actual output
 		for(i=0; i<P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10lf", TimeSeries[i].t);
+			Files::xfprintf(dat, "%.10lf", TimeSeries[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				fprintf(dat, "\t%.10lf", TimeSeries[i].incDCT_adunit[j]);
+				Files::xfprintf(dat, "\t%.10lf", TimeSeries[i].incDCT_adunit[j]);
 			}
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				fprintf(dat, "\t%.10lf", TimeSeries[i].DCT_adunit[j]);
+				Files::xfprintf(dat, "\t%.10lf", TimeSeries[i].DCT_adunit[j]);
 			}
-		fprintf(dat, "\n");
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
 	if (P.DoDigitalContactTracing && P.OutputDigitalContactDist)
 	{
 		outname = output_file_base + ".digitalcontactdist.xls"; //modifying to csv file
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		//print headers
-		fprintf(dat, "nContacts\tFrequency\n");
+		Files::xfprintf(dat, "nContacts\tFrequency\n");
 		for (i = 0; i < (MAX_CONTACTS + 1); i++)
 		{
-			fprintf(dat, "%i\t%i\n", i, State.contact_dist[i]);
+			Files::xfprintf(dat, "%i\t%i\n", i, State.contact_dist[i]);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SimulationDuration)
 	{
 		outname = output_file_base + ".keyworker.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
-		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tT%i", i);
-		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tI%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tC%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tT%i", i);
+		Files::xfprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
-			{
-			fprintf(dat, "%.10f", TimeSeries[i].t);
+		{
+			Files::xfprintf(dat, "%.10f", TimeSeries[i].t);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].incI_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incI_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].incC_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incC_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", TimeSeries[i].cumT_keyworker[j]);
-			fprintf(dat, "\n");
-			}
-		fclose(dat);
+				Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumT_keyworker[j]);
+			Files::xfprintf(dat, "\n");
 		}
+		Files::xfclose(dat);
+	}
 
 	if(P.DoInfectionTree)
 	{
 		outname = output_file_base + "%s.tree.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		for(i = 0; i < P.PopSize; i++)
 			if(Hosts[i].infect_type % INFECT_TYPE_MASK > 0)
-				fprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
-		fclose(dat);
+				Files::xfprintf(dat, "%i\t%i\t%i\t%i\n", i, Hosts[i].infector, Hosts[i].infect_type % INFECT_TYPE_MASK, (int)HOST_AGE_YEAR(i));
+		Files::xfclose(dat);
 	}
 #if defined(_WIN32) || defined(IMAGE_MAGICK)
 	static int dm[13] ={0,31,28,31,30,31,30,31,31,30,31,30,31};
@@ -3464,19 +3438,16 @@ void SaveResults(std::string const& output_file_base)
 	{
 		// Generate Google Earth .kml file
 		outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + ".ge.kml"; // outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base ".kml";
-		if(!(dat = fopen(outname.c_str(), "wb")))
-		{
-			ERR_CRITICAL("Unable to open output kml file\n");
-		}
-		fprintf(dat, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.2\">\n<Document>\n");
-		fprintf(dat, "<name>%s</name>\n", output_file_base.c_str());
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.2\">\n<Document>\n");
+		Files::xfprintf(dat, "<name>%s</name>\n", output_file_base.c_str());
 		y = 2009;
 		m = 1;
 		d = 1;
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "<GroundOverlay>\n<name>Snapshot %i</name>\n", i + 1);
-			fprintf(dat, "<TimeSpan>\n<begin>%i-%02i-%02iT00:00:00Z</begin>\n", y, m, d);
+			Files::xfprintf(dat, "<GroundOverlay>\n<name>Snapshot %i</name>\n", i + 1);
+			Files::xfprintf(dat, "<TimeSpan>\n<begin>%i-%02i-%02iT00:00:00Z</begin>\n", y, m, d);
 			d += (int)P.OutputTimeStep; // OutputTimeStep has to be an integer here.
 			do
 			{
@@ -3495,15 +3466,15 @@ void SaveResults(std::string const& output_file_base)
 					f = 0;
 				}
 			} while(!f);
-			fprintf(dat, "<end>%i-%02i-%02iT00:00:00Z</end>\n</TimeSpan>\n", y, m, d);
+			Files::xfprintf(dat, "<end>%i-%02i-%02iT00:00:00Z</end>\n</TimeSpan>\n", y, m, d);
 			outname = output_file_base + ".ge" DIRECTORY_SEPARATOR + output_file_base + "." + std::to_string(i + 1) + ".png";
-			fprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname.c_str());
-			fprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
+			Files::xfprintf(dat, "<Icon>\n<href>%s</href>\n</Icon>\n", outname.c_str());
+			Files::xfprintf(dat, "<LatLonBox>\n<north>%.10f</north>\n<south>%.10f</south>\n<east>%.10f</east>\n<west>%.10f</west>\n</LatLonBox>\n",
 				P.SpatialBoundingBox.top_right().y, P.SpatialBoundingBox.bottom_left().y, P.SpatialBoundingBox.top_right().x, P.SpatialBoundingBox.bottom_left().x);
-			fprintf(dat, "</GroundOverlay>\n");
+			Files::xfprintf(dat, "</GroundOverlay>\n");
 		}
-		fprintf(dat, "</Document>\n</kml>\n");
-		fclose(dat);
+		Files::xfprintf(dat, "</Document>\n</kml>\n");
+		Files::xfclose(dat);
 	}
 #endif
 
@@ -3511,11 +3482,11 @@ void SaveResults(std::string const& output_file_base)
 	if((P.DoSeverity)&&(P.OutputSeverity))
 	{
 		outname = output_file_base + ".severity.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
-		fprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t\tRt\tTG\tSI\tS\tI\tR\tincI\tMild\tILI\tSARI\tCritical\tCritRecov\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\n");//\t\t%.10f\t%.10f\t%.10f\n",P.R0household,P.R0places,P.R0spatial);
 		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+			Files::xfprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				TimeSeries[i].t, TimeSeries[i].Rdenom, TimeSeries[i].meanTG, TimeSeries[i].meanSI, TimeSeries[i].S, TimeSeries[i].I, TimeSeries[i].R, TimeSeries[i].incI,
 				TimeSeries[i].Mild		, TimeSeries[i].ILI		, TimeSeries[i].SARI	, TimeSeries[i].Critical	, TimeSeries[i].CritRecov	,
 				TimeSeries[i].incMild	, TimeSeries[i].incILI	, TimeSeries[i].incSARI	, TimeSeries[i].incCritical	, TimeSeries[i].incCritRecov,
@@ -3523,14 +3494,14 @@ void SaveResults(std::string const& output_file_base)
 				TimeSeries[i].cumMild	, TimeSeries[i].cumILI	, TimeSeries[i].cumSARI	, TimeSeries[i].cumCritical	, TimeSeries[i].cumCritRecov, TimeSeries[i].D	,
 				TimeSeries[i].cumDeath_ILI, TimeSeries[i].cumDeath_SARI, TimeSeries[i].cumDeath_Critical);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		if((P.DoAdUnits) && (P.OutputSeverityAdminUnit))
 		{
 			//// output severity results by admin unit
 			outname = output_file_base + ".severity.adunit.xls";
-			if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-			fprintf(dat, "t");
+			dat = Files::xfopen(outname.c_str(), "wb");
+			Files::xfprintf(dat, "t");
 
 			/////// ****** /////// ****** /////// ****** COLNAMES
 			const std::string colnames[] = {
@@ -3547,50 +3518,50 @@ void SaveResults(std::string const& output_file_base)
 			{
 				for (i = 0; i < P.NumAdunits; i++)
 				{
-					fprintf(dat, "\t%s%s", colname.c_str(), AdUnits[i].ad_name);
+					Files::xfprintf(dat, "\t%s%s", colname.c_str(), AdUnits[i].ad_name);
 				}
 			}
 
-			fprintf(dat, "\n");
+			Files::xfprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
 			for(i = 0; i < P.NumOutputTimeSteps; i++)
 			{
-				fprintf(dat, "%.10f", TimeSeries[i].t);
+				Files::xfprintf(dat, "%.10f", TimeSeries[i].t);
 
 				//// prevalence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].Mild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].Critical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].CritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].Mild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].CritRecov_adunit[j]);
 
 				//// incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incD_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incDeath_ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incDeath_SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].incDeath_Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incCritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incDeath_ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incDeath_SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].incDeath_Critical_adunit[j]);
 
 				//// cumulative incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumD_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumCritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", TimeSeries[i].cumDeath_Critical_adunit[j]);
 
-				if(i != P.NumOutputTimeSteps - 1) fprintf(dat, "\n");
+				if(i != P.NumOutputTimeSteps - 1) Files::xfprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 	}
 
@@ -3598,37 +3569,37 @@ void SaveResults(std::string const& output_file_base)
 	{
 		//// output infections by age and admin unit
 		outname = output_file_base + ".age.adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
 
 		// colnames
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+				Files::xfprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+				Files::xfprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
-		fprintf(dat, "\n");
+				Files::xfprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+		Files::xfprintf(dat, "\n");
 
 		// Populate
 		for (int Time = 0; Time < P.NumOutputTimeSteps; Time++)
 		{
-			fprintf(dat, "%.10f", TSMean[Time].t);
+			Files::xfprintf(dat, "%.10f", TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", TimeSeries[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+					Files::xfprintf(dat, "\t%.10f", TimeSeries[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", TimeSeries[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
+					Files::xfprintf(dat, "\t%.10f", TimeSeries[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
-			fprintf(dat, "\n");
+					Files::xfprintf(dat, "\t%.10f", TimeSeries[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 }
 
@@ -3644,20 +3615,20 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	if (P.OutputNonSeverity)
 	{
 		outname = output_file_base + ".xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		//// set colnames
-		fprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
+		Files::xfprintf(dat, "t\tS\tL\tI\tR\tD\tincI\tincR\tincD\tincC\tincDC\tincTC\tcumT\tcumTmax\tcumTP\tcumV\tcumVmax\tExtinct\trmsRad\tmaxRad\tvS\tvI\tvR\tvD\tvincI\tvincR\tvincFC\tvincC\tvincDC\tvincTC\tvrmsRad\tvmaxRad\t\t%i\t%i\t%.10f\t%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\n",
 			P.NRactNE, P.NRactE, P.R0household, P.R0places, P.R0spatial, c * PeakHeightSum, c * PeakHeightSS - c * c * PeakHeightSum * PeakHeightSum, c * PeakTimeSum, c * PeakTimeSS - c * c * PeakTimeSum * PeakTimeSum);
 		c = 1 / ((double)P.NRactual);
 
 		//// populate table
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t",
+			Files::xfprintf(dat, "%.10f\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t%10lf\t",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].L, c * TSMean[i].I, c * TSMean[i].R,
 				c * TSMean[i].D, c * TSMean[i].incI, c * TSMean[i].incR, c * TSMean[i].incFC, c * TSMean[i].incC, c * TSMean[i].incDC, c * TSMean[i].incTC,
 				c * TSMean[i].cumT, TSMean[i].cumTmax, c * TSMean[i].cumTP, c * TSMean[i].cumV, TSMean[i].cumVmax, c * TSMean[i].extinct, c * TSMean[i].rmsRad, c * TSMean[i].maxRad);
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+			Files::xfprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				c * TSVar[i].S		- c * c * TSMean[i].S		* TSMean[i].S,
 				c * TSVar[i].I		- c * c * TSMean[i].I		* TSMean[i].I,
 				c * TSVar[i].R		- c * c * TSMean[i].R		* TSMean[i].R,
@@ -3671,27 +3642,27 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSVar[i].rmsRad - c * c * TSMean[i].rmsRad	* TSMean[i].rmsRad,
 				c * TSVar[i].maxRad - c * c * TSMean[i].maxRad	* TSMean[i].maxRad);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputControls)
 	{
 		outname = output_file_base + ".controls.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t\tS\tincC\tincTC\tincFC\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
-		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tprClosed_%i", j);
-		fprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
-		for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\tvprClosed_%i", j);
-		fprintf(dat, "\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t\tS\tincC\tincTC\tincFC\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
+		for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tprClosed_%i", j);
+		Files::xfprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
+		for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tvprClosed_%i", j);
+		Files::xfprintf(dat, "\n");
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+			Files::xfprintf(dat, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				c * TSMean[i].t, c * TSMean[i].S, c * TSMean[i].incC, c * TSMean[i].incTC, c * TSMean[i].incFC,
 				c * TSMean[i].cumT, c * TSMean[i].cumUT, c * TSMean[i].cumTP, c * TSMean[i].cumV, c * TSMean[i].incHQ,
 				c * TSMean[i].incAC, c * TSMean[i].incAH, c * TSMean[i].incAA, c * TSMean[i].incACS,
 				c * TSMean[i].incAPC, c * TSMean[i].incAPA, c * TSMean[i].incAPCS,c*TSMean[i].PropSocDist);
-			for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\t%lf", c * TSMean[i].PropPlacesClosed[j]);
-			fprintf(dat, "\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
+			for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].PropPlacesClosed[j]);
+			Files::xfprintf(dat, "\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				c * TSVar[i].S - c * c * TSMean[i].S * TSMean[i].S,
 				c * TSVar[i].incC - c * c * TSMean[i].incC * TSMean[i].incC,
 				c * TSVar[i].incTC - c * c * TSMean[i].incTC * TSMean[i].incTC,
@@ -3700,194 +3671,194 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSVar[i].cumUT - c * c * TSMean[i].cumUT * TSMean[i].cumUT,
 				c * TSVar[i].cumTP - c * c * TSMean[i].cumTP * TSMean[i].cumTP,
 				c * TSVar[i].cumV - c * c * TSMean[i].cumV * TSMean[i].cumV);
-			for(j = 0; j < NUM_PLACE_TYPES; j++) fprintf(dat, "\t%lf", TSVar[i].PropPlacesClosed[j]);
-			fprintf(dat, "\n");
+			for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", TSVar[i].PropPlacesClosed[j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
 	if (P.OutputAge)
 	{
 		outname = output_file_base + ".age.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
-			fprintf(dat, "\tI%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
+			Files::xfprintf(dat, "\tI%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
-			fprintf(dat, "\tC%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
+			Files::xfprintf(dat, "\tC%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
 		for(i = 0; i < NUM_AGE_GROUPS; i++)
-			fprintf(dat, "\tD%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
-		fprintf(dat, "\n");
+			Files::xfprintf(dat, "\tD%i-%i", AGE_GROUP_WIDTH * i, AGE_GROUP_WIDTH * (i + 1));
+		Files::xfprintf(dat, "\n");
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f", c * TSMean[i].t);
+			Files::xfprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < NUM_AGE_GROUPS; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
 			for(j = 0; j < NUM_AGE_GROUPS; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incCa[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incCa[j]);
 			for(j = 0; j < NUM_AGE_GROUPS; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fprintf(dat, "dist");
+		Files::xfprintf(dat, "dist");
 		for(j = 0; j < NUM_AGE_GROUPS; j++)
-			fprintf(dat, "\t%.10f", AgeDist[j]);
-		fprintf(dat, "\n");
-		fclose(dat);
+			Files::xfprintf(dat, "\t%.10f", AgeDist[j]);
+		Files::xfprintf(dat, "\n");
+		Files::xfclose(dat);
 	}
 
 	if((P.DoAdUnits) && (P.DoAdunitOutput))
 	{
 		outname = output_file_base + ".adunit.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%i", AdUnits[i].n);
-		for(i = 0; i < P.NumAdunits; i++) fprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
-		fprintf(dat, "\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tI_%s", AdUnits[i].ad_name);
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tC_%s", AdUnits[i].ad_name);
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tT_%s", AdUnits[i].ad_name);
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\t%i", AdUnits[i].n);
+		for(i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\t%.10f", P.PopByAdunit[i][1]);
+		Files::xfprintf(dat, "\n");
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10f", c * TSMean[i].t);
+			Files::xfprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
 			for(j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incC_adunit[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incC_adunit[j]);
 			for(j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incDC_adunit[j]); //added detected cases: ggilani 03/02/15
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDC_adunit[j]); //added detected cases: ggilani 03/02/15
 			for(j = 0; j < P.NumAdunits; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].cumT_adunit[j]);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumT_adunit[j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		if (P.OutputAdUnitVar)
 		{
 			outname = output_file_base + ".adunitVar.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-			fprintf(dat, "t");
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tI_%s", AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tC_%s", AdUnits[i].ad_name);
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
-			for (i = 0; i < P.NumAdunits; i++) fprintf(dat, "\tT_%s", AdUnits[i].ad_name);
-			fprintf(dat, "\n");
+			dat = Files::xfopen(outname.c_str(), "wb");
+			Files::xfprintf(dat, "t");
+			for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tI_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tC_%s", AdUnits[i].ad_name);
+			for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tDC_%s", AdUnits[i].ad_name); //added detected cases: ggilani 03/02/15
+			for (i = 0; i < P.NumAdunits; i++) Files::xfprintf(dat, "\tT_%s", AdUnits[i].ad_name);
+			Files::xfprintf(dat, "\n");
 			for (i = 0; i < P.NumOutputTimeSteps; i++)
 			{
-				fprintf(dat, "%.10f", c * TSMean[i].t);
+				Files::xfprintf(dat, "%.10f", c * TSMean[i].t);
 				for (j = 0; j < P.NumAdunits; j++)
-					fprintf(dat, "\t%.10f", c * TSVar[i].incI_adunit[j] - c * c * TSMean[i].incI_adunit[j] * TSMean[i].incI_adunit[j]);
+					Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incI_adunit[j] - c * c * TSMean[i].incI_adunit[j] * TSMean[i].incI_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)
-					fprintf(dat, "\t%.10f", c * TSVar[i].incC_adunit[j] - c * c * TSMean[i].incC_adunit[j] * TSMean[i].incC_adunit[j]);
+					Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incC_adunit[j] - c * c * TSMean[i].incC_adunit[j] * TSMean[i].incC_adunit[j]);
 				for (j = 0; j < P.NumAdunits; j++)
-					fprintf(dat, "\t%.10f", c * TSVar[i].incDC_adunit[j] - c * c * TSMean[i].incDC_adunit[j] * TSMean[i].incDC_adunit[j]); //added detected cases: ggilani 03/02/15
+					Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incDC_adunit[j] - c * c * TSMean[i].incDC_adunit[j] * TSMean[i].incDC_adunit[j]); //added detected cases: ggilani 03/02/15
 				for (j = 0; j < P.NumAdunits; j++)
-					fprintf(dat, "\t%.10f", c * TSVar[i].cumT_adunit[j] - c * c * TSMean[i].cumT_adunit[j] * TSMean[i].cumT_adunit[j]);
-				fprintf(dat, "\n");
+					Files::xfprintf(dat, "\t%.10f", c * TSVar[i].cumT_adunit[j] - c * c * TSMean[i].cumT_adunit[j] * TSMean[i].cumT_adunit[j]);
+				Files::xfprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 		}
 	}
 
 	if ((P.DoDigitalContactTracing) && (P.DoAdUnits) && (P.OutputDigitalContactTracing))
 	{
 		outname = output_file_base + ".digitalcontacttracing.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name); // //printing headers for inc per admin unit
+			Files::xfprintf(dat, "\tincDCT_%s", AdUnits[i].ad_name); // //printing headers for inc per admin unit
 		}
 		for (i = 0; i < P.NumAdunits; i++)
 		{
-			fprintf(dat, "\tDCT_%s", AdUnits[i].ad_name); // //printing headers for prevalence of digital contact tracing per admin unit
+			Files::xfprintf(dat, "\tDCT_%s", AdUnits[i].ad_name); // //printing headers for prevalence of digital contact tracing per admin unit
 		}
-		fprintf(dat, "\n");
+		Files::xfprintf(dat, "\n");
 		//print actual output
 		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%.10lf", c* TSMean[i].t);
+			Files::xfprintf(dat, "%.10lf", c* TSMean[i].t);
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				fprintf(dat, "\t%.10lf", c * TSMean[i].incDCT_adunit[j]);
+				Files::xfprintf(dat, "\t%.10lf", c * TSMean[i].incDCT_adunit[j]);
 			}
 			for (j = 0; j < P.NumAdunits; j++)
 			{
-				fprintf(dat, "\t%.10lf", c * TSMean[i].DCT_adunit[j]);
+				Files::xfprintf(dat, "\t%.10lf", c * TSMean[i].DCT_adunit[j]);
 			}
-			fprintf(dat, "\n");
+			Files::xfprintf(dat, "\n");
 		}
 
-		fclose(dat);
+		Files::xfclose(dat);
 
 	}
 
 	if(P.KeyWorkerProphTimeStartBase < P.SimulationDuration)
 	{
 		outname = output_file_base + ".keyworker.xls";
-		if(!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
-		for(i = 0; i < 2; i++) fprintf(dat, "\tI%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tC%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tT%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tvI%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tvC%i", i);
-		for(i = 0; i < 2; i++) fprintf(dat, "\tvT%i", i);
-		fprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tI%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tC%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tT%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tvI%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tvC%i", i);
+		for(i = 0; i < 2; i++) Files::xfprintf(dat, "\tvT%i", i);
+		Files::xfprintf(dat, "\t%i\t%i\n", P.KeyWorkerNum, P.KeyWorkerIncHouseNum);
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
-			{
-			fprintf(dat, "%.10f", c * TSMean[i].t);
+		{
+			Files::xfprintf(dat, "%.10f", c * TSMean[i].t);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incI_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incI_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].incC_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incC_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSMean[i].cumT_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumT_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSVar[i].incI_keyworker[j] - c * c * TSMean[i].incI_keyworker[j] * TSMean[i].incI_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incI_keyworker[j] - c * c * TSMean[i].incI_keyworker[j] * TSMean[i].incI_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSVar[i].incC_keyworker[j] - c * c * TSMean[i].incC_keyworker[j] * TSMean[i].incC_keyworker[j]);
+				Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incC_keyworker[j] - c * c * TSMean[i].incC_keyworker[j] * TSMean[i].incC_keyworker[j]);
 			for(j = 0; j < 2; j++)
-				fprintf(dat, "\t%.10f", c * TSVar[i].cumT_keyworker[j] - c * c * TSMean[i].cumT_keyworker[j] * TSMean[i].cumT_keyworker[j]);
-			fprintf(dat, "\n");
-			}
-		fclose(dat);
+				Files::xfprintf(dat, "\t%.10f", c * TSVar[i].cumT_keyworker[j] - c * c * TSMean[i].cumT_keyworker[j] * TSMean[i].cumT_keyworker[j]);
+			Files::xfprintf(dat,  "\n");
+		}
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputInfType)
 	{
 		outname = output_file_base + ".inftype.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t\tR\tTG\tSI");
-		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tRtype_%i", j);
-		for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\tincItype_%i", j);
-		for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\tRage_%i", j);
-		fprintf(dat, "\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t\tR\tTG\tSI");
+		for (j = 0; j < INFECT_TYPE_MASK; j++) Files::xfprintf(dat, "\tRtype_%i", j);
+		for (j = 0; j < INFECT_TYPE_MASK; j++) Files::xfprintf(dat, "\tincItype_%i", j);
+		for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\tRage_%i", j);
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i < P.NumOutputTimeSteps; i++)
 		{
-			fprintf(dat, "%lf\t%lf\t%lf\t%lf", c * TSMean[i].t, c * TSMean[i].Rdenom, c* TSMean[i].meanTG, c* TSMean[i].meanSI);
-			for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\t%lf", c * TSMean[i].Rtype[j]);
-			for (j = 0; j < INFECT_TYPE_MASK; j++) fprintf(dat, "\t%lf", c * TSMean[i].incItype[j]);
-			for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%lf", c * TSMean[i].Rage[j]);
-			fprintf(dat, "\n");
+			Files::xfprintf(dat, "%lf\t%lf\t%lf\t%lf", c * TSMean[i].t, c * TSMean[i].Rdenom, c* TSMean[i].meanTG, c* TSMean[i].meanSI);
+			for (j = 0; j < INFECT_TYPE_MASK; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].Rtype[j]);
+			for (j = 0; j < INFECT_TYPE_MASK; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].incItype[j]);
+			for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].Rage[j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputR0)
 	{
 		outname = output_file_base + ".R0.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		for (i = 0; i < MAX_SEC_REC; i++)
 		{
-			fprintf(dat, "%i", i);
+			Files::xfprintf(dat, "%i", i);
 			for (j = 0; j < MAX_GEN_REC; j++)
-				fprintf(dat, "\t%.10f", c * indivR0_av[i][j]);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", c * indivR0_av[i][j]);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputHousehold)
@@ -3907,38 +3878,38 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				t += case_household_av[i][j];
 			case_household_av[i][0] = denom_household[i] / c - t;
 		}
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
-			fprintf(dat, "\t%i", i);
-		fprintf(dat, "\n");
+			Files::xfprintf(dat, "\t%i", i);
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		{
-			fprintf(dat, "%i", i);
+			Files::xfprintf(dat, "%i", i);
 			for (j = 1; j <= MAX_HOUSEHOLD_SIZE; j++)
-				fprintf(dat, "\t%.10f", inf_household_av[j][i] * c);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", inf_household_av[j][i] * c);
+			Files::xfprintf(dat, "\n");
 		}
-		fprintf(dat, "\n");
+		Files::xfprintf(dat, "\n");
 		for (i = 1; i <= MAX_HOUSEHOLD_SIZE; i++)
-			fprintf(dat, "\t%i", i);
-		fprintf(dat, "\n");
+			Files::xfprintf(dat, "\t%i", i);
+		Files::xfprintf(dat, "\n");
 		for (i = 0; i <= MAX_HOUSEHOLD_SIZE; i++)
 		{
-			fprintf(dat, "%i", i);
+			Files::xfprintf(dat, "%i", i);
 			for (j = 1; j <= MAX_HOUSEHOLD_SIZE; j++)
-				fprintf(dat, "\t%.10f", case_household_av[j][i] * c);
-			fprintf(dat, "\n");
+				Files::xfprintf(dat, "\t%.10f", case_household_av[j][i] * c);
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 	if (P.OutputCountry)
 	{
 		outname = output_file_base + ".country.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
 		for (i = 0; i < MAX_COUNTRIES; i++)
-			fprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
-		fclose(dat);
+			Files::xfprintf(dat, "%i\t%.10f\t%.10f\n", i, infcountry_av[i] * c, infcountry_num[i] * c);
+		Files::xfclose(dat);
 	}
 
 	if ((P.DoSeverity)&&(P.OutputSeverity))
@@ -3946,9 +3917,9 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		//// output separate severity file (can integrate with main if need be)
 		outname = output_file_base + ".severity.xls";
 
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open severity output file\n");
-		fprintf(dat, "t\tPropSocDist\tRt\tTG\tSI\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tprevQuarNotInfected\tprevQuarNotSymptomatic\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\t");
-		fprintf(dat, "PropSocDist_v\tRt_v\tTG_v\tSI_v\tS_v\tI_v\tR_v\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t\tPropSocDist\tRt\tTG\tSI\tS\tI\tR\tincI\tincC\tMild\tILI\tSARI\tCritical\tCritRecov\tSARIP\tCriticalP\tCritRecovP\tprevQuarNotInfected\tprevQuarNotSymptomatic\tincMild\tincILI\tincSARI\tincCritical\tincCritRecov\tincSARIP\tincCriticalP\tincCritRecovP\tincDeath\tincDeath_ILI\tincDeath_SARI\tincDeath_Critical\tcumMild\tcumILI\tcumSARI\tcumCritical\tcumCritRecov\tcumDeath\tcumDeath_ILI\tcumDeath_SARI\tcumDeath_Critical\t");
+		Files::xfprintf(dat, "PropSocDist_v\tRt_v\tTG_v\tSI_v\tS_v\tI_v\tR_v\tincI_v\tincC_v\tMild_v\tILI_v\tSARI_v\tCritical_v\tCritRecov_v\tincMild_v\tincILI_v\tincSARI_v\tincCritical_v\tincCritRecov_v\tincDeath_v\tincDeath_ILI_v\tincDeath_SARI_v\tincDeath_Critical_v\tcumMild_v\tcumILI_v\tcumSARI_v\tcumCritical_v\tcumCritRecov_v\tcumDeath_v\tcumDeath_ILI_v\tcumDeath_SARI_v\tcumDeath_Critical_v\n");
 		double SARI, Critical, CritRecov, incSARI, incCritical, incCritRecov, sc1, sc2,sc3,sc4; //this stuff corrects bed prevalence for exponentially distributed time to test results in hospital
 		sc1 = (P.Mean_TimeToTest > 0) ? exp(-1.0 / P.Mean_TimeToTest) : 0.0;
 		sc2 = (P.Mean_TimeToTest > 0) ? exp(-P.Mean_TimeToTestOffset / P.Mean_TimeToTest) : 0.0;
@@ -3973,7 +3944,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				CritRecov = TSMean[i].CritRecov * sc4;
 			}
 
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.17f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t",
+			Files::xfprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.17f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t",
 				c* TSMean[i].t, c* TSMean[i].PropSocDist, c* TSMean[i].Rdenom, c* TSMean[i].meanTG, c* TSMean[i].meanSI, c* TSMean[i].S, c* TSMean[i].I, c* TSMean[i].R, c* TSMean[i].incI, c* TSMean[i].incC,
 				c* TSMean[i].Mild, c* TSMean[i].ILI, c* TSMean[i].SARI,c* TSMean[i].Critical, c* TSMean[i].CritRecov,c* (TSMean[i].SARI - SARI), c* (TSMean[i].Critical - Critical), c* (TSMean[i].CritRecov - CritRecov),
 				c * TSMean[i].prevQuarNotInfected, c * TSMean[i].prevQuarNotSymptomatic,
@@ -3981,7 +3952,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSMean[i].incDeath_ILI, c * TSMean[i].incDeath_SARI, c * TSMean[i].incDeath_Critical,
 				c * TSMean[i].cumMild, c * TSMean[i].cumILI, c * TSMean[i].cumSARI, c * TSMean[i].cumCritical, c * TSMean[i].cumCritRecov, c*TSMean[i].D,
 				c * TSMean[i].cumDeath_ILI, c * TSMean[i].cumDeath_SARI, c * TSMean[i].cumDeath_Critical);
-			fprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+			Files::xfprintf(dat, "%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
 				c* TSVar[i].PropSocDist- c * TSMean[i].PropSocDist* c * TSMean[i].PropSocDist,
 				c* TSVar[i].Rdenom - c * TSMean[i].Rdenom * c * TSMean[i].Rdenom,
 				c* TSVar[i].meanTG - c * TSMean[i].meanTG * c * TSMean[i].meanTG,
@@ -4015,7 +3986,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c* TSVar[i].cumDeath_SARI- c * TSMean[i].cumDeath_SARI* c * TSMean[i].cumDeath_SARI,
 				c* TSVar[i].cumDeath_Critical- c * TSMean[i].cumDeath_Critical* c * TSMean[i].cumDeath_Critical);
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 
 		const std::string colnames[] = {
 			// prevalence
@@ -4045,17 +4016,17 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (i = 0; i < NUM_AGE_GROUPS; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by age group
 			outname = output_file_base + ".severity.age.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-			fprintf(dat, "t");
+			dat = Files::xfopen(outname.c_str(), "wb");
+			Files::xfprintf(dat, "t");
 
 			for (auto colname : colnames) {
 				for (i = 0; i < NUM_AGE_GROUPS; i++)
 				{
-					fprintf(dat, "\t%s_%i", colname.c_str(), i);
+					Files::xfprintf(dat, "\t%s_%i", colname.c_str(), i);
 				}
 			}
 
-			fprintf(dat, "\n");
+			Files::xfprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
 			for (i = 0; i < P.NumOutputTimeSteps; i++)
@@ -4078,45 +4049,45 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 						CritRecov_a[j] = TSMean[i].CritRecov_age[j] * sc4a;
 					}
 				}
-				fprintf(dat, "%.10f", c * TSMean[i].t);
+				Files::xfprintf(dat, "%.10f", c * TSMean[i].t);
 				//// prevalance
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Mild_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].ILI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].SARI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].Critical_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].SARI_age[j] - SARI_a[j]));
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].Critical_age[j] - Critical_a[j]));
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_age[j] - CritRecov_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].Mild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].Critical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].SARI_age[j] - SARI_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].Critical_age[j] - Critical_a[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_age[j] - CritRecov_a[j]));
 
 				//// incidence
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incMild_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incILI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incSARI_a[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritical_a[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incIa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * incSARI_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * incCritical_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDa[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_age[j]);
 
 				//// cumulative incidence
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumMild_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumILI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * (TSMean[i].cumDeath_ILI_age[j] + TSMean[i].cumDeath_SARI_age[j] + TSMean[i].cumDeath_Critical_age[j]));
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_age[j]);
-				for (j = 0; j < NUM_AGE_GROUPS; j++) fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_age[j]);
-				fprintf(dat, "\n");
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumMild_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].cumDeath_ILI_age[j] + TSMean[i].cumDeath_SARI_age[j] + TSMean[i].cumDeath_Critical_age[j]));
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_age[j]);
+				for (j = 0; j < NUM_AGE_GROUPS; j++) Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_age[j]);
+				Files::xfprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
 			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
@@ -4137,15 +4108,15 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 			for (i = 0; i < P.NumAdunits; i++) incSARI_a[i] = incCritical_a[i] = incCritRecov_a[i] = 0;
 			//// output severity results by admin unit
 			outname = output_file_base + ".severity.adunit.xls";
-			if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-			fprintf(dat, "t");
+			dat = Files::xfopen(outname.c_str(), "wb");
+			Files::xfprintf(dat, "t");
 			for (auto colname : colnames) {
 				for (i = 0; i < P.NumAdunits; i++)
 				{
-					fprintf(dat, "\t%s_%s", colname.c_str(), AdUnits[i].ad_name);
+					Files::xfprintf(dat, "\t%s_%s", colname.c_str(), AdUnits[i].ad_name);
 				}
 			}
-			fprintf(dat, "\n");
+			Files::xfprintf(dat, "\n");
 
 			/////// ****** /////// ****** /////// ****** Populate table.
 			for (i = 0; i < P.NumOutputTimeSteps; i++)
@@ -4168,46 +4139,46 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 						CritRecov_a[j] = TSMean[i].CritRecov_adunit[j] * sc4a;
 					}
 				}
-				fprintf(dat, "%.10f", c*TSMean[i].t);
+				Files::xfprintf(dat, "%.10f", c*TSMean[i].t);
 				//// prevalance
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].Critical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].SARI_adunit[j] - SARI_a[j]));
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].Critical_adunit[j] - Critical_a[j]));
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_adunit[j] - CritRecov_a[j]));
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].Mild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].CritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].SARI_adunit[j] - SARI_a[j]));
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].Critical_adunit[j] - Critical_a[j]));
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * (TSMean[i].CritRecov_adunit[j] - CritRecov_a[j]));
 
 				//// incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incSARI_a[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incCritical_a[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incD_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incCritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * incSARI_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * incCritical_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * incCritRecov_a[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].incDeath_Critical_adunit[j]);
 
 				//// cumulative incidence
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumMild_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumD_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_adunit[j]);
-				for (j = 0; j < P.NumAdunits; j++)		fprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumMild_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumSARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumCritical_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumCritRecov_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumD_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_ILI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_SARI_adunit[j]);
+				for (j = 0; j < P.NumAdunits; j++)		Files::xfprintf(dat, "\t%.10f", c * TSMean[i].cumDeath_Critical_adunit[j]);
 
-				fprintf(dat, "\n");
+				Files::xfprintf(dat, "\n");
 			}
-			fclose(dat);
+			Files::xfclose(dat);
 			Memory::xfree(SARI_a); Memory::xfree(Critical_a); Memory::xfree(CritRecov_a);
 			Memory::xfree(incSARI_a); Memory::xfree(incCritical_a); Memory::xfree(incCritRecov_a);
 		}
@@ -4217,37 +4188,37 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 	{
 		//// output infections by age and admin unit
 		outname = output_file_base + ".age.adunit.xls";
-		if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-		fprintf(dat, "t");
+		dat = Files::xfopen(outname.c_str(), "wb");
+		Files::xfprintf(dat, "t");
 
 		// colnames
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
+				Files::xfprintf(dat, "\tincInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// incidence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
+				Files::xfprintf(dat, "\tprevInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// prevalence
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				fprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
-		fprintf(dat, "\n");
+				Files::xfprintf(dat, "\tcumInf_AG_%i_%s", AgeGroup, AdUnits[AdUnit].ad_name);	// cumulative incidence
+		Files::xfprintf(dat, "\n");
 
 		// Populate
 		for (int Time = 0; Time < P.NumOutputTimeSteps; Time++)
 		{
-			fprintf(dat, "%.10f", c * TSMean[Time].t);
+			Files::xfprintf(dat, "%.10f", c * TSMean[Time].t);
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", c * TSMean[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
+					Files::xfprintf(dat, "\t%.10f", c * TSMean[Time].incInf_age_adunit[AgeGroup][AdUnit]);	// incidence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", c * TSMean[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
+					Files::xfprintf(dat, "\t%.10f", c * TSMean[Time].prevInf_age_adunit[AgeGroup][AdUnit]);	// prevalence
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 				for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-					fprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
-			fprintf(dat, "\n");
+					Files::xfprintf(dat, "\t%.10f", c * TSMean[Time].cumInf_age_adunit[AgeGroup][AdUnit]);	// cumulative incidence
+			Files::xfprintf(dat, "\n");
 		}
-		fclose(dat);
+		Files::xfclose(dat);
 	}
 
 }
@@ -4262,12 +4233,10 @@ void SaveRandomSeeds(std::string const& output_file_base)
 	 *
 	 * Author: ggilani, 09/03/17
 	 */
-	FILE* dat;
-
 	std::string outname = output_file_base + ".seeds.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-	fprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
-	fclose(dat);
+	FILE* dat = Files::xfopen(outname.c_str(), "wb");
+	Files::xfprintf(dat, "%i\t%i\n", P.nextRunSeed1, P.nextRunSeed2);
+	Files::xfclose(dat);
 }
 
 void SaveEvents(std::string const& output_file_base)
@@ -4281,22 +4250,20 @@ void SaveEvents(std::string const& output_file_base)
 	 * Author: ggilani, 15/10/2014
 	 */
 	int i;
-	FILE* dat;
-
+	
 	std::string outname = output_file_base + ".infevents.xls";
-	if (!(dat = fopen(outname.c_str(), "wb"))) ERR_CRITICAL("Unable to open output file\n");
-	fprintf(dat, "type,t,thread,ind_infectee,cell_infectee,listpos_infectee,adunit_infectee,x_infectee,y_infectee,t_infector,ind_infector,cell_infector\n");
+	FILE* dat = Files::xfopen(outname.c_str(), "wb");
+	Files::xfprintf(dat, "type,t,thread,ind_infectee,cell_infectee,listpos_infectee,adunit_infectee,x_infectee,y_infectee,t_infector,ind_infector,cell_infector\n");
 	for (i = 0; i < nEvents; i++)
 	{
-		fprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
+		Files::xfprintf(dat, "%i\t%.10f\t%i\t%i\t%i\t%i\t%i\t%.10f\t%.10f\t%.10f\t%i\t%i\n",
 			InfEventLog[i].type, InfEventLog[i].t, InfEventLog[i].thread, InfEventLog[i].infectee_ind, InfEventLog[i].infectee_cell, InfEventLog[i].listpos, InfEventLog[i].infectee_adunit, InfEventLog[i].infectee_x, InfEventLog[i].infectee_y, InfEventLog[i].t_infector, InfEventLog[i].infector_ind, InfEventLog[i].infector_cell);
 	}
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void LoadSnapshot(std::string const& snapshot_load_file)
 {
-	FILE* dat;
 	int i, j, * CellMemberArray, * CellSuscMemberArray;
 	int32_t l;
 	long long CM_offset, CSM_offset;
@@ -4304,8 +4271,8 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	int** Array_InvCDF;
 	float* Array_tot_prob, ** Array_cum_trans, ** Array_max_trans;
 
-	if (!(dat = fopen(snapshot_load_file.c_str(), "rb"))) ERR_CRITICAL("Unable to open snapshot file\n");
-	fprintf(stderr, "Loading snapshot.");
+	FILE* dat = Files::xfopen(snapshot_load_file.c_str(), "rb");
+	Files::xfprintf_stderr("Loading snapshot.");
 	Array_InvCDF = (int**)Memory::xcalloc(P.NumPopulatedCells, sizeof(int*));
 	Array_max_trans = (float**)Memory::xcalloc(P.NumPopulatedCells, sizeof(float*));
 	Array_cum_trans = (float**)Memory::xcalloc(P.NumPopulatedCells, sizeof(float*));
@@ -4318,37 +4285,37 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 		Array_tot_prob[i] = Cells[i].tot_prob;
 	}
 
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
-	fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
-	fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
-	fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
-	fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.ModelTimeStep) ERR_CRITICAL("Incorrect ModelTimeStep in snapshot file.\n");
-	fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.PopSize) ERR_CRITICAL_FMT("Incorrect N (%i %i) in snapshot file.\n", P.PopSize, i);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumHouseholds) ERR_CRITICAL("Incorrect NH in snapshot file.\n");
+	Files::fread_big((void*)&i, sizeof(int), 1, dat); if (i != P.NumCells) ERR_CRITICAL_FMT("## %i neq %i\nIncorrect NC in snapshot file.", i, P.NumCells);
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.NumPopulatedCells) ERR_CRITICAL("Incorrect NCP in snapshot file.\n");
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.ncw) ERR_CRITICAL("Incorrect ncw in snapshot file.\n");
+	Files::fread_big((void*)& i, sizeof(int), 1, dat); if (i != P.nch) ERR_CRITICAL("Incorrect nch in snapshot file.\n");
+	Files::fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed1) ERR_CRITICAL("Incorrect setupSeed1 in snapshot file.\n");
+	Files::fread_big((void*)& l, sizeof(int32_t), 1, dat); if (l != P.setupSeed2) ERR_CRITICAL("Incorrect setupSeed2 in snapshot file.\n");
+	Files::fread_big((void*)& t, sizeof(double), 1, dat); if (t != P.ModelTimeStep) ERR_CRITICAL("Incorrect ModelTimeStep in snapshot file.\n");
+	Files::fread_big((void*) & (P.SnapshotLoadTime), sizeof(double), 1, dat);
 	P.NumOutputTimeSteps = 1 + (int)ceil((P.SimulationDuration - P.SnapshotLoadTime) / P.OutputTimeStep);
-	fprintf(stderr, ".");
-	fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)& CellSuscMemberArray, sizeof(int*), 1, dat);
-	fprintf(stderr, ".");
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)& CellMemberArray, sizeof(int*), 1, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)& CellSuscMemberArray, sizeof(int*), 1, dat);
+	Files::xfprintf_stderr(".");
 	CM_offset = State.CellMemberArray - CellMemberArray;
 	CSM_offset = State.CellSuscMemberArray - CellSuscMemberArray;
 
-	fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
-	fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, ".");
+	Files::fread_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::xfprintf_stderr(".");
+	Files::fread_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::xfprintf_stderr(".");
 	for (i = 0; i < P.NumCells; i++)
 	{
 		if (Cells[i].n > 0)
@@ -4375,58 +4342,57 @@ void LoadSnapshot(std::string const& snapshot_load_file)
 	Memory::xfree(Array_cum_trans);
 	Memory::xfree(Array_max_trans);
 	Memory::xfree(Array_InvCDF);
-	fprintf(stderr, "\n");
-	fclose(dat);
+	Files::xfprintf_stderr("\n");
+	Files::xfclose(dat);
 }
 
 void SaveSnapshot(std::string const& snapshot_save_file)
 {
-	FILE* dat;
 	int i = 1;
 
-	if (!(dat = fopen(snapshot_save_file.c_str(), "wb"))) ERR_CRITICAL("Unable to open snapshot file\n");
+	FILE* dat = Files::xfopen(snapshot_save_file.c_str(), "wb");
 
-	fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.NumPopulatedCells), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.ModelTimeStep), sizeof(double), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
-	fprintf(stderr, "## %i\n", i++);
+	Files::fwrite_big((void*) & (P.PopSize), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.NumHouseholds), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.NumCells), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.NumPopulatedCells), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.ncw), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.nch), sizeof(int), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.setupSeed1), sizeof(int32_t), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.setupSeed2), sizeof(int32_t), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.ModelTimeStep), sizeof(double), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (P.SnapshotSaveTime), sizeof(double), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (State.CellMemberArray), sizeof(int*), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*) & (State.CellSuscMemberArray), sizeof(int*), 1, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
 
-	fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
+	Files::fwrite_big((void*)Hosts, sizeof(Person), (size_t)P.PopSize, dat);
 
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
-	fprintf(stderr, "## %i\n", i++);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*)Households, sizeof(Household), (size_t)P.NumHouseholds, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*)Cells, sizeof(Cell), (size_t)P.NumCells, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*)Mcells, sizeof(Microcell), (size_t)P.NumMicrocells, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
 
-	fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, "## %i\n", i++);
-	fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
-	fprintf(stderr, "## %i\n", i++);
+	Files::fwrite_big((void*)State.CellMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
+	Files::fwrite_big((void*)State.CellSuscMemberArray, sizeof(int), (size_t)P.PopSize, dat);
+	Files::xfprintf_stderr("## %i\n", i++);
 
-	fclose(dat);
+	Files::xfclose(dat);
 }
 
 void UpdateProbs(int DoPlace)
@@ -4592,7 +4558,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants.
 				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
 					P.PlaceCloseDuration = P.PC_ChangeTimes[ChangeTime + 1] - P.PC_ChangeTimes[ChangeTime]; // -1;
-				//fprintf(stderr, "\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
+				//Files::xfprintf_stderr("\nt=%lf, n=%i (%i)  PlaceCloseDuration = %lf  (%lf) \n", t, ChangeTime, P.Num_PC_ChangeTimes, P.PlaceCloseDuration, P.PC_ChangeTimes[ChangeTime+1]);
 			}
 	}
 
@@ -4655,26 +4621,22 @@ void RecordQuarNotInfected(int n, unsigned short int ts)
 
 void RecordSample(double t, int n, std::string const& output_file_base)
 {
-	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC, cumTG, cumSI, nTG;
-	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
-	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
-	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases;
+	int j, k, S = 0, L = 0, I = 0, R = 0, D = 0, N, cumC = 0, cumTC = 0, cumI = 0, cumR, cumD = 0, cumDC = 0, cumFC = 0, cumTG = 0, cumSI = 0, nTG = 0;
+	int cumCT = 0; //added cumulative number of contact traced: ggilani 15/06/17
+	int cumCC = 0; //added cumulative number of cases who are contacts: ggilani 28/05/2019
+	int cumDCT = 0; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
+	int cumHQ = 0, cumAC = 0, cumAH = 0, cumAA = 0, cumACS = 0, cumAPC = 0, cumAPA = 0, cumAPCS = 0, numPC, trigDetectedCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	unsigned short int ts;
+	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// Severity quantities
-	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
-
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	int Mild = 0, ILI = 0, SARI = 0, Critical = 0, CritRecov = 0, cumMild = 0, cumILI = 0, cumSARI = 0, cumCritical = 0;
+	int cumCritRecov = 0, cumDeath_ILI = 0, cumDeath_SARI = 0, cumDeath_Critical = 0;
 
 	//// initialize to zero
-	S = L = I = R = D = cumI = cumC = cumDC = cumTC = cumFC = cumHQ = cumAC = cumAA = cumAH = cumACS
-		= cumAPC = cumAPA = cumAPCS = cumD = cumCT = cumCC = cumDCT = cumTG = cumSI = nTG = 0;
-	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
-	if (P.DoSeverity)
-		Mild = ILI = SARI = Critical = CritRecov = cumMild = cumILI = cumSARI = cumCritical = cumCritRecov = cumDeath_ILI = cumDeath_SARI = cumDeath_Critical = 0;
 
+	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
+	
 #pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
 		shared(P, CellLookup)
 	for (int i = 0; i < P.NumPopulatedCells; i++)
@@ -4691,7 +4653,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	cumD = D;
 	//cumD = 0;
 	N = S + L + I + R + D;
-	if (N != P.PopSize) fprintf(stderr, "## %i #\n", P.PopSize - N);
+	if (N != P.PopSize) Files::xfprintf_stderr("## %i #\n", P.PopSize - N);
 	State.sumRad2 = 0;
 	for (j = 0; j < P.NumThreads; j++)
 	{
@@ -4780,7 +4742,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 		TimeSeries[n].meanTG = P.ModelTimeStep * ((double)cumTG) / ((double)nTG);
 		TimeSeries[n].meanSI = P.ModelTimeStep * ((double)cumSI) / ((double)nTG);
 	}
-	//fprintf(stderr, "\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
+	//Files::xfprintf_stderr("\ncumD=%i last_cumD=%i incD=%lg\n ", cumD, State.cumD, TimeSeries[n].incD);
 	//incidence per country
 	for (int i = 0; i < MAX_COUNTRIES; i++) TimeSeries[n].incC_country[i] = (double)(_I64(cumC_country[i]) - State.cumC_country[i]);
 	if (P.DoICUTriggers)
@@ -5153,7 +5115,7 @@ void CalibrationThresholdCheck(double t,int n)
 				if (P.DateTriggerReached_CalTime >= 0)
 				{
 					P.HolidaysStartDay_SimTime = P.DateTriggerReached_SimTime - P.Interventions_StartDate_CalTime; /// initialize holiday offset to time difference between DateTriggerReached_SimTime and day of year interventions start.
-//					fprintf(stderr, "@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
+//					Files::xfprintf_stderr("@@## trigAlertCases=%i P.HolidaysStartDay_SimTime=%lg \n",trigAlertCases, P.HolidaysStartDay_SimTime);
 				}
 			}
 			if ((P.DateTriggerReached_CalTime >= 0) && (!P.DoAlertTriggerAfterInterv) && (P.InitialInfectionCalTime <= 0))
@@ -5168,8 +5130,8 @@ void CalibrationThresholdCheck(double t,int n)
 					RatioPredictedObserved = ((double)trigAlert)/((double)P.AlertTriggerAfterIntervThreshold);
 					DesiredAccuracy = 1.1 / sqrt((double)P.AlertTriggerAfterIntervThreshold);
 					if (DesiredAccuracy < 0.05) DesiredAccuracy = 0.05;
-					fprintf(stderr, "\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime, RatioPredictedObserved);
-					fprintf(stderr, "| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
+					Files::xfprintf_stderr("\n** %i %lf %lf | %lg / %lg \t", P.ModelCalibIteration, t, P.DateTriggerReached_SimTime + P.DateTriggerReached_CalTime - P.Interventions_StartDate_CalTime, P.HolidaysStartDay_SimTime, RatioPredictedObserved);
+					Files::xfprintf_stderr("| %i %i %i %i -> ", trigAlert, trigAlertCases, P.AlertTriggerAfterIntervThreshold, P.CaseOrDeathThresholdBeforeAlert);
 
 					if (P.InitialInfectionCalTime > 0)
 					{
@@ -5214,10 +5176,10 @@ void CalibrationThresholdCheck(double t,int n)
 						}
 					}
 					P.ModelCalibIteration++;
-					fprintf(stderr, "%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
+					Files::xfprintf_stderr("%i : %lg\n", P.CaseOrDeathThresholdBeforeAlert, P.SeedingScaling);
 
 					if(P.StopCalibration)
-						fprintf(stderr, "Calibration ended.\n");
+						Files::xfprintf_stderr("Calibration ended.\n");
 					else
 						InterruptRun = 1;
 				}
@@ -5276,7 +5238,7 @@ void CalibrationThresholdCheck(double t,int n)
 		}
 		else
 		{
-		    DO_OR_DONT_AMEND_START_TIME(P.TreatTimeStart, t + P.TreatTimeStartBase);
+		  DO_OR_DONT_AMEND_START_TIME(P.TreatTimeStart, t + P.TreatTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.VaccTimeStart	, t + P.VaccTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.SocDistTimeStart, t + P.SocDistTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
@@ -5314,7 +5276,7 @@ void CalibrationThresholdCheck(double t,int n)
 			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseDuration) &&	//// if now after previous place closure period has finished AND
 			(t >= P.PlaceCloseTimeStartPrevious + P.PlaceCloseTimeStartBase2 - P.PlaceCloseTimeStartBase))	//// if now after previous start time + plus difference between 1st and 2nd base start times
 		{
-			fprintf(stderr, "\nSecond place closure period (t=%lg)\n", t);
+			Files::xfprintf_stderr("\nSecond place closure period (t=%lg)\n", t);
 			P.PlaceCloseTimeStartPrevious = P.PlaceCloseTimeStart2 = P.PlaceCloseTimeStart = t;
 			P.PlaceCloseDuration = P.PlaceCloseDuration2;
 			P.PlaceCloseIncTrig = P.PlaceCloseIncTrig2;
@@ -5333,21 +5295,21 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 	if (!DataAlreadyRead)
 	{
 		char FieldName[1024];
-		if (!(dat = fopen(DataFile.c_str(), "r"))) ERR_CRITICAL("Unable to open data file\n");
+		dat = Files::xfopen(DataFile.c_str(), "r");
 		// Extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution, from Data file
-		fscanf(dat, "%i %i %lg", &nrows, &ncols, &NegBinK);
+		Files::xfscanf(dat, 3, "%i %i %lg", &nrows, &ncols, &NegBinK);
 
 		// allocate memory
-		if (!(ColTypes = (int*)calloc(ncols, sizeof(int)))) ERR_CRITICAL("Unable to allocate data file storage\n");
-		if (!(Data = (double**)calloc(nrows, sizeof(double *)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+		ColTypes = (int*) Memory::xcalloc(ncols, sizeof(int));
+		Data = (double**) Memory::xcalloc(nrows, sizeof(double *));
 		for (int i = 0; i < nrows; i++)
-			if (!(Data[i] = (double*)calloc(ncols, sizeof(double)))) ERR_CRITICAL("Unable to allocate data file storage\n");
+			Data[i] = (double*) Memory::xcalloc(ncols, sizeof(double));
 
 		// cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
 		for (int i = 0; i < ncols; i++)
 		{
 			ColTypes[i] = -100;
-			fscanf(dat, "%s", FieldName);
+			Files::xfscanf(dat, 1, "%s", FieldName);
 			if (!strcmp(FieldName, "day"))
 			{
 				ColTypes[i] = -1;
@@ -5378,8 +5340,8 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		// extract data into Data array.
 		for (int i = 0; i < nrows; i++)
 			for (int j = 0; j < ncols; j++)
-				fscanf(dat, "%lg", &(Data[i][j]));
-		fclose(dat);
+				Files::xfscanf(dat, 1, "%lg", &(Data[i][j]));
+		Files::xfclose(dat);
 		DataAlreadyRead = 1;
 	}
 
@@ -5464,7 +5426,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 			}
 		}
 	}
-	fprintf(stderr, "Log-likelihood = %lg\n", LL);
+	Files::xfprintf_stderr("Log-likelihood = %lg\n", LL);
 	if (run == 0)
 		sumL = LL;
 	else
@@ -5479,10 +5441,10 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 		LL = sumL - log((double)P.NumRealisations);
 		std::string TmpFile = OutFileBase + ".ll.tmp";
 		std::string OutFile = OutFileBase + ".ll.txt";
-		if (!(dat = fopen(TmpFile.c_str(), "w"))) ERR_CRITICAL("Unable to open likelihood file\n");
-		fprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
-		fclose(dat);
-		rename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
+		dat = Files::xfopen(TmpFile.c_str(), "w");
+		Files::xfprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
+		Files::xfclose(dat);
+		Files::xrename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
 	}
 }
 
@@ -5828,7 +5790,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 
 	n = 0;
 	fseek(dat, 0, 0);
-	sprintf(ItemName, "[%s]", SItemName);
+	Files::xsprintf(ItemName, "[%s]", SItemName);
 	while (!FindFlag)
 	{
 		if(!readString(SItemName, dat, match)) return 0;
@@ -5863,7 +5825,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 		{
 			if (NumItem == 1)
 			{
-				if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+				Files::xfscanf(dat, 1, "%s", match);
 				if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 				{
 					int cln;
@@ -5883,24 +5845,24 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 					else if (n == 2)
 						*((int*)ItemPtr) = (int)P.clP[cln];
 					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
+						Files::xsscanf(match, 1, "%s", (char*)ItemPtr);
 				}
 				else if ((match[0] != '[') && (!feof(dat)))
 				{
 					FindFlag++;
 					if (n == 1)
-						sscanf(match, "%lf", (double*)ItemPtr);
+						Files::xsscanf(match, 1, "%lf", (double*)ItemPtr);
 					else if (n == 2)
-						sscanf(match, "%i", (int*)ItemPtr);
+						Files::xsscanf(match, 1, "%i", (int*)ItemPtr);
 					else if (n == 3)
-						sscanf(match, "%s", (char*)ItemPtr);
+						Files::xsscanf(match, 1, "%s", (char*)ItemPtr);
 				}
 			}
 			else
 			{
 				for (CurPos = 0; CurPos < NumItem; CurPos++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					Files::xfscanf(dat, 1, "%s", match);
 					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						int cln;
@@ -5932,17 +5894,17 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 							}
 						}
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else if ((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double*)ItemPtr) + CurPos + Offset);
+							Files::xsscanf(match, 1, "%lf", ((double*)ItemPtr) + CurPos + Offset);
 						else if (n == 2)
-							sscanf(match, "%i", ((int*)ItemPtr) + CurPos + Offset);
+							Files::xsscanf(match, 1, "%i", ((int*)ItemPtr) + CurPos + Offset);
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else
 						CurPos = NumItem;
@@ -5955,7 +5917,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			{ //added these braces
 				for (i = 0; i < NumItem2; i++)
 				{
-					if(fscanf(dat, "%s", match) != 1) { ERR_CRITICAL_FMT("fscanf failed for %s\n", SItemName); }
+					Files::xfscanf(dat, 1, "%s", match);
 					if ((match[0] == '#') && (match[1] >= '0') && (match[1] <= '9'))
 					{
 						FindFlag++;
@@ -5987,15 +5949,15 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 							}
 						}
 						else if (n == 3)
-							sscanf(match, "%s", *(((char**)ItemPtr) + CurPos + Offset));
+							Files::xsscanf(match, 1, "%s", *(((char**)ItemPtr) + CurPos + Offset));
 					}
 					else if((match[0] != '[') && (!feof(dat)))
 					{
 						FindFlag++;
 						if (n == 1)
-							sscanf(match, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
+							Files::xsscanf(match, 1, "%lf", ((double**)ItemPtr)[j + Offset] + i + Offset);
 						else
-							sscanf(match, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
+							Files::xsscanf(match, 1, "%i", ((int**)ItemPtr)[j + Offset] + i + Offset);
 					}
 					else
 					{
@@ -6007,7 +5969,7 @@ int GetInputParameter3(FILE* dat, const char* SItemName, const char* ItemType, v
 			}
 		}
 	}
-	//	fprintf(stderr,"%s\n",SItemName);
+	//	Files::xfprintf_stderr(,"%s\n",SItemName);
 	return FindFlag;
 }
 

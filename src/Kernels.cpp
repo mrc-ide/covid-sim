@@ -1,8 +1,8 @@
 #include <cmath>
-#include <iostream>
 #include "Kernels.h"
 #include "Error.h"
 #include "Dist.h"
+#include "Files.h"
 
 using namespace CovidSim::TBD1;
 
@@ -110,7 +110,7 @@ double KernelLookup::num(double r2) const
 	double t = r2 / delta_;
 	if (t > size_)
 	{
-		fprintf(stderr, "** %lg  %lg  %lg**\n", r2, delta_, t);
+		Files::xfprintf_stderr("** %lg  %lg  %lg**\n", r2, delta_, t);
 		ERR_CRITICAL("r too large in NumKernel\n");
 	}
 

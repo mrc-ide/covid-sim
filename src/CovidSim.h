@@ -13,7 +13,6 @@
 #endif
 
 #include <climits>
-#include <cstdio>
 #include <cstdlib>
 #include <cstddef>
 
@@ -24,6 +23,7 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "Files.h"
 
 int ChooseTriggerVariableAndValue(int AdUnit);
 double ChooseThreshold(int AdUnit, double WhichThreshold);

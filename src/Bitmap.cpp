@@ -1,11 +1,9 @@
 #include <cerrno>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
 
-#include "BinIO.h"
 #include "Bitmap.h"
 #include "Error.h"
 #include "Param.h"
@@ -135,16 +133,16 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 #ifdef IMAGE_MAGICK
 	  FILE* dat;
 	  using namespace Magick;
-	  fprintf(stderr, "\noutputing ImageMagick stuff");
-	  sprintf(buf, "%s.bmp", OutF);
-	  if (!(dat = fopen(buf, "wb"))) ERR_CRITICAL("Unable to open bitmap file\n");
-	  fprintf(dat, "BM");
+	  Files::xfprintf_stderr("\noutputing ImageMagick stuff");
+	  Files::xsprintf(buf, "%s.bmp", OutF);
+	  dat = Files::xfopen(buf, "wb");
+	  Files::xfprintf(dat, "BM");
 	  //fwrite_big((void *) &bmf,sizeof(unsigned char),(sizeof(bitmap_header)/sizeof(unsigned char))+bmh->imagesize,dat);
-	  fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
+	  Files::fwrite_big((void*)bmf, sizeof(bitmap_header), 1, dat);
 	  for (int i = 0; i < bmh->imagesize; i++) fputc(bmPixels[i], dat);
-	  fclose(dat);
+	  Files::xfclose(dat);
 	  Image bmap(buf);
-	  sprintf(buf, "%s.%d.png", OutF, j);
+	  Files::xsprintf(buf, "%s.%d.png", OutF, j);
 	  ColorRGB white(1.0, 1.0, 1.0);
 	  bmap.transparent(white);
 	  bmap.write(buf);
@@ -173,38 +171,31 @@ void OutputBitmap(int tp, std::string const& output_file_base)
 		  gdip_bmp->SetPalette(palette);
 	  }
 	  //Now save as png
-	  sprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
+	  Files::xsprintf(buf, "%s.%05i.png", OutF.c_str(), j + 1); //sprintf(buf,"%s.ge" DIRECTORY_SEPARATOR "%s.%05i.png",OutFileBase.c_str(),OutF.c_str(),j+1);
 	  mbstowcs_s(&a, wbuf, strlen(buf) + 1, buf, _TRUNCATE);
 	  gdip_bmp->Save(wbuf, &encoderClsid, NULL);
 	  delete gdip_bmp;
 #else
-	  fprintf(stderr, "Do not know how to output PNG\n");
+	  Files::xfprintf_stderr("Do not know how to output PNG\n");
 #endif
 	}
 	else if (P.BitmapFormat == BitmapFormats::BMP) {
-	  sprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
-	  FILE* dat;
-	  if (!(dat = fopen(buf, "wb"))) {
-	    char* errMsg = strerror(errno);
-	    if (errMsg == nullptr) {
-	      ERR_CRITICAL("strerror failed.\n");
-	    }
-	    ERR_CRITICAL_FMT("Unable to open bitmap file %s (%d): %s\n", buf, errno, errMsg);
-	  }
-	  fprintf(dat, "BM");
-	  fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
-	  fclose(dat);
+	  Files::xsprintf(buf, "%s.%05i.bmp", OutF.c_str(), j);
+	  FILE* dat = Files::xfopen(buf, "wb");
+	  Files::xfprintf(dat, "BM");
+		Files::fwrite_big((void*)bmf, sizeof(unsigned char), sizeof(BitmapHeader) / sizeof(unsigned char) + bmh->imagesize, dat);
+	  Files::xfclose(dat);
 	}
 	else
 	{
-	  fprintf(stderr, "Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
+	  Files::xfprintf_stderr("Unknown Bitmap format: %d\n", (int)P.BitmapFormat);
 	}
 }
 void InitBMHead(std::string const& out_file_base)
 {
 	int i, j, k, k2, value;
 
-	fprintf(stderr, "Initialising bitmap\n");
+	Files::xfprintf_stderr("Initialising bitmap\n");
 	k = P.b.width * P.bheight2;
 	k2 = sizeof(BitmapHeader) / sizeof(unsigned char);
 
@@ -283,11 +274,11 @@ void InitBMHead(std::string const& out_file_base)
 #endif
 
 	char buf[1024+3];
-	sprintf(buf, "%s.ge", out_file_base.c_str());
+	Files::xsprintf(buf, "%s.ge", out_file_base.c_str());
 #ifdef _WIN32
-	if (!(CreateDirectory(buf, NULL))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(CreateDirectory(buf, NULL))) Files::xfprintf_stderr("Unable to create directory %s\n", buf);
 #else
-	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) fprintf(stderr, "Unable to create directory %s\n", buf);
+	if (!(mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))) Files::xfprintf_stderr("Unable to create directory %s\n", buf);
 #endif
 }
 
