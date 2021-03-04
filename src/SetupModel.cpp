@@ -589,12 +589,16 @@ void ResetTimeSeries()
 
 int ReadFitIter(std::string const& FitFile)
 {
+	// Compare with functions CovidSimMCMC::StartJobs and CovidSimMCMC::EndJobs
+
 	FILE* FitFile_Iter_dat;
-	int i, n, cl_index[100];
+	int PosteriorSampleNumber, NumFittedParams, cl_index[100];
 	double Clock_1, Clock_2;
 
-	std::string fit_file_iter = FitFile + ".f" + std::to_string(P.FitIter) + ".txt";
+	std::string fit_file_iter_filename = FitFile + ".f" + std::to_string(P.FitIter) + ".txt";
 	P.clP[99] = -1; // CLP #99 reserved for fitting overdispersion in likelihood.
+
+	// Have program wait (indefinitely) until FitFile_Iter_dat / fit_file_iter_filename appears.
 	do
 	{
 		Clock_1 = ((double) clock()) / CLOCKS_PER_SEC;
@@ -603,21 +607,28 @@ int ReadFitIter(std::string const& FitFile)
 			Clock_2 = ((double)clock()) / CLOCKS_PER_SEC;
 		}
 		while ((Clock_2 > Clock_1) && (Clock_2 < Clock_1 + 1.0)); // first condition by definition true on first go of inner do-while, won't be true for very long if inner do-while not called and Clock_2 not reset, which it will be if more than 1 second has elapsed between setting of Clock_2 and resetting of Clock_1. 
-	} while (!(FitFile_Iter_dat = Files::xfopen_if_exists(fit_file_iter.c_str(), "r"))); // if fit_file_iter exists, proceed. Otherwise go through outer and inner do-while's again. 
+	} while (!(FitFile_Iter_dat = Files::xfopen_if_exists(fit_file_iter_filename.c_str(), "r"))); // if fit_file_iter_filename exists, proceed. Otherwise go through outer and inner do-while's again. 
 
-	// Extract iteration number and number of parameter numbers to fit from FitFile_Iter_dat
-	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &i, &n);
-	if (n <= 0)
-		Files::xfprintf_stderr("Stop code read from file (iteration number <=0)\n");
-	else if (i != P.FitIter)
-		Files::xfprintf_stderr("Warning: iteration number %i in %s does not match file name iteration %i\n", i, fit_file_iter.c_str(), P.FitIter);
-	if (n > 0)
+	// Extract iteration number and number of fitted parameters from FitFile_Iter_dat
+	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &PosteriorSampleNumber, &NumFittedParams);
+
+	// Output any errors to stderrr.
+	// NumFittedParams < 0 is flag set in CovidSimMCMC::EndJobs.
+	if (NumFittedParams <= 0)
+		Files::xfprintf_stderr("Stop code read from file (NumFittedParams <= 0)\n");
+	else if (PosteriorSampleNumber != P.FitIter)
+		Files::xfprintf_stderr("Warning: iteration number %i in %s does not match file name iteration %i\n", PosteriorSampleNumber, fit_file_iter_filename.c_str(), P.FitIter);
+
+	// assign proposed parameter set from CovidSimMCMC fitfile to parameters in CovidSim.
+	if (NumFittedParams > 0) // i.e. if 
 	{
-		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[index])		); // extract indices of parameters to fit
-		for (int index = 0; index < n; index++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg"	, &P.clP[cl_index[index]]	); // update values in clP array at those indices
+		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[ParamNum])		); // extract indices of parameters to fit
+		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg", &P.clP[cl_index[ParamNum]]); // update values in clP array at those indices
 	}																						
 	Files::xfclose(FitFile_Iter_dat);
-	return (n > 0) ? 0 : 1; // continue fitting (0) or stop (1)
+
+	// continue fitting (0) or stop (1)
+	return (NumFittedParams > 0) ? 0 : 1;
 }
 
 void InitTransmissionCoeffs(void)
