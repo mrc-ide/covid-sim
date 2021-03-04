@@ -1,7 +1,6 @@
 #include <climits>
 #include <cmath>
 #include <cstdlib>
-#include <cstdio>
 
 #include "CalcInfSusc.h"
 #include "Dist.h"

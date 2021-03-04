@@ -4614,26 +4614,22 @@ void RecordQuarNotInfected(int n, unsigned short int ts)
 
 void RecordSample(double t, int n, std::string const& output_file_base)
 {
-	int j, k, S, L, I, R, D, N, cumC, cumTC, cumI, cumR, cumD, cumDC, cumFC, cumTG, cumSI, nTG;
-	int cumCT; //added cumulative number of contact traced: ggilani 15/06/17
-	int cumCC; //added cumulative number of cases who are contacts: ggilani 28/05/2019
-	int cumDCT; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
-	int cumHQ, cumAC, cumAH, cumAA, cumACS, cumAPC, cumAPA, cumAPCS, numPC, trigDetectedCases;
+	int j, k, S = 0, L = 0, I = 0, R = 0, D = 0, N, cumC = 0, cumTC = 0, cumI = 0, cumR, cumD = 0, cumDC = 0, cumFC = 0, cumTG = 0, cumSI = 0, nTG = 0;
+	int cumCT = 0; //added cumulative number of contact traced: ggilani 15/06/17
+	int cumCC = 0; //added cumulative number of cases who are contacts: ggilani 28/05/2019
+	int cumDCT = 0; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
+	int cumHQ = 0, cumAC = 0, cumAH = 0, cumAA = 0, cumACS = 0, cumAPC = 0, cumAPA = 0, cumAPCS = 0, numPC, trigDetectedCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	unsigned short int ts;
+	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// Severity quantities
-	int Mild, ILI, SARI, Critical, CritRecov, cumMild, cumILI, cumSARI, cumCritical, cumCritRecov, cumDeath_ILI, cumDeath_SARI, cumDeath_Critical;
-
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	int Mild = 0, ILI = 0, SARI = 0, Critical = 0, CritRecov = 0, cumMild = 0, cumILI = 0, cumSARI = 0, cumCritical = 0;
+	int cumCritRecov = 0, cumDeath_ILI = 0, cumDeath_SARI = 0, cumDeath_Critical = 0;
 
 	//// initialize to zero
-	S = L = I = R = D = cumI = cumC = cumDC = cumTC = cumFC = cumHQ = cumAC = cumAA = cumAH = cumACS
-		= cumAPC = cumAPA = cumAPCS = cumD = cumCT = cumCC = cumDCT = cumTG = cumSI = nTG = 0;
-	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
-	if (P.DoSeverity)
-		Mild = ILI = SARI = Critical = CritRecov = cumMild = cumILI = cumSARI = cumCritical = cumCritRecov = cumDeath_ILI = cumDeath_SARI = cumDeath_Critical = 0;
 
+	for (int i = 0; i < MAX_COUNTRIES; i++) cumC_country[i] = 0;
+	
 #pragma omp parallel for schedule(static,10000) reduction(+:S,L,I,R,D,cumTC) default(none) \
 		shared(P, CellLookup)
 	for (int i = 0; i < P.NumPopulatedCells; i++)
