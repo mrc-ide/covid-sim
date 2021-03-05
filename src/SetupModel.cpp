@@ -589,6 +589,12 @@ void ResetTimeSeries()
 
 int ReadFitIter(std::string const& FitFile)
 {
+	/*
+	Purpose of this function is:
+		i) read and return a flag from FitFile determining whether to continue fitting;
+		ii) if continuing fitting, to amend parameters (via command line params P.clP) from a fit file (for a particular iteration/update/proposed posterior sample from CovidSimMCMC)
+	*/
+
 	// Compare with functions CovidSimMCMC::StartJobs and CovidSimMCMC::EndJobs
 
 	FILE* FitFile_Iter_dat;
@@ -609,7 +615,7 @@ int ReadFitIter(std::string const& FitFile)
 		while ((Clock_2 > Clock_1) && (Clock_2 < Clock_1 + 1.0)); // first condition by definition true on first go of inner do-while, won't be true for very long if inner do-while not called and Clock_2 not reset, which it will be if more than 1 second has elapsed between setting of Clock_2 and resetting of Clock_1. 
 	} while (!(FitFile_Iter_dat = Files::xfopen_if_exists(fit_file_iter_filename.c_str(), "r"))); // if fit_file_iter_filename exists, proceed. Otherwise go through outer and inner do-while's again. 
 
-	// Extract iteration number and number of fitted parameters from FitFile_Iter_dat
+	// Extract iteration/posterior sample number, and number of fitted parameters from FitFile_Iter_dat
 	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &PosteriorSampleNumber, &NumFittedParams);
 
 	// Output any errors to stderrr.
@@ -620,10 +626,10 @@ int ReadFitIter(std::string const& FitFile)
 		Files::xfprintf_stderr("Warning: iteration number %i in %s does not match file name iteration %i\n", PosteriorSampleNumber, fit_file_iter_filename.c_str(), P.FitIter);
 
 	// assign proposed parameter set from CovidSimMCMC fitfile to parameters in CovidSim.
-	if (NumFittedParams > 0) // i.e. if 
+	if (NumFittedParams > 0)
 	{
-		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[ParamNum])		); // extract indices of parameters to fit
-		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg", &P.clP[cl_index[ParamNum]]); // update values in clP array at those indices
+		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%i"	, &(cl_index[ParamNum])		); // extract indices of parameters to fit (GlobalID and LocalID in CovidSimMCMC)
+		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg", &P.clP[cl_index[ParamNum]]); // update values in clP array at those indices (proposedParams[Region][Run][ParamNumber] in CovidSimMCMC)
 	}																						
 	Files::xfclose(FitFile_Iter_dat);
 

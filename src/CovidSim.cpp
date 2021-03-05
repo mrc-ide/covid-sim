@@ -2025,7 +2025,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.DCT_MaxToTrace_OverTime				[DCT_ChangeTime] = P.DCT_MaxToTrace_OverTime			[P.Num_DCT_ChangeTimes - 1];
 		}
 	}
-	if(P.FitIter==0)
+	if(P.FitIter == 0)
 	{
 		if (P.DoPlaces)
 		{
