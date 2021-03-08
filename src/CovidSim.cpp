@@ -1189,7 +1189,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*)&(P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
 	if (P.DoSeverity)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleIFR), 1, 1, 0)) P.ScaleIFR = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleSymptProportions), 1, 1, 0)) P.ScaleSymptProportions = 1.0;
 		//// Means for icdf's.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
@@ -1296,8 +1296,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		//Add param to allow severity to be uniformly scaled up or down.
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 		{
-			P.Prop_SARI_ByAge[i] *= P.ScaleIFR;
-			P.Prop_Critical_ByAge[i] *= P.ScaleIFR;
+			P.Prop_SARI_ByAge[i] *= P.ScaleSymptProportions;
+			P.Prop_Critical_ByAge[i] *= P.ScaleSymptProportions;
 			P.Prop_ILI_ByAge[i] = 1.0 - P.Prop_Mild_ByAge[i] - P.Prop_SARI_ByAge[i] - P.Prop_Critical_ByAge[i];
 		}
 	}

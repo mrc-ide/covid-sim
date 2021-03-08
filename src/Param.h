@@ -51,7 +51,7 @@ struct Param
 	void *clP_ptr[100][MAX_CLP_COPIES];
 	int NumCells; /**< Number of cells  */
 	int NumMicrocells; /**< Number of microcells  */
-	int NMCL; /**< Number of microcells wide/high a cell is; i.e. NMC = NC * NMCL * NMCL */
+	int NMCL; /**< Number of microcells wide/high a cell is; i.e. NumMicrocells = NumCells * NMCL * NMCL */
 	int NumPopulatedCells; /**< Number of populated cells  */
 	int NumPopulatedMicrocells; /**< Number of populated microcells  */
 	int ncw, nch, DoUTM_coords, nsp, DoSeasonality, DoCorrectAgeDist, DoPartialImmunity;
@@ -157,10 +157,14 @@ struct Param
 	double PropAgeGroup[MAX_ADUNITS][NUM_AGE_GROUPS], PopByAdunit[MAX_ADUNITS][2];
 	double InvLifeExpecDist[MAX_ADUNITS][1001];
 
-	double ScaleIFR;
+	/**< ScaleSymptProportions Scales Prop_SARI_ByAge and Prop_Critical_ByAge. */
+	/**< leaves Prop_Mild_ByAge as it is and re-calculates Prop_ILI_ByAge accordingly (as Prop_Mild_ByAge + Prop_ILI_ByAge + Prop_SARI_ByAge + Prop_Critical_ByAge sum to 1). */
+	/**< Case Fataly Ratios (CFRs) for ILI, SARI, and Critical unchanged, but still ScaleSymptProportions scales IFR indirectly*/
+	/**< Used to (crudely) scale IFR, e.g. for a particular geography, or time period.*/
+	double ScaleSymptProportions;
+
 
 	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
-	
 	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
 	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, StepdownToDeath_icdf, CriticalToDeath_icdf;
 	/// means for above icdf's.

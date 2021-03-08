@@ -42,8 +42,7 @@ POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits 
 ## POLYMOD Contact Matrix - excluding household, school and workplace contacts. CovidSim interprets this as "spatial" or "community" contacts.
 POLYMOD_UK 		= contact_matrix(polymod, countries = "United Kingdom", age.limits = Ages, filter = list(cnt_home = 0, cnt_school = 0, cnt_work = 0))
 WAIFW_Matrix 	= POLYMOD_UK$matrix
-## contact_matrix only returns as high as 75+. CovidSim wants 75-80 and 80+.
-## For now assume that [75,80) = 80+ = 75+. Check this
+## contact_matrix only returns as high as 75+. CovidSim wants 75-80 and 80+. Assume that [75,80) = 80+ = 75+. 
 WAIFW_Matrix = rbind(WAIFW_Matrix, WAIFW_Matrix[nrow(WAIFW_Matrix),]) # add row to WAIFW_Matrix
 WAIFW_Matrix = cbind(WAIFW_Matrix, WAIFW_Matrix[,ncol(WAIFW_Matrix)]) # add col to WAIFW_Matrix
 
