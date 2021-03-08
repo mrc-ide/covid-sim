@@ -362,16 +362,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["CFR_TimeScaling_SARI"]] 			= CFR_TimeScaling_SARI
 	PreParamList[["CFR_TimeScaling_ILI"]] 			= CFR_TimeScaling_ILI
 	
-	PreParamList[["Change times for levels of place closure"]] 									= PC_ChangeTimes #### Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant.
-	PreParamList[["Proportion of places remaining open after closure by place type over time"]] 	= PC_PlaceEffects_OverTime 
-	PreParamList[["Relative household contact rates over time after place closure"]] 				= PC_HouseholdEffects_OverTime
-	PreParamList[["Relative spatial contact rates over time after place closure"]] 				= PC_SpatialEffects_OverTime
-	PreParamList[["Place closure incidence threshold over time"]] 									= PC_IncThresh_OverTime 
-	PreParamList[["Place closure fractional incidence threshold over time"]] 						= PC_FracIncThresh_OverTime 		
-	PreParamList[["Trigger incidence per cell for place closure over time"]] 						= PC_CellIncThresh_OverTime 		
-	PreParamList[["Duration of place closure over time"]] 											= PC_Durs_OverTime #### Note: closure durations longer than interval between change times will be truncated
-	PreParamList[["Proportional attendance after closure by place type over time" ]] 				= PC_PropAttending_OverTime
-	
 	
 	
 	PreParamList[["Mean child age gap"]] = 2 
