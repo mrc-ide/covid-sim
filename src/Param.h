@@ -33,12 +33,12 @@ struct Param
 	int NRactE;
 	int NRactNE;
 
-	// Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep).
-	double SimulationDuration; /**< The number of days to run for */
-	double ModelTimeStep; /**< The length of a time step, in days */
-	double OutputTimeStep; /**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
-	int NumModelTimeStepsPerOutputTimeStep; /**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
-	int NumOutputTimeSteps; /**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
+	/**< Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep). */
+	double SimulationDuration;				/**< The number of days to run for */
+	double ModelTimeStep;					/**< The length of a time step, in days */
+	double OutputTimeStep;					/**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
+	int NumModelTimeStepsPerOutputTimeStep;	/**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
+	int NumOutputTimeSteps;					/**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
 
 	CovidSim::TBD1::KernelLookup KernelLookup;
 	CovidSim::TBD1::KernelStruct Kernel;
@@ -116,8 +116,6 @@ struct Param
 	double AirportTrafficScale;
 
 	double R0, R0scale, LocalBeta;
-	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
-	InverseCdf latent_icdf, infectious_icdf;
 	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double R0household, R0places, R0spatial;
@@ -157,30 +155,55 @@ struct Param
 	double PropAgeGroup[MAX_ADUNITS][NUM_AGE_GROUPS], PopByAdunit[MAX_ADUNITS][2];
 	double InvLifeExpecDist[MAX_ADUNITS][1001];
 
-	/**< ScaleSymptProportions Scales Prop_SARI_ByAge and Prop_Critical_ByAge. */
-	/**< leaves Prop_Mild_ByAge as it is and re-calculates Prop_ILI_ByAge accordingly (as Prop_Mild_ByAge + Prop_ILI_ByAge + Prop_SARI_ByAge + Prop_Critical_ByAge sum to 1). */
-	/**< Case Fataly Ratios (CFRs) for ILI, SARI, and Critical unchanged, but still ScaleSymptProportions scales IFR indirectly*/
-	/**< Used to (crudely) scale IFR, e.g. for a particular geography, or time period.*/
-	double ScaleSymptProportions;
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	// ** // ** SEVERITY / PATHOGENESIS TRANSITION PROBABILITIES, AND SOJOURN TIMES / DELAY DISTRIBUTIONS
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 	// use the wrapper class InverseCdf instead of the raw data type to enable code re-use
+	//// Inverse cumulative distribution functions (i.e. quantiles) of delay distributions / sojourn times from each infected state.
+	InverseCdf latent_icdf, infectious_icdf;
 	InverseCdf MildToRecovery_icdf, ILIToRecovery_icdf, SARIToRecovery_icdf, CriticalToCritRecov_icdf, CritRecovToRecov_icdf;
 	InverseCdf ILIToSARI_icdf, SARIToCritical_icdf, ILIToDeath_icdf, SARIToDeath_icdf, StepdownToDeath_icdf, CriticalToDeath_icdf;
 	/// means for above icdf's.
+	double LatentPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double Mean_MildToRecovery[NUM_AGE_GROUPS], Mean_ILIToRecovery[NUM_AGE_GROUPS], Mean_SARIToRecovery[NUM_AGE_GROUPS], Mean_CriticalToCritRecov[NUM_AGE_GROUPS], Mean_CritRecovToRecov[NUM_AGE_GROUPS], Mean_StepdownToDeath[NUM_AGE_GROUPS];
 	double Mean_TimeToTest, Mean_TimeToTestOffset, Mean_TimeToTestCriticalOffset, Mean_TimeToTestCritRecovOffset;
 	double Mean_ILIToSARI[NUM_AGE_GROUPS], Mean_SARIToCritical[NUM_AGE_GROUPS], Mean_CriticalToDeath[NUM_AGE_GROUPS], Mean_SARIToDeath[NUM_AGE_GROUPS], Mean_ILIToDeath[NUM_AGE_GROUPS];
-
 	// Severity transition probilities
 	double ProportionSymptomatic[NUM_AGE_GROUPS];
-	int IncludeStepDownToDeath; // possible to die from Stepdown / RecoveringFrom Critical? 
 	//int UseFinalDiseaseSeverity; // Default to 1. Old interpretataion kept in for back compatibility. If set to one, use Prop_Mild_ByAge, Prop_ILI_ByAge etc. to choose Person.Severity_Final with ChooseFinalDiseaseSeverity. If set to 0, p_ILI_if_Symp, p_SARI_if_ILI, and p_Crit_if_SARI etc.
 	// Proportions of cases that where final severity is Mild, ILI, SARI Critical by age. Used to determine Peron.Severity_Final. Therefore if Person.Severity_Final == Severity::SARI, they do not go on to Critical condition/ICU. Used if UseFinalDiseaseSeverity == 1.
 	double Prop_Mild_ByAge[NUM_AGE_GROUPS], Prop_ILI_ByAge[NUM_AGE_GROUPS], Prop_SARI_ByAge[NUM_AGE_GROUPS], Prop_Critical_ByAge[NUM_AGE_GROUPS];
 	//double p_Mild_if_Symp[NUM_AGE_GROUPS], p_ILI_if_Symp[NUM_AGE_GROUPS], p_SARI_if_ILI[NUM_AGE_GROUPS], p_Crit_if_SARI[NUM_AGE_GROUPS], p_Stepdown_if_Crit; // same as above but not final severities and not all conditional on being symptomatic, as variables above. Used if UseFinalDiseaseSeverity == 0. 
 	double CFR_SARI_ByAge[NUM_AGE_GROUPS], CFR_Critical_ByAge[NUM_AGE_GROUPS], CFR_ILI_ByAge[NUM_AGE_GROUPS];
-	
+	int IncludeStepDownToDeath; // possible to die from Stepdown / RecoveringFrom Critical? 
+
+	/**< ScaleSymptProportions Scales Prop_SARI_ByAge and Prop_Critical_ByAge. */
+	/**< leaves Prop_Mild_ByAge as it is and re-calculates Prop_ILI_ByAge accordingly (as Prop_Mild_ByAge + Prop_ILI_ByAge + Prop_SARI_ByAge + Prop_Critical_ByAge sum to 1). */
+	/**< Case Fataly Ratios (CFRs) for ILI, SARI, and Critical unchanged, but still ScaleSymptProportions scales IFR indirectly. */
+	/**< Used to (crudely) scale IFR, e.g. for a particular geography, or entire simulation duration. */
+	/**< To scale IFR at specific times during runtime / over period being considered, use CFR_ChangeTimes_CalTime, CFR_Critical_ScalingOverTime etc. */
+	double ScaleSymptProportions;
+
+	int Num_CFR_ChangeTimes;							// keep this the same for Critical, SARI, ILI for now. Can generalise later if need be.
+	int CFR_ChangeTimes_CalTime		[MAX_NUM_CFR_CHANGE_TiMES]; // keep this the same for Critical, SARI, ILI for now. Can generalise later if need be.
+
+	double CFR_TimeScaling_Critical	[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t. 
+	double CFR_TimeScaling_SARI		[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t. 
+	double CFR_TimeScaling_ILI		[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t.
+	double CFR_Critical_Scale_Current;							// defaults to 1 for all t. 
+	double CFR_SARI_Scale_Current;								// defaults to 1 for all t. 
+	double CFR_ILI_Scale_Current;								// defaults to 1 for all t. 
+
+
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	// ** // ** INTERVENTION PARAMETERS (NPIs, TREATMENT, VACCINATION)
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+	// Place closure parameters
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
 	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceClosePropAttending[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
@@ -223,6 +246,7 @@ struct Param
 
 	double SocDistRadius, SocDistRadius2;
 
+
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -232,7 +256,7 @@ struct Param
 	/**< SOCIAL DISTANCING	*/
 	/**< non-enhanced	*/
 	int Num_SD_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	double SD_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of (enhanced) social distancing */
+	double SD_ChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of (enhanced) social distancing */
 	double SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistSpatialEffectCurrent
 	double SD_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistHouseholdEffectCurrent
 	double SD_PlaceEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type;  //// time-varying equivalent of SocDistPlaceEffectCurrent
@@ -243,9 +267,9 @@ struct Param
 	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistHouseholdEffectCurrent
 	double Enhanced_SD_PlaceEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES][NUM_PLACE_TYPES];	//// indexed by i) change time; ii) place type;  time-varying equivalent of EnhancedSocDistPlaceEffectCurrent
 
-	int Num_CI_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	int Num_HQ_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
-	int Num_PC_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int Num_CI_ChangeTimes;  //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int Num_HQ_ChangeTimes;  //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
+	int Num_PC_ChangeTimes;  //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
 	int Num_DCT_ChangeTimes; //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
 
 	/**< CASE ISOLATION	*/
@@ -253,7 +277,7 @@ struct Param
 	double CI_SpatialAndPlaceEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of CaseIsolationEffectiveness
 	double CI_HouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of CaseIsolationHouseEffectiveness
 	double CI_Prop_OverTime						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of CaseIsolationProp
-	double CI_CellIncThresh_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of CaseIsolation_CellIncThresh
+	double CI_CellIncThresh_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of CaseIsolation_CellIncThresh
 
 	/**< HOUSEHOLD QUARANTINE	*/
 	double HQ_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of household quarantine */
@@ -292,10 +316,11 @@ struct Param
 	int DoNoCalibration, CaseOrDeathThresholdBeforeAlert_CommandLine;
 
 	/**< CALIBRATION PARAMETERS
+
 		Params below govern how epidemic is calibrated.
-		Calibration relates simulation time to calendar time (e.g. which day of year corresponds to first day of epidemic / simulation?), and adjusts seeding of infection.
+		Calibration relates simulation time to calendar time (e.g. the day of the year that corresponds to first day of epidemic / simulation), and adjusts seeding of infection.
 		Important distinction between Day 0 in calendar time, and Day 0 in simulation time.
-		Calendar time Day 0 is taken to be 31 Dec 2019, so e.g  Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
+		Calendar time Day 0 is taken to be 31 Dec 2019, so e.g. Day 1 is 1st Jan 2020. and Day 76 is 16th March 2020.
 		Simulation time day 0 (i.e. t = 0 in runtime) is recorded as Epidemic_StartDate_CalTime.
 		Variables with _CalTime suffix refer to calendar time (relative to Calendar time Day 0). Variables with _SimTime suffix refer to simulation time.
 		Model estimates start date of epidemic with reference to either cumulative deaths or cumulative Critical/ICU admissions
@@ -306,7 +331,7 @@ struct Param
 	double DateTriggerReached_CalTime;			// Day of year trigger is reached (where trigger refers to either cumulative deaths or cumulative ICU admissions, absolute or per-capita etc.)
 	double HolidaysStartDay_SimTime;			// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
 	double Interventions_StartDate_CalTime;		// Number of days between school holiday start date and start date of epidemic. Is set during calibration as start date of epidemic unknown before calibration.
-	double Epidemic_StartDate_CalTime;			// First day of epidemic relative to Calendar time Day 0.	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
+	double Epidemic_StartDate_CalTime;			// First day of epidemic relative to Calendar time Day 0 (i.e. the offset between SimTime and CalTime)	(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
 	double SeedingScaling;						// Scaling of number of seeding infections by location.		(internal parameter not specified by user/command line/(pre-parameter files. Value determined through calibration.)
 	int CaseOrDeathThresholdBeforeAlert;		// Number of deaths accummulated before alert (if TriggerAlertOnDeaths == 1) OR "Number of detected cases needed before outbreak alert triggered" (if TriggerAlertOnDeaths == 0)
 	int CaseOrDeathThresholdBeforeAlert_Fixed;	// CaseOrDeathThresholdBeforeAlert adjusted during calibration. Need to record fixed version in order to reset so that calibration works for multiple realisations

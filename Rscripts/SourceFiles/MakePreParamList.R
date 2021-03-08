@@ -75,12 +75,19 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		Mean_CritRecovToRecov 			= rep(1, 		NUM_AGE_GROUPS),
 		Mean_StepdownToDeath 			= rep(1/0.12, 	NUM_AGE_GROUPS),
 
-		ScaleIFR						= 1		,
+		ScaleSymptProportions			= 1		, # Used to (crudely) scale IFR, e.g. for a particular geography, or entire simulation duration. To scale individual CFRs over time, use e.g. CFR_TimeScaling_Critical 
 		MeanTimeToTest 					= 4		,
 		MeanTimeToTestOffset 			= 1		,
 		MeanTimeToTestCriticalOffset 	= 3.3	,
 		MeanTimeToTestCritRecovOffset 	= 9.32	,
-		IncludeStepDownToDeath			= 0		, 
+		IncludeStepDownToDeath			= 0		,
+		
+		Num_CFR_ChangeTimes 		= 1, 
+		CFR_ChangeTimes_CalTime 	= c(0, rep(1000000, Num_CFR_ChangeTimes - 1)), ### by default, initialize first time to non-variable time start, then all other times to be arbitrarily large. 
+		CFR_TimeScaling_Critical 	= rep(1, Num_CFR_ChangeTimes), 
+		CFR_TimeScaling_SARI 		= rep(1, Num_CFR_ChangeTimes),
+		CFR_TimeScaling_ILI 		= rep(1, Num_CFR_ChangeTimes), 
+		
 		
 		# Inverse cumulative distribution functions / quantiles (at 5% intervals resolution)
 		latent_icdf 				= c(0	, 0.098616903	, 0.171170649	, 0.239705594	, 0.307516598	, 0.376194441	, 0.446827262	, 0.520343677	, 0.597665592	, 0.679808341	, 0.767974922	, 0.863671993	, 0.968878064	, 1.086313899	, 1.219915022	, 1.37573215	, 1.563841395	, 1.803041398	, 2.135346254	, 2.694118208	, 3.964172493	) , 
@@ -305,7 +312,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Mean_CritRecovToRecov"					]] = Mean_CritRecovToRecov 			
 	PreParamList[["Mean_StepdownToDeath"					]] = Mean_StepdownToDeath			
 	
-	PreParamList[["Factor to scale IFR"						]] = ScaleIFR			
 	PreParamList[["MeanTimeToTest"							]] = MeanTimeToTest 						
 	PreParamList[["MeanTimeToTestOffset"					]] = MeanTimeToTestOffset 				
 	PreParamList[["MeanTimeToTestCriticalOffset"			]] = MeanTimeToTestCriticalOffset 		
@@ -336,18 +342,37 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		PreParamList[["StepdownToDeath_icdf"					]] = CritRecovToRecov_icdf 	
 	}
 	
-	
 	# Transition probabilities
-	PreParamList[["Proportion symptomatic by age group"		]] = ProportionSymptomatic
-	PreParamList[["Prop_Mild_ByAge"              			]] = Prop_Mild_ByAge 		
-	PreParamList[["Prop_ILI_ByAge"               			]] = Prop_ILI_ByAge 		
-	PreParamList[["Prop_SARI_ByAge"							]] = Prop_SARI_ByAge 		
-	PreParamList[["Prop_Critical_ByAge"						]] = Prop_Critical_ByAge 	
+	PreParamList[["Proportion symptomatic by age group"	]] = ProportionSymptomatic
+	PreParamList[["Prop_Mild_ByAge"              		]] = Prop_Mild_ByAge 		
+	PreParamList[["Prop_ILI_ByAge"               		]] = Prop_ILI_ByAge 		
+	PreParamList[["Prop_SARI_ByAge"						]] = Prop_SARI_ByAge 		
+	PreParamList[["Prop_Critical_ByAge"					]] = Prop_Critical_ByAge 	
 	
 	# Case Fatality Ratios
-	PreParamList[["CFR_ILI_ByAge"							]] = CFR_ILI_ByAge 		
-	PreParamList[["CFR_SARI_ByAge"							]] = CFR_SARI_ByAge 		
-	PreParamList[["CFR_Critical_ByAge"						]] = CFR_Critical_ByAge 	
+	PreParamList[["CFR_ILI_ByAge"						]] = CFR_ILI_ByAge 		
+	PreParamList[["CFR_SARI_ByAge"						]] = CFR_SARI_ByAge 		
+	PreParamList[["CFR_Critical_ByAge"					]] = CFR_Critical_ByAge 	
+	
+	# CFR/IFR scaling parameters
+	PreParamList[["Factor to scale IFR"]]			= ScaleSymptProportions			
+	PreParamList[["Num_CFR_ChangeTimes"]] 			= Num_CFR_ChangeTimes
+	PreParamList[["CFR_ChangeTimes_CalTime"]] 		= CFR_ChangeTimes_CalTime
+	PreParamList[["CFR_TimeScaling_Critical"]] 		= CFR_TimeScaling_Critical
+	PreParamList[["CFR_TimeScaling_SARI"]] 			= CFR_TimeScaling_SARI
+	PreParamList[["CFR_TimeScaling_ILI"]] 			= CFR_TimeScaling_ILI
+	
+	PreParamList[["Change times for levels of place closure"]] 									= PC_ChangeTimes #### Note: numbers here must match "Number of change times for levels of place closure"; that any times listed here that are before "Place closure start time" and after "Duration of place closure" are irrelevant.
+	PreParamList[["Proportion of places remaining open after closure by place type over time"]] 	= PC_PlaceEffects_OverTime 
+	PreParamList[["Relative household contact rates over time after place closure"]] 				= PC_HouseholdEffects_OverTime
+	PreParamList[["Relative spatial contact rates over time after place closure"]] 				= PC_SpatialEffects_OverTime
+	PreParamList[["Place closure incidence threshold over time"]] 									= PC_IncThresh_OverTime 
+	PreParamList[["Place closure fractional incidence threshold over time"]] 						= PC_FracIncThresh_OverTime 		
+	PreParamList[["Trigger incidence per cell for place closure over time"]] 						= PC_CellIncThresh_OverTime 		
+	PreParamList[["Duration of place closure over time"]] 											= PC_Durs_OverTime #### Note: closure durations longer than interval between change times will be truncated
+	PreParamList[["Proportional attendance after closure by place type over time" ]] 				= PC_PropAttending_OverTime
+	
+	
 	
 	PreParamList[["Mean child age gap"]] = 2 
 	PreParamList[["Min adult age"]] = 19

@@ -27,7 +27,8 @@
 
 int ChooseTriggerVariableAndValue(int AdUnit);
 double ChooseThreshold(int AdUnit, double WhichThreshold);
-void UpdateEfficaciesAndComplianceProportions(double t);
+void UpdateCurrentInterventionParams(double t);
+void UpdateCFRs(double t_CalTime);
 void RecordAdminAgeBreakdowns(int t_int);
 void RecordQuarNotInfected(int n, unsigned short int ts);
 bool readString(const char* SItemName, FILE* dat, char *buf);
