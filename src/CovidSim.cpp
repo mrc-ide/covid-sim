@@ -1789,7 +1789,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HQ_ChangeTimes			[ChangeTime] = 1e10;
 		P.PC_ChangeTimes			[ChangeTime] = 1e10;
 		P.DCT_ChangeTimes			[ChangeTime] = 1e10;
-		P.CFR_ChangeTimes_CalTime	[ChangeTime] = 1e10;
+		P.CFR_ChangeTimes_CalTime	[ChangeTime] = INT_MAX;
 	}
 	//// Get real values from (pre)param file
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of social distancing"		, "%lf", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
@@ -2034,7 +2034,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
 	P.CFR_ChangeTimes_CalTime[0] = 0;
-	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TiMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TiMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT_MAX;
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ChangeTimes_CalTime", "%lf", (void*)P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, 1, 0);
 
 	// Get various CFR scalings. 

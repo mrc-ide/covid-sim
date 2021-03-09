@@ -7,7 +7,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <regex>
+#include <sstream>
 #include <string>
 #include <map>
 
@@ -16,7 +16,7 @@
 #include "Param.h"
 
 
-typedef ParamMap ParamMap;
+typedef  std::map<std::string, std::string> ParamMap;
 typedef std::pair<std::string, std::string> ParamPair;
 typedef std::map<std::string, std::string>::iterator ParamIter;
 
@@ -246,7 +246,7 @@ namespace Params
   void get_double_vec(ParamMap base, ParamMap fallback, ParamMap params,
                       std::string param_name, double* array, int expected,
                       double default_value, int default_size,
-                      bool err_on_missing, Param P, bool force_fail = false);
+                      bool err_on_missing, Param P, bool force_fail);
 
 
 
@@ -266,7 +266,7 @@ namespace Params
   void get_double_vec(ParamMap fallback, ParamMap params,
                       std::string param_name, double* array, int expected,
                       double default_value, int default_size,
-                      bool err_on_missing, Param P, bool force_fail = false);
+                      bool err_on_missing, Param P, bool);
 
 
 
@@ -331,13 +331,13 @@ namespace Params
  void get_int_vec(ParamMap base, ParamMap fallback, ParamMap params,
                   std::string param_name, int* array, int expected,
                   int default_value, int default_size,
-                  bool err_on_missing, Param P, bool force_fail = false);
+                  bool err_on_missing, Param P, bool force_fail);
 
 
 
 /** \brief                Wrapper for get_int_vec only taking two param maps.
- *  \param params         The preferred map to find the parameter in
  *  \param fallback       A fallback if the parameter is not found in params
+ *  \param params         The preferred map to find the parameter in
  *  \param param_name     The name of the parameter to look up.
  *  \param array          The int-array into which to put the results
  *  \param expected       The number of elements we expect to find
@@ -351,7 +351,7 @@ namespace Params
  void get_int_vec(ParamMap fallback, ParamMap params,
                   std::string param_name, int* array, int expected,
                   int default_value, int default_size,
-                  bool err_on_missing, Param P, bool force_fail = false);
+                  bool err_on_missing, Param P, bool force_fail);
 
 
 
