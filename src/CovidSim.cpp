@@ -742,22 +742,26 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
 					P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+			P.Got_WAIFW_Matrix_Spatial = 0; 
 		}
 		else
 		{
+			P.Got_WAIFW_Matrix_Spatial = 1;
+
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
 			Overall age variation in infectiousness/contact rates/susceptibility should be factored
 			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
-			t = 0;
+
+			double Maximum = 0;
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					if (P.WAIFW_Matrix_SpatialOnly[i][j] > t) t = P.WAIFW_Matrix_SpatialOnly[i][j];
-			if (t > 0)
+					if (P.WAIFW_Matrix_SpatialOnly[i][j] > Maximum) Maximum = P.WAIFW_Matrix_SpatialOnly[i][j];
+			if (Maximum > 0)
 			{
 				for (i = 0; i < NUM_AGE_GROUPS; i++)
 					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P.WAIFW_Matrix_SpatialOnly[i][j] /= t;
+						P.WAIFW_Matrix_SpatialOnly[i][j] /= Maximum;
 			}
 			else
 			{
@@ -765,6 +769,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					for (j = 0; j < NUM_AGE_GROUPS; j++)
 						P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
 			}
+
 		}
 
 		P.DoDeath = 0;

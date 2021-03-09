@@ -131,6 +131,7 @@ struct Param
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
 	double WAIFW_Matrix[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
 	double WAIFW_Matrix_SpatialOnly[NUM_AGE_GROUPS][NUM_AGE_GROUPS];
+	int Got_WAIFW_Matrix_Spatial; // flag to save pointless sums when not needed.
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
 

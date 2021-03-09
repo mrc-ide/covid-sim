@@ -659,7 +659,7 @@ void InitTransmissionCoeffs(void)
 		HouseholdMeanSize += ((double)(INT64_C(1) + HH_Size)) * (P.HouseholdSizeDistrib[0][HH_Size] - CumulativeHHSizeDist); // note here that HouseholdSizeDistrib is the cumulative distribution.
 		CumulativeHHSizeDist = P.HouseholdSizeDistrib[0][HH_Size];
 	}
-	Files::xfprintf_stderr("Household mean size=%lg\n", HouseholdMeanSize);
+	Files::xfprintf_stderr("Household mean size = %lg\n", HouseholdMeanSize);
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
@@ -728,6 +728,18 @@ void InitTransmissionCoeffs(void)
 			// Care home residents less likely to infect via "spatial" contacts. This doesn't correct for non care home residents being less likely to infect care home residents,
 			// but since the latter are a small proportion of the population, this is a minor issue
 			Spatial_Infectiousness = fabs(Hosts[Person].infectiousness) * P.RelativeSpatialContact[HOST_AGE_GROUP(Person)] * ((Hosts[Person].care_home_resident) ? P.CareHomeResidentSpatialScaling : 1.0) * P.ModelTimeStep;
+			if (P.Got_WAIFW_Matrix_Spatial)
+			{
+				// if doing contact matrices, then need to scale spatial infections of this person (infector) to various infectees.
+				// Unlike InfectSweep though, here we don't explicitly consider infectees, so take an average over whole population, weighted by age distribution.
+				double AvContactRate_Infector = 0;
+				// sum over "infectee" age groups to scale infectiousness of this infector.
+				for (int InfecteeAge = 0; InfecteeAge < NUM_AGE_GROUPS; InfecteeAge++)
+					//AvContactRate_Infector += P.PropAgeGroup[0][InfecteeAge] * P.WAIFW_Matrix_SpatialOnly[InfecteeAge][HOST_AGE_GROUP(Person)]; // use index 0 for admin unit if doing whole country.
+					AvContactRate_Infector += P.PropAgeGroup[Mcells[Hosts[Person].mcell].adunit][InfecteeAge] * P.WAIFW_Matrix_SpatialOnly[InfecteeAge][HOST_AGE_GROUP(Person)];
+				// scale spatial infectiousness by weighted average.
+				Spatial_Infectiousness *= AvContactRate_Infector; 
+			}
 			int NumDaysInfectiousNotSymptomatic = (int)(LatentToSympDelay / P.ModelTimeStep);
 			int InfectiousDay;
 			/// Add to spatial infections from all days where latent but not symptomatic
@@ -740,10 +752,10 @@ void InitTransmissionCoeffs(void)
 	// Divide total spatial infections by PopSize to get Spatial R0. 
 	double Spatial_R0 = SpatialInfections  / (double)P.PopSize;
 	// Divide total household infections by summed household denominators to get household secondary attack rate
-	Files::xfprintf_stderr("Household SAR=%lg\n", HH_Infections / HH_SAR_Denom);
+	Files::xfprintf_stderr("Household SAR = %lg\n", HH_Infections / HH_SAR_Denom);
 	// Divide total household infections by PopSize to get household R0
 	P.R0household = HH_Infections / ((double)P.PopSize);
-	Files::xfprintf_stderr("Household R0=%lg\n", P.R0household);
+	Files::xfprintf_stderr("Household R0 = %lg\n", P.R0household);
 
 	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
 	// ** // ** Place Infections
@@ -846,12 +858,12 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	int *mcell_adunits, *mcell_num;
 
 	// allocate memory
-	Cells = (Cell*)Memory::xcalloc(P.NumCells, sizeof(Cell));
-	Mcells = (Microcell*)Memory::xcalloc(P.NumMicrocells, sizeof(Microcell));
-	mcell_num = (int*)Memory::xcalloc(P.NumMicrocells, sizeof(int));
-	mcell_dens = (double*)Memory::xcalloc(P.NumMicrocells, sizeof(double));
-	mcell_country = std::vector<uint16_t>(P.NumMicrocells, 1);
-	mcell_adunits = (int*)Memory::xcalloc(P.NumMicrocells, sizeof(int));
+	Cells			= (Cell*)		Memory::xcalloc(P.NumCells		, sizeof(Cell));
+	Mcells			= (Microcell*)	Memory::xcalloc(P.NumMicrocells	, sizeof(Microcell));
+	mcell_num		= (int*)		Memory::xcalloc(P.NumMicrocells	, sizeof(int));
+	mcell_dens		= (double*)		Memory::xcalloc(P.NumMicrocells	, sizeof(double));
+	mcell_country	= std::vector<uint16_t>(P.NumMicrocells, 1);
+	mcell_adunits	= (int*)		Memory::xcalloc(P.NumMicrocells	, sizeof(int));
 
 	for (int mcell = 0; mcell < P.NumMicrocells; mcell++)
 	{
