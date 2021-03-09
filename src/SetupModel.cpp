@@ -640,7 +640,7 @@ int ReadFitIter(std::string const& FitFile)
 void InitTransmissionCoeffs(void)
 {
 	// To calibrate R0 and various transmission coefficients/betas, effectivey run the model, (more-or-less) deterministically through the population WITHOUT any interventions. Asks how many secondary infections there would be, given infectious period, per infection at household, place and spatial levels. 
-	double NumPeopleInPlaceGroup;
+	double NumPeopleInPlaceGroup; 
 	double ProbSurvive, ProbSurviveNonCareHome;
 	double quantile, LatentToSympDelay;
 	double HH_Infections = 0; // total number of spatial infections summed over entire population in #pragma loop below.
@@ -663,7 +663,7 @@ void InitTransmissionCoeffs(void)
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
-#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts)
+#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
 	for (int Thread = 0; Thread < P.NumThreads; Thread++) // loop over threads
 	{
 		for (int Person = Thread; Person < P.PopSize; Person += P.NumThreads) // loop over people

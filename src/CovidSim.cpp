@@ -464,8 +464,6 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	PreParamFile_dat = Files::xfopen(PreParamFile.c_str(), "rb");
 	AdminFile_dat = Files::xfopen_fallback(AdUnitFile.c_str(), "rb", ParamFile_dat);
 
-	P.Got_WAIFW_Matrix_Spatial = 0;
-
 	if (P.FitIter == 0)
 	{
 		for (i = 0; i < MAX_COUNTRIES; i++) {
@@ -745,6 +743,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
 					P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+
 			P.Got_WAIFW_Matrix_Spatial = 0; 
 		}
 		else
