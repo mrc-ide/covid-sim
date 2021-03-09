@@ -2034,7 +2034,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
 	P.CFR_ChangeTimes_CalTime[0] = 0;
-	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TiMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ChangeTimes_CalTime", "%lf", (void*)P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, 1, 0);
 
 	// Get various CFR scalings. 
