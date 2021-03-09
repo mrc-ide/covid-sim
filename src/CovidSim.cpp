@@ -444,7 +444,8 @@ void parse_bmp_option(std::string const& input) {
 	}
 }
 
-void parse_intervention_file_option(std::string const& input) {
+void parse_intervention_file_option(std::string const& input)
+{
 	std::string output;
 	parse_read_file(input, output);
 	InterventionFiles.emplace_back(output);
@@ -462,6 +463,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	ParamFile_dat = Files::xfopen(ParamFile.c_str(), "rb");
 	PreParamFile_dat = Files::xfopen(PreParamFile.c_str(), "rb");
 	AdminFile_dat = Files::xfopen_fallback(AdUnitFile.c_str(), "rb", ParamFile_dat);
+
+	P.Got_WAIFW_Matrix_Spatial = 0;
 
 	if (P.FitIter == 0)
 	{

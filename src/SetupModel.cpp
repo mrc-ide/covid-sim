@@ -875,6 +875,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	if (P.DoAdUnits)
 		for (int i = 0; i < MAX_ADUNITS; i++)
 			P.PopByAdunit[i][0] = P.PopByAdunit[i][1] = 0;
+
 	if (!density_file.empty())
 	{
 		if (!P.DoAdunitBoundaries) P.NumAdunits = 0;
