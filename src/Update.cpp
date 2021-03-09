@@ -401,25 +401,40 @@ void DoRecover_FromSeverity(int ai, int tn)
 		}
 }
 
+void DecideIfPersonDies(int PersonNum, int PersonAgeGroup, int ThreadNum)
+{
+	Person* person = Hosts + PersonNum;
+
+	switch (person->Severity_Final)
+	{
+		case Severity::Critical:	if (ranf_mt(ThreadNum) < (P.CFR_Critical_ByAge	[PersonAgeGroup] * P.CFR_Critical_Scale_Current	))	person->to_die = 1;		break;
+		case Severity::SARI:		if (ranf_mt(ThreadNum) < (P.CFR_SARI_ByAge		[PersonAgeGroup] * P.CFR_SARI_Scale_Current		))	person->to_die = 1;		break;
+		case Severity::ILI:			if (ranf_mt(ThreadNum) < (P.CFR_ILI_ByAge		[PersonAgeGroup] * P.CFR_ILI_Scale_Current		))	person->to_die = 1;		break;
+
+		// do nothing for all other severity states
+		case Severity::Asymptomatic:
+		case Severity::Dead:
+		case Severity::Mild:
+		case Severity::Recovered:
+		case Severity::Stepdown:
+			break;
+	}
+}
+
 void DoIncub(int ai, unsigned short int ts, int tn)
 {
-	Person* a;
-	double q;
-	int age;
-
-	age = HOST_AGE_GROUP(ai);
+	Person* a = Hosts + ai;;
+	double ProbSymptomatic;
+	int age = HOST_AGE_GROUP(ai);
 	if (age >= NUM_AGE_GROUPS) age = NUM_AGE_GROUPS - 1;
 
-	a = Hosts + ai;
 	if (a->is_latent())
 	{
 		a->infectiousness = (float)P.AgeInfectiousness[age];
 		if (P.InfectiousnessSD > 0) a->infectiousness *= (float) gen_gamma_mt(1 / (P.InfectiousnessSD * P.InfectiousnessSD), 1 / (P.InfectiousnessSD * P.InfectiousnessSD), tn);
-		q = P.ProportionSymptomatic[age]
-			* (HOST_TREATED(ai) ? (1 - P.TreatSympDrop) : 1)
-			* (HOST_VACCED(ai) ? (1 - P.VaccSympDrop) : 1);
+		ProbSymptomatic = P.ProportionSymptomatic[age]	* (HOST_TREATED(ai) ? (1 - P.TreatSympDrop) : 1)	* (HOST_VACCED(ai) ? (1 - P.VaccSympDrop) : 1);
 
-		if (ranf_mt(tn) < q)
+		if (ranf_mt(tn) < ProbSymptomatic)
 		{
 			a->set_infectious_almost_symptomatic();
 			a->infectiousness *= (float)(-P.SymptInfectiousness);
@@ -441,16 +456,12 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 			//// choose final disease severity (either mild, ILI, SARI, Critical, not asymptomatic as covered above) by age
 			a->Severity_Final = ChooseFinalDiseaseSeverity(age, tn);
 
-			/// choose outcome recovery or death
-			if (	((a->Severity_Final == Severity::Critical	) && (ranf_mt(tn) < P.CFR_Critical_ByAge[age]	)) ||
-					((a->Severity_Final == Severity::SARI		) && (ranf_mt(tn) < P.CFR_SARI_ByAge	[age]	)) ||
-					((a->Severity_Final == Severity::ILI		) && (ranf_mt(tn) < P.CFR_ILI_ByAge		[age]	)) )
-				a->to_die = 1;
+			/// choose outcome recovery or death (i.e. changes a->to_die = 1 death flag).
+			DecideIfPersonDies(ai, age, tn);
 
 			if ((a->care_home_resident) && ((a->Severity_Final == Severity::Critical) || (a->Severity_Final == Severity::SARI))&&(ranf_mt(tn)>P.CareHomeRelProbHosp))
 			{
 				// care home residents who weren't hospitalised but would otherwise have needed critical care will all die
-				//if (a->Severity_Final == Severity_Critical)	a->to_die = 1;
 				a->to_die = 1;
 				// change final severity to ILI (meaning not hospitalised), but leave to_die flag
 				a->Severity_Final = Severity::ILI;

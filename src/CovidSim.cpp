@@ -1189,7 +1189,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Do Severity Analysis", "%i", (void*)&(P.DoSeverity), 1, 1, 0)) P.DoSeverity = 0;
 	if (P.DoSeverity)
 	{
-		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleIFR), 1, 1, 0)) P.ScaleIFR = 1.0;
+		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Factor to scale IFR", "%lf", (void*)&(P.ScaleSymptProportions), 1, 1, 0)) P.ScaleSymptProportions = 1.0;
 		//// Means for icdf's.
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTest", "%lf", (void*)&(P.Mean_TimeToTest), 1, 1, 0)) P.Mean_TimeToTest = 0.0;
 		if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "MeanTimeToTestOffset", "%lf", (void*)&(P.Mean_TimeToTestOffset), 1, 1, 0)) P.Mean_TimeToTestOffset = 1.0;
@@ -1296,8 +1296,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		//Add param to allow severity to be uniformly scaled up or down.
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 		{
-			P.Prop_SARI_ByAge[i] *= P.ScaleIFR;
-			P.Prop_Critical_ByAge[i] *= P.ScaleIFR;
+			P.Prop_SARI_ByAge[i] *= P.ScaleSymptProportions;
+			P.Prop_Critical_ByAge[i] *= P.ScaleSymptProportions;
 			P.Prop_ILI_ByAge[i] = 1.0 - P.Prop_Mild_ByAge[i] - P.Prop_SARI_ByAge[i] - P.Prop_Critical_ByAge[i];
 		}
 	}
@@ -1776,26 +1776,27 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 
 	//// **** change times:
-	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value of efficacy for social distancing.
-	P.SD_ChangeTimes	[0] = 0;
-	P.CI_ChangeTimes	[0] = 0;
-	P.HQ_ChangeTimes	[0] = 0;
-	P.PC_ChangeTimes	[0] = 0;
-	P.DCT_ChangeTimes	[0] = 0;
+	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of efficacy for social distancing.
+	P.SD_ChangeTimes			[0] = 0;
+	P.CI_ChangeTimes			[0] = 0;
+	P.HQ_ChangeTimes			[0] = 0;
+	P.PC_ChangeTimes			[0] = 0;
+	P.DCT_ChangeTimes			[0] = 0;
 	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
 	{
-		P.SD_ChangeTimes	[ChangeTime] = 1e10;
-		P.CI_ChangeTimes	[ChangeTime] = 1e10;
-		P.HQ_ChangeTimes	[ChangeTime] = 1e10;
-		P.PC_ChangeTimes	[ChangeTime] = 1e10;
-		P.DCT_ChangeTimes	[ChangeTime] = 1e10;
+		P.SD_ChangeTimes			[ChangeTime] = 1e10;
+		P.CI_ChangeTimes			[ChangeTime] = 1e10;
+		P.HQ_ChangeTimes			[ChangeTime] = 1e10;
+		P.PC_ChangeTimes			[ChangeTime] = 1e10;
+		P.DCT_ChangeTimes			[ChangeTime] = 1e10;
+		P.CFR_ChangeTimes_CalTime	[ChangeTime] = 1e10;
 	}
 	//// Get real values from (pre)param file
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of social distancing"		, "%lf", (void*)P.SD_ChangeTimes	, P.Num_SD_ChangeTimes	, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of case isolation"			, "%lf", (void*)P.CI_ChangeTimes	, P.Num_CI_ChangeTimes	, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of household quarantine"	, "%lf", (void*)P.HQ_ChangeTimes	, P.Num_HQ_ChangeTimes	, 1, 0);
 	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of place closure"			, "%lf", (void*)P.PC_ChangeTimes	, P.Num_PC_ChangeTimes	, 1, 0);
-	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of digital contact tracing", "%lf", (void*)P.DCT_ChangeTimes, P.Num_DCT_ChangeTimes	, 1, 0);
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Change times for levels of digital contact tracing", "%lf", (void*)P.DCT_ChangeTimes	, P.Num_DCT_ChangeTimes	, 1, 0);
 
 	// initialize to zero (regardless of whether doing places or households).
 	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
@@ -2025,6 +2026,28 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.DCT_MaxToTrace_OverTime				[DCT_ChangeTime] = P.DCT_MaxToTrace_OverTime			[P.Num_DCT_ChangeTimes - 1];
 		}
 	}
+
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME)
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "Num_CFR_ChangeTimes", "%i", (void*) & (P.Num_CFR_ChangeTimes), 1, 1, 0)) P.Num_CFR_ChangeTimes = 1;
+
+	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
+	P.CFR_ChangeTimes_CalTime[0] = 0;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TiMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
+	GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_ChangeTimes_CalTime", "%lf", (void*)P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, 1, 0);
+
+	// Get various CFR scalings. 
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_TimeScaling_Critical", "%lf", (void*)P.CFR_TimeScaling_Critical, P.Num_CFR_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++) P.CFR_TimeScaling_Critical[ChangeTime] = 1; //// by default, initialize to 1, i.e. no scaling of CFR
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_TimeScaling_SARI", "%lf", (void*)P.CFR_TimeScaling_SARI, P.Num_CFR_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++) P.CFR_TimeScaling_SARI[ChangeTime] = 1; //// by default, initialize to 1, i.e. no scaling of CFR
+	if (!GetInputParameter2(ParamFile_dat, PreParamFile_dat, "CFR_TimeScaling_ILI", "%lf", (void*)P.CFR_TimeScaling_ILI, P.Num_CFR_ChangeTimes, 1, 0))
+		for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++) P.CFR_TimeScaling_ILI[ChangeTime] = 1; //// by default, initialize to 1, i.e. no scaling of CFR
+
+
+
+
 	if(P.FitIter == 0)
 	{
 		if (P.DoPlaces)
@@ -2836,6 +2859,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[0];	//// compliance
 	P.MaxDigitalContactsToTrace				= P.DCT_MaxToTrace_OverTime				[0];
 
+	// Initialize CFR scalings
+	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];
+	P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[0];
+	P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[0];
 
 
 	for (int i = 0; i < MAX_NUM_THREADS; i++)
@@ -3062,6 +3089,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 	{
 		RecordSample				(CurrSimTime, OutputTimeStepNumber - 1, output_file_base);
 		CalibrationThresholdCheck	(CurrSimTime, OutputTimeStepNumber - 1);
+		UpdateCFRs					(CurrSimTime - P.Epidemic_StartDate_CalTime); 
 
 		/// print various quantities to console
 		Files::xfprintf_stderr("\r    t=%lg   %i    %i|%i    %i     %i [=%i]  %i (%lg %lg %lg)   %lg    ", CurrSimTime,
@@ -4476,12 +4504,23 @@ double ChooseThreshold(int AdUnit, double WhichThreshold) //// point is that thi
 	return Threshold;
 }
 
+void UpdateCFRs(double t_CalTime)
+{
+	for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++)
+		if (t_CalTime == P.CFR_ChangeTimes_CalTime[ChangeTime])
+		{
+			P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[ChangeTime];
+			P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[ChangeTime];
+			P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
+		}
+}
 
-void UpdateEfficaciesAndComplianceProportions(double t)
+
+void UpdateCurrentInterventionParams(double t_CalTime)
 {
 	//// **** social distancing
 	for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++)
-		if (t == P.SD_ChangeTimes[ChangeTime])
+		if (t_CalTime == P.SD_ChangeTimes[ChangeTime])
 		{
 			//// **** non-enhanced
 			P.SocDistHouseholdEffectCurrent = P.SD_HouseholdEffects_OverTime[ChangeTime];	//// household
@@ -4500,7 +4539,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 	//// **** case isolation
 	for (int ChangeTime = 0; ChangeTime < P.Num_CI_ChangeTimes; ChangeTime++)
-		if (t == P.CI_ChangeTimes[ChangeTime])
+		if (t_CalTime == P.CI_ChangeTimes[ChangeTime])
 		{
 			P.CaseIsolationEffectiveness		= P.CI_SpatialAndPlaceEffects_OverTime	[ChangeTime]; //// spatial / place
 			P.CaseIsolationHouseEffectiveness	= P.CI_HouseholdEffects_OverTime		[ChangeTime]; //// household
@@ -4512,7 +4551,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 	////// **** household quarantine
 	if (P.DoHouseholds)
 		for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++)
-			if (t == P.HQ_ChangeTimes[ChangeTime])
+			if (t_CalTime == P.HQ_ChangeTimes[ChangeTime])
 			{
 				P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime				[ChangeTime];				//// spatial
 				P.HQuarantineHouseEffect 	= P.HQ_HouseholdEffects_OverTime			[ChangeTime];				//// household
@@ -4529,7 +4568,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 	if (P.DoPlaces)
 	{
 		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
-			if (t == P.PC_ChangeTimes[ChangeTime])
+			if (t_CalTime == P.PC_ChangeTimes[ChangeTime])
 			{
 				//// First open all the places - keep commented out in case becomes necessary but avoid if possible to avoid runtime costs.
 //				unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
@@ -4553,7 +4592,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 				P.PlaceCloseDuration			= P.PC_Durs_OverTime			[ChangeTime];					//// duration of place closure
 
 				//// reset place close time start - has been set to 9e9 in event of no triggers. m
-				if(P.PlaceCloseTimeStart<1e10) P.PlaceCloseTimeStart = t;
+				if(P.PlaceCloseTimeStart < 1e10) P.PlaceCloseTimeStart = t_CalTime;
 
 				// ensure that new duration doesn't go over next change time. Judgement call here - talk to Neil if this is what he wants.
 				if ((ChangeTime < P.Num_PC_ChangeTimes - 1) && (P.PlaceCloseTimeStart + P.PlaceCloseDuration >= P.PC_ChangeTimes[ChangeTime + 1]))
@@ -4564,7 +4603,7 @@ void UpdateEfficaciesAndComplianceProportions(double t)
 
 	//// **** digital contact tracing
 	for (int ChangeTime = 0; ChangeTime < P.Num_DCT_ChangeTimes; ChangeTime++)
-		if (t == P.DCT_ChangeTimes[ChangeTime])
+		if (t_CalTime == P.DCT_ChangeTimes[ChangeTime])
 		{
 			P.DCTCaseIsolationEffectiveness			= P.DCT_SpatialAndPlaceEffects_OverTime	[ChangeTime];	//// spatial / place
 			P.DCTCaseIsolationHouseEffectiveness	= P.DCT_HouseholdEffects_OverTime		[ChangeTime];	//// household
@@ -5190,7 +5229,7 @@ void CalibrationThresholdCheck(double t,int n)
 		P.ControlPropCasesId = P.PostAlertControlPropCasesId;
 
 		if (P.VaryEfficaciesOverTime)
-			UpdateEfficaciesAndComplianceProportions(t - P.Epidemic_StartDate_CalTime);
+			UpdateCurrentInterventionParams(t - P.Epidemic_StartDate_CalTime); // t - P.Epidemic_StartDate_CalTime converts simulation time (t) into calendar time. 
 
 // changed to a define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
 #define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X>=1e10) X=Y;

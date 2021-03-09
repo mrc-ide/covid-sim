@@ -1114,10 +1114,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for (int i = 0; i < P.NumMicrocells; i++)
 		{
 			if (mcell_num[i] > 0)
-      {
+			{
 				if (mcell_adunits[i] < 0) ERR_CRITICAL_FMT("Cell %i has adunits < 0 (indexing PopByAdunit)\n", i);
 				mcell_dens[i] *= P.PopByAdunit[mcell_adunits[i]][1] / (1e-10 + P.PopByAdunit[mcell_adunits[i]][0]);
-      }
+			}
 			maxd += mcell_dens[i];
 		}
 		t = 0;
