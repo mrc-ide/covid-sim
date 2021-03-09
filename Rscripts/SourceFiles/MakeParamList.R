@@ -8,7 +8,7 @@ MakeParamList = function(NUM_AGE_GROUPS = 17,
 		#### Interventions are turned on when BOTH start time has passed (and start time + duration has not), AND when trigger threshold exceeded. See https://github.com/mrc-ide/covid-sim/blob/master/docs/intervention-description.md for further discussion.
 		#### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== #### ==== 
 		
-		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, UseWildCards = 0,
+		NumAdUnits = 3, DoInterventionDelaysByAdUnit = 0, VaryEfficaciesOverTime = 0, 
 		
 		# = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = # = 
 		# = # = # = # = # = # = # = # = # = # = 	CASE ISOLATION PARAMETERS
@@ -344,10 +344,9 @@ MakeParamList = function(NUM_AGE_GROUPS = 17,
 	ParamList[["Proportion of digital contacts who self-isolate over time"]]  	= DCT_Prop_OverTime;
 	
 	### change # strings to factors.
-	if (UseWildCards)
-		for (ParamNum in 1:length(ParamList))
-			if ( (class(ParamList[[ParamNum]]) == "character") & (length(grep("#", ParamList[[ParamNum]])) > 0)	)
-				ParamList[[ParamNum]] = as.factor(ParamList[[ParamNum]])
+	for (ParamNum in 1:length(ParamList))
+		if ( (class(ParamList[[ParamNum]]) == "character") & (length(grep("#", ParamList[[ParamNum]])) > 0)	)
+			ParamList[[ParamNum]] = as.factor(ParamList[[ParamNum]])
 	
 	return(ParamList)
 }
