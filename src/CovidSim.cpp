@@ -804,9 +804,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (P.FitIter == 0)
 		{
 			if (P.PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
-			Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, &P);
-			Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, &P);
-			Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, &P);
+			P.CareHomePlaceType = Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, &P);
+			P.CareHomeAllowInitialInfections = Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, &P);
+			P.CareHomeResidentMinimumAge = Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, &P);
 
 			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P.PlaceTypeAgeMin, P.PlaceTypeNum, &P);
 			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P.PlaceTypeAgeMax, P.PlaceTypeNum, &P);
