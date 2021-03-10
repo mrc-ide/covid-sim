@@ -11,11 +11,8 @@
 #include <string>
 #include <map>
 
-#include "Dist.h"
 #include "Error.h"
 #include "Files.h"
-#include "Memory.h"
-#include "Model.h"
 #include "Param.h"
 
 
@@ -545,17 +542,6 @@ namespace Params
                          std::string param_name, double** array, int sizex,
                          int sizey, double default_value, Param P);
 
-/** \brief                Parse an Inverse CDF
- */
-
-
-  void GetInverseCdf(ParamMap fallback, ParamMap params, const char* icdf_name, InverseCdf* inverseCdf, Param P, double start_value);
-
-/** \brief                Parse the parameter files
-*/
-
-  void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile,
-                  AdminUnit* AdUnits, Param P);
 } // namespace Params
 
 #endif // PARAMS_H_INCLUDED_
