@@ -38,7 +38,7 @@ namespace Params
  *  \return            The original string (if it's not a CLP), or otherwise, the matching CLP value.
  */
 
-  std::string clp_overwrite(std::string value, Param P);
+  std::string clp_overwrite(std::string value, Param* P);
 
 
 
@@ -52,8 +52,8 @@ namespace Params
  *                     with '#', the matching command-line parameter (/CP01:) will be returned.
  */
 
-  std::string lookup_param(ParamMap base, ParamMap fallback, ParamMap params,
-                           std::string param_name, Param P);
+  std::string lookup_param(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                           std::string param_name, Param* P);
 
 
 
@@ -66,7 +66,7 @@ namespace Params
  *                     with '#', the matching command-line parameter (/CP01:) will be returned.
  */
 
-  std::string lookup_param(ParamMap fallback, ParamMap params, std::string param_name, Param P);
+  std::string lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P);
 
 
 
@@ -78,7 +78,7 @@ namespace Params
  *  \return            A boolean, TRUE only if the parameter is found.
  */
 
-  bool param_found(ParamMap base, ParamMap fallback, ParamMap params, std::string param_name);
+  bool param_found(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name);
 
 
 
@@ -89,7 +89,7 @@ namespace Params
  *  \return            A boolean, TRUE only if the parameter is found.
  */
 
-  bool param_found(ParamMap fallback, ParamMap params, std::string param_name);
+  bool param_found(ParamMap &fallback, ParamMap &params, std::string param_name);
 
 
 
@@ -104,9 +104,9 @@ namespace Params
  *  \return               A boolean, TRUE only if the parameter is found.
  */
 
-  double get_double(ParamMap base, ParamMap fallback, ParamMap params,
+  double get_double(ParamMap &base, ParamMap &fallback, ParamMap &params,
                     std::string param_name, double default_value,
-                    bool err_on_missing, Param P);
+                    bool err_on_missing, Param* P);
 
 
 
@@ -120,8 +120,8 @@ namespace Params
  *  \return               The parameter value (double)
  */
 
-  double get_double(ParamMap base, ParamMap fallback, ParamMap params,
-                    std::string param_name, double default_value, Param P);
+  double get_double(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                    std::string param_name, double default_value, Param* P);
  
 
 
@@ -134,8 +134,8 @@ namespace Params
  *  \return               The parameter value (double)
  */
 
-  double get_double(ParamMap fallback, ParamMap params, std::string param_name,
-    double default_value, Param P);
+  double get_double(ParamMap &fallback, ParamMap &params, std::string param_name,
+    double default_value, Param* P);
 
 
 
@@ -148,8 +148,8 @@ namespace Params
  *  \return               The parameter value (double)
  */
 
-  double req_double(ParamMap base, ParamMap fallback, ParamMap params,
-                    std::string param_name, Param P);
+  double req_double(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                    std::string param_name, Param* P);
 
 
 
@@ -162,8 +162,8 @@ namespace Params
  */
 
 
-  double req_double(ParamMap fallback, ParamMap params,
-                    std::string param_name, Param P);
+  double req_double(ParamMap &fallback, ParamMap &params,
+                    std::string param_name, Param* P);
 
 
 
@@ -178,9 +178,9 @@ namespace Params
  *  \return               The integer result
  */
 
-  int get_int(ParamMap base, ParamMap fallback, ParamMap params,
+  int get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
               std::string param_name, int default_value,
-              bool err_on_missing, Param P);
+              bool err_on_missing, Param* P);
 
 
 
@@ -193,8 +193,8 @@ namespace Params
  *  \return               The integer result
  */
 
-  int get_int(ParamMap fallback, ParamMap params, std::string param_name,
-    int default_value, Param P);
+  int get_int(ParamMap &fallback, ParamMap &params, std::string param_name,
+    int default_value, Param* P);
 
 
   /** \brief                Wrapper for get_int, three params, and default value
@@ -206,8 +206,8 @@ namespace Params
    *  \return               The integer result
    */
 
-  int get_int(ParamMap base, ParamMap fallback, ParamMap params, std::string param_name,
-              int default_value, Param P);
+  int get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name,
+              int default_value, Param* P);
 
 
 
@@ -220,8 +220,8 @@ namespace Params
  *  \return               The integer result
  */
 
-  int req_int(ParamMap base, ParamMap fallback, ParamMap params,
-                 std::string param_name, Param P);
+  int req_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                 std::string param_name, Param* P);
 
 
 
@@ -233,8 +233,8 @@ namespace Params
  *  \return               The integer result.
  */
 
-  int req_int(ParamMap fallback, ParamMap params,
-              std::string param_name, Param P);
+  int req_int(ParamMap &fallback, ParamMap &params,
+              std::string param_name, Param* P);
 
 
 
@@ -252,10 +252,10 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_double_vec(ParamMap base, ParamMap fallback, ParamMap params,
+  void get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
                       std::string param_name, double* array, int expected,
                       double default_value, int default_size,
-                      bool err_on_missing, Param P, bool force_fail);
+                      bool err_on_missing, Param* P, bool force_fail);
 
 
 
@@ -271,10 +271,10 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_double_vec(ParamMap fallback, ParamMap params,
+  void get_double_vec(ParamMap &fallback, ParamMap &params,
                       std::string param_name, double* array, int expected,
                       double default_value, int default_size,
-                      Param P);
+                      Param* P);
 
 
 
@@ -289,9 +289,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void req_double_vec(ParamMap base, ParamMap fallback, ParamMap params,
+  void req_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
                       std::string param_name, double* array, int expected,
-                      Param P);
+                      Param* P);
 
 
 
@@ -304,9 +304,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void req_double_vec(ParamMap fallback, ParamMap params,
+ void req_double_vec(ParamMap &fallback, ParamMap &params,
                      std::string param_name, double* array, int expected,
-                     Param P);
+                     Param* P);
 
 
 
@@ -322,9 +322,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void get_double_vec_ff(bool force_fail, ParamMap fallback, ParamMap params,
+ void get_double_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &params,
    std::string param_name, double* array, int expected,
-   double default_value, Param P);
+   double default_value, Param* P);
 
 
 
@@ -336,8 +336,8 @@ namespace Params
 *  \return               The integer result.
 */
 
- int req_int(ParamMap fallback, ParamMap params,
-   std::string param_name, Param P);
+ int req_int(ParamMap &fallback, ParamMap &params,
+   std::string param_name, Param* P);
 
 
 
@@ -355,10 +355,10 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void get_int_vec(ParamMap base, ParamMap fallback, ParamMap params,
+ void get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
                   std::string param_name, int* array, int expected,
                   int default_value, int default_size,
-                  bool err_on_missing, Param P, bool force_fail);
+                  bool err_on_missing, Param* P, bool force_fail);
 
 
 
@@ -375,10 +375,10 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void get_int_vec(ParamMap fallback, ParamMap params,
+ void get_int_vec(ParamMap &fallback, ParamMap &params,
                   std::string param_name, int* array, int expected,
                   int default_value, int default_size,
-                  bool err_on_missing, Param P, bool force_fail);
+                  bool err_on_missing, Param* P, bool force_fail);
 
 
 
@@ -393,10 +393,10 @@ namespace Params
   *  \param P              The param struct, for looking up command-line args
   */
 
- void get_int_vec(ParamMap fallback, ParamMap params,
+ void get_int_vec(ParamMap &fallback, ParamMap &params,
    std::string param_name, int* array, int expected,
    int default_value, int default_size,
-   Param P);
+   Param* P);
 
 
 
@@ -412,9 +412,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void req_int_vec(ParamMap base, ParamMap fallback, ParamMap params,
+ void req_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
                   std::string param_name, int* array, int expected,
-                  Param P);
+                  Param* P);
 
 
 
@@ -427,9 +427,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void req_int_vec(ParamMap fallback, ParamMap params,
+ void req_int_vec(ParamMap &fallback, ParamMap &params,
                   std::string param_name, int* array, int expected,
-                  Param P);
+                  Param* P);
 
 
 /** \brief                Wrapper for req_int_vec allowing "forced failure"
@@ -444,9 +444,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
- void get_int_vec_ff(bool force_fail, ParamMap fallback, ParamMap params,
+ void get_int_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &params,
                      std::string param_name, int* array, int expected,
-                     int default_value, Param P);
+                     int default_value, Param* P);
 
 
  /** \brief                Require a vector of strings as a parameter
@@ -460,8 +460,8 @@ namespace Params
   *  \return               Number of strings parsed*
   */
 
-  int req_string_vec(ParamMap base, ParamMap fallback, ParamMap params,
-                      std::string param_name, char** array, int expected, Param P);
+  int req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                      std::string param_name, char** array, int expected, Param* P);
 
 
 /** \brief                Wrapper for req_string_vec with only two maps
@@ -474,8 +474,8 @@ namespace Params
  *  \return               Number of strings parsed
  */
 
-  int req_string_vec(ParamMap fallback, ParamMap params,
-                      std::string param_name, char** array, int expected, Param P);
+  int req_string_vec(ParamMap &fallback, ParamMap &params,
+                      std::string param_name, char** array, int expected, Param* P);
 
 
 /** \brief                Read a matrix of integers from a parameter
@@ -489,8 +489,8 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_int_matrix(ParamMap base, ParamMap fallback, ParamMap params,
-                      std::string param_name, int** array, int sizex, int sizey, Param P);
+  void get_int_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params,
+                      std::string param_name, int** array, int sizex, int sizey, Param* P);
 
 
 
@@ -504,9 +504,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_int_matrix(ParamMap fallback, ParamMap params,
+  void get_int_matrix(ParamMap &fallback, ParamMap &params,
                      std::string param_name, int** array, int sizex,
-                     int sizey, Param P);
+                     int sizey, Param* P);
 
 
 
@@ -523,9 +523,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_double_matrix(ParamMap base, ParamMap fallback, ParamMap params,
+  void get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params,
                          std::string param_name, double** array, int sizex, int sizey,
-                         double default_value, bool err_on_missing, Param P);
+                         double default_value, bool err_on_missing, Param* P);
 
 /** \brief                Wrapper for get_double_matrix with only two maps
  *  \param params         The preferred map to find the parameter in
@@ -538,9 +538,9 @@ namespace Params
  *  \param P              The param struct, for looking up command-line args
  */
 
-  void get_double_matrix(ParamMap fallback, ParamMap params,
+  void get_double_matrix(ParamMap &fallback, ParamMap &params,
                          std::string param_name, double** array, int sizex,
-                         int sizey, double default_value, Param P);
+                         int sizey, double default_value, Param* P);
 
 } // namespace Params
 
