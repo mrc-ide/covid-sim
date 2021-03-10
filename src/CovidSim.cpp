@@ -938,7 +938,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P.PlaceTypeSizeMax, P.PlaceTypeNum, 1e20, NUM_PLACE_TYPES, &P);
 			Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P.PlaceTypeSizeMin, P.PlaceTypeNum, 1.0, NUM_PLACE_TYPES, &P);
 			Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P.PlaceTypeKernelType, P.PlaceTypeNum, P.MoveKernel.type_, NUM_PLACE_TYPES, &P);
-			Params::get_double_matrix(pre_params, adm_params, "Place overlap matrix", (double**) P.PlaceExclusivityMatrix, P.PlaceTypeNum, P.PlaceTypeNum, 0, &P);
+			Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 0, P.PlaceTypeNum* P.PlaceTypeNum, &P);
 			if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)                                 // get_double_matrix will set the zeroes if missing;

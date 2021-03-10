@@ -147,7 +147,7 @@ double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		return std::stod(str_value, &idx);
 	}
 	if (err_on_missing) {
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name);
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	} else {
 	  return default_value;
 	}
@@ -187,7 +187,7 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		return std::stoi(str_value, &idx);
 	}
 	if (err_on_missing) {
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name);
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
 	else {
 		return default_value;
@@ -228,22 +228,22 @@ void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params
 		std::stringstream str_stream(str_value);
 		std::string buffer;
 		std::string::size_type idx;
-		int index = -1;
+		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-			  index++;
 			  array[index] = std::stod(buffer, &idx);
+			  index++;
 			}
 		}
 		if (index != expected) {
 			ERR_CRITICAL_FMT("Expected %d elements, found %d for param %s\n",
-			expected, index, param_name);
+			expected, index, param_name.c_str());
 		}
 	}
 	else {
 		for (int i = 0; i < default_size; i++) array[i] = default_value;
 		if (err_on_missing) {
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name);
+			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 		}
 	}
 }
@@ -293,11 +293,11 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		std::stringstream str_stream(str_value);
 		std::string buffer;
 		std::string::size_type idx;
-		int index = -1;
+		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				index++;
 				array[index] = std::stoi(buffer, &idx);
+				index++;
 			}
 		}
 		if (index != expected) {
@@ -362,22 +362,18 @@ int Params::req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 	if (str_value.compare("NULL") != 0) {
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		int index = -1;
+		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				index++;
 				array[index] = new char[buffer.length() + 1];
 				strcpy(array[index], buffer.c_str());
+				index++;
 			}
-		}
-		if (index != expected) {
-			ERR_CRITICAL_FMT("Expected %d elements, found %d for param %s\n",
-				expected, index, param_name.c_str());
 		}
 		return index;
 	}
 	else {
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name);
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
 }
 
@@ -437,18 +433,20 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 		std::stringstream str_stream(str_value);
 		std::string buffer;
 		std::string::size_type idx;
-		int x = -1;
-		int y = -1;
+		int x = 0;
+		int y = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				x++;
-				if (x == sizex) x = 0;
-				if (x == 0) y++;
+				if (y >= sizey) {
+					ERR_CRITICAL_FMT("Write out of bounds, (%d, %d) is beyond (%d, %d) in %s\n", x, y, sizex, param_name.c_str());
+				}
 				array[x][y] = std::stod(buffer, &idx);
+				x++;
+				if (x == sizex) {
+					y++;
+					x = 0;
+				}
 			}
-		}
-		if ((x != (sizex - 1)) || (y != (sizey - 1))) {
-			ERR_CRITICAL_FMT("Matrix read of %s expected to end on (%d,%d) - actually (%d,%d)\n", param_name.c_str(), sizex - 1, sizey - 1, x, y);
 		}
 	}
 	else {
