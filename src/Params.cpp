@@ -189,13 +189,13 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		std::string::size_type idx;
 		double dval = std::stod(str_value, &idx);
 		int result;
-		if (dval > INT_MAX) {
+		if (dval > (double) INT32_MAX) {
 			Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), str_value.c_str());
-			result = INT_MAX;
+			result = INT32_MAX;
 		}
-		else if (dval < INT_MIN) {
+		else if (dval < (double)INT32_MIN) {
 			Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), str_value.c_str());
-			result = INT_MIN;
+			result = INT32_MIN;
 		}
 		else {
 			result = std::stoi(str_value, &idx);
@@ -314,13 +314,13 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 			if (!buffer.empty()) {
 				double dval = std::stod(buffer, &idx);
 				int result;
-				if (dval > INT_MAX) {
+				if (dval > (double) INT32_MAX) {
 					Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), buffer.c_str());
-					result = INT_MAX;
+					result = INT32_MAX;
 				}
-				else if (dval < INT_MIN) {
+				else if (dval < (double) INT32_MIN) {
 					Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), buffer.c_str());
-					result = INT_MIN;
+					result = INT32_MIN;
 				}
 				else {
 					result = std::stoi(str_value, &idx);

@@ -5,6 +5,7 @@
 #ifndef PARAMS_H_INCLUDED_
 #define PARAMS_H_INCLUDED_
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <sstream>
