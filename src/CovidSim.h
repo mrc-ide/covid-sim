@@ -24,6 +24,7 @@
 #include "Country.h"
 #include "Constants.h"
 #include "Files.h"
+#include "Params.h"
 
 int ChooseTriggerVariableAndValue(int AdUnit);
 double ChooseThreshold(int AdUnit, double WhichThreshold);
@@ -31,6 +32,5 @@ void UpdateCurrentInterventionParams(double t);
 void UpdateCFRs(double t_CalTime);
 void RecordAdminAgeBreakdowns(int t_int);
 void RecordQuarNotInfected(int n, unsigned short int ts);
-bool readString(const char* SItemName, FILE* dat, char *buf);
 
 #endif // COVIDSIM_COVIDSIM_H_INCLUDED_
