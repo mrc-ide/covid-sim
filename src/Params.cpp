@@ -25,11 +25,20 @@ ParamMap Params::read_params_map(const char* file)
 	}
 	else
 	{			// Not skipping...
-		if (buf.length() == 0) {	// Newline finishes this value
+		if ((buf.length() == 0) || (buf.compare(0, 1, "*") == 0) ||
+			(buf.compare(0, 1, "=") == 0) || (buf.compare(0, 1, "[") == 0)) {
+			value.erase(0, value.find_first_not_of(" \t\n\r"));
+			value.erase(value.find_last_not_of(" \t\n\r") + 1);
 			param_map.insert(ParamPair(key, value));
 			value.clear();
 			key.clear();
-			skipping = true;
+			if (buf.compare(0, 1, "[") == 0) {
+				key = buf.substr(1, buf.length() - 2);
+			}
+			else
+			{
+				skipping = true;
+			}
 		}
 		else {
 			value.append(buf);
@@ -39,6 +48,8 @@ ParamMap Params::read_params_map(const char* file)
   }
 
   if (!key.empty()) {
+	  value.erase(0, value.find_first_not_of(" \t\n\r"));
+	  value.erase(value.find_last_not_of(" \t\n\r") + 1);
       param_map.insert(ParamPair(key, value));
   }
 
@@ -173,10 +184,23 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
 	                     bool err_on_missing, Param* P) {
 
 	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
-
+	
 	if (str_value.compare("NULL") != 0) {
 		std::string::size_type idx;
-		return std::stoi(str_value, &idx);
+		double dval = std::stod(str_value, &idx);
+		int result;
+		if (dval > INT_MAX) {
+			Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), str_value.c_str());
+			result = INT_MAX;
+		}
+		else if (dval < INT_MIN) {
+			Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), str_value.c_str());
+			result = INT_MIN;
+		}
+		else {
+			result = std::stoi(str_value, &idx);
+		}
+		return result;
 	}
 	if (err_on_missing) {
 		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
@@ -288,7 +312,21 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				array[index] = std::stoi(buffer, &idx);
+				double dval = std::stod(buffer, &idx);
+				int result;
+				if (dval > INT_MAX) {
+					Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), buffer.c_str());
+					result = INT_MAX;
+				}
+				else if (dval < INT_MIN) {
+					Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), buffer.c_str());
+					result = INT_MIN;
+				}
+				else {
+					result = std::stoi(str_value, &idx);
+				}
+
+				array[index] = result;
 				index++;
 			}
 		}
@@ -391,10 +429,7 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 		int y = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				if (y >= sizey) {
-					ERR_CRITICAL_FMT("Write out of bounds, (%d, %d) is beyond (%d, %d) in %s\n", x, y, sizex, param_name.c_str());
-				}
-				array[x][y] = std::stod(buffer, &idx);
+				if ((y < sizey) && (x < sizex)) array[x][y] = std::stod(buffer, &idx);
 				x++;
 				if (x == sizex) {
 					y++;
@@ -402,13 +437,16 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 				}
 			}
 		}
+		if ((x >= sizex) || (y >= sizey)) {
+			Files::xfprintf_stderr("Warning: more data available for %s than was read.\n", param_name.c_str());
+		}
 	}
 	else {
 		if (err_on_missing) {
 			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 		} else {
-	    for (int x=0; x < sizex; x++)
-		    for (int y=0; y < sizey; y++)
+	    for (int x = 0; x < sizex; x++)
+		    for (int y = 0; y < sizey; y++)
 			    array[x][y] = default_value;
 		}
 	}
