@@ -478,37 +478,6 @@ namespace Params
                       std::string param_name, char** array, int expected, Param* P);
 
 
-/** \brief                Read a matrix of integers from a parameter
- *  \param params         The preferred map to find the parameter in
- *  \param fallback       A fallback if the parameter is not found in params
- *  \param base           A final map, should the parameter not be found in fallback.
- *  \param param_name     The name of the parameter to look up.
- *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
- *  \param P              The param struct, for looking up command-line args
- */
-
-  void get_int_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params,
-                      std::string param_name, int** array, int sizex, int sizey, Param* P);
-
-
-
-/** \brief                Wrapper for get_int_matrix with only two maps
- *  \param params         The preferred map to find the parameter in
- *  \param fallback       A fallback if the parameter is not found in params
- *  \param param_name     The name of the parameter to look up.
- *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
- *  \param P              The param struct, for looking up command-line args
- */
-
-  void get_int_matrix(ParamMap &fallback, ParamMap &params,
-                     std::string param_name, int** array, int sizex,
-                     int sizey, Param* P);
-
-
 
 /** \brief                Read a matrix of doubles from a parameter
  *  \param params         The preferred map to find the parameter in
@@ -541,6 +510,11 @@ namespace Params
   void get_double_matrix(ParamMap &fallback, ParamMap &params,
                          std::string param_name, double** array, int sizex,
                          int sizey, double default_value, Param* P);
+
+
+/** \brief                Allocate memory for 2-D (or higher) objects in params
+ */
+  void alloc_params(Param* P);
 
 } // namespace Params
 

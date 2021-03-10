@@ -12,42 +12,34 @@ ParamMap Params::read_params_map(const char* file)
   ParamMap param_map;   // Resulting map of (key, value)
   std::string key;      // Current key being processed
   std::string value;    // Current value being built
-  
+  bool skipping = true;
   while (std::getline(fin, buf)) {    // Each line. (buffer includes new-line)
-
     buf.erase(0, buf.find_first_not_of(" \t\n\r"));     // Remove lead space
     buf.erase(buf.find_last_not_of(" \t\n\r") + 1);     // ... and trailing.
 
-    if ((buf.length() == 0) || (buf.compare(0, 1, "[") == 0) ||
-        (buf.compare(0, 1, "=") == 0) || (buf.compare(0, 1, "(") == 0)) {
-
-      // Detected an empty line, or comment, or start of new key.
-      // In any of these cases, if we were building a key-value before,
-      // it is now finished and can be stored. 
-      
-      if (!key.empty()) {
-        param_map.insert(ParamPair(key, value));
-        key.clear();
-        value.clear();
-      }
-
-      // If this is a new key, set it up.
-
-      if (buf.compare(0, 1, "[") == 0)
-        key = buf.substr(1, buf.length() - 2);
-
-    } else {                  // It's a value (or part of one)
-      if (!value.empty()) {   // If value already contains something, 
-        value.append("\n");   // then separate with new-line in the map.
-      }
-      value.append(buf);
-    }
+	if (skipping) {   // Currently, we're not doing anything interesting.
+		if ((buf.length() > 1) && (buf.compare(0, 1, "[") == 0)) {   // We found a key
+			skipping = false;
+			key = buf.substr(1, buf.length() - 2);
+		}
+	}
+	else
+	{			// Not skipping...
+		if (buf.length() == 0) {	// Newline finishes this value
+			param_map.insert(ParamPair(key, value));
+			value.clear();
+			key.clear();
+			skipping = true;
+		}
+		else {
+			value.append(buf);
+			value.append("\n");
+		}
+	}
   }
 
-  // Deal with any straggler at the end of the file that didn't get terminated
-
   if (!key.empty()) {
-    param_map.insert(ParamPair(key, value));
+      param_map.insert(ParamPair(key, value));
   }
 
   fin.close();
@@ -219,8 +211,8 @@ int Params::req_int(ParamMap &fallback, ParamMap &params,
 
 void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
                             std::string param_name, double* array, int expected,
-														double default_value, int default_size,
-	                          bool err_on_missing, Param* P, bool force_fail) {
+                            double default_value, int default_size,
+	                        bool err_on_missing, Param* P, bool force_fail) {
 
 	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
 
@@ -231,13 +223,13 @@ void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params
 		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-			  array[index] = std::stod(buffer, &idx);
+			  if (index < expected) array[index] = std::stod(buffer, &idx);
 			  index++;
 			}
 		}
 		if (index != expected) {
-			ERR_CRITICAL_FMT("Expected %d elements, found %d for param %s\n",
-			expected, index, param_name.c_str());
+			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n",
+				param_name.c_str(), index, expected);
 		}
 	}
 	else {
@@ -385,44 +377,6 @@ int Params::req_string_vec(ParamMap &fallback, ParamMap &params,
 
 /***********************************************************************************/
 
-void Params::get_int_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params,
-	                          std::string param_name, int** array, int sizex, int sizey,
-										        Param* P) {
-	
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
-
-	if (str_value.compare("NULL") != 0) {
-		std::stringstream str_stream(str_value);
-		std::string buffer;
-		std::string::size_type idx;
-		int x = -1;
-		int y = -1;
-		while (str_stream >> buffer) {
-			if (!buffer.empty()) {
-				x++;
-				if (x == sizex) x = 0;
-				if (x == 0) y++;
-				array[x][y] = std::stoi(buffer, &idx);
-			}
-		}
-		if ((x != (sizex - 1)) || (y != (sizey - 1))) {
-			ERR_CRITICAL_FMT("Matrix read of %s expected to end on (%d,%d) - actually (%d,%d)\n", param_name.c_str(), sizex - 1, sizey - 1, x, y);
-		}
-	}
-	else {
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-  }
-}
-
-void Params::get_int_matrix(ParamMap &fallback, ParamMap &params,
-	                          std::string param_name, int** array, int sizex,
-	                          int sizey, Param* P) {
-
-  Params::get_int_matrix(fallback, fallback, params, param_name, array,  sizex, sizey, P);
-}
-
-/***********************************************************************************/
-
 void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params,
 	                             std::string param_name, double** array, int sizex, int sizey,
 	                             double default_value, bool err_on_missing, Param* P) {
@@ -465,4 +419,27 @@ void Params::get_double_matrix(ParamMap &fallback, ParamMap &params,
 	                             int sizey, double default_value, Param* P) {
 	Params::get_double_matrix(fallback, fallback, params, param_name, array,
 	                          sizex, sizey, default_value, false, P);
+}
+
+double** create_2d_double(int sizex, int sizey) {
+	double** arr = new double* [sizex];
+	for (int i = 0; i < sizex; i++)
+		arr[i] = new double[sizey];
+	return arr;
+}
+
+void Params::alloc_params(Param* P) {
+	P->LocationInitialInfection = create_2d_double(MAX_NUM_SEED_LOCATIONS, 2);
+	P->WAIFW_Matrix = create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
+	P->WAIFW_Matrix_SpatialOnly = create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
+	P->SD_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->Enhanced_SD_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->HQ_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->PC_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->PC_PropAttending_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->HouseholdSizeDistrib = create_2d_double(MAX_ADUNITS, MAX_HOUSEHOLD_SIZE);
+	P->PropAgeGroup = create_2d_double(MAX_ADUNITS, NUM_AGE_GROUPS);
+	P->PopByAdunit = create_2d_double(MAX_ADUNITS, 2);
+	P->InvLifeExpecDist = create_2d_double(MAX_ADUNITS, 1001);
+
 }

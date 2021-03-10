@@ -124,6 +124,7 @@ void GetInverseCdf(ParamMap fallback, ParamMap params, const char* icdf_name, In
 
 int main(int argc, char* argv[])
 {
+	Params::alloc_params(&P);
 	///// Flags to ensure various parameters have been read; set to false as default.
 	std::string pre_param_file, param_file, density_file, load_network_file, save_network_file, air_travel_file, school_file;
 	std::string reg_demog_file, fit_file, data_file;
@@ -701,7 +702,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-		  Params::get_double_matrix(params, pre_params, "WAIFW matrix", (double**) P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, &P);
+		  Params::get_double_matrix(params, pre_params, "WAIFW matrix", P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, &P);
 
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
@@ -732,7 +733,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-		  Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", (double**) P.WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, &P);
+		  Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P.WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, &P);
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
 			Overall age variation in infectiousness/contact rates/susceptibility should be factored
@@ -941,8 +942,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 0, P.PlaceTypeNum* P.PlaceTypeNum, &P);
 			if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)                                 // get_double_matrix will set the zeroes if missing;
-					P.PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1;            // this line sets the diagonal to 1 (identity matrix)
+				for (i = 0; i < NUM_PLACE_TYPES; i++)                                 // get_double_vec will set the zeroes if missing;
+					P.PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1;          // this line sets the diagonal to 1 (identity matrix)
 			}
 		}
 		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
@@ -974,7 +975,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
 	Params::req_int_vec(pre_params, adm_params, "Initial number of infecteds", P.NumInitialInfections, P.NumSeedLocations, &P);
-	Params::get_double_matrix(pre_params, adm_params, "Location of initial infecteds", (double**) P.LocationInitialInfection, P.NumSeedLocations, 2, 0, &P);
+	Params::get_double_matrix(pre_params, adm_params, "Location of initial infecteds", P.LocationInitialInfection, P.NumSeedLocations, 2, 0, &P);
 	P.MinPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Minimum population in microcell of initial infection", 0, &P);
 	P.MaxPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum population in microcell of initial infection", 10000000, &P);
 	P.MaxAgeForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum age of initial infections", 1000, &P);
@@ -1847,34 +1848,34 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	if (P.DoPlaces != 0)
 	{ 
 		//// soc dist
-		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given social distancing by place type", (double**) P.SD_PlaceEffects_OverTime, P.Num_SD_ChangeTimes, P.PlaceTypeNum, 0, &P);
+		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given social distancing by place type", P.SD_PlaceEffects_OverTime, P.Num_SD_ChangeTimes, P.PlaceTypeNum, 0, &P);
 		if (v || !Params::param_found(params, pre_params, "Relative place contact rates over time given social distancing by place type"))
 			for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) //// by default populate to values of P.SocDistPlaceEffect
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.SocDistPlaceEffect[PlaceType];
 
 		//// enhanced soc dist
-		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type", (double**)P.Enhanced_SD_PlaceEffects_OverTime, P.Num_SD_ChangeTimes, P.PlaceTypeNum, 0, &P);
+		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type", P.Enhanced_SD_PlaceEffects_OverTime, P.Num_SD_ChangeTimes, P.PlaceTypeNum, 0, &P);
 		if (v || !Params::param_found(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type"))
 			for (int ChangeTime = 0; ChangeTime < P.Num_SD_ChangeTimes; ChangeTime++) //// by default populate to values of P.EnhancedSocDistPlaceEffect
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.EnhancedSocDistPlaceEffect[PlaceType];
 
 		//// household quarantine
-		Params::get_double_matrix(params, pre_params, "Residual place contacts over time after household quarantine by place type", (double**)P.HQ_PlaceEffects_OverTime, P.Num_HQ_ChangeTimes, P.PlaceTypeNum, 0, &P);
+		Params::get_double_matrix(params, pre_params, "Residual place contacts over time after household quarantine by place type", P.HQ_PlaceEffects_OverTime, P.Num_HQ_ChangeTimes, P.PlaceTypeNum, 0, &P);
 		if (v || !Params::param_found(params, pre_params, "Residual place contacts over time after household quarantine by place type"))
 			for (int ChangeTime = 0; ChangeTime < P.Num_HQ_ChangeTimes; ChangeTime++) //// by default populate to values of P.HQuarantinePlaceEffect
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.HQ_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.HQuarantinePlaceEffect[PlaceType];
 
 		//// place closure
-		Params::get_double_matrix(params, pre_params, "Proportion of places remaining open after closure by place type over time", (double**)P.PC_PlaceEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceTypeNum, 0, &P);
+		Params::get_double_matrix(params, pre_params, "Proportion of places remaining open after closure by place type over time", P.PC_PlaceEffects_OverTime, P.Num_PC_ChangeTimes, P.PlaceTypeNum, 0, &P);
 		if (v || !Params::param_found(params, pre_params, "Proportion of places remaining open after closure by place type over time"))
 			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P.PlaceCloseEffect
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 					P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = P.PlaceCloseEffect[PlaceType];
 
-		Params::get_double_matrix(params, pre_params, "Proportional attendance after closure by place type over time", (double**)P.PC_PropAttending_OverTime, P.Num_PC_ChangeTimes, P.PlaceTypeNum, 0, &P);
+		Params::get_double_matrix(params, pre_params, "Proportional attendance after closure by place type over time", P.PC_PropAttending_OverTime, P.Num_PC_ChangeTimes, P.PlaceTypeNum, 0, &P);
 		if (v || !Params::param_found(params, pre_params, "Proportional attendance after closure by place type over time"))
 			for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P.PlaceClosePropAttending
 				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
