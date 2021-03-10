@@ -26,7 +26,7 @@ ParamMap Params::read_params_map(const char* file)
 	else
 	{			// Not skipping...
 		if ((buf.length() == 0) || (buf.compare(0, 1, "*") == 0) ||
-			(buf.compare(0, 1, "=") == 0) || (buf.compare(0, 1, "[") == 0)) {
+			(buf.compare(0, 1, "^") == 0) || (buf.compare(0, 1, "=") == 0) || (buf.compare(0, 1, "[") == 0)) {
 			value.erase(0, value.find_first_not_of(" \t\n\r"));
 			value.erase(value.find_last_not_of(" \t\n\r") + 1);
 			param_map.insert(ParamPair(key, value));
@@ -189,15 +189,12 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		std::string::size_type idx;
 		double dval = std::stod(str_value, &idx);
 		int result;
-		if (dval > (double) INT32_MAX) {
-			Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), str_value.c_str());
-			result = INT32_MAX;
+		if ((dval > (double) INT32_MAX) || (dval < (double) INT32_MIN)) {
+			Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
+			result = (int) dval;
 		}
-		else if (dval < (double)INT32_MIN) {
-			Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), str_value.c_str());
-			result = INT32_MIN;
-		}
-		else {
+		else
+		{
 			result = std::stoi(str_value, &idx);
 		}
 		return result;
@@ -314,15 +311,12 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 			if (!buffer.empty()) {
 				double dval = std::stod(buffer, &idx);
 				int result;
-				if (dval > (double) INT32_MAX) {
-					Files::xfprintf_stderr("Warning: reducing int param %s (%s) to MAX_INT\n", param_name.c_str(), buffer.c_str());
-					result = INT32_MAX;
+				if ((dval > (double)INT32_MAX) || (dval < (double)INT32_MIN)) {
+					Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
+					result = (int) dval;
 				}
-				else if (dval < (double) INT32_MIN) {
-					Files::xfprintf_stderr("Warning: increasing int param %s (%s) to MIN_INT\n", param_name.c_str(), buffer.c_str());
-					result = INT32_MIN;
-				}
-				else {
+				else
+				{
 					result = std::stoi(str_value, &idx);
 				}
 
