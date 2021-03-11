@@ -13,6 +13,7 @@ ParamMap Params::read_params_map(const char* file)
 	std::string buf;       // Buffer for a line of text
 
 	ParamMap param_map;   // Resulting map of (key, value)
+	ParamIter iter;       // Iterator, for checking duplicate keys
 	std::string key;      // Current key being processed
 	std::string value;    // Current value being built
 	bool skipping = true;
@@ -36,6 +37,13 @@ ParamMap Params::read_params_map(const char* file)
 			{
 				value.erase(0, value.find_first_not_of(" \t\n\r"));
 				value.erase(value.find_last_not_of(" \t\n\r") + 1);
+
+				// ERR if the key already exists.
+				iter = param_map.find(key);
+				if (iter != param_map.end()) {
+					ERR_CRITICAL_FMT("Duplicate parameter values for %s\n(1):%s\n(2):%s\n",
+						key.c_str(), iter->second.c_str(), value.c_str());
+				}
 				param_map.insert(ParamPair(key, value));
 				value.clear();
 				key.clear();
@@ -60,6 +68,13 @@ ParamMap Params::read_params_map(const char* file)
 	{
 		value.erase(0, value.find_first_not_of(" \t\n\r"));
 		value.erase(value.find_last_not_of(" \t\n\r") + 1);
+
+		iter = param_map.find(key);
+		if (iter != param_map.end()) {
+			ERR_CRITICAL_FMT("Duplicate parameter values for %s\n(1):%s\n(2):%s\n",
+				key.c_str(), iter->second.c_str(), value.c_str());
+		}
+
 		param_map.insert(ParamPair(key, value));
 	}
 
