@@ -187,11 +187,11 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
 	
 	if (str_value.compare("NULL") != 0) {
 		std::string::size_type idx;
-		double dval = std::stod(str_value, &idx);
+		uint64_t lval = std::stoll(str_value, &idx);
 		int result;
-		if ((dval > (double) INT32_MAX) || (dval < (double) INT32_MIN)) {
+		if ((lval > (double) INT32_MAX) || (lval < (double) INT32_MIN)) {
 			Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
-			result = (int) dval;
+			result = (int) lval;
 		}
 		else
 		{
@@ -309,11 +309,11 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		int index = 0;
 		while (str_stream >> buffer) {
 			if (!buffer.empty()) {
-				double dval = std::stod(buffer, &idx);
+				uint64_t lval = std::stoll(buffer, &idx);
 				int result;
-				if ((dval > (double)INT32_MAX) || (dval < (double)INT32_MIN)) {
-					Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
-					result = (int) dval;
+				if ((lval > (double)INT32_MAX) || (lval < (double)INT32_MIN)) {
+					Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), buffer.c_str());
+					result = (int) lval;
 				}
 				else {
 					result = std::stoi(buffer, &idx);
