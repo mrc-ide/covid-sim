@@ -703,7 +703,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 						//// so !f true if any household member EITHER: a) dead; b) a child; c) has a link to an office and not currently absent or quarantined.
 						if (!f) //// so if either a) a household member is dead; b) a household member is a child requiring adult to stay home; c) a household member has links to office.
 						{
-							for (j = j1; (j < j2) & (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
+							for (j = j1; (j < j2) && (!f); j++) /// loop again, checking whether household members not children needing supervision and are alive.
 								if ((HOST_AGE_YEAR(j) >= P.CaseAbsentChildAgeCutoff) && Hosts[j].is_alive())
 								{
 									k = j;
@@ -737,7 +737,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			}
 			else
 			{
-				Files::xfprintf_stderr("No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[j].ndct, AdUnits[ad].n);
+				Files::xfprintf_stderr("No more space in queue! AdUnit: %i, ndct=%i, max queue length: %i\n", ad, AdUnits[ad].ndct, AdUnits[ad].n);
 				Files::xfprintf_stderr("Error!\n");
 			}
 		}
