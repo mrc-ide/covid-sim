@@ -1366,7 +1366,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	P.DoPlaceGroupTreat = Params::get_int(params, pre_params, "Only treat mixing groups within places", 0, &P);
 
-	P.TreatCellIncThresh = Params::get_double(params, pre_params, "Treatment trigger incidence per cell", INT_MAX, &P);
+	P.TreatCellIncThresh = Params::get_double(params, pre_params, "Treatment trigger incidence per cell", INT32_MAX, &P);
 	P.CaseIsolation_CellIncThresh = Params::get_double(params, pre_params, "Case isolation trigger incidence per cell", P.TreatCellIncThresh, &P);
 	P.HHQuar_CellIncThresh = Params::get_double(params, pre_params, "Household quarantine trigger incidence per cell", P.TreatCellIncThresh, &P);
 
@@ -1399,7 +1399,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.TreatMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of doses available", 1e20, &P);
 	P.TreatNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional treatment production", USHRT_MAX / P.TimeStepsPerDay, &P);
 	P.TreatNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional treatment production (courses per day)", 0, &P);
-	P.TreatMaxCoursesPerCase = Params::get_int(params, pre_params, "Maximum number of people targeted with radial prophylaxis per case", INT_MAX, &P);
+	P.TreatMaxCoursesPerCase = Params::get_int(params, pre_params, "Maximum number of people targeted with radial prophylaxis per case", INT32_MAX, &P);
 
 	if (P.DoAdUnits != 0)
 	{
@@ -1464,7 +1464,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.VaccAdminUnitDivisor = 1; P.VaccByAdminUnit = 0;
 	}
 
-	P.MoveRestrCellIncThresh = Params::get_int(params, pre_params, "Movement restrictions trigger incidence per cell", INT_MAX, &P);
+	P.MoveRestrCellIncThresh = Params::get_int(params, pre_params, "Movement restrictions trigger incidence per cell", INT32_MAX, &P);
 	P.MoveDelayMean = Params::get_double(params, pre_params, "Delay to start movement restrictions", 0, &P);
 	P.MoveRestrDuration = Params::get_double(params, pre_params, "Duration of movement restrictions", 7, &P);
 	P.MoveRestrEffect = Params::get_double(params, pre_params, "Residual movements after restrictions", 0, &P);
@@ -1781,7 +1781,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HQ_ChangeTimes			[ChangeTime] = 1e10;
 		P.PC_ChangeTimes			[ChangeTime] = 1e10;
 		P.DCT_ChangeTimes			[ChangeTime] = 1e10;
-		P.CFR_ChangeTimes_CalTime	[ChangeTime] = 1e10; // Out of bounds for int
+		P.CFR_ChangeTimes_CalTime	[ChangeTime] = INT32_MAX; // Out of bounds for int
 	}
 	//// Get real values from (pre)param file
 
@@ -1991,8 +1991,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
 	P.CFR_ChangeTimes_CalTime[0] = 0;
 
-  for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
-	Params::get_int_vec(params, pre_params, "CFR_ChangeTimes_CalTime", P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, INT_MAX, P.Num_CFR_ChangeTimes, &P);
+  for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX;
+	Params::get_int_vec(params, pre_params, "CFR_ChangeTimes_CalTime", P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, INT32_MAX, P.Num_CFR_ChangeTimes, &P);
 
 	// Get various CFR scalings. 
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_Critical", P.CFR_TimeScaling_Critical, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
@@ -4436,7 +4436,7 @@ int ChooseTriggerVariableAndValue(int AdUnit)
 			VariableAndValue = State.trigDetectedCases;
 	}
 	else if (P.DoAdminTriggers) VariableAndValue = State.trigDC_adunit[AdUnit];
-	else VariableAndValue = INT_MAX; //// i.e. if not doing triggering (at either admin or global level) then set value to be arbitrarily large so that it will surpass any trigger threshold. Probably other ways around this if anybody wants to correct?
+	else VariableAndValue = INT32_MAX; //// i.e. if not doing triggering (at either admin or global level) then set value to be arbitrarily large so that it will surpass any trigger threshold. Probably other ways around this if anybody wants to correct?
 
 	return VariableAndValue;
 }
