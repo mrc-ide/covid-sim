@@ -113,6 +113,15 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		CareHomeWorkerGroupScaling       	= 1, 
 		CareHomeRelProbHosp              	= 1, 
 		
+		# Seroconversion parameters (for likelihood)
+		SeroConvMaxSens = 0.83, # taken from Neil pre-param code not Cpp default.  
+		SeroConvP1 = 14, 
+		SeroConvP2 = 3,
+		SeroConvSpec = 0.989,		# taken from Neil pre-param code not Cpp default.  
+		InfPrevSurveyScale = 5,  # taken from Neil pre-param code not Cpp default.  
+
+		SeroConvP1 = 14, SeroConvP2 = 3, 
+		
 		# which outputs?
 		OutputEveryRealisation				= 1,
 		OutputBitmap 						= 0,
@@ -274,8 +283,7 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		PreParamList[["Scaling of infection seeding"]] 									= SeedingScaling
 	if (!is.null(InitialInfectionCalTime))
 		PreParamList[["Day of year of start of seeding"]] 								= InitialInfectionCalTime
-	
-	
+
 	
 	PreParamList[["Proportion of cases detected for treatment"]] = PropCasesDetectedForTreatment
 	PreParamList[["Places close only once"]] = DoPlaceCloseOnceOnly
@@ -395,6 +403,13 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Scaling of within group (home) contacts for care home workers"]] 	= CareHomeWorkerGroupScaling
 	PreParamList[["Relative probability that care home residents are hospitalised"]] 	= CareHomeRelProbHosp
 	
+	## Seroconversion parameters (for likelihood)
+	PreParamList[["Maximum sensitivity of serology assay"]] 					= SeroConvMaxSens
+	PreParamList[["Seroconversion model parameter 1"]]							= SeroConvP1
+	PreParamList[["Seroconversion model parameter 2"]]							= SeroConvP2 
+	PreParamList[["Specificity of serology assay"]] 							= SeroConvSpec
+	PreParamList[["Scaling of modelled infection prevalence to match surveys"]]	= InfPrevSurveyScale
+
 	
 	### change # strings to factors.
 	for (ParamNum in 1:length(PreParamList))
