@@ -138,7 +138,8 @@ int main(int argc, char* argv[])
 
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
 	P.FitIter = 0;
-	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input) {
+	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input)
+  {
 		auto sep = input.find_first_of(',');
 		if (sep == std::string::npos)
 		{
@@ -223,7 +224,7 @@ int main(int argc, char* argv[])
 	args.add_integer_option("T", P.CaseOrDeathThresholdBeforeAlert_CommandLine, "Sets the P.CaseOrDeathThresholdBeforeAlert parameter");
 	args.parse(argc, argv, P);
 
-    // Check if S and L options were both specified (can only be one)
+	// Check if S and L options were both specified (can only be one)
 	if (!save_network_file.empty() && !load_network_file.empty())
 	{
 		std::cerr << "Specifying both /L and /S is not allowed" << std::endl;
@@ -277,7 +278,8 @@ int main(int argc, char* argv[])
 	ReadParams(param_file, pre_param_file, ad_unit_file);
 	if (P.DoAirports)
 	{
-		if (air_travel_file.empty()) {
+		if (air_travel_file.empty())
+		{
 			ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
 		}
 		ReadAirTravel(air_travel_file, output_file_base);
@@ -335,7 +337,7 @@ int main(int argc, char* argv[])
 				if (P.NumRealisations > 1)
 				{
 					output_file = output_file_base + "." + std::to_string(Realisation);
-					Files::xfprintf_stderr("Realisation %i of %i  (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+					Files::xfprintf_stderr("Realisation %i of %i (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
 				if (((Realisation == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
@@ -349,9 +351,9 @@ int main(int argc, char* argv[])
 				}
 				int32_t thisRunSeed1, thisRunSeed2;
 				int ContCalib, ModelCalibLoop = 0;
-				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop =  0;
+				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop = 0;
 				do
-				{  // has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
+				{	// has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
 					{
 						thisRunSeed1 = P.nextRunSeed1;
@@ -360,14 +362,14 @@ int main(int argc, char* argv[])
 						P.HolidaysStartDay_SimTime = 0; // needed for calibration to work for multiple realisations
 						P.CaseOrDeathThresholdBeforeAlert = P.CaseOrDeathThresholdBeforeAlert_Fixed; // needed for calibration to work for multiple realisations
 						if (!P.DoNoCalibration) P.SeedingScaling = 1.0; // needed for calibration to work for multiple realisations
-						P.ModelCalibIteration = 0;  // needed for calibration to work for multiple realisations
+						P.ModelCalibIteration = 0; // needed for calibration to work for multiple realisations
 						ModelCalibLoop++;
 					}
 					else
 					{
 						int32_t tmp1 = thisRunSeed1;
 						int32_t tmp2 = thisRunSeed2;
-						setall(&tmp1, &tmp2);  // reset random number seeds to generate same run again after calibration.
+						setall(&tmp1, &tmp2); // reset random number seeds to generate same run again after calibration.
 					}
 					InitModel(Realisation);
 					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
@@ -557,12 +559,12 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.HouseholdSizeDistrib[0][i] = P.HouseholdSizeDistrib[0][i] + P.HouseholdSizeDistrib[0][i - 1];
 		P.HouseholdDenomLookup[0] = 1.0;
 		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-		    P.HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P.HouseholdTransPow);
+			P.HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P.HouseholdTransPow);
 		P.DoAdUnits = Params::get_int(pre_params, adm_params, "Include administrative units within countries", 1, &P);
 		P.CountryDivisor = Params::get_int(pre_params, adm_params, "Divisor for countries", 1, &P);
 		if (P.DoAdUnits != 0)
 		{
-		
+
 			char** AdunitNames = (char**) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * sizeof(char*));
 			char* AdunitNamesBuf = (char*) Memory::xmalloc(3 * ADUNIT_LOOKUP_SIZE * 360 * sizeof(char));
 
@@ -591,7 +593,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 							P.AdunitLevel1Lookup[(AdUnits[P.NumAdunits].id % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor] = P.NumAdunits;
 							if (strlen(AdunitNames[3 * i + 1]) < 100) strcpy(AdUnits[P.NumAdunits].cnt_name, AdunitNames[3 * i + 1]);
 							if (strlen(AdunitNames[3 * i + 2]) < 200) strcpy(AdUnits[P.NumAdunits].ad_name, AdunitNames[3 * i + 2]);
-							//						Files::xfprintf_stderr("%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
+							//	Files::xfprintf_stderr("%i %s %s ## ",AdUnits[P.NumAdunits].id,AdUnits[P.NumAdunits].cnt_name,AdUnits[P.NumAdunits].ad_name);
 							P.NumAdunits++;
 						}
 			}
@@ -687,7 +689,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.PropAgeGroup[0][i] /= t;
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			if (P.AgeSusceptibility[i] > t) t = P.AgeSusceptibility[i];  //peak susc has to be 1
+			if (P.AgeSusceptibility[i] > t) t = P.AgeSusceptibility[i]; //peak susc has to be 1
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 			P.AgeSusceptibility[i] /= t;
 		AgeSuscScale = t;
@@ -703,7 +705,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-		  Params::get_double_matrix(params, pre_params, "WAIFW matrix", P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, &P);
+			Params::get_double_matrix(params, pre_params, "WAIFW matrix", P.WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, &P);
 
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
@@ -736,7 +738,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		else
 		{
-		  Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P.WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, &P);
+			Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P.WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, &P);
 			P.Got_WAIFW_Matrix_Spatial = 1;
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
@@ -830,7 +832,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			else
 			{
 				Params::req_double_vec(pre_params, adm_params, "Proportion of age group 2 in place types", P.PlaceTypePropAgeGroup2, P.PlaceTypeNum, &P);
-			  Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P.PlaceTypeAgeMin2, P.PlaceTypeNum, &P);
+				Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P.PlaceTypeAgeMin2, P.PlaceTypeNum, &P);
 				Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 2 in place types", P.PlaceTypeAgeMax2, P.PlaceTypeNum, &P);
 			}
 			if (!Params::param_found(pre_params, adm_params, "Proportion of age group 3 in place types"))
@@ -845,7 +847,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			else
 			{
 				Params::req_double_vec(pre_params, adm_params, "Proportion of age group 3 in place types", P.PlaceTypePropAgeGroup3, P.PlaceTypeNum, &P);
-			  Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P.PlaceTypeAgeMin3, P.PlaceTypeNum, &P);
+				Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P.PlaceTypeAgeMin3, P.PlaceTypeNum, &P);
 				Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 3 in place types", P.PlaceTypeAgeMax3, P.PlaceTypeNum, &P);
 			}
 			if (!Params::param_found(pre_params, adm_params, "Kernel shape params for place types"))
@@ -877,8 +879,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P.PlaceTypeNearestNeighb, P.PlaceTypeNum, 0, NUM_PLACE_TYPES, &P);
 			if (P.DoAdUnits != 0)
 			{
-				Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited",
-				                       P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0, NUM_PLACE_TYPES, &P);
+				Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0, NUM_PLACE_TYPES, &P);
 			}
 
 			P.DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, &P);
@@ -948,8 +949,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 0, P.PlaceTypeNum* P.PlaceTypeNum, &P);
 			if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)                                 // get_double_vec will set the zeroes if missing;
-					P.PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1;          // this line sets the diagonal to 1 (identity matrix)
+				for (i = 0; i < NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
+					P.PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1; // this line sets the diagonal to 1 (identity matrix)
 			}
 		}
 		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
@@ -994,7 +995,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		if (Params::param_found(params, pre_params, "Scaling of infection seeding"))
 		{
 			P.SeedingScaling = Params::req_double(params, pre_params, "Scaling of infection seeding", &P);
-		  P.DoNoCalibration = 1;
+			P.DoNoCalibration = 1;
 		}
 		else
 		{
@@ -1023,7 +1024,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					f = 0;
 					if (P.NumAdunits > 0)
 					{
-						for (j = 0; (j < P.NumAdunits) && (!f); j++) f = (!strcmp(AdUnits[j].ad_name, AdunitListNames[i]));
+						for (j = 0; (j < P.NumAdunits) && (!f); j++) f = (strcmp(AdUnits[j].ad_name, AdunitListNames[i]) == 0);
 						if (f) k = AdUnits[j - 1].id;
 					}
 					if (!f) k = atoi(AdunitListNames[i]);
@@ -1053,8 +1054,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.R0 = Params::req_double(params, pre_params, "Reproduction number", &P);
 	if (Params::param_found(params, pre_params, "Beta for spatial transmission"))
 	{
-	  P.LocalBeta = Params::req_double(params, pre_params, "Beta for spatial transmission", &P);
-	  P.FixLocalBeta = 1;
+		P.LocalBeta = Params::req_double(params, pre_params, "Beta for spatial transmission", &P);
+		P.FixLocalBeta = 1;
 	}
 	else
 	{
@@ -1065,7 +1066,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.SusceptibilitySD = Params::get_double(params, pre_params, "SD of individual variation in susceptibility", 0, &P);
 	P.InfectiousnessSD = Params::get_double(params, pre_params, "SD of individual variation in infectiousness", 0, &P);
 	if (Params::param_found(params, pre_params, "k of individual variation in infectiousness"))
-    P.InfectiousnessSD = 1.0 / sqrt(Params::req_double(params, pre_params, "k of individual variation in infectiousness", &P));
+		P.InfectiousnessSD = 1.0 / sqrt(Params::req_double(params, pre_params, "k of individual variation in infectiousness", &P));
 	P.NoInfectiousnessSDinHH = Params::get_int(params, pre_params, "k does not apply in households", 0, &P);
 	P.DoInfectiousnessProfile = Params::get_int(params, pre_params, "Model time varying infectiousness", 0, &P);
 	P.R0DensityScalePower = Params::get_double(params, pre_params, "Power of scaling of spatial R0 with density", 0, &P);
@@ -1155,7 +1156,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.AbsenteeismPlaceClosure = Params::get_int(params, pre_params, "Absenteeism place closure", 0, &P);
 		if (P.AbsenteeismPlaceClosure != 0)
 		{
-			P.CaseAbsenteeismDelay = 0;  // Set to zero for tracking absenteeism
+			P.CaseAbsenteeismDelay = 0; // Set to zero for tracking absenteeism
 			P.MaxAbsentTime = Params::get_int(params, pre_params, "Max absent time", MAX_ABSENT_TIME, &P);
 			if (P.MaxAbsentTime > MAX_ABSENT_TIME || P.MaxAbsentTime < 0)
 			{
@@ -1263,7 +1264,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		Params::get_double_vec(params, pre_params, "CFR_SARI_ByAge", P.CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, &P);
 		Params::get_double_vec(params, pre_params, "CFR_Critical_ByAge", P.CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, &P);
 		Params::get_double_vec(params, pre_params, "CFR_ILI_ByAge", P.CFR_ILI_ByAge, NUM_AGE_GROUPS, 0, NUM_AGE_GROUPS, &P);
-			
+
 		//Add param to allow severity to be uniformly scaled up or down.
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 		{
@@ -1276,7 +1277,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (Params::param_found(params, pre_params, "Bounding box for bitmap"))
 		{
-		  double* buf = new double[4];
+			double* buf = new double[4];
 			Params::req_double_vec(params, pre_params, "Bounding box for bitmap", buf, 4, &P);
 			P.BoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(buf[0], buf[1]);
 			P.BoundingBox.top_right() = CovidSim::Geometry::Vector2d(buf[2], buf[3]);
@@ -1285,7 +1286,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		else 
 		{
 			P.BoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
-			P.BoundingBox.top_right()   = CovidSim::Geometry::Vector2d(1.0, 1.0);
+			P.BoundingBox.top_right()  = CovidSim::Geometry::Vector2d(1.0, 1.0);
 		}
 		if (Params::param_found(params, pre_params, "Spatial domain for simulation"))
 		{
@@ -1298,7 +1299,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		else
 		{
 			P.SpatialBoundingBox.bottom_left() = CovidSim::Geometry::Vector2d(0.0, 0.0);
-			P.SpatialBoundingBox.top_right()   = CovidSim::Geometry::Vector2d(1.0, 1.0);
+			P.SpatialBoundingBox.top_right() = CovidSim::Geometry::Vector2d(1.0, 1.0);
 		}
 		P.in_cells_.width = Params::get_double(params, pre_params, "Grid size", 1.0 / 120.0, &P);
 		P.DoUTM_coords = Params::get_int(params, pre_params, "Use long/lat coord system", 1, &P);
@@ -1320,7 +1321,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.DoGlobalTriggers = Params::get_int(params, pre_params, "Use global triggers for interventions", 0, &P);
 		P.DoAdminTriggers = Params::get_int(params, pre_params, "Use admin unit triggers for interventions", 0, &P);
 		P.DoICUTriggers = Params::get_int(params, pre_params, "Use ICU case triggers for interventions", 0, &P);
-		if (P.DoGlobalTriggers != 0)  P.DoAdminTriggers = 0;
+		if (P.DoGlobalTriggers != 0) P.DoAdminTriggers = 0;
 		P.IncThreshPop = Params::get_int(params, pre_params, "Divisor for per-capita area threshold (default 1000)", 1000, &P);
 		P.GlobalIncThreshPop = Params::get_int(params, pre_params, "Divisor for per-capita global threshold (default 1000)", 1000, &P);
 
@@ -1448,7 +1449,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.VaccNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional vaccine production (courses per day)", 0, &P);
 	P.DoMassVacc = Params::get_int(params, pre_params, "Apply mass rather than reactive vaccination", 0, &P);
 	if (Params::param_found(params, pre_params, "Priority age range for mass vaccination")) {
-	  Params::req_int_vec(params, pre_params, "Priority age range for mass vaccination", P.VaccPriorityGroupAge, 2, &P);
+		Params::req_int_vec(params, pre_params, "Priority age range for mass vaccination", P.VaccPriorityGroupAge, 2, &P);
 	}	else {
 		P.VaccPriorityGroupAge[0] = 1; P.VaccPriorityGroupAge[1] = 0;
 	}
@@ -1530,7 +1531,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		P.DigitalContactTracing_CellIncThresh = Params::get_double(params, pre_params, "Digital contact tracing trigger incidence per cell", 1000000000, &P);
 
-		P.PropPopUsingDigitalContactTracing  = Params::get_double(params, pre_params, "Proportion of population or households covered by digital contact tracing", 1, &P);
+		P.PropPopUsingDigitalContactTracing = Params::get_double(params, pre_params, "Proportion of population or households covered by digital contact tracing", 1, &P);
 		Params::get_double_vec(params, pre_params, "Proportion of smartphone users by age", P.ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1, NUM_AGE_GROUPS, &P);
 		if (P.DoPlaces != 0)
 		{
@@ -1549,7 +1550,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.ScalingFactorSpatialDigitalContacts = Params::get_double(params, pre_params, "Spatial scaling factor - digital contact tracing", 1, &P);
 		P.ScalingFactorPlaceDigitalContacts = Params::get_double(params, pre_params, "Place scaling factor - digital contact tracing", 1, &P);
 		P.DigitalContactTracingTimeStartBase = Params::get_double(params, pre_params, "Digital contact tracing start time", USHRT_MAX / P.TimeStepsPerDay, &P);
-		P.DigitalContactTracingPolicyDuration  = Params::get_double(params, pre_params, "Duration of digital contact tracing policy", 7, &P);
+		P.DigitalContactTracingPolicyDuration = Params::get_double(params, pre_params, "Duration of digital contact tracing policy", 7, &P);
 		P.OutputDigitalContactTracing = Params::get_int(params, pre_params, "Output digital contact tracing", 0, &P);
 		P.OutputDigitalContactDist = Params::get_int(params, pre_params, "Output digital contact distribution", 0, &P);
 
@@ -1625,7 +1626,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 	}
 	else
+	{
 		P.NumHolidays = 0;
+	}
 	P.PlaceCloseRadius = Params::get_double(params, pre_params, "Minimum radius for place closure", 0, &P);
 	P.PlaceCloseTimeStartBase = Params::get_double(params, pre_params, "Place closure start time", USHRT_MAX / P.TimeStepsPerDay, &P);
 	P.PlaceCloseTimeStartBase2 = Params::get_double(params, pre_params, "Place closure second start time", USHRT_MAX / P.TimeStepsPerDay, &P);
@@ -1658,13 +1661,13 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.SocDistDuration2 = Params::get_double(params, pre_params, "Duration of social distancing after change", 7, &P);
 	if (P.DoPlaces != 0)
 	{
-	  Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P.SocDistPlaceEffect, P.PlaceTypeNum, 1, NUM_PLACE_TYPES, &P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P.SocDistPlaceEffect, P.PlaceTypeNum, 1, NUM_PLACE_TYPES, &P);
 		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P.EnhancedSocDistPlaceEffect, P.PlaceTypeNum, 1, NUM_PLACE_TYPES, &P);
 		if (Params::param_found(params, pre_params, "Relative place contact rate given social distancing by place type after change"))
 		{
-		  Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P.SocDistPlaceEffect2, P.PlaceTypeNum, &P);
+			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P.SocDistPlaceEffect2, P.PlaceTypeNum, &P);
 		} else {
-		  for (i = 0; i < NUM_PLACE_TYPES; i++) P.SocDistPlaceEffect2[i] = P.SocDistPlaceEffect[i];
+			for (i = 0; i < NUM_PLACE_TYPES; i++) P.SocDistPlaceEffect2[i] = P.SocDistPlaceEffect[i];
 		}
 
 		if (Params::param_found(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change"))
@@ -1680,21 +1683,26 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		P.SocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given social distancing", 1, &P);
 		P.EnhancedSocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing", 1, &P);
-		P.SocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given social distancing  after change", P.SocDistHouseholdEffect, &P);
+		P.SocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given social distancing after change", P.SocDistHouseholdEffect, &P);
 		P.EnhancedSocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing after change", P.EnhancedSocDistHouseholdEffect, &P);
 		P.EnhancedSocDistClusterByHousehold = Params::get_int(params, pre_params, "Cluster compliance with enhanced social distancing by household", 0, &P);
 	}
 	else
+	{
 		P.EnhancedSocDistClusterByHousehold = 0;
+	}
 	P.SocDistSpatialEffect = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing", 1, &P);
 	P.SocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing after change", P.SocDistSpatialEffect, &P);
 	P.SocDistRadius = Params::get_double(params, pre_params, "Minimum radius for social distancing", 0, &P);
 	P.SocDistTimeStartBase = Params::get_double(params, pre_params, "Social distancing start time", USHRT_MAX / P.TimeStepsPerDay, &P);
 	P.SocDistChangeDelay = Params::get_double(params, pre_params, "Delay for change in effectiveness of social distancing", USHRT_MAX / P.TimeStepsPerDay, &P);
-	if (Params::param_found(params, pre_params, "Proportion compliant with enhanced social distancing by age group")) {
+	if (Params::param_found(params, pre_params, "Proportion compliant with enhanced social distancing by age group"))
+	{
 		Params::req_double_vec(params, pre_params, "Proportion compliant with enhanced social distancing by age group", P.EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, &P);
 
-	} else {
+	}
+	else
+	{
 		t = Params::get_double(params, pre_params, "Proportion compliant with enhanced social distancing", 0, &P);
 		for (i = 0; i < NUM_AGE_GROUPS; i++)
 			P.EnhancedSocDistProportionCompliant[i] = t;
@@ -1704,7 +1712,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.EnhancedSocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given enhanced social distancing after change", P.EnhancedSocDistSpatialEffect, &P);
 
 	P.DoSocDistOnceOnly = Params::get_int(params, pre_params, "Social distancing only once", 0, &P);
-	//if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4;  //// don't need this anymore with TreatStat option. Keep it as a boolean.
+	//if (P.DoSocDistOnceOnly) P.DoSocDistOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
 
 	P.AirportCloseEffectiveness = Params::get_double(params, pre_params, "Airport closure effectiveness", 0, &P);
 	P.AirportCloseEffectiveness = 1.0 - P.AirportCloseEffectiveness;
@@ -1732,7 +1740,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HQuarantinePropIndivCompliant = Params::get_double(params, pre_params, "Individual level compliance with quarantine", 1, &P);
 	}
 	else
+	{
 		P.HQuarantineTimeStartBase = 1e10;
+	}
 	P.CaseIsolationTimeStartBase = Params::get_double(params, pre_params, "Case isolation start time", USHRT_MAX / P.TimeStepsPerDay, &P);
 	P.CaseIsolationProp = Params::get_double(params, pre_params, "Proportion of detected cases isolated", 0, &P);
 	P.CaseIsolationDelay = Params::get_double(params, pre_params, "Delay to start case isolation", 0, &P);
@@ -1748,7 +1758,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-	P.VaryEfficaciesOverTime  = Params::get_int(params, pre_params, "Vary efficacies over time", 0, &P);
+	P.VaryEfficaciesOverTime = Params::get_int(params, pre_params, "Vary efficacies over time", 0, &P);
 	//// **** number of change times
 	if (P.VaryEfficaciesOverTime == 0)
 	{
@@ -1903,7 +1913,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		Params::get_double_vec_ff(v, params, pre_params, "Place closure fractional incidence threshold over time", P.PC_FracIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseFracIncTrig, &P);
 		Params::get_int_vec_ff(v, params, pre_params, "Trigger incidence per cell for place closure over time", P.PC_CellIncThresh_OverTime, P.Num_PC_ChangeTimes, P.PlaceCloseCellIncThresh1, &P);
 		for (int ChangeTime = 0; ChangeTime < P.Num_PC_ChangeTimes; ChangeTime++)
-		  if (P.PC_CellIncThresh_OverTime[ChangeTime]<0) P.PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
+			if (P.PC_CellIncThresh_OverTime[ChangeTime]<0) P.PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
 	}
 	//// household quarantine
 	Params::get_double_vec_ff(v, params, pre_params, "Household quarantine trigger incidence per cell over time", P.HQ_CellIncThresh_OverTime, P.Num_HQ_ChangeTimes, P.HHQuar_CellIncThresh, &P);
@@ -1991,7 +2001,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
 	P.CFR_ChangeTimes_CalTime[0] = 0;
 
-  for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX;
 	Params::get_int_vec(params, pre_params, "CFR_ChangeTimes_CalTime", P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, INT32_MAX, P.Num_CFR_ChangeTimes, &P);
 
 	// Get various CFR scalings. 
@@ -2179,7 +2189,7 @@ void ReadInterventions(std::string const& IntFile)
 			Files::xsscanf(txt, 1, "%lf", &CurInterv.StartTime);
 			startt = CurInterv.StartTime;
 			if (!GetXMLNode(dat, "StopTime", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
-		  Files::xsscanf(txt, 1, "%lf", &CurInterv.StopTime);
+			Files::xsscanf(txt, 1, "%lf", &CurInterv.StopTime);
 			stopt = CurInterv.StopTime;
 			if (!GetXMLNode(dat, "MinDuration", "parameters", txt, 1)) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			Files::xsscanf(txt, 1, "%lf", &CurInterv.MinDuration);
@@ -2233,8 +2243,8 @@ void ReadInterventions(std::string const& IntFile)
 			else
 				nsr = 0;
 			do {
-			    Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
-      } while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
+				Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
+			} while ((strcmp(txt, "/intervention") != 0) && (strcmp(txt, "/parameters") != 0) && (!feof(dat)));
 			if (strcmp(txt, "/parameters") != 0) ERR_CRITICAL("Incomplete intervention parameter specification in intervention file\n");
 			Files::xfscanf(dat, 1, "%*[^<]<%[^>]", txt);
 			if ((strcmp(txt, "adunits") != 0) && (strcmp(txt, "countries") != 0)) ERR_CRITICAL("Incomplete adunits/countries specification in intervention file\n");
@@ -2581,7 +2591,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		StateT[j].cumI = StateT[j].cumR = StateT[j].cumC = StateT[j].cumFC = StateT[j].cumCT = StateT[j].cumCC = StateT[j].DCT = StateT[j].cumDCT
 			= StateT[j].cumTG = StateT[j].cumSI = StateT[j].nTG = StateT[j].cumTC = StateT[j].cumD = StateT[j].cumDC = StateT[j].cumHQ = StateT[j].cumAC
 			= StateT[j].cumACS = StateT[j].cumAH = StateT[j].cumAA = StateT[j].cumAPC = StateT[j].cumAPA = StateT[j].cumAPCS = 0;
-		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily =  0;
+		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily = 0;
 		for (int i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
 		for (int i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
 		for (int i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
@@ -2606,7 +2616,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				StateT[j].cumMild_adunit[AdminUnit] = StateT[j].cumILI_adunit[AdminUnit] =
 				StateT[j].cumSARI_adunit[AdminUnit] = StateT[j].cumCritical_adunit[AdminUnit] = StateT[j].cumCritRecov_adunit[AdminUnit] =
 				StateT[j].cumDeath_ILI_adunit[AdminUnit] = StateT[j].cumDeath_SARI_adunit[AdminUnit] = StateT[j].cumDeath_Critical_adunit[AdminUnit] =
-				StateT[j].cumD_adunit[AdminUnit] =  0;
+				StateT[j].cumD_adunit[AdminUnit] = 0;
 			}
 			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
 			{
@@ -3109,7 +3119,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 					}
 
 					// ** // ** Infected Sweep: loops over all infectious people and decides which susceptible people to infect (at household, place and spatial level), and adds them to queue. Then changes each person's various characteristics using DoInfect function.  adding run number as a parameter to infect sweep so we can track run number: ggilani - 15/10/14
-					InfectSweep(CurrSimTime, run);  //
+					InfectSweep(CurrSimTime, run);
 					// ** // ** IncubRecoverySweep: loops over all infecteds (either latent or infectious). If CurrSimTime is the right time, latent people moved to being infected, and infectious people moved to being clinical cases. Possibly also adds them to recoveries or deaths. Add them to hospitalisation & hospitalisation discharge queues.
 					if (!P.DoSI) IncubRecoverySweep(CurrSimTime);
 					// ** // ** DigitalContactTracingSweep: If doing new contact tracing, update numbers of people under contact tracing after each time step
@@ -3800,7 +3810,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				Files::xfprintf(dat, "\t%.10f", c * TSVar[i].incC_keyworker[j] - c * c * TSMean[i].incC_keyworker[j] * TSMean[i].incC_keyworker[j]);
 			for(j = 0; j < 2; j++)
 				Files::xfprintf(dat, "\t%.10f", c * TSVar[i].cumT_keyworker[j] - c * c * TSMean[i].cumT_keyworker[j] * TSMean[i].cumT_keyworker[j]);
-			Files::xfprintf(dat,  "\n");
+			Files::xfprintf(dat, "\n");
 		}
 		Files::xfclose(dat);
 	}
@@ -5081,7 +5091,7 @@ void CalibrationThresholdCheck(double t,int n)
 	if (n >= P.WindowToEvaluateTriggerAlert) 
 		trigAlertCases -= (int)TimeSeries[n - P.WindowToEvaluateTriggerAlert].cumDC;
 
-	if (P.TriggerAlertOnDeaths)  //// if using deaths as trigger (as opposed to detected cases)
+	if (P.TriggerAlertOnDeaths) //// if using deaths as trigger (as opposed to detected cases)
 	{
 		trigAlert = (int)TimeSeries[n].D;
 		if (n >= P.WindowToEvaluateTriggerAlert) trigAlert -= (int) TimeSeries[n - P.WindowToEvaluateTriggerAlert].D;
@@ -5227,7 +5237,7 @@ void CalibrationThresholdCheck(double t,int n)
 		}
 		else
 		{
-		  DO_OR_DONT_AMEND_START_TIME(P.TreatTimeStart, t + P.TreatTimeStartBase);
+			DO_OR_DONT_AMEND_START_TIME(P.TreatTimeStart, t + P.TreatTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.VaccTimeStart	, t + P.VaccTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.SocDistTimeStart, t + P.SocDistTimeStartBase);
 			DO_OR_DONT_AMEND_START_TIME(P.PlaceCloseTimeStart, t + P.PlaceCloseTimeStartBase);
@@ -5363,7 +5373,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 						if ((row > 0) && (Data[row - 1][col] == -1)) // cumulative column: -1 means sum column up to first >=0 value
 						{
 							ModelValue = ModelValueSum;
-							ModelValueSum = 0.0;  // reset cumulative sum
+							ModelValueSum = 0.0; // reset cumulative sum
 						}
 						if (NegBinK >= 10000)
 							//prob model and data from same underlying poisson
@@ -5396,7 +5406,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 					}
 					ModelValue += c * TimeSeries[day - offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
-					LL += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20));  // subtract saturated likelihood
+					LL += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20)); // subtract saturated likelihood
 				}
 			}
 		}
@@ -5714,7 +5724,8 @@ void CalcOriginDestMatrix_adunit()
 void GetInverseCdf(ParamMap fallback, ParamMap params, const char* icdf_name, InverseCdf* inverseCdf, Param* P, double start_value)
 {
 	Params::get_double_vec(fallback, params, icdf_name, inverseCdf->get_values(), CDF_RES + 1, 0, CDF_RES + 1, P);
-  if (!Params::param_found(fallback, params, icdf_name)) {
+	if (!Params::param_found(fallback, params, icdf_name))
+	{
 		inverseCdf->set_neg_log(start_value);
 	}
 	inverseCdf->assign_exponent();

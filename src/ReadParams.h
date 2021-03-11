@@ -1,9 +1,9 @@
-/** \file  Params.h
+/** \file  ReadParams.h
  *  \brief Provide support for parsing param files.
  */
 
-#ifndef PARAMS_H_INCLUDED_
-#define PARAMS_H_INCLUDED_
+#ifndef READ_PARAMS_H_INCLUDED_
+#define READ_PARAMS_H_INCLUDED_
 
 #include <cstdint>
 #include <fstream>
@@ -519,4 +519,4 @@ namespace Params
 
 } // namespace Params
 
-#endif // PARAMS_H_INCLUDED_
+#endif // READ_PARAMS_H_INCLUDED_
