@@ -6,6 +6,7 @@
 #define READ_PARAMS_H_INCLUDED_
 
 #include <cstdint>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <sstream>
