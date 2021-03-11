@@ -2,7 +2,7 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		
 		# transmission parameters
 		ReproductionNumber 			= 2, 							# R_0
-		SpatialBeta					= NULL, 							# Spatial beta. P.LocalBeta in Cpp code. 
+		SpatialBeta					= NULL, 						# Spatial beta. P.LocalBeta in Cpp code. 
 		PlaceTypeTrans				= c(0.14, 0.14, 0.1, 0.07),  	# Place betas. (School=2 x workplace. This gives Longini AJE 1988 age-specific infection attack rates for R0=1.3. Also comparable with 1957 pandemic attack rates from Chin.)
 		HouseholdAttackRate 		= 0.1,							# Household beta. (Adjusted to be the same as Cauchemez 2004 for R0=1.3.)
 		HouseholdTransPow 			= 0.8,  						# (Cauchemez 2004)
@@ -363,7 +363,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["CFR_TimeScaling_ILI"]] 			= CFR_TimeScaling_ILI
 	
 	
-	
 	PreParamList[["Mean child age gap"]] = 2 
 	PreParamList[["Min adult age"]] = 19
 	PreParamList[["Max MF partner age gap"]] = 5 
@@ -397,6 +396,10 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 	PreParamList[["Relative probability that care home residents are hospitalised"]] 	= CareHomeRelProbHosp
 	
 	
+	### change # strings to factors.
+	for (ParamNum in 1:length(PreParamList))
+		if ((class(PreParamList[[ParamNum]]) == "character") & (length(grep("#", PreParamList[[ParamNum]])) > 0))
+			PreParamList[[ParamNum]] = as.factor(PreParamList[[ParamNum]])
 	
 	return(PreParamList)
 }

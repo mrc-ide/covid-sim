@@ -100,7 +100,7 @@ const int HOTELS_PER_1000PASSENGER = 10;
 
 
 const int MAX_NUM_INTERVENTION_CHANGE_TIMES = 100; /**< For various "over time" parameters that allow scaling of NPI effectiveness. */
-const int MAX_NUM_CFR_CHANGE_TiMES = 100; /**< To allow IFR to scale over time. */
+const int MAX_NUM_CFR_CHANGE_TIMES = 100; /**< To allow IFR to scale over time. */
 
 // MS generates a lot of C26451 overflow warnings. Below is shorthand
 // to increase the cast size and clean them up.

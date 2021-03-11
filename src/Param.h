@@ -132,6 +132,7 @@ struct Param
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
 	double** WAIFW_Matrix; 
 	double** WAIFW_Matrix_SpatialOnly;
+	int Got_WAIFW_Matrix_Spatial; // flag to save pointless sums when not needed.
 	double HotelPropLocal, JourneyDurationDistrib[MAX_TRAVEL_TIME], LocalJourneyDurationDistrib[MAX_TRAVEL_TIME];
 	double MeanJourneyTime, MeanLocalJourneyTime;
 
@@ -191,11 +192,11 @@ struct Param
 	double ScaleSymptProportions;
 
 	int Num_CFR_ChangeTimes;							// keep this the same for Critical, SARI, ILI for now. Can generalise later if need be.
-	int CFR_ChangeTimes_CalTime		[MAX_NUM_CFR_CHANGE_TiMES]; // keep this the same for Critical, SARI, ILI for now. Can generalise later if need be.
+	int CFR_ChangeTimes_CalTime		[MAX_NUM_CFR_CHANGE_TIMES]; // keep this the same for Critical, SARI, ILI for now. Can generalise later if need be.
 
-	double CFR_TimeScaling_Critical	[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t. 
-	double CFR_TimeScaling_SARI		[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t. 
-	double CFR_TimeScaling_ILI		[MAX_NUM_CFR_CHANGE_TiMES];	// defaults to 1 for all t.
+	double CFR_TimeScaling_Critical	[MAX_NUM_CFR_CHANGE_TIMES];	// defaults to 1 for all t. 
+	double CFR_TimeScaling_SARI		[MAX_NUM_CFR_CHANGE_TIMES];	// defaults to 1 for all t. 
+	double CFR_TimeScaling_ILI		[MAX_NUM_CFR_CHANGE_TIMES];	// defaults to 1 for all t.
 	double CFR_Critical_Scale_Current;							// defaults to 1 for all t. 
 	double CFR_SARI_Scale_Current;								// defaults to 1 for all t. 
 	double CFR_ILI_Scale_Current;								// defaults to 1 for all t. 

@@ -440,7 +440,8 @@ void parse_bmp_option(std::string const& input) {
 	}
 }
 
-void parse_intervention_file_option(std::string const& input) {
+void parse_intervention_file_option(std::string const& input)
+{
 	std::string output;
 	parse_read_file(input, output);
 	InterventionFiles.emplace_back(output);
@@ -730,23 +731,27 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
 					P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+
+			P.Got_WAIFW_Matrix_Spatial = 0; 
 		}
 		else
 		{
 		  Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P.WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, &P);
+			P.Got_WAIFW_Matrix_Spatial = 1;
 			/* WAIFW matrix needs to be scaled to have max value of 1.
 			1st index of matrix specifies host being infected, second the infector.
 			Overall age variation in infectiousness/contact rates/susceptibility should be factored
 			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
-			t = 0;
+
+			double Maximum = 0;
 			for (i = 0; i < NUM_AGE_GROUPS; i++)
 				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					if (P.WAIFW_Matrix_SpatialOnly[i][j] > t) t = P.WAIFW_Matrix_SpatialOnly[i][j];
-			if (t > 0)
+					if (P.WAIFW_Matrix_SpatialOnly[i][j] > Maximum) Maximum = P.WAIFW_Matrix_SpatialOnly[i][j];
+			if (Maximum > 0)
 			{
 				for (i = 0; i < NUM_AGE_GROUPS; i++)
 					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P.WAIFW_Matrix_SpatialOnly[i][j] /= t;
+						P.WAIFW_Matrix_SpatialOnly[i][j] /= Maximum;
 			}
 			else
 			{
@@ -754,6 +759,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					for (j = 0; j < NUM_AGE_GROUPS; j++)
 						P.WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
 			}
+
 		}
 
 		P.DoDeath = 0;
@@ -1984,8 +1990,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
 	P.CFR_ChangeTimes_CalTime[0] = 0;
-	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TiMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT_MAX;
-	
+
+  for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = 1e10;
 	Params::get_int_vec(params, pre_params, "CFR_ChangeTimes_CalTime", P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, INT_MAX, P.Num_CFR_ChangeTimes, &P);
 
 	// Get various CFR scalings. 
