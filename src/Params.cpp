@@ -323,7 +323,7 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 					result = INT32_MIN;
 				}
 				else {
-					result = std::stoi(str_value, &idx);
+					result = std::stoi(buffer, &idx);
 				}
 
 				array[index] = result;
