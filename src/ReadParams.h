@@ -12,8 +12,11 @@
 #include <string>
 #include <map>
 
+#include "Dist.h"
 #include "Error.h"
 #include "Files.h"
+#include "Memory.h"
+#include "Model.h"
 #include "Param.h"
 
 
@@ -512,10 +515,18 @@ namespace Params
                          std::string param_name, double** array, int sizex,
                          int sizey, double default_value, Param* P);
 
+/** \brief                Parse an inverse CDF
+ */
+   void get_inverse_cdf(ParamMap fallback, ParamMap params, const char* icdf_name, InverseCdf* inverseCdf, Param* P, double start_value);
 
 /** \brief                Allocate memory for 2-D (or higher) objects in params
  */
   void alloc_params(Param* P);
+
+
+/** \brief                Top-level call for ReadParams.
+ */
+  void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits);
 
 } // namespace Params
 
