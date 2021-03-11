@@ -525,6 +525,11 @@ namespace Params
   void alloc_params(Param* P);
 
 
+  /** \brief                Top-level call for ReadParams.
+ */
+  void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+
+
 /** \brief                Top-level call for ReadParams.
  */
   void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits);

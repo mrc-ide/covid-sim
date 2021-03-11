@@ -525,12 +525,77 @@ void Params::alloc_params(Param* P)
 	P->PopByAdunit = create_2d_double(MAX_ADUNITS, 2);
 	P->InvLifeExpecDist = create_2d_double(MAX_ADUNITS, 1001);
 }
+/**************************************************************************************************************/
 
+void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, P);
+	if (P->DoAirports == 0)  // Airports disabled => all places are not to do with airports, and we have no hotels
+	{
+		P->PlaceTypeNoAirNum = P->PlaceTypeNum;
+		P->HotelPlaceType = P->PlaceTypeNum;
+		return;
+	}
+	
+	// When airports are activated we must have at least one airport place
+	// // and a hotel type.
+	P->PlaceTypeNoAirNum = Params::req_int(pre_params, adm_params, "Number of non-airport places", P);
+	P->HotelPlaceType = Params::req_int(pre_params, adm_params, "Hotel place type", P);
+	if (P->PlaceTypeNoAirNum >= P->PlaceTypeNum)
+	{
+		ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P->PlaceTypeNoAirNum, P->PlaceTypeNum);
+	}
+	if (P->HotelPlaceType < P->PlaceTypeNoAirNum || P->HotelPlaceType >= P->PlaceTypeNum)
+	{
+		ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P->HotelPlaceType, P->PlaceTypeNoAirNum, P->PlaceTypeNum);
+	}
+
+	P->AirportTrafficScale = Params::get_double(params, pre_params, "Scaling factor for input file to convert to daily traffic", 1.0, P);
+	P->HotelPropLocal = Params::get_double(params, pre_params, "Proportion of hotel attendees who are local", 0, P);
+
+	// If params are not specified, get_double_vec here fills with zeroes.
+
+	Params::get_double_vec(params, pre_params, "Distribution of duration of air journeys", P->JourneyDurationDistrib, MAX_TRAVEL_TIME, 0, MAX_TRAVEL_TIME, P);
+	if (!Params::param_found(params, pre_params, "Distribution of duration of air journeys"))
+	{
+		P->JourneyDurationDistrib[0] = 1;
+	}
+	Params::get_double_vec(params, pre_params, "Distribution of duration of local journeys", P->LocalJourneyDurationDistrib, MAX_TRAVEL_TIME, 0, MAX_TRAVEL_TIME, P);
+	if (!Params::param_found(params, pre_params, "Distribution of duration of local journeys"))
+	{
+		P->LocalJourneyDurationDistrib[0] = 1;
+	}
+	P->MeanJourneyTime = 0;
+	P->MeanLocalJourneyTime = 0;
+	for (int i = 0; i < MAX_TRAVEL_TIME; i++)
+	{
+		P->MeanJourneyTime += ((double)(i)) * P->JourneyDurationDistrib[i];
+		P->MeanLocalJourneyTime += ((double)(i)) * P->LocalJourneyDurationDistrib[i];
+	}
+	Files::xfprintf_stderr("Mean duration of local journeys = %lf days\n", P->MeanLocalJourneyTime);
+	for (int i = 1; i < MAX_TRAVEL_TIME; i++)
+	{
+		P->JourneyDurationDistrib[i] += P->JourneyDurationDistrib[i - 1];
+		P->LocalJourneyDurationDistrib[i] += P->LocalJourneyDurationDistrib[i - 1];
+	}
+	int j1 = 0;
+	int j2 = 0;
+	for (int i = 0; i <= 1024; i++)
+	{
+		double s = ((double) i) / 1024;
+		while (P->JourneyDurationDistrib[j1] < s) j1++;
+		P->InvJourneyDurationDistrib[i] = j1;
+		while (P->LocalJourneyDurationDistrib[j2] < s) j2++;
+		P->InvLocalJourneyDurationDistrib[i] = j2;
+	}
+}
+
+/**************************************************************************************************************/
 
 void Params::ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits)
 {
 	double s, t, AgeSuscScale;
-	int i, j, j1, j2, k, f, nc, na;
+	int i, j, k, f, nc, na;
 
 	char* CountryNameBuf = new char[128 * MAX_COUNTRIES];
 	char* AdunitListNamesBuf = new char[128 * MAX_ADUNITS];
@@ -723,7 +788,6 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 			}
 		}
 		else
-
 		{
 			P->DoAdunitBoundaries = P->DoAdunitBoundaryOutput = P->DoAdunitOutput = P->DoCorrectAdunitPop = P->DoSpecifyPop = 0;
 			P->AdunitLevel1Divisor = 1; P->AdunitLevel1Mask = 1000000000;
@@ -960,60 +1024,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 				Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
 			}
 
-			P->DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, P);
-			if (P->DoAirports == 0)
-			{
-				// Airports disabled => all places are not to do with airports, and we
-				// have no hotels.
-				P->PlaceTypeNoAirNum = P->PlaceTypeNum;
-				P->HotelPlaceType = P->PlaceTypeNum;
-			}
-			else
-			{
-				// When airports are activated we must have at least one airport place
-				// // and a hotel type.
-				P->PlaceTypeNoAirNum = Params::req_int(pre_params, adm_params, "Number of non-airport places", P);
-				P->HotelPlaceType = Params::req_int(pre_params, adm_params, "Hotel place type", P);
-				if (P->PlaceTypeNoAirNum >= P->PlaceTypeNum) {
-					ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P->PlaceTypeNoAirNum, P->PlaceTypeNum);
-				}
-				if (P->HotelPlaceType < P->PlaceTypeNoAirNum || P->HotelPlaceType >= P->PlaceTypeNum) {
-					ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P->HotelPlaceType, P->PlaceTypeNoAirNum, P->PlaceTypeNum);
-				}
+			Params::airport_params(adm_params, pre_params, params, P);
 
-				P->AirportTrafficScale = Params::get_double(params, pre_params, "Scaling factor for input file to convert to daily traffic", 1.0, P);
-				P->HotelPropLocal = Params::get_double(params, pre_params, "Proportion of hotel attendees who are local", 0, P);
-				Params::get_double_vec(params, pre_params, "Distribution of duration of air journeys", P->JourneyDurationDistrib, MAX_TRAVEL_TIME, 0, MAX_TRAVEL_TIME, P);
-				if (!Params::param_found(params, pre_params, "Distribution of duration of air journeys"))
-				{
-					P->JourneyDurationDistrib[0] = 1;
-				}
-				Params::get_double_vec(params, pre_params, "Distribution of duration of local journeys", P->LocalJourneyDurationDistrib, MAX_TRAVEL_TIME, 0, MAX_TRAVEL_TIME, P);
-				if (!Params::param_found(params, pre_params, "Distribution of duration of local journeys"))
-				{
-					P->LocalJourneyDurationDistrib[0] = 1;
-				}
-				P->MeanJourneyTime = P->MeanLocalJourneyTime = 0;
-				for (i = 0; i < MAX_TRAVEL_TIME; i++)
-				{
-					P->MeanJourneyTime += ((double)(i)) * P->JourneyDurationDistrib[i];
-					P->MeanLocalJourneyTime += ((double)(i)) * P->LocalJourneyDurationDistrib[i];
-				}
-				Files::xfprintf_stderr("Mean duration of local journeys = %lf days\n", P->MeanLocalJourneyTime);
-				for (i = 1; i < MAX_TRAVEL_TIME; i++)
-				{
-					P->JourneyDurationDistrib[i] += P->JourneyDurationDistrib[i - 1];
-					P->LocalJourneyDurationDistrib[i] += P->LocalJourneyDurationDistrib[i - 1];
-				}
-				for (i = j1 = j2 = 0; i <= 1024; i++)
-				{
-					s = ((double)i) / 1024;
-					while (P->JourneyDurationDistrib[j1] < s) j1++;
-					P->InvJourneyDurationDistrib[i] = j1;
-					while (P->LocalJourneyDurationDistrib[j2] < s) j2++;
-					P->InvLocalJourneyDurationDistrib[i] = j2;
-				}
-			}
 			Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->PlaceTypeNum, P);
 			Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->PlaceTypeNum, P);
 			Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
@@ -1037,6 +1049,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P->PlaceTypeTrans, P->PlaceTypeNum, P);
 		for (i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	}
+
 	Params::get_double_vec(params, pre_params, "Daily seasonality coefficients", P->Seasonality, DAYS_PER_YEAR, 1, DAYS_PER_YEAR, P);
 	if (!Params::param_found(params, pre_params, "Daily seasonality coefficients"))
 	{
@@ -1129,6 +1142,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		if (P->DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
 		Params::req_double_vec(params, pre_params, "Daily importation time profile", P->ImportInfectionTimeProfile, P->DurImportTimeProfile, P);
 	}
+
 	P->R0 = Params::req_double(params, pre_params, "Reproduction number", P);
 	if (Params::param_found(params, pre_params, "Beta for spatial transmission"))
 	{
