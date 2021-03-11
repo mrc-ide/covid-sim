@@ -324,8 +324,8 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 			}
 		}
 		if (index != expected) {
-			ERR_CRITICAL_FMT("Expected %d elements, found %d for param %s\n",
-				expected, index, param_name.c_str());
+			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n",
+				param_name.c_str(), index, expected);
 		}
 	}
 	else {
