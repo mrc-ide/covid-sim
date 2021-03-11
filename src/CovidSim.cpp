@@ -1006,7 +1006,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		if (P.DoAdUnits != 0)
 		{
-			if (Params::param_found(pre_params, adm_params, "Administrative unit to seed initial infection into"))
+			if (!Params::param_found(pre_params, adm_params, "Administrative unit to seed initial infection into"))
 			{
 				Params::req_string_vec(pre_params, adm_params, "Administrative unit to seed initial infection into", AdunitListNames, P.NumSeedLocations, &P);
 				for (i = 0; i < P.NumSeedLocations; i++) P.InitialInfectionsAdminUnit[i] = 0;
@@ -1775,7 +1775,7 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.HQ_ChangeTimes			[ChangeTime] = 1e10;
 		P.PC_ChangeTimes			[ChangeTime] = 1e10;
 		P.DCT_ChangeTimes			[ChangeTime] = 1e10;
-		P.CFR_ChangeTimes_CalTime	[ChangeTime] = INT_MAX;
+		P.CFR_ChangeTimes_CalTime	[ChangeTime] = 1e10; // Out of bounds for int
 	}
 	//// Get real values from (pre)param file
 
@@ -5707,8 +5707,8 @@ void CalcOriginDestMatrix_adunit()
 
 void GetInverseCdf(ParamMap fallback, ParamMap params, const char* icdf_name, InverseCdf* inverseCdf, Param* P, double start_value)
 {
-  if (Params::param_found(fallback, params, icdf_name)) {
-    Params::get_double_vec(fallback, params, icdf_name, inverseCdf->get_values(), CDF_RES + 1, 0, CDF_RES + 1, P);
+	Params::get_double_vec(fallback, params, icdf_name, inverseCdf->get_values(), CDF_RES + 1, 0, CDF_RES + 1, P);
+  if (!Params::param_found(fallback, params, icdf_name)) {
 		inverseCdf->set_neg_log(start_value);
 	}
 	inverseCdf->assign_exponent();
