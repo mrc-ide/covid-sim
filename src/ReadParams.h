@@ -525,10 +525,16 @@ namespace Params
   void alloc_params(Param* P);
 
 
-  /** \brief                Top-level call for ReadParams.
- */
   void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-
+  void severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void household_quarantine_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
 
 /** \brief                Top-level call for ReadParams.
  */

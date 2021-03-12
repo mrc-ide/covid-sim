@@ -527,6 +527,10 @@ void Params::alloc_params(Param* P)
 }
 /**************************************************************************************************************/
 
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** AIRPORT PARAMETERS
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
 void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
 {
 	P->DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, P);
@@ -590,11 +594,533 @@ void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 	}
 }
 
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** SEVERITY PARAMETERS
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->DoSeverity = Params::get_int(params, pre_params, "Do Severity Analysis", 0, P);
+	if (P->DoSeverity == 0)
+	{
+	  return;
+	}
+	P->ScaleSymptProportions = Params::get_double(params, pre_params, "Factor to scale IFR", 1.0, P);
+	//// Means for icdf's.
+	P->Mean_TimeToTest = Params::get_double(params, pre_params, "MeanTimeToTest", 0.0, P);
+	P->Mean_TimeToTestOffset = Params::get_double(params, pre_params, "MeanTimeToTestOffset", 1.0, P);
+	P->Mean_TimeToTestCriticalOffset = Params::get_double(params, pre_params, "MeanTimeToTestCriticalOffset", 1.0, P);
+	P->Mean_TimeToTestCritRecovOffset = Params::get_double(params, pre_params, "MeanTimeToTestCritRecovOffset", 1.0, P);
+	if (Params::get_int(params, pre_params, "Age dependent severity delays", 0, P) == 0)
+	{
+		P->Mean_MildToRecovery[0] = Params::req_double(params, pre_params, "Mean_MildToRecovery", P);
+		P->Mean_ILIToRecovery[0] = Params::req_double(params, pre_params, "Mean_ILIToRecovery", P);
+		P->Mean_SARIToRecovery[0] = Params::req_double(params, pre_params, "Mean_SARIToRecovery", P);
+		P->Mean_CriticalToCritRecov[0] = Params::req_double(params, pre_params, "Mean_CriticalToCritRecov", P);
+		P->Mean_CritRecovToRecov[0] = Params::req_double(params, pre_params, "Mean_CritRecovToRecov", P);
+		P->Mean_ILIToSARI[0] = Params::req_double(params, pre_params, "Mean_ILIToSARI", P);
+		P->Mean_ILIToDeath[0] = Params::get_double(params, pre_params, "Mean_ILIToDeath", 7.0, P);
+		P->Mean_SARIToCritical[0] = Params::req_double(params, pre_params, "Mean_SARIToCritical", P);
+		P->Mean_SARIToDeath[0] = Params::req_double(params, pre_params, "Mean_SARIToDeath", P);
+		P->Mean_CriticalToDeath[0] = Params::req_double(params, pre_params, "Mean_CriticalToDeath", P);
+		for (int AgeGroup = 1; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+		{
+			P->Mean_MildToRecovery[AgeGroup] = P->Mean_MildToRecovery[0];
+			P->Mean_ILIToRecovery[AgeGroup] = P->Mean_ILIToRecovery[0];
+			P->Mean_SARIToRecovery[AgeGroup] = P->Mean_SARIToRecovery[0];
+			P->Mean_CriticalToCritRecov[AgeGroup] = P->Mean_CriticalToCritRecov[0];
+			P->Mean_CritRecovToRecov[AgeGroup] = P->Mean_CritRecovToRecov[0];
+			P->Mean_ILIToSARI[AgeGroup] = P->Mean_ILIToSARI[0];
+			P->Mean_ILIToDeath[AgeGroup] = P->Mean_ILIToDeath[0];
+			P->Mean_SARIToCritical[AgeGroup] = P->Mean_SARIToCritical[0];
+			P->Mean_SARIToDeath[AgeGroup] = P->Mean_SARIToDeath[0];
+			P->Mean_CriticalToDeath[AgeGroup] = P->Mean_CriticalToDeath[0];
+		}
+	}
+	else
+	{
+		Params::req_double_vec(params, pre_params, "Mean_MildToRecovery", P->Mean_MildToRecovery, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_ILIToRecovery", P->Mean_ILIToRecovery, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_SARIToRecovery", P->Mean_SARIToRecovery, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_CriticalToCritRecov", P->Mean_CriticalToCritRecov, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_CritRecovToRecov", P->Mean_CritRecovToRecov, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_ILIToSARI", P->Mean_ILIToSARI, NUM_AGE_GROUPS, P);
+		Params::get_double_vec(params, pre_params, "Mean_ILIToDeath", P->Mean_ILIToDeath, NUM_AGE_GROUPS, 7.0, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_SARIToCritical", P->Mean_SARIToCritical, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_SARIToDeath", P->Mean_SARIToDeath, NUM_AGE_GROUPS, P);
+		Params::req_double_vec(params, pre_params, "Mean_CriticalToDeath", P->Mean_CriticalToDeath, NUM_AGE_GROUPS, P);
+	}
+
+	//// Get InverseCDFs
+	Params::get_inverse_cdf(params, pre_params, "MildToRecovery_icdf", &P->MildToRecovery_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "ILIToRecovery_icdf", &P->ILIToRecovery_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "ILIToDeath_icdf", &P->ILIToDeath_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "SARIToRecovery_icdf", &P->SARIToRecovery_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "CriticalToCritRecov_icdf", &P->CriticalToCritRecov_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "CritRecovToRecov_icdf", &P->CritRecovToRecov_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "ILIToSARI_icdf", &P->ILIToSARI_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "SARIToCritical_icdf", &P->SARIToCritical_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "SARIToDeath_icdf", &P->SARIToDeath_icdf, P, ICDF_START);
+	Params::get_inverse_cdf(params, pre_params, "CriticalToDeath_icdf", &P->CriticalToDeath_icdf, P, ICDF_START);
+
+	// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
+	P->IncludeStepDownToDeath = Params::get_int(params, pre_params, "IncludeStepDownToDeath", 0, P);
+	if (P->IncludeStepDownToDeath == 0) /// for backwards compatibility. If Stepdown to death not included (or if unspecified), set stepdown->death = stepdown->recovery.
+	{
+		for (int quantile = 0; quantile <= CDF_RES; quantile++)
+			P->StepdownToDeath_icdf[quantile] = P->CritRecovToRecov_icdf[quantile];
+		for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
+			P->Mean_StepdownToDeath[AgeGroup] = P->Mean_CritRecovToRecov[AgeGroup];
+	}
+	else
+	{
+		Params::req_double_vec(params, pre_params, "Mean_StepdownToDeath", P->Mean_StepdownToDeath, NUM_AGE_GROUPS, P);
+		Params::get_inverse_cdf(params, pre_params, "StepdownToDeath_icdf", &P->StepdownToDeath_icdf, P, ICDF_START);
+	}
+
+	Params::get_double_vec(params, pre_params, "Prop_Mild_ByAge", P->Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "Prop_ILI_ByAge", P->Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "Prop_SARI_ByAge", P->Prop_SARI_ByAge, NUM_AGE_GROUPS, 0.15, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "Prop_Critical_ByAge", P->Prop_Critical_ByAge, NUM_AGE_GROUPS, 0.05, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "CFR_SARI_ByAge", P->CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "CFR_Critical_ByAge", P->CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
+	Params::get_double_vec(params, pre_params, "CFR_ILI_ByAge", P->CFR_ILI_ByAge, NUM_AGE_GROUPS, 0, NUM_AGE_GROUPS, P);
+
+		//Add param to allow severity to be uniformly scaled up or down.
+	for (int i = 0; i < NUM_AGE_GROUPS; i++)
+	{
+		P->Prop_SARI_ByAge[i] *= P->ScaleSymptProportions;
+		P->Prop_Critical_ByAge[i] *= P->ScaleSymptProportions;
+		P->Prop_ILI_ByAge[i] = 1.0 - P->Prop_Mild_ByAge[i] - P->Prop_SARI_ByAge[i] - P->Prop_Critical_ByAge[i];
+	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** VACCINATION PARAMETERS
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+
+void Params::vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->VaccCellIncThresh = Params::get_double(params, pre_params, "Vaccination trigger incidence per cell", 1000000000, P);
+	P->VaccSuscDrop = Params::get_double(params, pre_params, "Relative susceptibility of vaccinated individual", 1, P);
+	P->VaccSuscDrop2 = Params::get_double(params, pre_params, "Relative susceptibility of individual vaccinated after switch time", 1, P);
+	P->VaccTimeEfficacySwitch = Params::get_double(params, pre_params, "Switch time at which vaccine efficacy increases", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->VaccEfficacyDecay = Params::get_double(params, pre_params, "Decay rate of vaccine efficacy (per year)", 0, P);
+	P->VaccEfficacyDecay /= DAYS_PER_YEAR;
+	P->VaccInfDrop = Params::get_double(params, pre_params, "Relative infectiousness of vaccinated individual", 1, P);
+	P->VaccMortDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases resulting in death prevented by vaccination", 0, P);
+	P->VaccSympDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases prevented by vaccination", 0, P);
+	P->VaccDelayMean = Params::get_double(params, pre_params, "Delay to vaccinate", 0, P);
+
+	P->VaccTimeToEfficacy = Params::get_double(params, pre_params, "Delay from vaccination to full protection", 0, P);
+
+	P->VaccCampaignInterval = Params::get_double(params, pre_params, "Years between rounds of vaccination", 1e10, P);
+	P->VaccDosePerDay = Params::get_int(params, pre_params, "Max vaccine doses per day", -1, P);
+	P->VaccCampaignInterval *= DAYS_PER_YEAR;
+	P->VaccMaxRounds = Params::get_int(params, pre_params, "Maximum number of rounds of vaccination", 1, P);
+	if (P->DoHouseholds != 0)
+	{
+		P->VaccPropCaseHouseholds = Params::get_double(params, pre_params, "Proportion of households of cases vaccinated", 0, P);
+		P->VaccHouseholdsDuration = Params::get_double(params, pre_params, "Duration of household vaccination policy", USHRT_MAX / P->TimeStepsPerDay, P);
+	}
+
+	P->VaccTimeStartBase = Params::get_double(params, pre_params, "Vaccination start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->VaccProp = Params::get_double(params, pre_params, "Proportion of population vaccinated", 0, P);
+	P->VaccCoverageIncreasePeriod = Params::get_double(params, pre_params, "Time taken to reach max vaccination coverage (in years)", 0, P);
+	P->VaccCoverageIncreasePeriod *= DAYS_PER_YEAR;
+	P->VaccTimeStartGeo = Params::get_double(params, pre_params, "Time to start geographic vaccination", 1e10, P);
+	P->VaccRadius = Params::get_double(params, pre_params, "Vaccination radius", 0, P);
+	P->VaccMinRadius = Params::get_double(params, pre_params, "Minimum radius from case to vaccinate", 0, P);
+	P->VaccMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of vaccine courses available", 1e20, P);
+	P->VaccNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional vaccine production", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->VaccNewCoursesEndTime = Params::get_double(params, pre_params, "End time of additional vaccine production", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->VaccNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional vaccine production (courses per day)", 0, P);
+	P->DoMassVacc = Params::get_int(params, pre_params, "Apply mass rather than reactive vaccination", 0, P);
+	if (Params::param_found(params, pre_params, "Priority age range for mass vaccination")) {
+		Params::req_int_vec(params, pre_params, "Priority age range for mass vaccination", P->VaccPriorityGroupAge, 2, P);
+	}
+	else {
+		P->VaccPriorityGroupAge[0] = 1; P->VaccPriorityGroupAge[1] = 0;
+	}
+
+	if (P->DoAdUnits != 0)
+	{
+		P->VaccByAdminUnit = Params::get_int(params, pre_params, "Vaccinate administrative units rather than rings", 0, P);
+		P->VaccAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for vaccination", 1, P);
+		if ((P->VaccAdminUnitDivisor == 0) || (P->VaccByAdminUnit == 0)) P->VaccAdminUnitDivisor = 1;
+	}
+	else
+	{
+		P->VaccAdminUnitDivisor = 1; P->VaccByAdminUnit = 0;
+	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** TREATMENT PARAMETERS
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+
+void Params::treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->DoPlaceGroupTreat = Params::get_int(params, pre_params, "Only treat mixing groups within places", 0, P);
+
+	P->TreatCellIncThresh = Params::get_double(params, pre_params, "Treatment trigger incidence per cell", INT32_MAX, P);
+	P->CaseIsolation_CellIncThresh = Params::get_double(params, pre_params, "Case isolation trigger incidence per cell", P->TreatCellIncThresh, P);
+	P->HHQuar_CellIncThresh = Params::get_double(params, pre_params, "Household quarantine trigger incidence per cell", P->TreatCellIncThresh, P);
+
+	P->TreatSuscDrop = Params::get_double(params, pre_params, "Relative susceptibility of treated individual", 1, P);
+	P->TreatInfDrop = Params::get_double(params, pre_params, "Relative infectiousness of treated individual", 1, P);
+	P->TreatDeathDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases resulting in death prevented by treatment", 0, P);
+	P->TreatSympDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases prevented by treatment", 0, P);
+	P->TreatDelayMean = Params::get_double(params, pre_params, "Delay to treat cell", 0, P);
+	P->TreatCaseCourseLength = Params::get_double(params, pre_params, "Duration of course of treatment", 5, P);
+	P->TreatProphCourseLength = Params::get_double(params, pre_params, "Duration of course of prophylaxis", 10, P);
+	P->TreatPropCases = Params::get_double(params, pre_params, "Proportion of detected cases treated", 1, P);
+	if (P->DoHouseholds != 0)
+	{
+		P->TreatPropCaseHouseholds = Params::get_double(params, pre_params, "Proportion of households of cases treated", 0, P);
+		P->TreatHouseholdsDuration = Params::get_double(params, pre_params, "Duration of household prophylaxis policy", USHRT_MAX / P->TimeStepsPerDay, P);
+	}
+	// Check below - "Proportional treated" will always be ignored.
+	//if (!GetInputParameter2(params, pre_params, "Proportion treated", "%lf", (void*) & (P->TreatPropRadial), 1, 1, 0)) P->TreatPropRadial = 1.0;
+	//if (!GetInputParameter2(params, pre_params, "Proportion treated in radial prophylaxis", "%lf", (void*) & (P->TreatPropRadial), 1, 1, 0)) P->TreatPropRadial = 1.0;
+
+	P->TreatPropRadial = Params::get_double(params, pre_params, "Proportion treated in radial prophylaxis", 1.0, P);
+	P->TreatRadius = Params::get_double(params, pre_params, "Treatment radius", 0, P);
+	P->TreatPlaceGeogDuration = Params::get_double(params, pre_params, "Duration of place/geographic prophylaxis policy", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->TreatTimeStartBase = Params::get_double(params, pre_params, "Treatment start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	if (P->DoPlaces != 0)
+	{
+		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+	}
+	P->TreatMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of doses available", 1e20, P);
+	P->TreatNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional treatment production", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->TreatNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional treatment production (courses per day)", 0, P);
+	P->TreatMaxCoursesPerCase = Params::get_int(params, pre_params, "Maximum number of people targeted with radial prophylaxis per case", INT32_MAX, P);
+
+	if (P->DoAdUnits != 0)
+	{
+		P->TreatByAdminUnit = Params::get_int(params, pre_params, "Treat administrative units rather than rings", 0, P);
+		P->TreatAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for treatment", 1, P);
+		if ((P->TreatAdminUnitDivisor == 0) || (P->TreatByAdminUnit == 0)) { P->TreatByAdminUnit = 0; P->TreatAdminUnitDivisor = 1; }
+	}
+	else
+	{
+		P->TreatAdminUnitDivisor = 1; P->TreatByAdminUnit = 0;
+	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** INTERVENTION DELAYS BY ADMIN UNIT
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{ //Intervention delays and durations by admin unit: ggilani 16/03/20
+
+	P->DoInterventionDelaysByAdUnit = Params::get_int(params, pre_params, "Include intervention delays by admin unit", 0, P);
+	if (P->DoInterventionDelaysByAdUnit == 0)
+	{
+	  return;
+  }
+
+	// Set up arrays to temporarily store parameters per admin unit 
+
+	double* AdunitDelayToSocialDistance = new double[MAX_ADUNITS];
+	double* AdunitDelayToHQuarantine = new double[MAX_ADUNITS];
+	double* AdunitDelayToCaseIsolation = new double[MAX_ADUNITS];
+	double* AdunitDelayToPlaceClose = new double[MAX_ADUNITS];
+	double* AdunitDurationSocialDistance = new double[MAX_ADUNITS];
+	double* AdunitDurationHQuarantine = new double[MAX_ADUNITS];
+	double* AdunitDurationCaseIsolation = new double[MAX_ADUNITS];
+	double* AdunitDurationPlaceClose = new double[MAX_ADUNITS];
+
+	Params::get_double_vec(params, pre_params, "Delay to social distancing by admin unit", AdunitDelayToSocialDistance, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Delay to household quarantine by admin unit", AdunitDelayToHQuarantine, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Delay to case isolation by admin unit", AdunitDelayToCaseIsolation, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Delay to place closure by admin unit", AdunitDelayToPlaceClose, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Duration of social distancing by admin unit", AdunitDurationSocialDistance, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Duration of household quarantine by admin unit", AdunitDurationHQuarantine, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Duration of case isolation by admin unit", AdunitDurationCaseIsolation, P->NumAdunits, 0, P->NumAdunits, P);
+	Params::get_double_vec(params, pre_params, "Duration of place closure by admin unit", AdunitDurationPlaceClose, P->NumAdunits, 0, P->NumAdunits, P);
+
+	for (int i = 0; i < P->NumAdunits; i++)
+	{
+		AdUnits[i].SocialDistanceDelay = AdunitDelayToSocialDistance[i];
+		AdUnits[i].SocialDistanceDuration = AdunitDurationSocialDistance[i];
+		AdUnits[i].HQuarantineDelay = AdunitDelayToHQuarantine[i];
+		AdUnits[i].HQuarantineDuration = AdunitDurationHQuarantine[i];
+		AdUnits[i].CaseIsolationDelay = AdunitDelayToCaseIsolation[i];
+		AdUnits[i].CaseIsolationPolicyDuration = AdunitDurationCaseIsolation[i];
+		AdUnits[i].PlaceCloseDelay = AdunitDelayToPlaceClose[i];
+		AdUnits[i].PlaceCloseDuration = AdunitDurationPlaceClose[i];
+	}
+
+	delete[] AdunitDelayToSocialDistance;
+	delete[] AdunitDelayToHQuarantine;
+	delete[] AdunitDelayToCaseIsolation;
+	delete[] AdunitDelayToPlaceClose;
+	delete[] AdunitDurationSocialDistance;
+	delete[] AdunitDurationHQuarantine;
+	delete[] AdunitDurationCaseIsolation;
+	delete[] AdunitDurationPlaceClose;
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** DIGITAL CONTACT TRACING
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	//New code for digital contact tracing - ggilani: 09/03/20
+	P->DoDigitalContactTracing = Params::get_int(params, pre_params, "Include digital contact tracing", 0, P);
+	if (P->DoDigitalContactTracing == 0)
+	{ //Set these to 1 so it doesn't interfere with code if we aren't using digital contact tracing.
+		P->ScalingFactorSpatialDigitalContacts = 1;		
+		P->ScalingFactorPlaceDigitalContacts = 1;
+		return;
+	}
+	P->DigitalContactTracing_CellIncThresh = Params::get_double(params, pre_params, "Digital contact tracing trigger incidence per cell", 1000000000, P);
+
+	P->PropPopUsingDigitalContactTracing = Params::get_double(params, pre_params, "Proportion of population or households covered by digital contact tracing", 1, P);
+	Params::get_double_vec(params, pre_params, "Proportion of smartphone users by age", P->ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1, NUM_AGE_GROUPS, P);
+	if (P->DoPlaces != 0)
+	{
+		P->ClusterDigitalContactUsers = Params::get_int(params, pre_params, "Cluster digital app clusters by household", 0, P); // by default, don't cluster by location
+	}
+	else
+	{
+		P->ClusterDigitalContactUsers = 0;
+	}
+	P->ProportionDigitalContactsIsolate = Params::get_double(params, pre_params, "Proportion of digital contacts who self-isolate", 0, P);
+	P->MaxDigitalContactsToTrace = Params::get_int(params, pre_params, "Maximum number of contacts to trace per index case", MAX_CONTACTS, P);
+	P->DigitalContactTracingDelay = Params::get_double(params, pre_params, "Delay between isolation of index case and contacts", P->ModelTimeStep, P);
+
+	//we really need one timestep between to make sure contact is not processed before index
+	if (P->DigitalContactTracingDelay == 0) P->DigitalContactTracingDelay = P->ModelTimeStep;
+	P->LengthDigitalContactIsolation = Params::get_double(params, pre_params, "Length of self-isolation for digital contacts", 0, P);
+	P->ScalingFactorSpatialDigitalContacts = Params::get_double(params, pre_params, "Spatial scaling factor - digital contact tracing", 1, P);
+	P->ScalingFactorPlaceDigitalContacts = Params::get_double(params, pre_params, "Place scaling factor - digital contact tracing", 1, P);
+	P->DigitalContactTracingTimeStartBase = Params::get_double(params, pre_params, "Digital contact tracing start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->DigitalContactTracingPolicyDuration = Params::get_double(params, pre_params, "Duration of digital contact tracing policy", 7, P);
+	P->OutputDigitalContactTracing = Params::get_int(params, pre_params, "Output digital contact tracing", 0, P);
+	P->OutputDigitalContactDist = Params::get_int(params, pre_params, "Output digital contact distribution", 0, P);
+
+	if (P->DoInterventionDelaysByAdUnit)
+	{
+		double* AdunitDelayToDCT = new double[MAX_ADUNITS];
+		double* AdunitDurationDCT = new double[MAX_ADUNITS];
+
+		Params::get_double_vec(params, pre_params, "Delay to digital contact tracing by admin unit", AdunitDelayToDCT, P->NumAdunits, 0, P->NumAdunits, P);
+		Params::get_double_vec(params, pre_params, "Duration of digital contact tracing by admin unit", AdunitDurationDCT, P->NumAdunits, 0, P->NumAdunits, P);
+		for (int i = 0; i < P->NumAdunits; i++)
+		{
+			AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
+			AdUnits[i].DCTDuration = AdunitDurationDCT[i];
+		}
+
+		delete [] AdunitDelayToDCT;
+		delete [] AdunitDurationDCT;
+	}
+
+	P->DCTIsolateIndexCases = Params::get_int(params, pre_params, "Isolate index cases in digital contact tracing", 1, P);
+	P->DCTCaseIsolationEffectiveness = Params::get_double(params, pre_params, "Residual contacts after digital contact tracing isolation", P->CaseIsolationEffectiveness, P);
+	P->DCTCaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after digital contact tracing isolation", P->CaseIsolationHouseEffectiveness, P);
+
+	//initialise total number of users to 0
+	P->NDigitalContactUsers = 0;
+	P->NDigitalHouseholdUsers = 0;
+
+	P->DelayFromIndexCaseDetectionToDCTIsolation = Params::get_double(params, pre_params, "Delay between symptom onset and isolation for index case", 0, P);
+	P->DoDCTTest = Params::get_int(params, pre_params, "Test index cases and contacts", 0, P);
+	P->DelayToTestIndexCase = Params::get_double(params, pre_params, "Delay to test index case", 1, P);
+	P->DelayToTestDCTContacts = Params::get_double(params, pre_params, "Delay to test DCT contacts", 7, P);
+	P->SpecificityDCT = Params::get_double(params, pre_params, "Testing specificity - DCT", 1, P);
+	P->SensitivityDCT = Params::get_double(params, pre_params, "Testing sensitivity - DCT", 1, P);
+	P->FindContactsOfDCTContacts = Params::get_int(params, pre_params, "Find contacts of digital contacts", 0, P);
+	P->RemoveContactsOfNegativeIndexCase = Params::get_int(params, pre_params, "Remove contacts of a negative index case", 0, P);
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** PLACE CLOSURE
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->PlaceCloseCellIncThresh1 = Params::get_int(params, pre_params, "Trigger incidence per cell for place closure", 1000000000, P);
+	P->PlaceCloseCellIncThresh2 = Params::get_int(params, pre_params, "Trigger incidence per cell for second place closure", 1000000000, P);
+	if (P->PlaceCloseCellIncThresh1 < 0) P->PlaceCloseCellIncThresh1 = 1000000000;
+	if (P->PlaceCloseCellIncThresh2 < 0) P->PlaceCloseCellIncThresh2 = 1000000000;
+	P->PlaceCloseCellIncStopThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for end of place closure", 0, P);
+	P->PlaceCloseDelayMean = Params::get_double(params, pre_params, "Delay to start place closure", 0, P);
+	P->PlaceCloseDurationBase = Params::get_double(params, pre_params, "Duration of place closure", 7, P);
+	P->PlaceCloseDuration2 = Params::get_double(params, pre_params, "Duration of second place closure", 7, P);
+	if (P->DoPlaces != 0)
+	{
+		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+	}
+	if (P->DoHouseholds != 0)
+		P->PlaceCloseHouseholdRelContact = Params::get_double(params, pre_params, "Relative household contact rate after closure", 1, P);
+	P->PlaceCloseSpatialRelContact = Params::get_double(params, pre_params, "Relative spatial contact rate after closure", 1, P);
+
+	P->DoHolidays = Params::get_int(pre_params, adm_params, "Include holidays", 0, P);
+	if (P->DoHolidays != 0)
+	{
+		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		P->NumHolidays = Params::get_int(pre_params, adm_params, "Number of holidays", 0, P);
+		if (P->NumHolidays > DAYS_PER_YEAR) P->NumHolidays = DAYS_PER_YEAR;
+		if (P->NumHolidays > 0)
+		{
+			Params::req_double_vec(pre_params, adm_params, "Holiday start times", P->HolidayStartTime, P->NumHolidays, P);
+			Params::req_double_vec(pre_params, adm_params, "Holiday durations", P->HolidayDuration, P->NumHolidays, P);
+		}
+	}
+	else
+	{
+		P->NumHolidays = 0;
+	}
+	P->PlaceCloseRadius = Params::get_double(params, pre_params, "Minimum radius for place closure", 0, P);
+	P->PlaceCloseTimeStartBase = Params::get_double(params, pre_params, "Place closure start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->PlaceCloseTimeStartBase2 = Params::get_double(params, pre_params, "Place closure second start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->DoPlaceCloseOnceOnly = Params::get_int(params, pre_params, "Places close only once", 0, P);
+	//if (P->DoPlaceCloseOnceOnly) P->DoPlaceCloseOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
+	P->PlaceCloseIncTrig1 = Params::get_int(params, pre_params, "Place closure incidence threshold", 1, P);
+	P->PlaceCloseIncTrig2 = Params::get_int(params, pre_params, "Place closure second incidence threshold", P->PlaceCloseIncTrig1, P);
+	P->PlaceCloseFracIncTrig = Params::get_double(params, pre_params, "Place closure fractional incidence threshold", 0, P);
+	if ((P->DoAdUnits != 0) && (P->DoPlaces != 0))
+	{
+		P->PlaceCloseByAdminUnit = Params::get_int(params, pre_params, "Place closure in administrative units rather than rings", 0, P);
+		P->PlaceCloseAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for place closure", 1, P);
+		Params::get_int_vec(params, pre_params, "Place types to close for admin unit closure (0/1 array)", P->PlaceCloseAdunitPlaceTypes, P->PlaceTypeNum, 0, P->PlaceTypeNum, P);
+		P->PlaceCloseCasePropThresh = Params::get_double(params, pre_params, "Cumulative proportion of place members needing to become sick for admin unit closure", 2, P);
+		P->PlaceCloseAdunitPropThresh = Params::get_double(params, pre_params, "Proportion of places in admin unit needing to pass threshold for place closure", 2, P);
+		if ((P->PlaceCloseAdminUnitDivisor < 1) || (P->PlaceCloseByAdminUnit == 0)) P->PlaceCloseAdminUnitDivisor = 1;
+	}
+	else
+	{
+		P->PlaceCloseAdminUnitDivisor = 1; P->PlaceCloseByAdminUnit = 0;
+	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** SOCIAL DISTANCING
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->SocDistCellIncThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for social distancing", 1000000000, P);
+	P->SocDistCellIncStopThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for end of social distancing", 0, P);
+	P->SocDistDuration = Params::get_double(params, pre_params, "Duration of social distancing", 7, P);
+	P->SocDistDuration2 = Params::get_double(params, pre_params, "Duration of social distancing after change", 7, P);
+	if (P->DoPlaces != 0)
+	{
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		if (Params::param_found(params, pre_params, "Relative place contact rate given social distancing by place type after change"))
+		{
+			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P->SocDistPlaceEffect2, P->PlaceTypeNum, P);
+		}
+		else {
+			for (int i = 0; i < NUM_PLACE_TYPES; i++) P->SocDistPlaceEffect2[i] = P->SocDistPlaceEffect[i];
+		}
+
+		if (Params::param_found(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change"))
+		{
+			Params::req_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change", P->EnhancedSocDistPlaceEffect2, P->PlaceTypeNum, P);
+		}
+		else
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++) P->EnhancedSocDistPlaceEffect2[i] = P->EnhancedSocDistPlaceEffect[i];
+		}
+	}
+	if (P->DoHouseholds != 0)
+	{
+		P->SocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given social distancing", 1, P);
+		P->EnhancedSocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing", 1, P);
+		P->SocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given social distancing after change", P->SocDistHouseholdEffect, P);
+		P->EnhancedSocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing after change", P->EnhancedSocDistHouseholdEffect, P);
+		P->EnhancedSocDistClusterByHousehold = Params::get_int(params, pre_params, "Cluster compliance with enhanced social distancing by household", 0, P);
+	}
+	else
+	{
+		P->EnhancedSocDistClusterByHousehold = 0;
+	}
+	P->SocDistSpatialEffect = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing", 1, P);
+	P->SocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing after change", P->SocDistSpatialEffect, P);
+	P->SocDistRadius = Params::get_double(params, pre_params, "Minimum radius for social distancing", 0, P);
+	P->SocDistTimeStartBase = Params::get_double(params, pre_params, "Social distancing start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->SocDistChangeDelay = Params::get_double(params, pre_params, "Delay for change in effectiveness of social distancing", USHRT_MAX / P->TimeStepsPerDay, P);
+	if (Params::param_found(params, pre_params, "Proportion compliant with enhanced social distancing by age group"))
+	{
+		Params::req_double_vec(params, pre_params, "Proportion compliant with enhanced social distancing by age group", P->EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, P);
+	}
+	else
+	{
+		double t = Params::get_double(params, pre_params, "Proportion compliant with enhanced social distancing", 0, P);
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			P->EnhancedSocDistProportionCompliant[i] = t;
+	}
+
+	P->EnhancedSocDistSpatialEffect = Params::get_double(params, pre_params, "Relative spatial contact rate given enhanced social distancing", 1, P);
+	P->EnhancedSocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given enhanced social distancing after change", P->EnhancedSocDistSpatialEffect, P);
+
+	P->DoSocDistOnceOnly = Params::get_int(params, pre_params, "Social distancing only once", 0, P);
+	//if (P->DoSocDistOnceOnly) P->DoSocDistOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
+
+	P->AirportCloseEffectiveness = Params::get_double(params, pre_params, "Airport closure effectiveness", 0, P);
+	P->AirportCloseEffectiveness = 1.0 - P->AirportCloseEffectiveness;
+	P->AirportCloseTimeStartBase = Params::get_double(params, pre_params, "Airport closure start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->AirportCloseDuration = Params::get_double(params, pre_params, "Airport closure duration", USHRT_MAX / P->TimeStepsPerDay, P);
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** CASE ISOLATION
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->CaseIsolationTimeStartBase = Params::get_double(params, pre_params, "Case isolation start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->CaseIsolationProp = Params::get_double(params, pre_params, "Proportion of detected cases isolated", 0, P);
+	P->CaseIsolationDelay = Params::get_double(params, pre_params, "Delay to start case isolation", 0, P);
+	P->CaseIsolationDuration = Params::get_double(params, pre_params, "Duration of case isolation", 0, P);
+	P->CaseIsolationPolicyDuration = Params::get_double(params, pre_params, "Duration of case isolation policy", 1e10, P);
+	P->CaseIsolationEffectiveness = Params::get_double(params, pre_params, "Residual contacts after case isolation", 1, P);
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** HOUSEHOLD QUARANTINE
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::household_quarantine_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	if (P->DoHouseholds == 0)
+	{
+		P->HQuarantineTimeStartBase = 1e10;
+		return;
+	}
+	P->DoHQretrigger = Params::get_int(params, pre_params, "Retrigger household quarantine with each new case in quarantine window", 0, P);
+	P->HQuarantineTimeStartBase = Params::get_double(params, pre_params, "Household quarantine start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->HQuarantineDelay = Params::get_double(params, pre_params, "Delay to start household quarantine", 0, P);
+	P->HQuarantineHouseDuration = Params::get_double(params, pre_params, "Length of time households are quarantined", 0, P);
+	P->HQuarantinePolicyDuration = Params::get_double(params, pre_params, "Duration of household quarantine policy", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->HQuarantineHouseEffect = Params::get_double(params, pre_params, "Relative household contact rate after quarantine", 1, P);
+	P->CaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after case isolation", P->CaseIsolationEffectiveness, P);
+	if (P->DoPlaces != 0)
+	{
+		Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+	}
+	P->HQuarantineSpatialEffect = Params::get_double(params, pre_params, "Residual spatial contacts after household quarantine", 1, P);
+	P->HQuarantinePropHouseCompliant = Params::get_double(params, pre_params, "Household level compliance with quarantine", 1, P);
+	P->HQuarantinePropIndivCompliant = Params::get_double(params, pre_params, "Individual level compliance with quarantine", 1, P);
+}
+
 /**************************************************************************************************************/
 
 void Params::ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits)
 {
-	double s, t, AgeSuscScale;
+	double s, t;
 	int i, j, k, f, nc, na;
 
 	char* CountryNameBuf = new char[128 * MAX_COUNTRIES];
@@ -602,7 +1128,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	char** CountryNames = new char* [MAX_COUNTRIES];
 	char** AdunitListNames = new char* [MAX_ADUNITS];
 
-	AgeSuscScale = 1.0;
+	double AgeSuscScale = 1.0;
 	ParamMap params = Params::read_params_map(ParamFile.c_str());
 	ParamMap pre_params = Params::read_params_map(PreParamFile.c_str());
 	ParamMap adm_params = Params::read_params_map(AdUnitFile.c_str());
@@ -754,7 +1280,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 						f = 0;
 						if (na > 0)
 						{
-							for (j = 0; (j < na) && (!f); j++) f = (!strcmp(AdunitNames[3 * j + 2], AdunitListNames[i]));
+							for (j = 0; (j < na) && (!f); j++) f = (strcmp(AdunitNames[3 * j + 2], AdunitListNames[i]) == 0);
 							if (f) k = atoi(AdunitNames[3 * (j - 1)]);
 						}
 						if ((na == 0) || (!f)) k = atoi(AdunitListNames[i]);
@@ -1273,98 +1799,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	P->SeroConvSpec = Params::get_double(params, pre_params, "Specificity of serology assay", 1.0, P);
 	P->InfPrevSurveyScale = Params::get_double(params, pre_params, "Scaling of modelled infection prevalence to match surveys", 1.0, P);
 
-	P->DoSeverity = Params::get_int(params, pre_params, "Do Severity Analysis", 0, P);
-	if (P->DoSeverity != 0)
-	{
-		P->ScaleSymptProportions = Params::get_double(params, pre_params, "Factor to scale IFR", 1.0, P);
-		//// Means for icdf's.
-		P->Mean_TimeToTest = Params::get_double(params, pre_params, "MeanTimeToTest", 0.0, P);
-		P->Mean_TimeToTestOffset = Params::get_double(params, pre_params, "MeanTimeToTestOffset", 1.0, P);
-		P->Mean_TimeToTestCriticalOffset = Params::get_double(params, pre_params, "MeanTimeToTestCriticalOffset", 1.0, P);
-		P->Mean_TimeToTestCritRecovOffset = Params::get_double(params, pre_params, "MeanTimeToTestCritRecovOffset", 1.0, P);
-		if (Params::get_int(params, pre_params, "Age dependent severity delays", 0, P) == 0)
-		{
-			P->Mean_MildToRecovery[0] = Params::req_double(params, pre_params, "Mean_MildToRecovery", P);
-			P->Mean_ILIToRecovery[0] = Params::req_double(params, pre_params, "Mean_ILIToRecovery", P);
-			P->Mean_SARIToRecovery[0] = Params::req_double(params, pre_params, "Mean_SARIToRecovery", P);
-			P->Mean_CriticalToCritRecov[0] = Params::req_double(params, pre_params, "Mean_CriticalToCritRecov", P);
-			P->Mean_CritRecovToRecov[0] = Params::req_double(params, pre_params, "Mean_CritRecovToRecov", P);
-			P->Mean_ILIToSARI[0] = Params::req_double(params, pre_params, "Mean_ILIToSARI", P);
-			P->Mean_ILIToDeath[0] = Params::get_double(params, pre_params, "Mean_ILIToDeath", 7.0, P);
-			P->Mean_SARIToCritical[0] = Params::req_double(params, pre_params, "Mean_SARIToCritical", P);
-			P->Mean_SARIToDeath[0] = Params::req_double(params, pre_params, "Mean_SARIToDeath", P);
-			P->Mean_CriticalToDeath[0] = Params::req_double(params, pre_params, "Mean_CriticalToDeath", P);
-			for (int AgeGroup = 1; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-			{
-				P->Mean_MildToRecovery[AgeGroup] = P->Mean_MildToRecovery[0];
-				P->Mean_ILIToRecovery[AgeGroup] = P->Mean_ILIToRecovery[0];
-				P->Mean_SARIToRecovery[AgeGroup] = P->Mean_SARIToRecovery[0];
-				P->Mean_CriticalToCritRecov[AgeGroup] = P->Mean_CriticalToCritRecov[0];
-				P->Mean_CritRecovToRecov[AgeGroup] = P->Mean_CritRecovToRecov[0];
-				P->Mean_ILIToSARI[AgeGroup] = P->Mean_ILIToSARI[0];
-				P->Mean_ILIToDeath[AgeGroup] = P->Mean_ILIToDeath[0];
-				P->Mean_SARIToCritical[AgeGroup] = P->Mean_SARIToCritical[0];
-				P->Mean_SARIToDeath[AgeGroup] = P->Mean_SARIToDeath[0];
-				P->Mean_CriticalToDeath[AgeGroup] = P->Mean_CriticalToDeath[0];
-			}
-		}
-		else
-		{
-			Params::req_double_vec(params, pre_params, "Mean_MildToRecovery", P->Mean_MildToRecovery, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_ILIToRecovery", P->Mean_ILIToRecovery, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_SARIToRecovery", P->Mean_SARIToRecovery, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_CriticalToCritRecov", P->Mean_CriticalToCritRecov, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_CritRecovToRecov", P->Mean_CritRecovToRecov, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_ILIToSARI", P->Mean_ILIToSARI, NUM_AGE_GROUPS, P);
-			Params::get_double_vec(params, pre_params, "Mean_ILIToDeath", P->Mean_ILIToDeath, NUM_AGE_GROUPS, 7.0, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_SARIToCritical", P->Mean_SARIToCritical, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_SARIToDeath", P->Mean_SARIToDeath, NUM_AGE_GROUPS, P);
-			Params::req_double_vec(params, pre_params, "Mean_CriticalToDeath", P->Mean_CriticalToDeath, NUM_AGE_GROUPS, P);
-		}
+	Params::severity_params(adm_params, pre_params, params, P);
 
-		//// Get InverseCDFs
-		Params::get_inverse_cdf(params, pre_params, "MildToRecovery_icdf", &P->MildToRecovery_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "ILIToRecovery_icdf", &P->ILIToRecovery_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "ILIToDeath_icdf", &P->ILIToDeath_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "SARIToRecovery_icdf", &P->SARIToRecovery_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "CriticalToCritRecov_icdf", &P->CriticalToCritRecov_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "CritRecovToRecov_icdf", &P->CritRecovToRecov_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "ILIToSARI_icdf", &P->ILIToSARI_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "SARIToCritical_icdf", &P->SARIToCritical_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "SARIToDeath_icdf", &P->SARIToDeath_icdf, P, ICDF_START);
-		Params::get_inverse_cdf(params, pre_params, "CriticalToDeath_icdf", &P->CriticalToDeath_icdf, P, ICDF_START);
-
-		// If you decide to decompose Critical -> Death transition into Critical -> Stepdown and Stepdown -> Death, use the block below.
-		P->IncludeStepDownToDeath = Params::get_int(params, pre_params, "IncludeStepDownToDeath", 0, P);
-		if (P->IncludeStepDownToDeath == 0) /// for backwards compatibility. If Stepdown to death not included (or if unspecified), set stepdown->death = stepdown->recovery.
-		{
-			for (int quantile = 0; quantile <= CDF_RES; quantile++)
-				P->StepdownToDeath_icdf[quantile] = P->CritRecovToRecov_icdf[quantile];
-			for (int AgeGroup = 0; AgeGroup < NUM_AGE_GROUPS; AgeGroup++)
-				P->Mean_StepdownToDeath[AgeGroup] = P->Mean_CritRecovToRecov[AgeGroup];
-		}
-		else
-		{
-			Params::req_double_vec(params, pre_params, "Mean_StepdownToDeath", P->Mean_StepdownToDeath, NUM_AGE_GROUPS, P);
-			Params::get_inverse_cdf(params, pre_params, "StepdownToDeath_icdf", &P->StepdownToDeath_icdf, P, ICDF_START);
-		}
-
-		Params::get_double_vec(params, pre_params, "Prop_Mild_ByAge", P->Prop_Mild_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "Prop_ILI_ByAge", P->Prop_ILI_ByAge, NUM_AGE_GROUPS, 0.3, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "Prop_SARI_ByAge", P->Prop_SARI_ByAge, NUM_AGE_GROUPS, 0.15, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "Prop_Critical_ByAge", P->Prop_Critical_ByAge, NUM_AGE_GROUPS, 0.05, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "CFR_SARI_ByAge", P->CFR_SARI_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "CFR_Critical_ByAge", P->CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
-		Params::get_double_vec(params, pre_params, "CFR_ILI_ByAge", P->CFR_ILI_ByAge, NUM_AGE_GROUPS, 0, NUM_AGE_GROUPS, P);
-
-		//Add param to allow severity to be uniformly scaled up or down.
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-		{
-			P->Prop_SARI_ByAge[i] *= P->ScaleSymptProportions;
-			P->Prop_Critical_ByAge[i] *= P->ScaleSymptProportions;
-			P->Prop_ILI_ByAge[i] = 1.0 - P->Prop_Mild_ByAge[i] - P->Prop_SARI_ByAge[i] - P->Prop_Critical_ByAge[i];
-		}
-	}
 	if (P->FitIter == 0)
 	{
 		if (Params::param_found(params, pre_params, "Bounding box for bitmap"))
@@ -1456,108 +1892,9 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	}
 
 	P->WindowToEvaluateTriggerAlert = Params::get_int(params, pre_params, "Number of days to accummulate cases/deaths before alert", 1000, P);
-
-	P->DoPlaceGroupTreat = Params::get_int(params, pre_params, "Only treat mixing groups within places", 0, P);
-
-	P->TreatCellIncThresh = Params::get_double(params, pre_params, "Treatment trigger incidence per cell", INT32_MAX, P);
-	P->CaseIsolation_CellIncThresh = Params::get_double(params, pre_params, "Case isolation trigger incidence per cell", P->TreatCellIncThresh, P);
-	P->HHQuar_CellIncThresh = Params::get_double(params, pre_params, "Household quarantine trigger incidence per cell", P->TreatCellIncThresh, P);
-
-	P->TreatSuscDrop = Params::get_double(params, pre_params, "Relative susceptibility of treated individual", 1, P);
-	P->TreatInfDrop = Params::get_double(params, pre_params, "Relative infectiousness of treated individual", 1, P);
-	P->TreatDeathDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases resulting in death prevented by treatment", 0, P);
-	P->TreatSympDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases prevented by treatment", 0, P);
-	P->TreatDelayMean = Params::get_double(params, pre_params, "Delay to treat cell", 0, P);
-	P->TreatCaseCourseLength = Params::get_double(params, pre_params, "Duration of course of treatment", 5, P);
-	P->TreatProphCourseLength = Params::get_double(params, pre_params, "Duration of course of prophylaxis", 10, P);
-	P->TreatPropCases = Params::get_double(params, pre_params, "Proportion of detected cases treated", 1, P);
-	if (P->DoHouseholds != 0)
-	{
-		P->TreatPropCaseHouseholds = Params::get_double(params, pre_params, "Proportion of households of cases treated", 0, P);
-		P->TreatHouseholdsDuration = Params::get_double(params, pre_params, "Duration of household prophylaxis policy", USHRT_MAX / P->TimeStepsPerDay, P);
-	}
-	// Check below - "Proportional treated" will always be ignored.
-	//if (!GetInputParameter2(params, pre_params, "Proportion treated", "%lf", (void*) & (P->TreatPropRadial), 1, 1, 0)) P->TreatPropRadial = 1.0;
-	//if (!GetInputParameter2(params, pre_params, "Proportion treated in radial prophylaxis", "%lf", (void*) & (P->TreatPropRadial), 1, 1, 0)) P->TreatPropRadial = 1.0;
-
-	P->TreatPropRadial = Params::get_double(params, pre_params, "Proportion treated in radial prophylaxis", 1.0, P);
-	P->TreatRadius = Params::get_double(params, pre_params, "Treatment radius", 0, P);
-	P->TreatPlaceGeogDuration = Params::get_double(params, pre_params, "Duration of place/geographic prophylaxis policy", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->TreatTimeStartBase = Params::get_double(params, pre_params, "Treatment start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	if (P->DoPlaces != 0)
-	{
-		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-	}
-	P->TreatMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of doses available", 1e20, P);
-	P->TreatNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional treatment production", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->TreatNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional treatment production (courses per day)", 0, P);
-	P->TreatMaxCoursesPerCase = Params::get_int(params, pre_params, "Maximum number of people targeted with radial prophylaxis per case", INT32_MAX, P);
-
-	if (P->DoAdUnits != 0)
-	{
-		P->TreatByAdminUnit = Params::get_int(params, pre_params, "Treat administrative units rather than rings", 0, P);
-		P->TreatAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for treatment", 1, P);
-		if ((P->TreatAdminUnitDivisor == 0) || (P->TreatByAdminUnit == 0)) { P->TreatByAdminUnit = 0; P->TreatAdminUnitDivisor = 1; }
-	}
-	else
-	{
-		P->TreatAdminUnitDivisor = 1; P->TreatByAdminUnit = 0;
-	}
-
-	P->VaccCellIncThresh = Params::get_double(params, pre_params, "Vaccination trigger incidence per cell", 1000000000, P);
-	P->VaccSuscDrop = Params::get_double(params, pre_params, "Relative susceptibility of vaccinated individual", 1, P);
-	P->VaccSuscDrop2 = Params::get_double(params, pre_params, "Relative susceptibility of individual vaccinated after switch time", 1, P);
-	P->VaccTimeEfficacySwitch = Params::get_double(params, pre_params, "Switch time at which vaccine efficacy increases", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->VaccEfficacyDecay = Params::get_double(params, pre_params, "Decay rate of vaccine efficacy (per year)", 0, P);
-	P->VaccEfficacyDecay /= DAYS_PER_YEAR;
-	P->VaccInfDrop = Params::get_double(params, pre_params, "Relative infectiousness of vaccinated individual", 1, P);
-	P->VaccMortDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases resulting in death prevented by vaccination", 0, P);
-	P->VaccSympDrop = Params::get_double(params, pre_params, "Proportion of symptomatic cases prevented by vaccination", 0, P);
-	P->VaccDelayMean = Params::get_double(params, pre_params, "Delay to vaccinate", 0, P);
-
-	P->VaccTimeToEfficacy = Params::get_double(params, pre_params, "Delay from vaccination to full protection", 0, P);
-
-	P->VaccCampaignInterval = Params::get_double(params, pre_params, "Years between rounds of vaccination", 1e10, P);
-	P->VaccDosePerDay = Params::get_int(params, pre_params, "Max vaccine doses per day", -1, P);
-	P->VaccCampaignInterval *= DAYS_PER_YEAR;
-	P->VaccMaxRounds = Params::get_int(params, pre_params, "Maximum number of rounds of vaccination", 1, P);
-	if (P->DoHouseholds != 0)
-	{
-		P->VaccPropCaseHouseholds = Params::get_double(params, pre_params, "Proportion of households of cases vaccinated", 0, P);
-		P->VaccHouseholdsDuration = Params::get_double(params, pre_params, "Duration of household vaccination policy", USHRT_MAX / P->TimeStepsPerDay, P);
-	}
-
-	P->VaccTimeStartBase = Params::get_double(params, pre_params, "Vaccination start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->VaccProp = Params::get_double(params, pre_params, "Proportion of population vaccinated", 0, P);
-	P->VaccCoverageIncreasePeriod = Params::get_double(params, pre_params, "Time taken to reach max vaccination coverage (in years)", 0, P);
-	P->VaccCoverageIncreasePeriod *= DAYS_PER_YEAR;
-	P->VaccTimeStartGeo = Params::get_double(params, pre_params, "Time to start geographic vaccination", 1e10, P);
-	P->VaccRadius = Params::get_double(params, pre_params, "Vaccination radius", 0, P);
-	P->VaccMinRadius = Params::get_double(params, pre_params, "Minimum radius from case to vaccinate", 0, P);
-	P->VaccMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of vaccine courses available", 1e20, P);
-	P->VaccNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional vaccine production", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->VaccNewCoursesEndTime = Params::get_double(params, pre_params, "End time of additional vaccine production", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->VaccNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional vaccine production (courses per day)", 0, P);
-	P->DoMassVacc = Params::get_int(params, pre_params, "Apply mass rather than reactive vaccination", 0, P);
-	if (Params::param_found(params, pre_params, "Priority age range for mass vaccination")) {
-		Params::req_int_vec(params, pre_params, "Priority age range for mass vaccination", P->VaccPriorityGroupAge, 2, P);
-	}
-	else {
-		P->VaccPriorityGroupAge[0] = 1; P->VaccPriorityGroupAge[1] = 0;
-	}
-
-	if (P->DoAdUnits != 0)
-	{
-		P->VaccByAdminUnit = Params::get_int(params, pre_params, "Vaccinate administrative units rather than rings", 0, P);
-		P->VaccAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for vaccination", 1, P);
-		if ((P->VaccAdminUnitDivisor == 0) || (P->VaccByAdminUnit == 0)) P->VaccAdminUnitDivisor = 1;
-	}
-	else
-	{
-		P->VaccAdminUnitDivisor = 1; P->VaccByAdminUnit = 0;
-	}
-
+  Params::treatment_params(adm_params, pre_params, params, P);
+	Params::vaccination_params(adm_params, pre_params, params, P);
+	
 	P->MoveRestrCellIncThresh = Params::get_int(params, pre_params, "Movement restrictions trigger incidence per cell", INT32_MAX, P);
 	P->MoveDelayMean = Params::get_double(params, pre_params, "Delay to start movement restrictions", 0, P);
 	P->MoveRestrDuration = Params::get_double(params, pre_params, "Duration of movement restrictions", 7, P);
@@ -1578,277 +1915,14 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		P->MoveRestrAdminUnitDivisor = 1; P->MoveRestrByAdminUnit = 0;
 	}
 
-	//Intervention delays and durations by admin unit: ggilani 16/03/20
-	P->DoInterventionDelaysByAdUnit = Params::get_int(params, pre_params, "Include intervention delays by admin unit", 0, P);
-	if (P->DoInterventionDelaysByAdUnit)
-	{
-		//Set up arrays to temporarily store parameters per admin unit
-		double AdunitDelayToSocialDistance[MAX_ADUNITS];
-		double AdunitDelayToHQuarantine[MAX_ADUNITS];
-		double AdunitDelayToCaseIsolation[MAX_ADUNITS];
-		double AdunitDelayToPlaceClose[MAX_ADUNITS];
-		double AdunitDurationSocialDistance[MAX_ADUNITS];
-		double AdunitDurationHQuarantine[MAX_ADUNITS];
-		double AdunitDurationCaseIsolation[MAX_ADUNITS];
-		double AdunitDurationPlaceClose[MAX_ADUNITS];
+	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P);
+	Params::digital_contact_tracing_params(adm_params, pre_params, params, P);
+	Params::place_closure_params(adm_params, pre_params, params, P);
+	Params::social_distancing_params(adm_params, pre_params, params, P);
+	Params::case_isolation_params(adm_params, pre_params, params, P);
+	Params::household_quarantine_params(adm_params, pre_params, params, P);
 
-		Params::get_double_vec(params, pre_params, "Delay to social distancing by admin unit", AdunitDelayToSocialDistance, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Delay to household quarantine by admin unit", AdunitDelayToHQuarantine, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Delay to case isolation by admin unit", AdunitDelayToCaseIsolation, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Delay to place closure by admin unit", AdunitDelayToPlaceClose, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Duration of social distancing by admin unit", AdunitDurationSocialDistance, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Duration of household quarantine by admin unit", AdunitDurationHQuarantine, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Duration of case isolation by admin unit", AdunitDurationCaseIsolation, P->NumAdunits, 0, P->NumAdunits, P);
-		Params::get_double_vec(params, pre_params, "Duration of place closure by admin unit", AdunitDurationPlaceClose, P->NumAdunits, 0, P->NumAdunits, P);
-
-		for (i = 0; i < P->NumAdunits; i++)
-		{
-			AdUnits[i].SocialDistanceDelay = AdunitDelayToSocialDistance[i];
-			AdUnits[i].SocialDistanceDuration = AdunitDurationSocialDistance[i];
-			AdUnits[i].HQuarantineDelay = AdunitDelayToHQuarantine[i];
-			AdUnits[i].HQuarantineDuration = AdunitDurationHQuarantine[i];
-			AdUnits[i].CaseIsolationDelay = AdunitDelayToCaseIsolation[i];
-			AdUnits[i].CaseIsolationPolicyDuration = AdunitDurationCaseIsolation[i];
-			AdUnits[i].PlaceCloseDelay = AdunitDelayToPlaceClose[i];
-			AdUnits[i].PlaceCloseDuration = AdunitDurationPlaceClose[i];
-		}
-	}
-
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** DIGITAL CONTACT TRACING
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
-	//New code for digital contact tracing - ggilani: 09/03/20
-	P->DoDigitalContactTracing = Params::get_int(params, pre_params, "Include digital contact tracing", 0, P);
-	if (P->DoDigitalContactTracing != 0)
-	{
-		P->DigitalContactTracing_CellIncThresh = Params::get_double(params, pre_params, "Digital contact tracing trigger incidence per cell", 1000000000, P);
-
-		P->PropPopUsingDigitalContactTracing = Params::get_double(params, pre_params, "Proportion of population or households covered by digital contact tracing", 1, P);
-		Params::get_double_vec(params, pre_params, "Proportion of smartphone users by age", P->ProportionSmartphoneUsersByAge, NUM_AGE_GROUPS, 1, NUM_AGE_GROUPS, P);
-		if (P->DoPlaces != 0)
-		{
-			P->ClusterDigitalContactUsers = Params::get_int(params, pre_params, "Cluster digital app clusters by household", 0, P); // by default, don't cluster by location
-		}
-		else
-		{
-			P->ClusterDigitalContactUsers = 0;
-		}
-		P->ProportionDigitalContactsIsolate = Params::get_double(params, pre_params, "Proportion of digital contacts who self-isolate", 0, P);
-		P->MaxDigitalContactsToTrace = Params::get_int(params, pre_params, "Maximum number of contacts to trace per index case", MAX_CONTACTS, P);
-		P->DigitalContactTracingDelay = Params::get_double(params, pre_params, "Delay between isolation of index case and contacts", P->ModelTimeStep, P);
-		//we really need one timestep between to make sure contact is not processed before index
-		if (P->DigitalContactTracingDelay == 0) P->DigitalContactTracingDelay = P->ModelTimeStep;
-		P->LengthDigitalContactIsolation = Params::get_double(params, pre_params, "Length of self-isolation for digital contacts", 0, P);
-		P->ScalingFactorSpatialDigitalContacts = Params::get_double(params, pre_params, "Spatial scaling factor - digital contact tracing", 1, P);
-		P->ScalingFactorPlaceDigitalContacts = Params::get_double(params, pre_params, "Place scaling factor - digital contact tracing", 1, P);
-		P->DigitalContactTracingTimeStartBase = Params::get_double(params, pre_params, "Digital contact tracing start time", USHRT_MAX / P->TimeStepsPerDay, P);
-		P->DigitalContactTracingPolicyDuration = Params::get_double(params, pre_params, "Duration of digital contact tracing policy", 7, P);
-		P->OutputDigitalContactTracing = Params::get_int(params, pre_params, "Output digital contact tracing", 0, P);
-		P->OutputDigitalContactDist = Params::get_int(params, pre_params, "Output digital contact distribution", 0, P);
-
-		if (P->DoInterventionDelaysByAdUnit)
-		{
-			double AdunitDelayToDCT[MAX_ADUNITS];
-			double AdunitDurationDCT[MAX_ADUNITS];
-
-			Params::get_double_vec(params, pre_params, "Delay to digital contact tracing by admin unit", AdunitDelayToDCT, P->NumAdunits, 0, P->NumAdunits, P);
-			Params::get_double_vec(params, pre_params, "Duration of digital contact tracing by admin unit", AdunitDurationDCT, P->NumAdunits, 0, P->NumAdunits, P);
-			for (i = 0; i < P->NumAdunits; i++)
-			{
-				AdUnits[i].DCTDelay = AdunitDelayToDCT[i];
-				AdUnits[i].DCTDuration = AdunitDurationDCT[i];
-			}
-		}
-		P->DCTIsolateIndexCases = Params::get_int(params, pre_params, "Isolate index cases in digital contact tracing", 1, P);
-		P->DCTCaseIsolationEffectiveness = Params::get_double(params, pre_params, "Residual contacts after digital contact tracing isolation", P->CaseIsolationEffectiveness, P);
-		P->DCTCaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after digital contact tracing isolation", P->CaseIsolationHouseEffectiveness, P);
-		//initialise total number of users to 0
-		P->NDigitalContactUsers = 0;
-		P->NDigitalHouseholdUsers = 0;
-
-		P->DelayFromIndexCaseDetectionToDCTIsolation = Params::get_double(params, pre_params, "Delay between symptom onset and isolation for index case", 0, P);
-		P->DoDCTTest = Params::get_int(params, pre_params, "Test index cases and contacts", 0, P);
-		P->DelayToTestIndexCase = Params::get_double(params, pre_params, "Delay to test index case", 1, P);
-		P->DelayToTestDCTContacts = Params::get_double(params, pre_params, "Delay to test DCT contacts", 7, P);
-		P->SpecificityDCT = Params::get_double(params, pre_params, "Testing specificity - DCT", 1, P);
-		P->SensitivityDCT = Params::get_double(params, pre_params, "Testing sensitivity - DCT", 1, P);
-		P->FindContactsOfDCTContacts = Params::get_int(params, pre_params, "Find contacts of digital contacts", 0, P);
-		P->RemoveContactsOfNegativeIndexCase = Params::get_int(params, pre_params, "Remove contacts of a negative index case", 0, P);
-	}
-	else
-	{
-		//Set these to 1 so it doesn't interfere with code if we aren't using digital contact tracing.
-
-		P->ScalingFactorSpatialDigitalContacts = 1;
-		P->ScalingFactorPlaceDigitalContacts = 1;
-	}
-
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** PLACE CLOSURE
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
-
-	P->PlaceCloseCellIncThresh1 = Params::get_int(params, pre_params, "Trigger incidence per cell for place closure", 1000000000, P);
-	P->PlaceCloseCellIncThresh2 = Params::get_int(params, pre_params, "Trigger incidence per cell for second place closure", 1000000000, P);
-	if (P->PlaceCloseCellIncThresh1 < 0) P->PlaceCloseCellIncThresh1 = 1000000000;
-	if (P->PlaceCloseCellIncThresh2 < 0) P->PlaceCloseCellIncThresh2 = 1000000000;
-	P->PlaceCloseCellIncStopThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for end of place closure", 0, P);
-	P->PlaceCloseDelayMean = Params::get_double(params, pre_params, "Delay to start place closure", 0, P);
-	P->PlaceCloseDurationBase = Params::get_double(params, pre_params, "Duration of place closure", 7, P);
-	P->PlaceCloseDuration2 = Params::get_double(params, pre_params, "Duration of second place closure", 7, P);
-	if (P->DoPlaces != 0)
-	{
-		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-	}
-	if (P->DoHouseholds != 0)
-		P->PlaceCloseHouseholdRelContact = Params::get_double(params, pre_params, "Relative household contact rate after closure", 1, P);
-	P->PlaceCloseSpatialRelContact = Params::get_double(params, pre_params, "Relative spatial contact rate after closure", 1, P);
-
-	P->DoHolidays = Params::get_int(pre_params, adm_params, "Include holidays", 0, P);
-	if (P->DoHolidays != 0)
-	{
-		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		P->NumHolidays = Params::get_int(pre_params, adm_params, "Number of holidays", 0, P);
-		if (P->NumHolidays > DAYS_PER_YEAR) P->NumHolidays = DAYS_PER_YEAR;
-		if (P->NumHolidays > 0)
-		{
-			Params::req_double_vec(pre_params, adm_params, "Holiday start times", P->HolidayStartTime, P->NumHolidays, P);
-			Params::req_double_vec(pre_params, adm_params, "Holiday durations", P->HolidayDuration, P->NumHolidays, P);
-		}
-	}
-	else
-	{
-		P->NumHolidays = 0;
-	}
-	P->PlaceCloseRadius = Params::get_double(params, pre_params, "Minimum radius for place closure", 0, P);
-	P->PlaceCloseTimeStartBase = Params::get_double(params, pre_params, "Place closure start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->PlaceCloseTimeStartBase2 = Params::get_double(params, pre_params, "Place closure second start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->DoPlaceCloseOnceOnly = Params::get_int(params, pre_params, "Places close only once", 0, P);
-	//if (P->DoPlaceCloseOnceOnly) P->DoPlaceCloseOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
-	P->PlaceCloseIncTrig1 = Params::get_int(params, pre_params, "Place closure incidence threshold", 1, P);
-	P->PlaceCloseIncTrig2 = Params::get_int(params, pre_params, "Place closure second incidence threshold", P->PlaceCloseIncTrig1, P);
-	P->PlaceCloseFracIncTrig = Params::get_double(params, pre_params, "Place closure fractional incidence threshold", 0, P);
-	if ((P->DoAdUnits != 0) && (P->DoPlaces != 0))
-	{
-		P->PlaceCloseByAdminUnit = Params::get_int(params, pre_params, "Place closure in administrative units rather than rings", 0, P);
-		P->PlaceCloseAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for place closure", 1, P);
-		Params::get_int_vec(params, pre_params, "Place types to close for admin unit closure (0/1 array)", P->PlaceCloseAdunitPlaceTypes, P->PlaceTypeNum, 0, P->PlaceTypeNum, P);
-		P->PlaceCloseCasePropThresh = Params::get_double(params, pre_params, "Cumulative proportion of place members needing to become sick for admin unit closure", 2, P);
-		P->PlaceCloseAdunitPropThresh = Params::get_double(params, pre_params, "Proportion of places in admin unit needing to pass threshold for place closure", 2, P);
-		if ((P->PlaceCloseAdminUnitDivisor < 1) || (P->PlaceCloseByAdminUnit == 0)) P->PlaceCloseAdminUnitDivisor = 1;
-	}
-	else
-	{
-		P->PlaceCloseAdminUnitDivisor = 1; P->PlaceCloseByAdminUnit = 0;
-	}
-
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** SOCIAL DISTANCING
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
-	P->SocDistCellIncThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for social distancing", 1000000000, P);
-	P->SocDistCellIncStopThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for end of social distancing", 0, P);
-	P->SocDistDuration = Params::get_double(params, pre_params, "Duration of social distancing", 7, P);
-	P->SocDistDuration2 = Params::get_double(params, pre_params, "Duration of social distancing after change", 7, P);
-	if (P->DoPlaces != 0)
-	{
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		if (Params::param_found(params, pre_params, "Relative place contact rate given social distancing by place type after change"))
-		{
-			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P->SocDistPlaceEffect2, P->PlaceTypeNum, P);
-		}
-		else {
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P->SocDistPlaceEffect2[i] = P->SocDistPlaceEffect[i];
-		}
-
-		if (Params::param_found(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change"))
-		{
-			Params::req_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change", P->EnhancedSocDistPlaceEffect2, P->PlaceTypeNum, P);
-		}
-		else
-		{
-			for (i = 0; i < NUM_PLACE_TYPES; i++) P->EnhancedSocDistPlaceEffect2[i] = P->EnhancedSocDistPlaceEffect[i];
-		}
-	}
-	if (P->DoHouseholds != 0)
-	{
-		P->SocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given social distancing", 1, P);
-		P->EnhancedSocDistHouseholdEffect = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing", 1, P);
-		P->SocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given social distancing after change", P->SocDistHouseholdEffect, P);
-		P->EnhancedSocDistHouseholdEffect2 = Params::get_double(params, pre_params, "Relative household contact rate given enhanced social distancing after change", P->EnhancedSocDistHouseholdEffect, P);
-		P->EnhancedSocDistClusterByHousehold = Params::get_int(params, pre_params, "Cluster compliance with enhanced social distancing by household", 0, P);
-	}
-	else
-	{
-		P->EnhancedSocDistClusterByHousehold = 0;
-	}
-	P->SocDistSpatialEffect = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing", 1, P);
-	P->SocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given social distancing after change", P->SocDistSpatialEffect, P);
-	P->SocDistRadius = Params::get_double(params, pre_params, "Minimum radius for social distancing", 0, P);
-	P->SocDistTimeStartBase = Params::get_double(params, pre_params, "Social distancing start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->SocDistChangeDelay = Params::get_double(params, pre_params, "Delay for change in effectiveness of social distancing", USHRT_MAX / P->TimeStepsPerDay, P);
-	if (Params::param_found(params, pre_params, "Proportion compliant with enhanced social distancing by age group"))
-	{
-		Params::req_double_vec(params, pre_params, "Proportion compliant with enhanced social distancing by age group", P->EnhancedSocDistProportionCompliant, NUM_AGE_GROUPS, P);
-
-	}
-	else
-	{
-		t = Params::get_double(params, pre_params, "Proportion compliant with enhanced social distancing", 0, P);
-		for (i = 0; i < NUM_AGE_GROUPS; i++)
-			P->EnhancedSocDistProportionCompliant[i] = t;
-	}
-
-	P->EnhancedSocDistSpatialEffect = Params::get_double(params, pre_params, "Relative spatial contact rate given enhanced social distancing", 1, P);
-	P->EnhancedSocDistSpatialEffect2 = Params::get_double(params, pre_params, "Relative spatial contact rate given enhanced social distancing after change", P->EnhancedSocDistSpatialEffect, P);
-
-	P->DoSocDistOnceOnly = Params::get_int(params, pre_params, "Social distancing only once", 0, P);
-	//if (P->DoSocDistOnceOnly) P->DoSocDistOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
-
-	P->AirportCloseEffectiveness = Params::get_double(params, pre_params, "Airport closure effectiveness", 0, P);
-	P->AirportCloseEffectiveness = 1.0 - P->AirportCloseEffectiveness;
-	P->AirportCloseTimeStartBase = Params::get_double(params, pre_params, "Airport closure start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->AirportCloseDuration = Params::get_double(params, pre_params, "Airport closure duration", USHRT_MAX / P->TimeStepsPerDay, P);
-
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** HOUSEHOLD QUARANTINE
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
-	if (P->DoHouseholds != 0)
-	{
-		P->DoHQretrigger = Params::get_int(params, pre_params, "Retrigger household quarantine with each new case in quarantine window", 0, P);
-		P->HQuarantineTimeStartBase = Params::get_double(params, pre_params, "Household quarantine start time", USHRT_MAX / P->TimeStepsPerDay, P);
-		P->HQuarantineDelay = Params::get_double(params, pre_params, "Delay to start household quarantine", 0, P);
-		P->HQuarantineHouseDuration = Params::get_double(params, pre_params, "Length of time households are quarantined", 0, P);
-		P->HQuarantinePolicyDuration = Params::get_double(params, pre_params, "Duration of household quarantine policy", USHRT_MAX / P->TimeStepsPerDay, P);
-		P->HQuarantineHouseEffect = Params::get_double(params, pre_params, "Relative household contact rate after quarantine", 1, P);
-		if (P->DoPlaces != 0)
-		{
-			Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		}
-		P->HQuarantineSpatialEffect = Params::get_double(params, pre_params, "Residual spatial contacts after household quarantine", 1, P);
-		P->HQuarantinePropHouseCompliant = Params::get_double(params, pre_params, "Household level compliance with quarantine", 1, P);
-		P->HQuarantinePropIndivCompliant = Params::get_double(params, pre_params, "Individual level compliance with quarantine", 1, P);
-	}
-	else
-	{
-		P->HQuarantineTimeStartBase = 1e10;
-	}
-	P->CaseIsolationTimeStartBase = Params::get_double(params, pre_params, "Case isolation start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->CaseIsolationProp = Params::get_double(params, pre_params, "Proportion of detected cases isolated", 0, P);
-	P->CaseIsolationDelay = Params::get_double(params, pre_params, "Delay to start case isolation", 0, P);
-	P->CaseIsolationDuration = Params::get_double(params, pre_params, "Duration of case isolation", 0, P);
-	P->CaseIsolationPolicyDuration = Params::get_double(params, pre_params, "Duration of case isolation policy", 1e10, P);
-	P->CaseIsolationEffectiveness = Params::get_double(params, pre_params, "Residual contacts after case isolation", 1, P);
-	if (P->DoHouseholds != 0)
-	{
-		P->CaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after case isolation", P->CaseIsolationEffectiveness, P);
-	}
-
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+		///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
