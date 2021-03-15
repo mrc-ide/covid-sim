@@ -47,8 +47,6 @@ struct Param
 	unsigned int BinFileLen;
 	int DoBin, DoSaveSnapshot, DoLoadSnapshot, FitIter;
 	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
-	int clP_copies[100], clP_type[100][MAX_CLP_COPIES];
-	void *clP_ptr[100][MAX_CLP_COPIES];
 	int NumCells; /**< Number of cells  */
 	int NumMicrocells; /**< Number of microcells  */
 	int NMCL; /**< Number of microcells wide/high a cell is; i.e. NumMicrocells = NumCells * NMCL * NMCL */

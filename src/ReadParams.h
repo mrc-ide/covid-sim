@@ -180,13 +180,28 @@ namespace Params
  *  \param default_value  Value to return if the parameter is missing
  *  \param err_on_missing If true, and the parameter is not found, then stop.
  *  \param P              The Param struct, to loop up clP if necessary.
+ *  \param force_fail     If true, force to return the default_value
  *  \return               The integer result
  */
 
   int get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
               std::string param_name, int default_value,
-              bool err_on_missing, Param* P);
+              bool err_on_missing, Param* P, bool force_fail);
 
+
+
+  /** \brief                Wrapper for get_int, with force_fail option
+   *  \param params         The preferred map to find the parameter in
+   *  \param fallback       A fallback if the parameter is not found in params
+   *  \param param_name     The name of the parameter to look up.
+   *  \param default_value  Value to return if the parameter is missing
+   *  \param err_on_missing If true, and the parameter is not found, then stop.
+   *  \param P              The Param struct, to loop up clP if necessary.
+   *  \param force_fail     If true, force to return the default_value
+   *  \return               The integer result
+   */
+
+  int get_int_ff(bool force_fail, ParamMap& fallback, ParamMap& params, std::string param_name, int default_value, Param* P);
 
 
 /** \brief                A wrapper for get_int, taking only two parameter maps
@@ -524,11 +539,13 @@ namespace Params
  */
   void alloc_params(Param* P);
 
-
+  void output_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void household_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);

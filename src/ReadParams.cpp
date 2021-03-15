@@ -222,11 +222,11 @@ double Params::req_double(ParamMap &fallback, ParamMap &params, std::string para
 
 /*****************************************************************************************/
 
-int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, bool err_on_missing, Param* P)
+int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, bool err_on_missing, Param* P, bool force_fail)
 {
 	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
 	
-	if (str_value.compare("NULL") != 0)
+	if (!force_fail && (str_value.compare("NULL") != 0))
 	{
 		std::string::size_type idx;
 		uint64_t lval = std::stoll(str_value, &idx);
@@ -254,17 +254,23 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::s
 
 int Params::get_int(ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, Param* P)
 {
-	return Params::get_int(fallback, fallback, params, param_name, default_value, false, P);
+	return Params::get_int(fallback, fallback, params, param_name, default_value, false, P, false);
 }
 
 int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, Param* P)
 {
-	return Params::get_int(base, fallback, params, param_name, default_value, false, P);
+	return Params::get_int(base, fallback, params, param_name, default_value, false, P, false);
 }
+
+int Params::get_int_ff(bool force_fail, ParamMap& fallback, ParamMap& params, std::string param_name, int default_value, Param* P)
+{
+	return Params::get_int(fallback, fallback, params, param_name, default_value, false, P, force_fail);
+}
+
 
 int Params::req_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, Param* P)
 {
-	return Params::get_int(base, fallback, params, param_name, 0, true, P);
+	return Params::get_int(base, fallback, params, param_name, 0, true, P, false);
 }
 
 int Params::req_int(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P)
@@ -527,6 +533,51 @@ void Params::alloc_params(Param* P)
 }
 /**************************************************************************************************************/
 
+void Params::output_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->OutputAge = Params::get_int(params, pre_params, "OutputAge", 1, P);
+	P->OutputSeverity = Params::get_int(params, pre_params, "OutputSeverity", 1, P);
+	P->OutputSeverityAdminUnit = Params::get_int(params, pre_params, "OutputSeverityAdminUnit", 1, P);
+	P->OutputSeverityAge = Params::get_int(params, pre_params, "OutputSeverityAge", 1, P);
+	P->OutputAdUnitAge = Params::get_int(params, pre_params, "OutputAdUnitAge", 0, P);
+	P->OutputR0 = Params::get_int(params, pre_params, "OutputR0", 0, P);
+	P->OutputControls = Params::get_int(params, pre_params, "OutputControls", 0, P);
+	P->OutputCountry = Params::get_int(params, pre_params, "OutputCountry", 0, P);
+	P->OutputAdUnitVar = Params::get_int(params, pre_params, "OutputAdUnitVar", 0, P);
+	P->OutputHousehold = Params::get_int(params, pre_params, "OutputHousehold", 0, P);
+	P->OutputInfType = Params::get_int(params, pre_params, "OutputInfType", 0, P);
+	P->OutputNonSeverity = Params::get_int(params, pre_params, "OutputNonSeverity", 0, P);
+	P->OutputNonSummaryResults = Params::get_int(params, pre_params, "OutputNonSummaryResults", 0, P);
+}
+
+void Params::household_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	if (P->DoHouseholds == 0)
+	{
+		P->HouseholdTrans = 0.0;
+		P->HouseholdTransPow = 1.0;
+		P->HouseholdSizeDistrib[0][0] = 1.0;
+		for (int i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+		P->HouseholdSizeDistrib[0][i] = 0;
+		return;
+	}
+
+	Params::req_double_vec(pre_params, adm_params, "Household size distribution", P->HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, P);
+	P->HouseholdTrans = Params::req_double(params, pre_params, "Household attack rate", P);
+	P->HouseholdTransPow = Params::req_double(params, pre_params, "Household transmission denominator power", P);
+	P->DoCorrectAgeDist = Params::get_int(pre_params, adm_params, "Correct age distribution after household allocation to exactly match specified demography", 0, P);
+	if (P->FitIter != 0)
+	{
+		return;
+	}
+	for (int i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+		P->HouseholdSizeDistrib[0][i] = P->HouseholdSizeDistrib[0][i] + P->HouseholdSizeDistrib[0][i - 1];
+	P->HouseholdDenomLookup[0] = 1.0;
+	for (int i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
+		P->HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P->HouseholdTransPow);
+}
+
+
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** AIRPORT PARAMETERS
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -593,6 +644,7 @@ void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 		P->InvLocalJourneyDurationDistrib[i] = j2;
 	}
 }
+
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** SEVERITY PARAMETERS
@@ -686,7 +738,7 @@ void Params::severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap 
 	Params::get_double_vec(params, pre_params, "CFR_Critical_ByAge", P->CFR_Critical_ByAge, NUM_AGE_GROUPS, 0.5, NUM_AGE_GROUPS, P);
 	Params::get_double_vec(params, pre_params, "CFR_ILI_ByAge", P->CFR_ILI_ByAge, NUM_AGE_GROUPS, 0, NUM_AGE_GROUPS, P);
 
-		//Add param to allow severity to be uniformly scaled up or down.
+	//Add param to allow severity to be uniformly scaled up or down.
 	for (int i = 0; i < NUM_AGE_GROUPS; i++)
 	{
 		P->Prop_SARI_ByAge[i] *= P->ScaleSymptProportions;
@@ -695,10 +747,10 @@ void Params::severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap 
 	}
 }
 
+
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** VACCINATION PARAMETERS
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
 
 void Params::vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
 {
@@ -744,16 +796,15 @@ void Params::vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamM
 		P->VaccPriorityGroupAge[0] = 1; P->VaccPriorityGroupAge[1] = 0;
 	}
 
-	if (P->DoAdUnits != 0)
+	if (P->DoAdUnits == 0)
 	{
-		P->VaccByAdminUnit = Params::get_int(params, pre_params, "Vaccinate administrative units rather than rings", 0, P);
-		P->VaccAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for vaccination", 1, P);
-		if ((P->VaccAdminUnitDivisor == 0) || (P->VaccByAdminUnit == 0)) P->VaccAdminUnitDivisor = 1;
+		P->VaccAdminUnitDivisor = 1;
+		P->VaccByAdminUnit = 0;
+		return;
 	}
-	else
-	{
-		P->VaccAdminUnitDivisor = 1; P->VaccByAdminUnit = 0;
-	}
+	P->VaccByAdminUnit = Params::get_int(params, pre_params, "Vaccinate administrative units rather than rings", 0, P);
+	P->VaccAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for vaccination", 1, P);
+	if ((P->VaccAdminUnitDivisor == 0) || (P->VaccByAdminUnit == 0)) P->VaccAdminUnitDivisor = 1;
 }
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -800,16 +851,40 @@ void Params::treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap
 	P->TreatNewCoursesRate = Params::get_double(params, pre_params, "Rate of additional treatment production (courses per day)", 0, P);
 	P->TreatMaxCoursesPerCase = Params::get_int(params, pre_params, "Maximum number of people targeted with radial prophylaxis per case", INT32_MAX, P);
 
-	if (P->DoAdUnits != 0)
+	if (P->DoAdUnits == 0)
 	{
-		P->TreatByAdminUnit = Params::get_int(params, pre_params, "Treat administrative units rather than rings", 0, P);
-		P->TreatAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for treatment", 1, P);
-		if ((P->TreatAdminUnitDivisor == 0) || (P->TreatByAdminUnit == 0)) { P->TreatByAdminUnit = 0; P->TreatAdminUnitDivisor = 1; }
+		P->TreatAdminUnitDivisor = 1;
+		P->TreatByAdminUnit = 0; return;
 	}
-	else
+	P->TreatByAdminUnit = Params::get_int(params, pre_params, "Treat administrative units rather than rings", 0, P);
+	P->TreatAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for treatment", 1, P);
+	if ((P->TreatAdminUnitDivisor == 0) || (P->TreatByAdminUnit == 0))
 	{
-		P->TreatAdminUnitDivisor = 1; P->TreatByAdminUnit = 0;
+		P->TreatByAdminUnit = 0;
+		P->TreatAdminUnitDivisor = 1;
 	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** SEASONALITY
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	Params::get_double_vec(params, pre_params, "Daily seasonality coefficients", P->Seasonality, DAYS_PER_YEAR, 1, DAYS_PER_YEAR, P);
+	if (!Params::param_found(params, pre_params, "Daily seasonality coefficients"))
+	{
+		P->DoSeasonality = 0;
+		return;
+	}
+	P->DoSeasonality = 1;
+	double s = 0;
+	for (int i = 0; i < DAYS_PER_YEAR; i++)
+		s += P->Seasonality[i];
+	s += 1e-20;
+	s /= DAYS_PER_YEAR;
+	for (int i = 0; i < DAYS_PER_YEAR; i++)
+		P->Seasonality[i] /= s;
 }
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -1000,7 +1075,8 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	}
 	else
 	{
-		P->PlaceCloseAdminUnitDivisor = 1; P->PlaceCloseByAdminUnit = 0;
+		P->PlaceCloseAdminUnitDivisor = 1;
+		P->PlaceCloseByAdminUnit = 0;
 	}
 }
 
@@ -1143,7 +1219,6 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 			AdunitListNames[i] = AdunitListNamesBuf + INT64_C(128) * i;
 			AdunitListNames[i][0] = 0;
 		}
-		for (i = 0; i < 100; i++) P->clP_copies[i] = 0;
 		P->LongitudeCutLine = Params::get_double(params, adm_params, "Longitude cut line", -360.0, P);
 		P->ModelTimeStep = Params::req_double(params, pre_params, "Update timestep", P);
 		P->OutputTimeStep = Params::req_double(params, pre_params, "Sampling timestep", P);
@@ -1193,42 +1268,12 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 			ERR_CRITICAL_FMT("[Kernel higher resolution factor] needs to be in range [1, P->NKR = %d) - not %d", P->KernelLookup.size_, P->KernelLookup.expansion_factor_);
 		}
 	}
-	P->OutputAge = Params::get_int(params, pre_params, "OutputAge", 1, P);
-	P->OutputSeverity = Params::get_int(params, pre_params, "OutputSeverity", 1, P);
-	P->OutputSeverityAdminUnit = Params::get_int(params, pre_params, "OutputSeverityAdminUnit", 1, P);
-	P->OutputSeverityAge = Params::get_int(params, pre_params, "OutputSeverityAge", 1, P);
-	P->OutputAdUnitAge = Params::get_int(params, pre_params, "OutputAdUnitAge", 0, P);
-	P->OutputR0 = Params::get_int(params, pre_params, "OutputR0", 0, P);
-	P->OutputControls = Params::get_int(params, pre_params, "OutputControls", 0, P);
-	P->OutputCountry = Params::get_int(params, pre_params, "OutputCountry", 0, P);
-	P->OutputAdUnitVar = Params::get_int(params, pre_params, "OutputAdUnitVar", 0, P);
-	P->OutputHousehold = Params::get_int(params, pre_params, "OutputHousehold", 0, P);
-	P->OutputInfType = Params::get_int(params, pre_params, "OutputInfType", 0, P);
-	P->OutputNonSeverity = Params::get_int(params, pre_params, "OutputNonSeverity", 0, P);
-	P->OutputNonSummaryResults = Params::get_int(params, pre_params, "OutputNonSummaryResults", 0, P);
 
-	if (P->DoHouseholds != 0)
-	{
-		Params::req_double_vec(pre_params, adm_params, "Household size distribution", P->HouseholdSizeDistrib[0], MAX_HOUSEHOLD_SIZE, P);
-		P->HouseholdTrans = Params::req_double(params, pre_params, "Household attack rate", P);
-		P->HouseholdTransPow = Params::req_double(params, pre_params, "Household transmission denominator power", P);
-		P->DoCorrectAgeDist = Params::get_int(pre_params, adm_params, "Correct age distribution after household allocation to exactly match specified demography", 0, P);
-	}
-	else
-	{
-		P->HouseholdTrans = 0.0;
-		P->HouseholdTransPow = 1.0;
-		P->HouseholdSizeDistrib[0][0] = 1.0;
-		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-			P->HouseholdSizeDistrib[0][i] = 0;
-	}
+	Params::output_params(adm_params, pre_params, params, P);
+	Params::household_params(adm_params, pre_params, params, P);
+		
 	if (P->FitIter == 0)
 	{
-		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-			P->HouseholdSizeDistrib[0][i] = P->HouseholdSizeDistrib[0][i] + P->HouseholdSizeDistrib[0][i - 1];
-		P->HouseholdDenomLookup[0] = 1.0;
-		for (i = 1; i < MAX_HOUSEHOLD_SIZE; i++)
-			P->HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P->HouseholdTransPow);
 		P->DoAdUnits = Params::get_int(pre_params, adm_params, "Include administrative units within countries", 1, P);
 		P->CountryDivisor = Params::get_int(pre_params, adm_params, "Divisor for countries", 1, P);
 		if (P->DoAdUnits != 0)
@@ -1256,7 +1301,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 				P->NumAdunits = 0;
 				for (i = 0; i < na; i++)
 					for (j = 0; j < nc; j++)
-						if ((AdunitNames[3 * i + 1][0]) && (!strcmp(AdunitNames[3 * i + 1], CountryNames[j])) && (atoi(AdunitNames[3 * i]) != 0))
+						if ((AdunitNames[3 * i + 1][0]) && (strcmp(AdunitNames[3 * i + 1], CountryNames[j]) == 0) && (atoi(AdunitNames[3 * i]) != 0))
 						{
 							AdUnits[P->NumAdunits].id = atoi(AdunitNames[3 * i]);
 							P->AdunitLevel1Lookup[(AdUnits[P->NumAdunits].id % P->AdunitLevel1Mask) / P->AdunitLevel1Divisor] = P->NumAdunits;
@@ -1576,22 +1621,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		for (i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	}
 
-	Params::get_double_vec(params, pre_params, "Daily seasonality coefficients", P->Seasonality, DAYS_PER_YEAR, 1, DAYS_PER_YEAR, P);
-	if (!Params::param_found(params, pre_params, "Daily seasonality coefficients"))
-	{
-		P->DoSeasonality = 0;
-	}
-	else
-	{
-		P->DoSeasonality = 1;
-		s = 0;
-		for (i = 0; i < DAYS_PER_YEAR; i++)
-			s += P->Seasonality[i];
-		s += 1e-20;
-		s /= DAYS_PER_YEAR;
-		for (i = 0; i < DAYS_PER_YEAR; i++)
-			P->Seasonality[i] /= s;
-	}
+	Params::seasonality_params(adm_params, pre_params, params, P);
+	
 	P->NumSeedLocations = Params::get_int(pre_params, adm_params, "Number of seed locations", 1, P);
 	if (P->NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
 	{
@@ -1928,23 +1959,13 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 
 	P->VaryEfficaciesOverTime = Params::get_int(params, pre_params, "Vary efficacies over time", 0, P);
 	//// **** number of change times
-	if (P->VaryEfficaciesOverTime == 0)
-	{
-		P->Num_SD_ChangeTimes = 1;
-		P->Num_CI_ChangeTimes = 1;
-		P->Num_HQ_ChangeTimes = 1;
-		P->Num_PC_ChangeTimes = 1;
-		P->Num_DCT_ChangeTimes = 1;
-	}
-	else
-	{
-		P->Num_SD_ChangeTimes = Params::get_int(params, pre_params, "Number of change times for levels of social distancing", 1, P);
-		P->Num_CI_ChangeTimes = Params::get_int(params, pre_params, "Number of change times for levels of case isolation", 1, P);
-		P->Num_HQ_ChangeTimes = Params::get_int(params, pre_params, "Number of change times for levels of household quarantine", 1, P);
-		P->Num_PC_ChangeTimes = Params::get_int(params, pre_params, "Number of change times for levels of place closure", 1, P);
-		P->Num_DCT_ChangeTimes = Params::get_int(params, pre_params, "Number of change times for levels of digital contact tracing", 1, P);
-	}
-
+	bool v = (P->VaryEfficaciesOverTime == 0);
+	P->Num_SD_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of social distancing", 1, P);
+	P->Num_CI_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of case isolation", 1, P);
+	P->Num_HQ_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of household quarantine", 1, P);
+	P->Num_PC_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of place closure", 1, P);
+	P->Num_DCT_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of digital contact tracing", 1, P);
+	
 	//// **** change times:
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of efficacy for social distancing.
 	P->SD_ChangeTimes[0] = 0;
@@ -2009,7 +2030,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 
 	//// **** "efficacies": by default, initialize to values read in previously.
 	///// spatial contact rates rates over time (and place too for CI and DCT)
-	bool v = (P->VaryEfficaciesOverTime == 0);
+	v = (P->VaryEfficaciesOverTime == 0);
 	Params::get_double_vec_ff(v, params, pre_params, "Relative spatial contact rates over time given social distancing", P->SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistSpatialEffect, P);
 	Params::get_double_vec_ff(v, params, pre_params, "Relative spatial contact rates over time given enhanced social distancing", P->Enhanced_SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistSpatialEffect, P);
 	Params::get_double_vec_ff(v, params, pre_params, "Residual contacts after case isolation over time", P->CI_SpatialAndPlaceEffects_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationEffectiveness, P);
