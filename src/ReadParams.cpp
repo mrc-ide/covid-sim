@@ -99,42 +99,57 @@ std::string Params::clp_overwrite(std::string value, Param* P) {
 
 /*****************************************************************************/
 
-std::string Params::lookup_param(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, Param* P)
+std::string Params::lookup_param(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, Param* P, bool search_clp)
 {
-
 	ParamIter iter = params.find(param_name);
 	if (iter != params.end())
 	{
-		return Params::clp_overwrite(iter->second, P);
+		return search_clp ? Params::clp_overwrite(iter->second, P) : iter->second;
 	}
-	else {
-		iter = fallback.find(param_name);
-		if (iter != fallback.end()) {
-			return Params::clp_overwrite(iter->second, P);
-		}
-		else if (base == fallback)
-		{
-			return "NULL";
-		}
-		else 
-		{
-			iter = base.find(param_name);
-			if (iter != base.end())
-			{
-				return Params::clp_overwrite(iter->second, P);
-			}
-			else
-			{
-				return "NULL";
-			}
-		}
+
+	iter = fallback.find(param_name);
+	if (iter != fallback.end()) {
+		return search_clp ? Params::clp_overwrite(iter->second, P) : iter->second;
 	}
+	if (base == fallback)
+	{
+		return "NULL";
+	}
+
+	iter = base.find(param_name);
+	if (iter != base.end())
+	{
+		return search_clp ? Params::clp_overwrite(iter->second, P) : iter->second;
+	}
+	return "NULL";
 }
 
-std::string Params::lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P)
+
+std::string Params::lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P, bool search_clp)
 {
-  return Params::lookup_param(fallback, fallback, params, param_name, P);
+  return Params::lookup_param(fallback, fallback, params, param_name, P, search_clp);
 }
+
+std::string Params::lookup_param_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P)
+{
+	return Params::lookup_param(base, fallback, params, param_name, P, true);
+}
+
+std::string Params::lookup_param_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P)
+{
+	return Params::lookup_param(fallback, fallback, params, param_name, P, true);
+}
+
+std::string Params::lookup_param_non_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P)
+{
+	return Params::lookup_param(base, fallback, params, param_name, P, false);
+}
+
+std::string Params::lookup_param_non_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P)
+{
+	return Params::lookup_param(fallback, fallback, params, param_name, P, false);
+}
+
 
 /*****************************************************************************/
 
@@ -146,30 +161,20 @@ bool Params::param_found(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 	{
 		return true;
 	}
-	else
+
+	iter = fallback.find(param_name);
+	if (iter != fallback.end())
 	{
-		iter = fallback.find(param_name);
-		if (iter != fallback.end())
-		{
-			return true;
-		}
-		else if (base == fallback)
-		{
-			return false;
-		}
-		else
-		{
-			iter = base.find(param_name);
-			if (iter != base.end())
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
+		return true;
 	}
+
+	if (base == fallback)
+	{
+		return false;
+	}
+
+	iter = base.find(param_name);
+	return (iter != base.end());
 }
 
 bool Params::param_found(ParamMap &fallback, ParamMap &params, std::string param_name)
@@ -181,7 +186,7 @@ bool Params::param_found(ParamMap &fallback, ParamMap &params, std::string param
 
 double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double default_value, bool err_on_missing, Param* P)
 {
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_clp(base, fallback, params, param_name, P);
 
 	if (str_value.compare("NULL") != 0)
 	{
@@ -191,9 +196,8 @@ double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params, 
 	if (err_on_missing)
 	{
 		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-	} else {
-		return default_value;
-	}
+	} 
+	return default_value;
 }
 
 double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double default_value, Param* P)
@@ -221,7 +225,7 @@ double Params::req_double(ParamMap &fallback, ParamMap &params, std::string para
 
 int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, bool err_on_missing, Param* P, bool force_fail)
 {
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_clp(base, fallback, params, param_name, P);
 	
 	if (!force_fail && (str_value.compare("NULL") != 0))
 	{
@@ -243,10 +247,7 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::s
 	{
 		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
-	else
-	{
-		return default_value;
-	}
+	return default_value;
 }
 
 int Params::get_int(ParamMap &fallback, ParamMap &params, std::string param_name, int default_value, Param* P)
@@ -264,7 +265,6 @@ int Params::get_int_ff(bool force_fail, ParamMap& fallback, ParamMap& params, st
 	return Params::get_int(fallback, fallback, params, param_name, default_value, false, P, force_fail);
 }
 
-
 int Params::req_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, Param* P)
 {
 	return Params::get_int(base, fallback, params, param_name, 0, true, P, false);
@@ -280,7 +280,7 @@ int Params::req_int(ParamMap &fallback, ParamMap &params, std::string param_name
 void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double* array, int expected, double default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
 
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
@@ -336,7 +336,7 @@ void Params::get_double_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &pa
 void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
 
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
@@ -409,7 +409,7 @@ void Params::get_int_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &param
 int Params::req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, char** array, int expected, Param* P)
 {
 
-	std::string str_value = Params::lookup_param(fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_non_clp(fallback, params, param_name, P);
 	if (str_value.compare("NULL") != 0)
 	{
 		std::stringstream str_stream(str_value);
@@ -441,7 +441,7 @@ int Params::req_string_vec(ParamMap &fallback, ParamMap &params, std::string par
 
 void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double** array, int sizex, int sizey, double default_value, bool err_on_missing, Param* P)
 {
-	std::string str_value = Params::lookup_param(base, fallback, params, param_name, P);
+	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if (str_value.compare("NULL") != 0)
 	{

@@ -52,13 +52,15 @@ namespace Params
  *  \param fallback    A fallback if the parameter is not found in params
  *  \param base        A final map, should the parameter not be found in fallback.
  *  \param param_name  The name of the parameter to look up.
+ *  \param search_clp  Allow searching for a command-line parameter if result starts with #
  *  \param P           The params (for looking up /CLP)
  *  \return            A string (possibly including '\n' for that parameter. If the result starts
- *                     with '#', the matching command-line parameter (/CP01:) will be returned.
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned if
+ *                     search_clp is true
  */
 
   std::string lookup_param(ParamMap &base, ParamMap &fallback, ParamMap &params,
-                           std::string param_name, Param* P);
+                           std::string param_name, Param* P, bool search_clp);
 
 
 
@@ -67,11 +69,69 @@ namespace Params
  *  \param fallback    A fallback if the parameter is not found in params
  *  \param param_name  The name of the parameter to look up.
  *  \param P           The params (for looking up /CLP)
+ *  \param search_clp  Allow searching for a command-line parameter if result starts with #* 
+ *  \return            A string (possibly including '\n' for that parameter. If the result starts
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned if
+ *                     search_clp is true.
+ */
+
+  std::string lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P, bool search_clp);
+
+
+
+/** \brief             Lookup a param, and if it starts with # lookup matching command-line parameter
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param base        A final map, should the parameter not be found in fallback.
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
  *  \return            A string (possibly including '\n' for that parameter. If the result starts
  *                     with '#', the matching command-line parameter (/CP01:) will be returned.
  */
 
-  std::string lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P);
+  std::string lookup_param_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Two param-map version. Lookup a param, and if it starts with # lookup matching command-line parameter
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter. If the result starts
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned.
+ */
+
+  std::string lookup_param_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Lookup a param, but do not search for command-line parameters, even if the
+ *                     value starts with #. (The # may refer to only the first part of a vector or matrix, so
+ *                     in this case, the inner loop will consider each element for CLP.)
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param base        A final map, should the parameter not be found in fallback.
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter.)
+ */
+
+  std::string lookup_param_non_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Two param version. Lookup a param, but do not search for command-line parameters, even if the
+ *                     value starts with #. (The # may refer to only the first part of a vector or matrix, so
+ *                     in this case, the inner loop will consider each element for CLP.)
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter.)
+ */
+
+  std::string lookup_param_non_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
 
 
 
