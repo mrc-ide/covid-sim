@@ -577,6 +577,76 @@ void Params::household_params(ParamMap adm_params, ParamMap pre_params, ParamMap
 		P->HouseholdDenomLookup[i] = 1 / pow(((double)(INT64_C(1) + i)), P->HouseholdTransPow);
 }
 
+void Params::waifw_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	//if (!GetInputParameter2(params, pre_params, "WAIFW matrix", "%lf", (void*)P->WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0))
+	if (!Params::param_found(params, pre_params, "WAIFW matrix"))
+	{
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			for (int j = 0; j < NUM_AGE_GROUPS; j++)
+				P->WAIFW_Matrix[i][j] = 1.0;
+	}
+	else
+	{
+		Params::get_double_matrix(params, pre_params, "WAIFW matrix", P->WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, P);
+
+		/* WAIFW matrix needs to be scaled to have max value of 1.
+		1st index of matrix specifies host being infected, second the infector.
+		Overall age variation in infectiousness/contact rates/susceptibility should be factored
+		out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
+		double t = 0;
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			for (int j = 0; j < NUM_AGE_GROUPS; j++)
+				if (P->WAIFW_Matrix[i][j] > t) t = P->WAIFW_Matrix[i][j];
+		if (t > 0)
+		{
+			for (int i = 0; i < NUM_AGE_GROUPS; i++)
+				for (int j = 0; j < NUM_AGE_GROUPS; j++)
+					P->WAIFW_Matrix[i][j] /= t;
+		}
+		else
+		{
+			for (int i = 0; i < NUM_AGE_GROUPS; i++)
+				for (int j = 0; j < NUM_AGE_GROUPS; j++)
+					P->WAIFW_Matrix[i][j] = 1.0;
+		}
+	}
+	if (!Params::param_found(params, pre_params, "WAIFW matrix spatial infections only"))
+	{
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			for (int j = 0; j < NUM_AGE_GROUPS; j++)
+				P->WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+
+		P->Got_WAIFW_Matrix_Spatial = 0;
+	}
+	else
+	{
+		Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P->WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, P);
+		P->Got_WAIFW_Matrix_Spatial = 1;
+		/* WAIFW matrix needs to be scaled to have max value of 1.
+		1st index of matrix specifies host being infected, second the infector.
+		Overall age variation in infectiousness/contact rates/susceptibility should be factored
+		out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
+
+		double Maximum = 0;
+		for (int i = 0; i < NUM_AGE_GROUPS; i++)
+			for (int j = 0; j < NUM_AGE_GROUPS; j++)
+				if (P->WAIFW_Matrix_SpatialOnly[i][j] > Maximum) Maximum = P->WAIFW_Matrix_SpatialOnly[i][j];
+		if (Maximum > 0)
+		{
+			for (int i = 0; i < NUM_AGE_GROUPS; i++)
+				for (int j = 0; j < NUM_AGE_GROUPS; j++)
+					P->WAIFW_Matrix_SpatialOnly[i][j] /= Maximum;
+		}
+		else
+		{
+			for (int i = 0; i < NUM_AGE_GROUPS; i++)
+				for (int j = 0; j < NUM_AGE_GROUPS; j++)
+					P->WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
+		}
+	}
+}
+
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** AIRPORT PARAMETERS
@@ -865,6 +935,126 @@ void Params::treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap
 	}
 }
 
+void Params::carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->CareHomeResidentHouseholdScaling = Params::get_double(pre_params, adm_params, "Scaling of household contacts for care home residents", 1.0, P);
+	P->CareHomeResidentSpatialScaling = Params::get_double(pre_params, adm_params, "Scaling of spatial contacts for care home residents", 1.0, P);
+	P->CareHomeResidentPlaceScaling = Params::get_double(pre_params, adm_params, "Scaling of between group (home) contacts for care home residents", 1.0, P);
+	P->CareHomeWorkerGroupScaling = Params::get_double(pre_params, adm_params, "Scaling of within group (home) contacts for care home workers", 1.0, P);
+	P->CareHomeRelProbHosp = Params::get_double(pre_params, adm_params, "Relative probability that care home residents are hospitalised", 1.0, P);
+	if (P->FitIter !=0)
+	{
+	  return;
+	}
+
+	if (P->PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+	P->CareHomePlaceType = Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, P);
+	P->CareHomeAllowInitialInfections = Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, P);
+	P->CareHomeResidentMinimumAge = Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, P);
+}
+
+void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	if (P->DoPlaces != 0)
+	{
+		Params::carehome_params(adm_params, pre_params, params, P);
+		Params::req_double_vec(params, pre_params, "Proportion of between group place links", P->PlaceTypePropBetweenGroupLinks, P->PlaceTypeNum, P);
+		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P->PlaceTypeTrans, P->PlaceTypeNum, P);
+
+		if (P->FitIter != 0)
+		{
+			return;
+		}
+		Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P->PlaceTypeAgeMin, P->PlaceTypeNum, P);
+		Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P->PlaceTypeAgeMax, P->PlaceTypeNum, P);
+		Params::req_double_vec(pre_params, adm_params, "Proportion of age group 1 in place types", P->PlaceTypePropAgeGroup, P->PlaceTypeNum, P);
+
+		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 2 in place types"))
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			{
+				P->PlaceTypePropAgeGroup2[i] = 0;
+				P->PlaceTypeAgeMin2[i] = 0;
+				P->PlaceTypeAgeMax2[i] = 1000;
+			}
+		}
+		else
+		{
+			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 2 in place types", P->PlaceTypePropAgeGroup2, P->PlaceTypeNum, P);
+			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P->PlaceTypeAgeMin2, P->PlaceTypeNum, P);
+			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 2 in place types", P->PlaceTypeAgeMax2, P->PlaceTypeNum, P);
+		}
+		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 3 in place types"))
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			{
+				P->PlaceTypePropAgeGroup3[i] = 0;
+				P->PlaceTypeAgeMin3[i] = 0;
+				P->PlaceTypeAgeMax3[i] = 1000;
+			}
+		}
+		else
+		{
+			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 3 in place types", P->PlaceTypePropAgeGroup3, P->PlaceTypeNum, P);
+			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P->PlaceTypeAgeMin3, P->PlaceTypeNum, P);
+			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 3 in place types", P->PlaceTypeAgeMax3, P->PlaceTypeNum, P);
+		}
+		if (!Params::param_found(pre_params, adm_params, "Kernel shape params for place types"))
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			{
+				P->PlaceTypeKernelShape[i] = P->MoveKernel.shape_;
+				P->PlaceTypeKernelScale[i] = P->MoveKernel.scale_;
+			}
+		}
+		else
+		{
+			Params::req_double_vec(pre_params, adm_params, "Kernel shape params for place types", P->PlaceTypeKernelShape, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel scale params for place types", P->PlaceTypeKernelScale, P->PlaceTypeNum, P);
+		}
+		if (!Params::param_found(pre_params, adm_params, "Kernel 3rd param for place types"))
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			{
+				P->PlaceTypeKernelP3[i] = P->MoveKernel.p3_;
+				P->PlaceTypeKernelP4[i] = P->MoveKernel.p4_;
+			}
+		}
+		else
+		{
+			Params::req_double_vec(pre_params, adm_params, "Kernel 3rd param for place types", P->PlaceTypeKernelP3, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel 4th param for place types", P->PlaceTypeKernelP4, P->PlaceTypeNum, P);
+		}
+		Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		if (P->DoAdUnits != 0)
+		{
+			Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		}
+
+		Params::airport_params(adm_params, pre_params, params, P);
+
+		Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->PlaceTypeNum, P);
+		Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->PlaceTypeNum, P);
+		Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+
+		//added to enable lognormal distribution - ggilani 09/02/17
+		Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->PlaceTypeNum, 1e20, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->PlaceTypeNum, 1.0, NUM_PLACE_TYPES, P);
+		Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->PlaceTypeNum, P->MoveKernel.type_, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P->PlaceExclusivityMatrix, P->PlaceTypeNum * P->PlaceTypeNum, 0, P->PlaceTypeNum * P->PlaceTypeNum, P);
+		if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
+		{
+			for (int i = 0; i < NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
+				P->PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1; // this line sets the diagonal to 1 (identity matrix)
+		}
+	}
+	/* Note P->PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
+
+}
+
+
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** SEASONALITY
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -885,6 +1075,114 @@ void Params::seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamM
 	s /= DAYS_PER_YEAR;
 	for (int i = 0; i < DAYS_PER_YEAR; i++)
 		P->Seasonality[i] /= s;
+}
+
+void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames)
+{
+	P->NumSeedLocations = Params::get_int(pre_params, adm_params, "Number of seed locations", 1, P);
+	if (P->NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
+	{
+		Files::xfprintf_stderr("Too many seed locations\n");
+		P->NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
+	}
+	Params::req_int_vec(pre_params, adm_params, "Initial number of infecteds", P->NumInitialInfections, P->NumSeedLocations, P);
+	Params::get_double_matrix(pre_params, adm_params, "Location of initial infecteds", P->LocationInitialInfection, P->NumSeedLocations, 2, 0, P);
+	P->MinPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Minimum population in microcell of initial infection", 0, P);
+	P->MaxPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum population in microcell of initial infection", 10000000, P);
+	P->MaxAgeForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum age of initial infections", 1000, P);
+	P->DoRandomInitialInfectionLoc = Params::get_int(pre_params, adm_params, "Randomise initial infection location", 1, P);
+	P->DoAllInitialInfectioninSameLoc = Params::get_int(pre_params, adm_params, "All initial infections located in same microcell", 0, P);
+
+	if (Params::param_found(pre_params, adm_params, "Day of year of start of seeding"))
+	{
+		P->InitialInfectionCalTime = Params::req_double(pre_params, adm_params, "Day of year of start of seeding", P);
+		if (Params::param_found(params, pre_params, "Scaling of infection seeding"))
+		{
+			P->SeedingScaling = Params::req_double(params, pre_params, "Scaling of infection seeding", P);
+			P->DoNoCalibration = 1;
+		}
+		else
+		{
+			P->SeedingScaling = 1.0;
+			P->DoNoCalibration = 0;
+		}
+	}
+	else
+	{
+		P->SeedingScaling = 1.0;
+		P->DoNoCalibration = 0;
+		P->InitialInfectionCalTime = -1;
+	}
+	if (P->FitIter == 0)
+	{
+		if (P->DoAdUnits != 0)
+		{
+			if (!Params::param_found(pre_params, adm_params, "Administrative unit to seed initial infection into"))
+			{
+				Params::req_string_vec(pre_params, adm_params, "Administrative unit to seed initial infection into", AdunitListNames, P->NumSeedLocations, P);
+				for (int i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnit[i] = 0;
+			}
+			else
+				for (int i = 0; i < P->NumSeedLocations; i++)
+				{
+					int f = 0;
+					int k = 0;
+					if (P->NumAdunits > 0)
+					{
+						int j = 0;
+						for (j = 0; (j < P->NumAdunits) && (!f); j++) f = (strcmp(AdUnits[j].ad_name, AdunitListNames[i]) == 0);
+						if (f) k = AdUnits[j - 1].id;
+					}
+					if (!f) k = atoi(AdunitListNames[i]);
+					P->InitialInfectionsAdminUnit[i] = k;
+					P->InitialInfectionsAdminUnitId[i] = P->AdunitLevel1Lookup[(k % P->AdunitLevel1Mask) / P->AdunitLevel1Divisor];
+				}
+			Params::get_double_vec(pre_params, adm_params, "Administrative unit seeding weights", P->InitialInfectionsAdminUnitWeight, P->NumSeedLocations, 1.0, P->NumSeedLocations, P);
+			double s = 0;
+			for (int i = 0; i < P->NumSeedLocations; i++) s += P->InitialInfectionsAdminUnitWeight[i];
+			for (int i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnitWeight[i] /= s;
+		}
+		else
+		{
+			for (int i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnit[i] = 0;
+		}
+	}
+	P->InfectionImportRate1 = Params::get_double(params, pre_params, "Initial rate of importation of infections", 0, P);
+	P->InfectionImportRate2 = Params::get_double(params, pre_params, "Changed rate of importation of infections", 0, P);
+	P->InfectionImportChangeTime = Params::get_double(params, pre_params, "Time when infection rate changes", 1e10, P);
+	P->DoImportsViaAirports = Params::get_int(params, pre_params, "Imports via air travel", 0, P);
+	P->DurImportTimeProfile = Params::get_int(params, pre_params, "Length of importation time profile provided", 0, P);
+	if (P->DurImportTimeProfile > 0)
+	{
+		if (P->DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
+		Params::req_double_vec(params, pre_params, "Daily importation time profile", P->ImportInfectionTimeProfile, P->DurImportTimeProfile, P);
+	}
+}
+
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+///// **** MOVEMENT RESTRICTION PARAMETERS
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->MoveRestrCellIncThresh = Params::get_int(params, pre_params, "Movement restrictions trigger incidence per cell", INT32_MAX, P);
+	P->MoveDelayMean = Params::get_double(params, pre_params, "Delay to start movement restrictions", 0, P);
+	P->MoveRestrDuration = Params::get_double(params, pre_params, "Duration of movement restrictions", 7, P);
+	P->MoveRestrEffect = Params::get_double(params, pre_params, "Residual movements after restrictions", 0, P);
+P->MoveRestrRadius = Params::get_double(params, pre_params, "Minimum radius of movement restrictions", 0, P);
+	P->MoveRestrTimeStartBase = Params::get_double(params, pre_params, "Movement restrictions start time", USHRT_MAX / P->TimeStepsPerDay, P);
+	P->DoBlanketMoveRestr = Params::get_int(params, pre_params, "Impose blanket movement restrictions", 0, P);
+	P->DoMoveRestrOnceOnly = Params::get_int(params, pre_params, "Movement restrictions only once", 0, P);
+	//if (P->DoMoveRestrOnceOnly) P->DoMoveRestrOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
+	if (P->DoAdUnits != 0)
+	{
+		P->MoveRestrByAdminUnit = Params::get_int(params, pre_params, "Movement restrictions in administrative units rather than rings", 0, P);
+		P->MoveRestrAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for movement restrictions", 1, P);
+		if ((P->MoveRestrAdminUnitDivisor == 0) || (P->MoveRestrByAdminUnit == 0)) P->MoveRestrAdminUnitDivisor = 1;
+		return;
+	}
+	P->MoveRestrAdminUnitDivisor = 1;
+	P->MoveRestrByAdminUnit = 0;
 }
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -1192,6 +1490,217 @@ void Params::household_quarantine_params(ParamMap adm_params, ParamMap pre_param
 	P->HQuarantinePropIndivCompliant = Params::get_double(params, pre_params, "Individual level compliance with quarantine", 1, P);
 }
 
+///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** VARIABLE EFFICACIES OVER TIME
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+void Params::set_variable_efficacy(ParamMap params, ParamMap pre_params, std::string param_name, Param* P, double** matrix, int change_times, double* default_vals, bool force_fail) {
+	Params::get_double_matrix(params, pre_params, param_name, matrix, change_times, P->PlaceTypeNum, 0, P);
+	if (force_fail || !Params::param_found(params, pre_params, param_name))
+		for (int ChangeTime = 0; ChangeTime < change_times; ChangeTime++) //// by default populate to values of P->SocDistPlaceEffect
+			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+				matrix[ChangeTime][PlaceType] = default_vals[PlaceType];
+}
+
+void Params::variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->VaryEfficaciesOverTime = Params::get_int(params, pre_params, "Vary efficacies over time", 0, P);
+	//// **** number of change times
+	bool no_vary = (P->VaryEfficaciesOverTime == 0);
+	P->Num_SD_ChangeTimes = Params::get_int_ff(no_vary, params, pre_params, "Number of change times for levels of social distancing", 1, P);
+	P->Num_CI_ChangeTimes = Params::get_int_ff(no_vary, params, pre_params, "Number of change times for levels of case isolation", 1, P);
+	P->Num_HQ_ChangeTimes = Params::get_int_ff(no_vary, params, pre_params, "Number of change times for levels of household quarantine", 1, P);
+	P->Num_PC_ChangeTimes = Params::get_int_ff(no_vary, params, pre_params, "Number of change times for levels of place closure", 1, P);
+	P->Num_DCT_ChangeTimes = Params::get_int_ff(no_vary, params, pre_params, "Number of change times for levels of digital contact tracing", 1, P);
+
+	//// **** change times:
+	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of efficacy for social distancing.
+	P->SD_ChangeTimes[0] = 0;
+	P->CI_ChangeTimes[0] = 0;
+	P->HQ_ChangeTimes[0] = 0;
+	P->PC_ChangeTimes[0] = 0;
+	P->DCT_ChangeTimes[0] = 0;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
+	{
+		P->SD_ChangeTimes[ChangeTime] = 1e10;
+		P->CI_ChangeTimes[ChangeTime] = 1e10;
+		P->HQ_ChangeTimes[ChangeTime] = 1e10;
+		P->PC_ChangeTimes[ChangeTime] = 1e10;
+		P->DCT_ChangeTimes[ChangeTime] = 1e10;
+		P->CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX; // Out of bounds for int
+	}
+	//// Get real values from (pre)param file
+
+	Params::get_double_vec(params, pre_params, "Change times for levels of social distancing", P->SD_ChangeTimes, P->Num_SD_ChangeTimes, 0, P->Num_SD_ChangeTimes, P);
+	Params::get_double_vec(params, pre_params, "Change times for levels of case isolation", P->CI_ChangeTimes, P->Num_CI_ChangeTimes, 0, P->Num_CI_ChangeTimes, P);
+	Params::get_double_vec(params, pre_params, "Change times for levels of household quarantine", P->HQ_ChangeTimes, P->Num_HQ_ChangeTimes, 0, P->Num_HQ_ChangeTimes, P);
+	Params::get_double_vec(params, pre_params, "Change times for levels of place closure", P->PC_ChangeTimes, P->Num_PC_ChangeTimes, 0, P->Num_PC_ChangeTimes, P);
+	Params::get_double_vec(params, pre_params, "Change times for levels of digital contact tracing", P->DCT_ChangeTimes, P->Num_DCT_ChangeTimes, 0, P->Num_DCT_ChangeTimes, P);
+
+	// initialize to zero (regardless of whether doing places or households).
+	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
+	{
+		//// **** "efficacies"
+		//// spatial
+		P->SD_SpatialEffects_OverTime[ChangeTime] = 0;
+		P->Enhanced_SD_SpatialEffects_OverTime[ChangeTime] = 0;
+		P->CI_SpatialAndPlaceEffects_OverTime[ChangeTime] = 0;
+		P->HQ_SpatialEffects_OverTime[ChangeTime] = 0;
+		P->PC_SpatialEffects_OverTime[ChangeTime] = 0;
+		P->DCT_SpatialAndPlaceEffects_OverTime[ChangeTime] = 0;
+
+		//// Household
+		P->SD_HouseholdEffects_OverTime[ChangeTime] = 0;
+		P->Enhanced_SD_HouseholdEffects_OverTime[ChangeTime] = 0;
+		P->CI_HouseholdEffects_OverTime[ChangeTime] = 0;
+		P->HQ_HouseholdEffects_OverTime[ChangeTime] = 0;
+		P->PC_HouseholdEffects_OverTime[ChangeTime] = 0;
+		P->DCT_HouseholdEffects_OverTime[ChangeTime] = 0;
+
+		//// place
+		for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+		{
+			P->SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
+			P->Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
+			P->HQ_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
+			P->PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
+		}
+		P->PC_Durs_OverTime[ChangeTime] = 0;
+
+		//// **** compliance
+		P->CI_Prop_OverTime[ChangeTime] = 0;
+		P->HQ_Individual_PropComply_OverTime[ChangeTime] = 0;
+		P->HQ_Household_PropComply_OverTime[ChangeTime] = 0;
+		P->DCT_Prop_OverTime[ChangeTime] = 0;
+	}
+
+
+	//// **** "efficacies": by default, initialize to values read in previously.
+	///// spatial contact rates rates over time (and place too for CI and DCT)
+
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Relative spatial contact rates over time given social distancing", P->SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistSpatialEffect, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Relative spatial contact rates over time given enhanced social distancing", P->Enhanced_SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistSpatialEffect, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Residual contacts after case isolation over time", P->CI_SpatialAndPlaceEffects_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationEffectiveness, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Residual spatial contacts over time after household quarantine", P->HQ_SpatialEffects_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantineSpatialEffect, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Relative spatial contact rates over time after place closure", P->PC_SpatialEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseSpatialRelContact, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Residual contacts after digital contact tracing isolation over time", P->DCT_SpatialAndPlaceEffects_OverTime, P->Num_DCT_ChangeTimes, P->DCTCaseIsolationEffectiveness, P);
+
+	///// Household contact rates over time
+	if (P->DoHouseholds != 0)
+	{
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Relative household contact rates over time given social distancing", P->SD_HouseholdEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistHouseholdEffect, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Relative household contact rates over time given enhanced social distancing", P->Enhanced_SD_HouseholdEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistHouseholdEffect, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Residual household contacts after case isolation over time", P->CI_HouseholdEffects_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationHouseEffectiveness, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Relative household contact rates over time after quarantine", P->HQ_HouseholdEffects_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantineHouseEffect, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Relative household contact rates over time after place closure", P->PC_HouseholdEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseHouseholdRelContact, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Residual household contacts after digital contact tracing isolation over time", P->DCT_HouseholdEffects_OverTime, P->Num_DCT_ChangeTimes, P->DCTCaseIsolationHouseEffectiveness, P);
+	}
+
+	///// place contact rates over time
+	if (P->DoPlaces != 0)
+	{
+		Params::set_variable_efficacy(params, pre_params, "Relative place contact rates over time given social distancing by place type", P, P->SD_PlaceEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistPlaceEffect, no_vary);
+		Params::set_variable_efficacy(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type", P, P->Enhanced_SD_PlaceEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistPlaceEffect, no_vary);
+		Params::set_variable_efficacy(params, pre_params, "Residual place contacts over time after household quarantine by place type", P, P->HQ_PlaceEffects_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantinePlaceEffect, no_vary);
+		Params::set_variable_efficacy(params, pre_params, "Proportion of places remaining open after closure by place type over time", P, P->PC_PlaceEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseEffect, no_vary);
+		Params::set_variable_efficacy(params, pre_params, "Proportional attendance after closure by place type over time", P, P->PC_PropAttending_OverTime, P->Num_PC_ChangeTimes, P->PlaceClosePropAttending, no_vary);
+	}
+
+	//// ****  compliance
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Proportion of detected cases isolated over time", P->CI_Prop_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationProp, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Individual level compliance with quarantine over time", P->HQ_Individual_PropComply_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantinePropIndivCompliant, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Household level compliance with quarantine over time", P->HQ_Household_PropComply_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantinePropHouseCompliant, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Proportion of digital contacts who self-isolate over time", P->DCT_Prop_OverTime, P->Num_DCT_ChangeTimes, P->ProportionDigitalContactsIsolate, P);
+	Params::get_int_vec_ff(no_vary, params, pre_params, "Maximum number of contacts to trace per index case over time", P->DCT_MaxToTrace_OverTime, P->Num_DCT_ChangeTimes, P->MaxDigitalContactsToTrace, P);
+	if (P->DoPlaces != 0)
+	{
+		//// ****  thresholds
+		//// place closure (global threshold)
+		Params::get_int_vec_ff(no_vary, params, pre_params, "Place closure incidence threshold over time", P->PC_IncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseIncTrig1, P);
+		Params::get_double_vec_ff(no_vary, params, pre_params, "Place closure fractional incidence threshold over time", P->PC_FracIncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseFracIncTrig, P);
+		Params::get_int_vec_ff(no_vary, params, pre_params, "Trigger incidence per cell for place closure over time", P->PC_CellIncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseCellIncThresh1, P);
+		for (int ChangeTime = 0; ChangeTime < P->Num_PC_ChangeTimes; ChangeTime++)
+			if (P->PC_CellIncThresh_OverTime[ChangeTime] < 0) P->PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
+	}
+	//// household quarantine
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Household quarantine trigger incidence per cell over time", P->HQ_CellIncThresh_OverTime, P->Num_HQ_ChangeTimes, P->HHQuar_CellIncThresh, P);
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Case isolation trigger incidence per cell over time", P->CI_CellIncThresh_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolation_CellIncThresh, P);
+	Params::get_int_vec_ff(no_vary, params, pre_params, "Trigger incidence per cell for social distancing over time", P->SD_CellIncThresh_OverTime, P->Num_SD_ChangeTimes, P->SocDistCellIncThresh, P);
+
+	//// **** Durations (later add Case isolation and Household quarantine)
+	// place closure
+	Params::get_double_vec_ff(no_vary, params, pre_params, "Duration of place closure over time", P->PC_Durs_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseDurationBase, P);
+
+	//// Guards: make unused change values in array equal to final used value
+	if (!no_vary)
+	{
+		//// soc dist
+		for (int SD_ChangeTime = P->Num_SD_ChangeTimes; SD_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; SD_ChangeTime++)
+		{
+			//// non-enhanced
+			P->SD_SpatialEffects_OverTime[SD_ChangeTime] = P->SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
+			P->SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
+			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+				P->SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
+			//// enhanced
+			P->Enhanced_SD_SpatialEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
+			P->Enhanced_SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
+			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+				P->Enhanced_SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->Enhanced_SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
+
+			P->SD_CellIncThresh_OverTime[SD_ChangeTime] = P->SD_CellIncThresh_OverTime[P->Num_SD_ChangeTimes - 1];
+		}
+
+		//// case isolation
+		for (int CI_ChangeTime = P->Num_CI_ChangeTimes; CI_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; CI_ChangeTime++)
+		{
+			P->CI_SpatialAndPlaceEffects_OverTime[CI_ChangeTime] = P->CI_SpatialAndPlaceEffects_OverTime[P->Num_CI_ChangeTimes - 1];
+			P->CI_HouseholdEffects_OverTime[CI_ChangeTime] = P->CI_HouseholdEffects_OverTime[P->Num_CI_ChangeTimes - 1];
+			P->CI_Prop_OverTime[CI_ChangeTime] = P->CI_Prop_OverTime[P->Num_CI_ChangeTimes - 1];
+			P->CI_CellIncThresh_OverTime[CI_ChangeTime] = P->CI_CellIncThresh_OverTime[P->Num_CI_ChangeTimes - 1];
+		}
+
+		//// household quarantine
+		for (int HQ_ChangeTime = P->Num_HQ_ChangeTimes; HQ_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; HQ_ChangeTime++)
+		{
+			P->HQ_SpatialEffects_OverTime[HQ_ChangeTime] = P->HQ_SpatialEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
+			P->HQ_HouseholdEffects_OverTime[HQ_ChangeTime] = P->HQ_HouseholdEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
+			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+				P->HQ_PlaceEffects_OverTime[HQ_ChangeTime][PlaceType] = P->HQ_PlaceEffects_OverTime[P->Num_HQ_ChangeTimes - 1][PlaceType];
+
+			P->HQ_Individual_PropComply_OverTime[HQ_ChangeTime] = P->HQ_Individual_PropComply_OverTime[P->Num_HQ_ChangeTimes - 1];
+			P->HQ_Household_PropComply_OverTime[HQ_ChangeTime] = P->HQ_Household_PropComply_OverTime[P->Num_HQ_ChangeTimes - 1];
+
+			P->HQ_CellIncThresh_OverTime[HQ_ChangeTime] = P->HQ_CellIncThresh_OverTime[P->Num_HQ_ChangeTimes - 1];
+		}
+
+		//// place closure
+		for (int PC_ChangeTime = P->Num_PC_ChangeTimes; PC_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; PC_ChangeTime++)
+		{
+			P->PC_SpatialEffects_OverTime[PC_ChangeTime] = P->PC_SpatialEffects_OverTime[P->Num_PC_ChangeTimes - 1];
+			P->PC_HouseholdEffects_OverTime[PC_ChangeTime] = P->PC_HouseholdEffects_OverTime[P->Num_PC_ChangeTimes - 1];
+			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			{
+				P->PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P->PC_PlaceEffects_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
+				P->PC_PropAttending_OverTime[PC_ChangeTime][PlaceType] = P->PC_PropAttending_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
+			}
+
+			P->PC_IncThresh_OverTime[PC_ChangeTime] = P->PC_IncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
+			P->PC_FracIncThresh_OverTime[PC_ChangeTime] = P->PC_FracIncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
+			P->PC_CellIncThresh_OverTime[PC_ChangeTime] = P->PC_CellIncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
+		}
+
+		//// digital contact tracing
+		for (int DCT_ChangeTime = P->Num_DCT_ChangeTimes; DCT_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; DCT_ChangeTime++)
+		{
+			P->DCT_SpatialAndPlaceEffects_OverTime[DCT_ChangeTime] = P->DCT_SpatialAndPlaceEffects_OverTime[P->Num_DCT_ChangeTimes - 1];
+			P->DCT_HouseholdEffects_OverTime[DCT_ChangeTime] = P->DCT_HouseholdEffects_OverTime[P->Num_DCT_ChangeTimes - 1];
+			P->DCT_Prop_OverTime[DCT_ChangeTime] = P->DCT_Prop_OverTime[P->Num_DCT_ChangeTimes - 1];
+			P->DCT_MaxToTrace_OverTime[DCT_ChangeTime] = P->DCT_MaxToTrace_OverTime[P->Num_DCT_ChangeTimes - 1];
+		}
+	}
+}
+
 /**************************************************************************************************************/
 
 void Params::ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits)
@@ -1409,74 +1918,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		if (P->DoHouseholds) P->HouseholdTrans *= AgeSuscScale;
 		Params::get_double_vec(pre_params, adm_params, "Relative travel rates by age", P->RelativeTravelRate, NUM_AGE_GROUPS, 1, NUM_AGE_GROUPS, P);
 
-		//if (!GetInputParameter2(params, pre_params, "WAIFW matrix", "%lf", (void*)P->WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0))
-		if (!Params::param_found(params, pre_params, "WAIFW matrix"))
-		{
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					P->WAIFW_Matrix[i][j] = 1.0;
-		}
-		else
-		{
-			Params::get_double_matrix(params, pre_params, "WAIFW matrix", P->WAIFW_Matrix, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 1.0, P);
-
-			/* WAIFW matrix needs to be scaled to have max value of 1.
-			1st index of matrix specifies host being infected, second the infector.
-			Overall age variation in infectiousness/contact rates/susceptibility should be factored
-			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
-			t = 0;
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					if (P->WAIFW_Matrix[i][j] > t) t = P->WAIFW_Matrix[i][j];
-			if (t > 0)
-			{
-				for (i = 0; i < NUM_AGE_GROUPS; i++)
-					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P->WAIFW_Matrix[i][j] /= t;
-			}
-			else
-			{
-				for (i = 0; i < NUM_AGE_GROUPS; i++)
-					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P->WAIFW_Matrix[i][j] = 1.0;
-			}
-		}
-		if (!Params::param_found(params, pre_params, "WAIFW matrix spatial infections only"))
-		{
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					P->WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
-
-			P->Got_WAIFW_Matrix_Spatial = 0;
-		}
-		else
-		{
-			Params::get_double_matrix(params, pre_params, "WAIFW matrix spatial infections only", P->WAIFW_Matrix_SpatialOnly, NUM_AGE_GROUPS, NUM_AGE_GROUPS, 0, P);
-			P->Got_WAIFW_Matrix_Spatial = 1;
-			/* WAIFW matrix needs to be scaled to have max value of 1.
-			1st index of matrix specifies host being infected, second the infector.
-			Overall age variation in infectiousness/contact rates/susceptibility should be factored
-			out of WAIFW_matrix and put in Age dep infectiousness/susceptibility for efficiency. */
-
-			double Maximum = 0;
-			for (i = 0; i < NUM_AGE_GROUPS; i++)
-				for (j = 0; j < NUM_AGE_GROUPS; j++)
-					if (P->WAIFW_Matrix_SpatialOnly[i][j] > Maximum) Maximum = P->WAIFW_Matrix_SpatialOnly[i][j];
-			if (Maximum > 0)
-			{
-				for (i = 0; i < NUM_AGE_GROUPS; i++)
-					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P->WAIFW_Matrix_SpatialOnly[i][j] /= Maximum;
-			}
-			else
-			{
-				for (i = 0; i < NUM_AGE_GROUPS; i++)
-					for (j = 0; j < NUM_AGE_GROUPS; j++)
-						P->WAIFW_Matrix_SpatialOnly[i][j] = 1.0;
-			}
-
-		}
-
+		Params::waifw_params(adm_params, pre_params, params, P);
+		
 		P->DoDeath = 0;
 		t = 0;
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	t += P->AgeInfectiousness[i] * P->PropAgeGroup[0][i];
@@ -1514,192 +1957,12 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		else
 			P->PlaceTypeNum = P->DoAirports = 0;
 	}
-	if (P->DoPlaces != 0)
-	{
-		P->CareHomeResidentHouseholdScaling = Params::get_double(pre_params, adm_params, "Scaling of household contacts for care home residents", 1.0, P);
-		P->CareHomeResidentSpatialScaling = Params::get_double(pre_params, adm_params, "Scaling of spatial contacts for care home residents", 1.0, P);
-		P->CareHomeResidentPlaceScaling = Params::get_double(pre_params, adm_params, "Scaling of between group (home) contacts for care home residents", 1.0, P);
-		P->CareHomeWorkerGroupScaling = Params::get_double(pre_params, adm_params, "Scaling of within group (home) contacts for care home workers", 1.0, P);
-		P->CareHomeRelProbHosp = Params::get_double(pre_params, adm_params, "Relative probability that care home residents are hospitalised", 1.0, P);
 
-		if (P->FitIter == 0)
-		{
-			if (P->PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
-			P->CareHomePlaceType = Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, P);
-			P->CareHomeAllowInitialInfections = Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, P);
-			P->CareHomeResidentMinimumAge = Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, P);
-
-			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P->PlaceTypeAgeMin, P->PlaceTypeNum, P);
-			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P->PlaceTypeAgeMax, P->PlaceTypeNum, P);
-			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 1 in place types", P->PlaceTypePropAgeGroup, P->PlaceTypeNum, P);
-
-			if (!Params::param_found(pre_params, adm_params, "Proportion of age group 2 in place types"))
-			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-				{
-					P->PlaceTypePropAgeGroup2[i] = 0;
-					P->PlaceTypeAgeMin2[i] = 0;
-					P->PlaceTypeAgeMax2[i] = 1000;
-				}
-			}
-			else
-			{
-				Params::req_double_vec(pre_params, adm_params, "Proportion of age group 2 in place types", P->PlaceTypePropAgeGroup2, P->PlaceTypeNum, P);
-				Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P->PlaceTypeAgeMin2, P->PlaceTypeNum, P);
-				Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 2 in place types", P->PlaceTypeAgeMax2, P->PlaceTypeNum, P);
-			}
-			if (!Params::param_found(pre_params, adm_params, "Proportion of age group 3 in place types"))
-			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-				{
-					P->PlaceTypePropAgeGroup3[i] = 0;
-					P->PlaceTypeAgeMin3[i] = 0;
-					P->PlaceTypeAgeMax3[i] = 1000;
-				}
-			}
-			else
-			{
-				Params::req_double_vec(pre_params, adm_params, "Proportion of age group 3 in place types", P->PlaceTypePropAgeGroup3, P->PlaceTypeNum, P);
-				Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P->PlaceTypeAgeMin3, P->PlaceTypeNum, P);
-				Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 3 in place types", P->PlaceTypeAgeMax3, P->PlaceTypeNum, P);
-			}
-			if (!Params::param_found(pre_params, adm_params, "Kernel shape params for place types"))
-			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-				{
-					P->PlaceTypeKernelShape[i] = P->MoveKernel.shape_;
-					P->PlaceTypeKernelScale[i] = P->MoveKernel.scale_;
-				}
-			}
-			else
-			{
-				Params::req_double_vec(pre_params, adm_params, "Kernel shape params for place types", P->PlaceTypeKernelShape, P->PlaceTypeNum, P);
-				Params::req_double_vec(pre_params, adm_params, "Kernel scale params for place types", P->PlaceTypeKernelScale, P->PlaceTypeNum, P);
-			}
-			if (!Params::param_found(pre_params, adm_params, "Kernel 3rd param for place types"))
-			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)
-				{
-					P->PlaceTypeKernelP3[i] = P->MoveKernel.p3_;
-					P->PlaceTypeKernelP4[i] = P->MoveKernel.p4_;
-				}
-			}
-			else
-			{
-				Params::req_double_vec(pre_params, adm_params, "Kernel 3rd param for place types", P->PlaceTypeKernelP3, P->PlaceTypeNum, P);
-				Params::req_double_vec(pre_params, adm_params, "Kernel 4th param for place types", P->PlaceTypeKernelP4, P->PlaceTypeNum, P);
-			}
-			Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-			if (P->DoAdUnits != 0)
-			{
-				Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-			}
-
-			Params::airport_params(adm_params, pre_params, params, P);
-
-			Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->PlaceTypeNum, P);
-			Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->PlaceTypeNum, P);
-			Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-
-			//added to enable lognormal distribution - ggilani 09/02/17
-			Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->PlaceTypeNum, 1e20, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->PlaceTypeNum, 1.0, NUM_PLACE_TYPES, P);
-			Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->PlaceTypeNum, P->MoveKernel.type_, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P->PlaceExclusivityMatrix, P->PlaceTypeNum * P->PlaceTypeNum, 0, P->PlaceTypeNum * P->PlaceTypeNum, P);
-			if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
-			{
-				for (i = 0; i < NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
-					P->PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1; // this line sets the diagonal to 1 (identity matrix)
-			}
-		}
-		/* Note P->PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
-
-		Params::req_double_vec(params, pre_params, "Proportion of between group place links", P->PlaceTypePropBetweenGroupLinks, P->PlaceTypeNum, P);
-		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P->PlaceTypeTrans, P->PlaceTypeNum, P);
-		for (i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
-	}
-
+	Params::place_type_params(adm_params, pre_params, params, P);
+	for (int i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	Params::seasonality_params(adm_params, pre_params, params, P);
+	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames);
 	
-	P->NumSeedLocations = Params::get_int(pre_params, adm_params, "Number of seed locations", 1, P);
-	if (P->NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
-	{
-		Files::xfprintf_stderr("Too many seed locations\n");
-		P->NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
-	}
-	Params::req_int_vec(pre_params, adm_params, "Initial number of infecteds", P->NumInitialInfections, P->NumSeedLocations, P);
-	Params::get_double_matrix(pre_params, adm_params, "Location of initial infecteds", P->LocationInitialInfection, P->NumSeedLocations, 2, 0, P);
-	P->MinPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Minimum population in microcell of initial infection", 0, P);
-	P->MaxPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum population in microcell of initial infection", 10000000, P);
-	P->MaxAgeForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum age of initial infections", 1000, P);
-	P->DoRandomInitialInfectionLoc = Params::get_int(pre_params, adm_params, "Randomise initial infection location", 1, P);
-	P->DoAllInitialInfectioninSameLoc = Params::get_int(pre_params, adm_params, "All initial infections located in same microcell", 0, P);
-
-	if (Params::param_found(pre_params, adm_params, "Day of year of start of seeding"))
-	{
-		P->InitialInfectionCalTime = Params::req_double(pre_params, adm_params, "Day of year of start of seeding", P);
-		if (Params::param_found(params, pre_params, "Scaling of infection seeding"))
-		{
-			P->SeedingScaling = Params::req_double(params, pre_params, "Scaling of infection seeding", P);
-			P->DoNoCalibration = 1;
-		}
-		else
-		{
-			P->SeedingScaling = 1.0;
-			P->DoNoCalibration = 0;
-		}
-	}
-	else
-	{
-		P->SeedingScaling = 1.0;
-		P->DoNoCalibration = 0;
-		P->InitialInfectionCalTime = -1;
-	}
-	if (P->FitIter == 0)
-	{
-		if (P->DoAdUnits != 0)
-		{
-			if (!Params::param_found(pre_params, adm_params, "Administrative unit to seed initial infection into"))
-			{
-				Params::req_string_vec(pre_params, adm_params, "Administrative unit to seed initial infection into", AdunitListNames, P->NumSeedLocations, P);
-				for (i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnit[i] = 0;
-			}
-			else
-				for (i = 0; i < P->NumSeedLocations; i++)
-				{
-					f = 0;
-					if (P->NumAdunits > 0)
-					{
-						for (j = 0; (j < P->NumAdunits) && (!f); j++) f = (strcmp(AdUnits[j].ad_name, AdunitListNames[i]) == 0);
-						if (f) k = AdUnits[j - 1].id;
-					}
-					if (!f) k = atoi(AdunitListNames[i]);
-					P->InitialInfectionsAdminUnit[i] = k;
-					P->InitialInfectionsAdminUnitId[i] = P->AdunitLevel1Lookup[(k % P->AdunitLevel1Mask) / P->AdunitLevel1Divisor];
-				}
-			Params::get_double_vec(pre_params, adm_params, "Administrative unit seeding weights", P->InitialInfectionsAdminUnitWeight, P->NumSeedLocations, 1.0, P->NumSeedLocations, P);
-			s = 0;
-			for (i = 0; i < P->NumSeedLocations; i++) s += P->InitialInfectionsAdminUnitWeight[i];
-			for (i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnitWeight[i] /= s;
-		}
-		else
-		{
-			for (i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnit[i] = 0;
-		}
-	}
-	P->InfectionImportRate1 = Params::get_double(params, pre_params, "Initial rate of importation of infections", 0, P);
-	P->InfectionImportRate2 = Params::get_double(params, pre_params, "Changed rate of importation of infections", 0, P);
-	P->InfectionImportChangeTime = Params::get_double(params, pre_params, "Time when infection rate changes", 1e10, P);
-	P->DoImportsViaAirports = Params::get_int(params, pre_params, "Imports via air travel", 0, P);
-	P->DurImportTimeProfile = Params::get_int(params, pre_params, "Length of importation time profile provided", 0, P);
-	if (P->DurImportTimeProfile > 0)
-	{
-		if (P->DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
-		Params::req_double_vec(params, pre_params, "Daily importation time profile", P->ImportInfectionTimeProfile, P->DurImportTimeProfile, P);
-	}
-
 	P->R0 = Params::req_double(params, pre_params, "Reproduction number", P);
 	if (Params::param_found(params, pre_params, "Beta for spatial transmission"))
 	{
@@ -1925,262 +2188,14 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	P->WindowToEvaluateTriggerAlert = Params::get_int(params, pre_params, "Number of days to accummulate cases/deaths before alert", 1000, P);
   Params::treatment_params(adm_params, pre_params, params, P);
 	Params::vaccination_params(adm_params, pre_params, params, P);
-	
-	P->MoveRestrCellIncThresh = Params::get_int(params, pre_params, "Movement restrictions trigger incidence per cell", INT32_MAX, P);
-	P->MoveDelayMean = Params::get_double(params, pre_params, "Delay to start movement restrictions", 0, P);
-	P->MoveRestrDuration = Params::get_double(params, pre_params, "Duration of movement restrictions", 7, P);
-	P->MoveRestrEffect = Params::get_double(params, pre_params, "Residual movements after restrictions", 0, P);
-	P->MoveRestrRadius = Params::get_double(params, pre_params, "Minimum radius of movement restrictions", 0, P);
-	P->MoveRestrTimeStartBase = Params::get_double(params, pre_params, "Movement restrictions start time", USHRT_MAX / P->TimeStepsPerDay, P);
-	P->DoBlanketMoveRestr = Params::get_int(params, pre_params, "Impose blanket movement restrictions", 0, P);
-	P->DoMoveRestrOnceOnly = Params::get_int(params, pre_params, "Movement restrictions only once", 0, P);
-	//if (P->DoMoveRestrOnceOnly) P->DoMoveRestrOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
-	if (P->DoAdUnits != 0)
-	{
-		P->MoveRestrByAdminUnit = Params::get_int(params, pre_params, "Movement restrictions in administrative units rather than rings", 0, P);
-		P->MoveRestrAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for movement restrictions", 1, P);
-		if ((P->MoveRestrAdminUnitDivisor == 0) || (P->MoveRestrByAdminUnit == 0)) P->MoveRestrAdminUnitDivisor = 1;
-	}
-	else
-	{
-		P->MoveRestrAdminUnitDivisor = 1; P->MoveRestrByAdminUnit = 0;
-	}
-
+	Params::movement_restriction_params(adm_params, pre_params, params, P);
 	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P);
 	Params::digital_contact_tracing_params(adm_params, pre_params, params, P);
 	Params::place_closure_params(adm_params, pre_params, params, P);
 	Params::social_distancing_params(adm_params, pre_params, params, P);
 	Params::case_isolation_params(adm_params, pre_params, params, P);
 	Params::household_quarantine_params(adm_params, pre_params, params, P);
-
-		///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** VARIABLE EFFICACIES OVER TIME
-	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-
-	P->VaryEfficaciesOverTime = Params::get_int(params, pre_params, "Vary efficacies over time", 0, P);
-	//// **** number of change times
-	bool v = (P->VaryEfficaciesOverTime == 0);
-	P->Num_SD_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of social distancing", 1, P);
-	P->Num_CI_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of case isolation", 1, P);
-	P->Num_HQ_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of household quarantine", 1, P);
-	P->Num_PC_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of place closure", 1, P);
-	P->Num_DCT_ChangeTimes = Params::get_int_ff(v, params, pre_params, "Number of change times for levels of digital contact tracing", 1, P);
-	
-	//// **** change times:
-	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of efficacy for social distancing.
-	P->SD_ChangeTimes[0] = 0;
-	P->CI_ChangeTimes[0] = 0;
-	P->HQ_ChangeTimes[0] = 0;
-	P->PC_ChangeTimes[0] = 0;
-	P->DCT_ChangeTimes[0] = 0;
-	for (int ChangeTime = 1; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
-	{
-		P->SD_ChangeTimes[ChangeTime] = 1e10;
-		P->CI_ChangeTimes[ChangeTime] = 1e10;
-		P->HQ_ChangeTimes[ChangeTime] = 1e10;
-		P->PC_ChangeTimes[ChangeTime] = 1e10;
-		P->DCT_ChangeTimes[ChangeTime] = 1e10;
-		P->CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX; // Out of bounds for int
-	}
-	//// Get real values from (pre)param file
-
-	Params::get_double_vec(params, pre_params, "Change times for levels of social distancing", P->SD_ChangeTimes, P->Num_SD_ChangeTimes, 0, P->Num_SD_ChangeTimes, P);
-	Params::get_double_vec(params, pre_params, "Change times for levels of case isolation", P->CI_ChangeTimes, P->Num_CI_ChangeTimes, 0, P->Num_CI_ChangeTimes, P);
-	Params::get_double_vec(params, pre_params, "Change times for levels of household quarantine", P->HQ_ChangeTimes, P->Num_HQ_ChangeTimes, 0, P->Num_HQ_ChangeTimes, P);
-	Params::get_double_vec(params, pre_params, "Change times for levels of place closure", P->PC_ChangeTimes, P->Num_PC_ChangeTimes, 0, P->Num_PC_ChangeTimes, P);
-	Params::get_double_vec(params, pre_params, "Change times for levels of digital contact tracing", P->DCT_ChangeTimes, P->Num_DCT_ChangeTimes, 0, P->Num_DCT_ChangeTimes, P);
-
-	// initialize to zero (regardless of whether doing places or households).
-	for (int ChangeTime = 0; ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES; ChangeTime++)
-	{
-		//// **** "efficacies"
-		//// spatial
-		P->SD_SpatialEffects_OverTime[ChangeTime] = 0;
-		P->Enhanced_SD_SpatialEffects_OverTime[ChangeTime] = 0;
-		P->CI_SpatialAndPlaceEffects_OverTime[ChangeTime] = 0;
-		P->HQ_SpatialEffects_OverTime[ChangeTime] = 0;
-		P->PC_SpatialEffects_OverTime[ChangeTime] = 0;
-		P->DCT_SpatialAndPlaceEffects_OverTime[ChangeTime] = 0;
-
-		//// Household
-		P->SD_HouseholdEffects_OverTime[ChangeTime] = 0;
-		P->Enhanced_SD_HouseholdEffects_OverTime[ChangeTime] = 0;
-		P->CI_HouseholdEffects_OverTime[ChangeTime] = 0;
-		P->HQ_HouseholdEffects_OverTime[ChangeTime] = 0;
-		P->PC_HouseholdEffects_OverTime[ChangeTime] = 0;
-		P->DCT_HouseholdEffects_OverTime[ChangeTime] = 0;
-
-		//// place
-		for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-		{
-			P->SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
-			P->Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
-			P->HQ_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
-			P->PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
-		}
-		P->PC_Durs_OverTime[ChangeTime] = 0;
-
-		//// **** compliance
-		P->CI_Prop_OverTime[ChangeTime] = 0;
-		P->HQ_Individual_PropComply_OverTime[ChangeTime] = 0;
-		P->HQ_Household_PropComply_OverTime[ChangeTime] = 0;
-		P->DCT_Prop_OverTime[ChangeTime] = 0;
-	}
-
-
-	//// **** "efficacies": by default, initialize to values read in previously.
-	///// spatial contact rates rates over time (and place too for CI and DCT)
-	v = (P->VaryEfficaciesOverTime == 0);
-	Params::get_double_vec_ff(v, params, pre_params, "Relative spatial contact rates over time given social distancing", P->SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistSpatialEffect, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Relative spatial contact rates over time given enhanced social distancing", P->Enhanced_SD_SpatialEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistSpatialEffect, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Residual contacts after case isolation over time", P->CI_SpatialAndPlaceEffects_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationEffectiveness, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Residual spatial contacts over time after household quarantine", P->HQ_SpatialEffects_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantineSpatialEffect, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Relative spatial contact rates over time after place closure", P->PC_SpatialEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseSpatialRelContact, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Residual contacts after digital contact tracing isolation over time", P->DCT_SpatialAndPlaceEffects_OverTime, P->Num_DCT_ChangeTimes, P->DCTCaseIsolationEffectiveness, P);
-
-	///// Household contact rates over time
-	if (P->DoHouseholds != 0)
-	{
-		Params::get_double_vec_ff(v, params, pre_params, "Relative household contact rates over time given social distancing", P->SD_HouseholdEffects_OverTime, P->Num_SD_ChangeTimes, P->SocDistHouseholdEffect, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Relative household contact rates over time given enhanced social distancing", P->Enhanced_SD_HouseholdEffects_OverTime, P->Num_SD_ChangeTimes, P->EnhancedSocDistHouseholdEffect, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Residual household contacts after case isolation over time", P->CI_HouseholdEffects_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationHouseEffectiveness, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Relative household contact rates over time after quarantine", P->HQ_HouseholdEffects_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantineHouseEffect, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Relative household contact rates over time after place closure", P->PC_HouseholdEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseHouseholdRelContact, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Residual household contacts after digital contact tracing isolation over time", P->DCT_HouseholdEffects_OverTime, P->Num_DCT_ChangeTimes, P->DCTCaseIsolationHouseEffectiveness, P);
-	}
-
-	///// place contact rates over time
-	if (P->DoPlaces != 0)
-	{
-		//// soc dist
-		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given social distancing by place type", P->SD_PlaceEffects_OverTime, P->Num_SD_ChangeTimes, P->PlaceTypeNum, 0, P);
-		if (v || !Params::param_found(params, pre_params, "Relative place contact rates over time given social distancing by place type"))
-			for (int ChangeTime = 0; ChangeTime < P->Num_SD_ChangeTimes; ChangeTime++) //// by default populate to values of P->SocDistPlaceEffect
-				for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-					P->SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = P->SocDistPlaceEffect[PlaceType];
-
-		//// enhanced soc dist
-		Params::get_double_matrix(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type", P->Enhanced_SD_PlaceEffects_OverTime, P->Num_SD_ChangeTimes, P->PlaceTypeNum, 0, P);
-		if (v || !Params::param_found(params, pre_params, "Relative place contact rates over time given enhanced social distancing by place type"))
-			for (int ChangeTime = 0; ChangeTime < P->Num_SD_ChangeTimes; ChangeTime++) //// by default populate to values of P->EnhancedSocDistPlaceEffect
-				for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-					P->Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = P->EnhancedSocDistPlaceEffect[PlaceType];
-
-		//// household quarantine
-		Params::get_double_matrix(params, pre_params, "Residual place contacts over time after household quarantine by place type", P->HQ_PlaceEffects_OverTime, P->Num_HQ_ChangeTimes, P->PlaceTypeNum, 0, P);
-		if (v || !Params::param_found(params, pre_params, "Residual place contacts over time after household quarantine by place type"))
-			for (int ChangeTime = 0; ChangeTime < P->Num_HQ_ChangeTimes; ChangeTime++) //// by default populate to values of P->HQuarantinePlaceEffect
-				for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-					P->HQ_PlaceEffects_OverTime[ChangeTime][PlaceType] = P->HQuarantinePlaceEffect[PlaceType];
-
-		//// place closure
-		Params::get_double_matrix(params, pre_params, "Proportion of places remaining open after closure by place type over time", P->PC_PlaceEffects_OverTime, P->Num_PC_ChangeTimes, P->PlaceTypeNum, 0, P);
-		if (v || !Params::param_found(params, pre_params, "Proportion of places remaining open after closure by place type over time"))
-			for (int ChangeTime = 0; ChangeTime < P->Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P->PlaceCloseEffect
-				for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-					P->PC_PlaceEffects_OverTime[ChangeTime][PlaceType] = P->PlaceCloseEffect[PlaceType];
-
-		Params::get_double_matrix(params, pre_params, "Proportional attendance after closure by place type over time", P->PC_PropAttending_OverTime, P->Num_PC_ChangeTimes, P->PlaceTypeNum, 0, P);
-		if (v || !Params::param_found(params, pre_params, "Proportional attendance after closure by place type over time"))
-			for (int ChangeTime = 0; ChangeTime < P->Num_PC_ChangeTimes; ChangeTime++) //// by default populate to values of P->PlaceClosePropAttending
-				for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-					P->PC_PropAttending_OverTime[ChangeTime][PlaceType] = P->PlaceClosePropAttending[PlaceType];
-	}
-
-
-	//// ****  compliance
-	Params::get_double_vec_ff(v, params, pre_params, "Proportion of detected cases isolated over time", P->CI_Prop_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolationProp, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Individual level compliance with quarantine over time", P->HQ_Individual_PropComply_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantinePropIndivCompliant, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Household level compliance with quarantine over time", P->HQ_Household_PropComply_OverTime, P->Num_HQ_ChangeTimes, P->HQuarantinePropHouseCompliant, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Proportion of digital contacts who self-isolate over time", P->DCT_Prop_OverTime, P->Num_DCT_ChangeTimes, P->ProportionDigitalContactsIsolate, P);
-	Params::get_int_vec_ff(v, params, pre_params, "Maximum number of contacts to trace per index case over time", P->DCT_MaxToTrace_OverTime, P->Num_DCT_ChangeTimes, P->MaxDigitalContactsToTrace, P);
-	if (P->DoPlaces != 0)
-	{
-		//// ****  thresholds
-		//// place closure (global threshold)
-		Params::get_int_vec_ff(v, params, pre_params, "Place closure incidence threshold over time", P->PC_IncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseIncTrig1, P);
-		Params::get_double_vec_ff(v, params, pre_params, "Place closure fractional incidence threshold over time", P->PC_FracIncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseFracIncTrig, P);
-		Params::get_int_vec_ff(v, params, pre_params, "Trigger incidence per cell for place closure over time", P->PC_CellIncThresh_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseCellIncThresh1, P);
-		for (int ChangeTime = 0; ChangeTime < P->Num_PC_ChangeTimes; ChangeTime++)
-			if (P->PC_CellIncThresh_OverTime[ChangeTime] < 0) P->PC_CellIncThresh_OverTime[ChangeTime] = 1000000000; // allows -1 to be used as a proxy for no cell-based triggering
-	}
-	//// household quarantine
-	Params::get_double_vec_ff(v, params, pre_params, "Household quarantine trigger incidence per cell over time", P->HQ_CellIncThresh_OverTime, P->Num_HQ_ChangeTimes, P->HHQuar_CellIncThresh, P);
-	Params::get_double_vec_ff(v, params, pre_params, "Case isolation trigger incidence per cell over time", P->CI_CellIncThresh_OverTime, P->Num_CI_ChangeTimes, P->CaseIsolation_CellIncThresh, P);
-	Params::get_int_vec_ff(v, params, pre_params, "Trigger incidence per cell for social distancing over time", P->SD_CellIncThresh_OverTime, P->Num_SD_ChangeTimes, P->SocDistCellIncThresh, P);
-
-	//// **** Durations (later add Case isolation and Household quarantine)
-	// place closure
-	Params::get_double_vec_ff(v, params, pre_params, "Duration of place closure over time", P->PC_Durs_OverTime, P->Num_PC_ChangeTimes, P->PlaceCloseDurationBase, P);
-
-	//// Guards: make unused change values in array equal to final used value
-	if (P->VaryEfficaciesOverTime)
-	{
-		//// soc dist
-		for (int SD_ChangeTime = P->Num_SD_ChangeTimes; SD_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; SD_ChangeTime++)
-		{
-			//// non-enhanced
-			P->SD_SpatialEffects_OverTime[SD_ChangeTime] = P->SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			P->SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-				P->SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
-			//// enhanced
-			P->Enhanced_SD_SpatialEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			P->Enhanced_SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-				P->Enhanced_SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->Enhanced_SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
-
-			P->SD_CellIncThresh_OverTime[SD_ChangeTime] = P->SD_CellIncThresh_OverTime[P->Num_SD_ChangeTimes - 1];
-		}
-
-		//// case isolation
-		for (int CI_ChangeTime = P->Num_CI_ChangeTimes; CI_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; CI_ChangeTime++)
-		{
-			P->CI_SpatialAndPlaceEffects_OverTime[CI_ChangeTime] = P->CI_SpatialAndPlaceEffects_OverTime[P->Num_CI_ChangeTimes - 1];
-			P->CI_HouseholdEffects_OverTime[CI_ChangeTime] = P->CI_HouseholdEffects_OverTime[P->Num_CI_ChangeTimes - 1];
-			P->CI_Prop_OverTime[CI_ChangeTime] = P->CI_Prop_OverTime[P->Num_CI_ChangeTimes - 1];
-			P->CI_CellIncThresh_OverTime[CI_ChangeTime] = P->CI_CellIncThresh_OverTime[P->Num_CI_ChangeTimes - 1];
-		}
-
-		//// household quarantine
-		for (int HQ_ChangeTime = P->Num_HQ_ChangeTimes; HQ_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; HQ_ChangeTime++)
-		{
-			P->HQ_SpatialEffects_OverTime[HQ_ChangeTime] = P->HQ_SpatialEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
-			P->HQ_HouseholdEffects_OverTime[HQ_ChangeTime] = P->HQ_HouseholdEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-				P->HQ_PlaceEffects_OverTime[HQ_ChangeTime][PlaceType] = P->HQ_PlaceEffects_OverTime[P->Num_HQ_ChangeTimes - 1][PlaceType];
-
-			P->HQ_Individual_PropComply_OverTime[HQ_ChangeTime] = P->HQ_Individual_PropComply_OverTime[P->Num_HQ_ChangeTimes - 1];
-			P->HQ_Household_PropComply_OverTime[HQ_ChangeTime] = P->HQ_Household_PropComply_OverTime[P->Num_HQ_ChangeTimes - 1];
-
-			P->HQ_CellIncThresh_OverTime[HQ_ChangeTime] = P->HQ_CellIncThresh_OverTime[P->Num_HQ_ChangeTimes - 1];
-		}
-
-		//// place closure
-		for (int PC_ChangeTime = P->Num_PC_ChangeTimes; PC_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; PC_ChangeTime++)
-		{
-			P->PC_SpatialEffects_OverTime[PC_ChangeTime] = P->PC_SpatialEffects_OverTime[P->Num_PC_ChangeTimes - 1];
-			P->PC_HouseholdEffects_OverTime[PC_ChangeTime] = P->PC_HouseholdEffects_OverTime[P->Num_PC_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
-			{
-				P->PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P->PC_PlaceEffects_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
-				P->PC_PropAttending_OverTime[PC_ChangeTime][PlaceType] = P->PC_PropAttending_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
-			}
-
-			P->PC_IncThresh_OverTime[PC_ChangeTime] = P->PC_IncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
-			P->PC_FracIncThresh_OverTime[PC_ChangeTime] = P->PC_FracIncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
-			P->PC_CellIncThresh_OverTime[PC_ChangeTime] = P->PC_CellIncThresh_OverTime[P->Num_PC_ChangeTimes - 1];
-		}
-
-		//// digital contact tracing
-		for (int DCT_ChangeTime = P->Num_DCT_ChangeTimes; DCT_ChangeTime < MAX_NUM_INTERVENTION_CHANGE_TIMES - 1; DCT_ChangeTime++)
-		{
-			P->DCT_SpatialAndPlaceEffects_OverTime[DCT_ChangeTime] = P->DCT_SpatialAndPlaceEffects_OverTime[P->Num_DCT_ChangeTimes - 1];
-			P->DCT_HouseholdEffects_OverTime[DCT_ChangeTime] = P->DCT_HouseholdEffects_OverTime[P->Num_DCT_ChangeTimes - 1];
-			P->DCT_Prop_OverTime[DCT_ChangeTime] = P->DCT_Prop_OverTime[P->Num_DCT_ChangeTimes - 1];
-			P->DCT_MaxToTrace_OverTime[DCT_ChangeTime] = P->DCT_MaxToTrace_OverTime[P->Num_DCT_ChangeTimes - 1];
-		}
-	}
+	Params::variable_efficacy_over_time_params(adm_params, pre_params, params, P);
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME)

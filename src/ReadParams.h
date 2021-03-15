@@ -539,19 +539,26 @@ namespace Params
  */
   void alloc_params(Param* P);
 
+  void waifw_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void output_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void household_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames);
+  void movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void household_quarantine_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void set_variable_efficacy(ParamMap params, ParamMap pre_params, std::string param_name, Param* P, double** matrix, int change_times, double* default_vals, bool force_fail);
+  void variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
 
 /** \brief                Top-level call for ReadParams.
  */
