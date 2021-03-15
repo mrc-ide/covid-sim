@@ -715,6 +715,15 @@ void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 	}
 }
 
+void Params::serology_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+{
+	P->SeroConvMaxSens = Params::get_double(params, pre_params, "Maximum sensitivity of serology assay", 1.0, P);
+	P->SeroConvP1 = Params::get_double(params, pre_params, "Seroconversion model parameter 1", 14.0, P);
+	P->SeroConvP2 = Params::get_double(params, pre_params, "Seroconversion model parameter 2", 3.0, P);
+	P->SeroConvSpec = Params::get_double(params, pre_params, "Specificity of serology assay", 1.0, P);
+	P->InfPrevSurveyScale = Params::get_double(params, pre_params, "Scaling of modelled infection prevalence to match surveys", 1.0, P);
+}
+
 
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 ///// **** SEVERITY PARAMETERS
@@ -1156,6 +1165,18 @@ void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 	{
 		if (P->DurImportTimeProfile >= MAX_DUR_IMPORT_PROFILE) ERR_CRITICAL("MAX_DUR_IMPORT_PROFILE too small\n");
 		Params::req_double_vec(params, pre_params, "Daily importation time profile", P->ImportInfectionTimeProfile, P->DurImportTimeProfile, P);
+	}
+
+	//added parameter to reset seeds after every run
+	P->ResetSeeds = Params::get_int(params, pre_params, "Reset seeds for every run", 0, P);
+	if (P->ResetSeeds != 0)
+	{
+		P->KeepSameSeeds = Params::get_int(params, pre_params, "Keep same seeds for every run", 0, P); //added this to control which seeds are used: ggilani 27/11/19
+	}
+	P->ResetSeedsPostIntervention = Params::get_int(params, pre_params, "Reset seeds after intervention", 0, P);
+	if (P->ResetSeedsPostIntervention != 0)
+	{
+		P->TimeToResetSeeds = Params::get_int(params, pre_params, "Time to reset seeds after intervention", 1000000, P);
 	}
 }
 
@@ -1753,17 +1774,6 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 
 		P->NumCells = -1;
 		P->NMCL = Params::req_int(params, pre_params, "Number of micro-cells per spatial cell width", P);
-		//added parameter to reset seeds after every run
-		P->ResetSeeds = Params::get_int(params, pre_params, "Reset seeds for every run", 0, P);
-		if (P->ResetSeeds != 0)
-		{
-			P->KeepSameSeeds = Params::get_int(params, pre_params, "Keep same seeds for every run", 0, P); //added this to control which seeds are used: ggilani 27/11/19
-		}
-		P->ResetSeedsPostIntervention = Params::get_int(params, pre_params, "Reset seeds after intervention", 0, P);
-		if (P->ResetSeedsPostIntervention != 0)
-		{
-			P->TimeToResetSeeds = Params::get_int(params, pre_params, "Time to reset seeds after intervention", 1000000, P);
-		}
 		P->DoHouseholds = Params::get_int(pre_params, adm_params, "Include households", 1, P);
 
 		P->KernelLookup.size_ = Params::get_int(pre_params, adm_params, "Kernel resolution", 4000000, P);
@@ -2087,12 +2097,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		Params::get_double_vec(params, pre_params, "False positive relative incidence by age", P->FalsePositiveAgeRate, NUM_AGE_GROUPS, 1.0, NUM_AGE_GROUPS, P);
 	}
 
-	P->SeroConvMaxSens = Params::get_double(params, pre_params, "Maximum sensitivity of serology assay", 1.0, P);
-	P->SeroConvP1 = Params::get_double(params, pre_params, "Seroconversion model parameter 1", 14.0, P);
-	P->SeroConvP2 = Params::get_double(params, pre_params, "Seroconversion model parameter 2", 3.0, P);
-	P->SeroConvSpec = Params::get_double(params, pre_params, "Specificity of serology assay", 1.0, P);
-	P->InfPrevSurveyScale = Params::get_double(params, pre_params, "Scaling of modelled infection prevalence to match surveys", 1.0, P);
-
+	Params::serology_params(adm_params, pre_params, params, P);
 	Params::severity_params(adm_params, pre_params, params, P);
 
 	if (P->FitIter == 0)

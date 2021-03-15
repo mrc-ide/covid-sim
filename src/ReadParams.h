@@ -543,6 +543,7 @@ namespace Params
   void output_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void household_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void serology_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
