@@ -449,6 +449,8 @@ void parse_intervention_file_option(std::string const& input)
 
 void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile)
 {
+	Files::xfprintf_stderr("Reading Params...\n");	fflush(stderr);
+
 	double s, t, AgeSuscScale;
 	int i, j, j1, j2, k, f, nc, na;
 
@@ -651,6 +653,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 	}
 
+	Files::xfprintf_stderr("Reading Params 1\n"); fflush(stderr);
+
+
 	P.DoAge = Params::get_int(pre_params, adm_params, "Include age", 1, &P);
 	if (P.DoAge == 0)
 	{
@@ -768,6 +773,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		for (i = 0; i < NUM_AGE_GROUPS; i++)	P.AgeInfectiousness[i] /= t;
 	}
 
+	Files::xfprintf_stderr("Reading Params 2\n"); fflush(stderr);
+
+
 	if (P.FitIter == 0)
 	{
 		P.DoSpatial = Params::get_int(pre_params, adm_params, "Include spatial transmission", 1, &P);
@@ -799,6 +807,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		else
 			P.PlaceTypeNum = P.DoAirports = 0;
 	}
+
+	Files::xfprintf_stderr("Reading Params 3\n"); fflush(stderr);
+
+
 	if (P.DoPlaces != 0)
 	{
 		P.CareHomeResidentHouseholdScaling = Params::get_double(pre_params, adm_params, "Scaling of household contacts for care home residents", 1.0, &P);
@@ -817,6 +829,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P.PlaceTypeAgeMin, P.PlaceTypeNum, &P);
 			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P.PlaceTypeAgeMax, P.PlaceTypeNum, &P);
 			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 1 in place types", P.PlaceTypePropAgeGroup, P.PlaceTypeNum, &P);
+
+			Files::xfprintf_stderr("Reading Params 3.1\n"); fflush(stderr);
+
 
 			if (!Params::param_found(pre_params, adm_params, "Proportion of age group 2 in place types"))
 			{
@@ -881,6 +896,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 				                       P.InhibitInterAdunitPlaceAssignment, P.PlaceTypeNum, 0, NUM_PLACE_TYPES, &P);
 			}
 
+			Files::xfprintf_stderr("Reading Params 3.2\n"); fflush(stderr);
+
+
 			P.DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, &P);
 			if (P.DoAirports == 0)
 			{
@@ -935,6 +953,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 					P.InvLocalJourneyDurationDistrib[i] = j2;
 				}
 			}
+
+			Files::xfprintf_stderr("Reading Params 3.3\n"); fflush(stderr);
+
+
 			Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P.PlaceTypeMeanSize, P.PlaceTypeNum, &P);
 			Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P.PlaceTypeGroupSizeParam1, P.PlaceTypeNum, &P);
 			Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P.PlaceTypeSizePower, P.PlaceTypeNum, 0, NUM_PLACE_TYPES, &P);
@@ -945,17 +967,25 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P.PlaceTypeSizeMax, P.PlaceTypeNum, 1e20, NUM_PLACE_TYPES, &P);
 			Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P.PlaceTypeSizeMin, P.PlaceTypeNum, 1.0, NUM_PLACE_TYPES, &P);
 			Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P.PlaceTypeKernelType, P.PlaceTypeNum, P.MoveKernel.type_, NUM_PLACE_TYPES, &P);
+
+			Files::xfprintf_stderr("Reading Params 3.4\n"); fflush(stderr);
+
 			Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P.PlaceExclusivityMatrix, P.PlaceTypeNum * P.PlaceTypeNum, 0, P.PlaceTypeNum* P.PlaceTypeNum, &P);
+			Files::xfprintf_stderr("Reading Params 3.5\n"); fflush(stderr);
 			if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 			{
 				for (i = 0; i < NUM_PLACE_TYPES; i++)                                 // get_double_vec will set the zeroes if missing;
 					P.PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1;          // this line sets the diagonal to 1 (identity matrix)
 			}
+			Files::xfprintf_stderr("Reading Params 3.6\n"); fflush(stderr);
+
 		}
 		/* Note P.PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
 
 		Params::req_double_vec(params, pre_params, "Proportion of between group place links", P.PlaceTypePropBetweenGroupLinks, P.PlaceTypeNum, &P);
+		Files::xfprintf_stderr("Reading Params 3.7\n"); fflush(stderr);
 		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P.PlaceTypeTrans, P.PlaceTypeNum, &P);
+		Files::xfprintf_stderr("Reading Params 3.8\n"); fflush(stderr);
 		for (i = 0; i < P.PlaceTypeNum; i++) P.PlaceTypeTrans[i] *= AgeSuscScale;
 	}
 	Params::get_double_vec(params, pre_params, "Daily seasonality coefficients", P.Seasonality, DAYS_PER_YEAR, 1, DAYS_PER_YEAR, &P);
@@ -980,14 +1010,22 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		Files::xfprintf_stderr("Too many seed locations\n");
 		P.NumSeedLocations = MAX_NUM_SEED_LOCATIONS;
 	}
+	Files::xfprintf_stderr("Reading Params 3.9\n"); fflush(stderr);
+
 	Params::req_int_vec(pre_params, adm_params, "Initial number of infecteds", P.NumInitialInfections, P.NumSeedLocations, &P);
+	Files::xfprintf_stderr("Reading Params 3.10\n"); fflush(stderr);
+
 	Params::get_double_matrix(pre_params, adm_params, "Location of initial infecteds", P.LocationInitialInfection, P.NumSeedLocations, 2, 0, &P);
+	Files::xfprintf_stderr("Reading Params 3.11\n"); fflush(stderr);
 	P.MinPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Minimum population in microcell of initial infection", 0, &P);
 	P.MaxPopDensForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum population in microcell of initial infection", 10000000, &P);
 	P.MaxAgeForInitialInfection = Params::get_int(pre_params, adm_params, "Maximum age of initial infections", 1000, &P);
 	P.DoRandomInitialInfectionLoc = Params::get_int(pre_params, adm_params, "Randomise initial infection location", 1, &P);
 	P.DoAllInitialInfectioninSameLoc = Params::get_int(pre_params, adm_params, "All initial infections located in same microcell", 0, &P);
-	
+
+	Files::xfprintf_stderr("Reading Params 3 blah\n"); fflush(stderr);
+
+
 	if (Params::param_found(pre_params, adm_params, "Day of year of start of seeding"))
 	{
 		P.InitialInfectionCalTime = Params::req_double(pre_params, adm_params, "Day of year of start of seeding", &P);
@@ -1008,6 +1046,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.DoNoCalibration = 0;
 		P.InitialInfectionCalTime = -1;
 	}
+
+	Files::xfprintf_stderr("Reading Params 4\n"); fflush(stderr);
+
+
 	if (P.FitIter == 0)
 	{
 		if (P.DoAdUnits != 0)
@@ -1104,6 +1146,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.infectiousness[k] = 0;
 		P.infectious_icdf.assign_exponent();
 	}
+
+	Files::xfprintf_stderr("Reading Params 5\n"); fflush(stderr);
+
+
 	P.DoLatent = Params::get_int(params, pre_params, "Include latent period", 0, &P);
 	if (P.DoLatent != 0)
 	{
@@ -1173,6 +1219,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.FalsePositivePerCapitaIncidence = Params::get_double(params, pre_params, "False positive per capita incidence", 0.0, &P);
 		Params::get_double_vec(params, pre_params, "False positive relative incidence by age", P.FalsePositiveAgeRate, NUM_AGE_GROUPS, 1.0, NUM_AGE_GROUPS, &P);
 	}
+
+	Files::xfprintf_stderr("Reading Params 6\n"); fflush(stderr);
+
 
 	P.SeroConvMaxSens = Params::get_double(params, pre_params, "Maximum sensitivity of serology assay", 1.0, &P);
 	P.SeroConvP1 = Params::get_double(params, pre_params, "Seroconversion model parameter 1", 14.0, &P);
@@ -1272,6 +1321,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 			P.Prop_ILI_ByAge[i] = 1.0 - P.Prop_Mild_ByAge[i] - P.Prop_SARI_ByAge[i] - P.Prop_Critical_ByAge[i];
 		}
 	}
+
+	Files::xfprintf_stderr("Reading Params 7\n"); fflush(stderr);
+
+
 	if (P.FitIter == 0)
 	{
 		if (Params::param_found(params, pre_params, "Bounding box for bitmap"))
@@ -1329,6 +1382,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.PreAlertControlPropCasesId = Params::get_double(params, pre_params, "Proportion of cases detected before outbreak alert", 1, &P);
 		P.TriggerAlertOnDeaths = Params::get_int(params, pre_params, "Trigger alert on deaths", 0, &P);
 	}
+
+	Files::xfprintf_stderr("Reading Params 8\n"); fflush(stderr);
+
+
 	if (P.TriggerAlertOnDeaths != 0)
 	{
 		P.CaseOrDeathThresholdBeforeAlert = Params::get_int(params, pre_params, "Number of deaths accummulated before alert", 0, &P);
@@ -1472,6 +1529,10 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	P.MoveRestrTimeStartBase = Params::get_double(params, pre_params, "Movement restrictions start time", USHRT_MAX / P.TimeStepsPerDay, &P);
 	P.DoBlanketMoveRestr = Params::get_int(params, pre_params, "Impose blanket movement restrictions", 0, &P);
 	P.DoMoveRestrOnceOnly = Params::get_int(params, pre_params, "Movement restrictions only once", 0, &P);
+
+	Files::xfprintf_stderr("Reading Params 9\n"); fflush(stderr);
+
+
 	//if (P.DoMoveRestrOnceOnly) P.DoMoveRestrOnceOnly = 4; //// don't need this anymore with TreatStat option. Keep it as a boolean.
 	if (P.DoAdUnits != 0)
 	{
@@ -1589,6 +1650,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.ScalingFactorSpatialDigitalContacts = 1;
 		P.ScalingFactorPlaceDigitalContacts = 1;
 	}
+
+	Files::xfprintf_stderr("Reading Params 10\n"); fflush(stderr);
+
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** PLACE CLOSURE
@@ -1743,6 +1807,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	{
 		P.CaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after case isolation", P.CaseIsolationEffectiveness, &P);
 	}
+
+	Files::xfprintf_stderr("Reading Params 11\n"); fflush(stderr);
+
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
@@ -1983,6 +2050,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 	}
 
+	Files::xfprintf_stderr("Reading Params 12\n"); fflush(stderr);
+
+
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
@@ -1998,6 +2068,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_Critical", P.CFR_TimeScaling_Critical, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_SARI", P.CFR_TimeScaling_SARI, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_ILI", P.CFR_TimeScaling_ILI, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
+
+	Files::xfprintf_stderr("Reading Params 13\n"); fflush(stderr);
+
 
 	if(P.FitIter == 0)
 	{
@@ -2068,6 +2141,9 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		P.OlderGenGap = Params::get_int(params, pre_params, adm_params, "Older Gen Gap", 19, &P);
 	}
 
+	Files::xfprintf_stderr("Reading Params 13\n"); fflush(stderr);
+
+
 	if (P.DoOneGen != 0) P.DoOneGen = 1;
 	P.ColourPeriod = 2000;
 	P.MoveRestrRadius2 = P.MoveRestrRadius * P.MoveRestrRadius;
@@ -2124,7 +2200,8 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 		}
 		Files::xfprintf_stderr("Rescaled transmission coefficients by factor of %lg\n", P.R0scale);
 	}
-	Files::xfprintf_stderr("Parameters read\n");
+	Files::xfprintf_stderr("Parameters read\n");	fflush(stderr);
+
 	delete [] CountryNameBuf;
 	delete [] AdunitListNamesBuf;
 	delete [] CountryNames;

@@ -597,6 +597,9 @@ int ReadFitIter(std::string const& FitFile)
 
 	// Compare with functions CovidSimMCMC::StartJobs and CovidSimMCMC::EndJobs
 
+	Files::xfprintf_stderr("Reading Fit File... ");
+	fflush(stderr); 
+
 	FILE* FitFile_Iter_dat;
 	int PosteriorSampleNumber, NumFittedParams, cl_index[100];
 	double Clock_1, Clock_2;
@@ -617,6 +620,8 @@ int ReadFitIter(std::string const& FitFile)
 
 	// Extract iteration/posterior sample number, and number of fitted parameters from FitFile_Iter_dat
 	Files::xfscanf(FitFile_Iter_dat, 2, "%i %i", &PosteriorSampleNumber, &NumFittedParams);
+	Files::xfprintf_stderr("Posterior sample number (iteration... ");
+
 
 	// Output any errors to stderrr.
 	// NumFittedParams < 0 is flag set in CovidSimMCMC::EndJobs.
@@ -632,6 +637,9 @@ int ReadFitIter(std::string const& FitFile)
 		for (int ParamNum = 0; ParamNum < NumFittedParams; ParamNum++) Files::xfscanf(FitFile_Iter_dat, 1, "%lg", &P.clP[cl_index[ParamNum]]); // update values in clP array at those indices (proposedParams[Region][Run][ParamNumber] in CovidSimMCMC)
 	}																						
 	Files::xfclose(FitFile_Iter_dat);
+
+	Files::xfprintf_stderr("Fit file read.\n");
+	fflush(stderr);
 
 	// continue fitting (0) or stop (1)
 	return (NumFittedParams > 0) ? 0 : 1;
