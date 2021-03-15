@@ -89,15 +89,12 @@ std::string Params::clp_overwrite(std::string value, Param* P) {
 	{
 		return value;
 	} 
-	else 
+  int clp_no = std::stoi(value.substr(1, std::string::npos));
+	if ((clp_no < 0) || (clp_no > 99)) 
 	{
-	  int clp_no = std::stoi(value.substr(1, std::string::npos));
-		if ((clp_no < 0) || (clp_no > 99)) 
-		{
-			ERR_CRITICAL_FMT("CLP %d is out of bounds reading parameters\n", clp_no);
-		}
-		return std::to_string(P->clP[clp_no]);
+		ERR_CRITICAL_FMT("CLP %d is out of bounds reading parameters\n", clp_no);
 	}
+	return std::to_string(P->clP[clp_no]);
 }
 
 /*****************************************************************************/
@@ -295,7 +292,7 @@ void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params
 		{
 			if (!buffer.empty())
 			{
-			  if (index < expected) array[index] = std::stod(buffer, &idx);
+			  if (index < expected) array[index] = std::stod(Params::clp_overwrite(buffer, P), &idx);
 			  index++;
 			}
 		}
@@ -351,7 +348,7 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 		{
 			if (!buffer.empty())
 			{
-				uint64_t lval = std::stoll(buffer, &idx);
+				uint64_t lval = std::stoll(Params::clp_overwrite(buffer, P), &idx);
 				int result;
 				if ((lval > (double)INT32_MAX) || (lval < (double)INT32_MIN))
 				{
@@ -360,7 +357,7 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 				}
 				else
 				{
-					result = std::stoi(buffer, &idx);
+					result = std::stoi(Params::clp_overwrite(buffer, P), &idx);
 				}
 
 				array[index] = result;
@@ -423,7 +420,7 @@ int Params::req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 			if (!buffer.empty())
 			{
 				array[index] = new char[buffer.length() + 1];
-				strcpy(array[index], buffer.c_str());
+				strcpy(array[index], Params::clp_overwrite(buffer, P).c_str());
 				index++;
 			}
 		}
@@ -457,7 +454,7 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 		{
 			if (!buffer.empty())
 			{
-				if ((y < sizey) && (x < sizex)) array[x][y] = std::stod(buffer, &idx);
+				if ((y < sizey) && (x < sizex)) array[x][y] = std::stod(Params::clp_overwrite(buffer, P), &idx);
 				x++;
 				if (x == sizex)
 				{
