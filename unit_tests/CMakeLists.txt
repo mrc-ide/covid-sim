@@ -44,4 +44,5 @@ endfunction()
 
 ADD_SUBDIRECTORY(geometry)
 
+add_unit_tests(TARGET test-error SOURCES test-error.cpp ${CMAKE_SOURCE_DIR}/src/Error.cpp)
 add_unit_tests(TARGET test-person SOURCES test-person.cpp ${CMAKE_SOURCE_DIR}/src/Person.cpp)
