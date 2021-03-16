@@ -4,7 +4,7 @@
 TEST(Error, Error)
 {
   ASSERT_DEATH({
-    ErrorCritical("Test Error", "test-error.cpp", 7)
+    ErrorCritical("Test Error", "test-error.cpp", 7);
   }, "[Test Error line 7]");
 }
 
