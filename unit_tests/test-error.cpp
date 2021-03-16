@@ -10,7 +10,7 @@ TEST(ErrorDeathTest, ErrorCritical) {
 TEST(ErrorDeathTest, err_critical_fmt) {
   ASSERT_DEATH({
     ERR_CRITICAL_FMT("Test %s\n", "TEST_STRING");
-  }, "test-error.cpp line 13] Test TEST_STRING");
+  }, "test-error.cpp line 12] Test TEST_STRING");
 }
 
 TEST(ErrorDeathTest, err_critical) {
