@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
+#include "Dist.h"
+#include "Error.h"
 #include "Files.h"
+#include "Memory.h"
+#include "Model.h"
 #include "ReadParams.h"
 #include "Param.h"
+
 #include <string>
+
 
 
 ParamMap test_map(std::string contents) {
