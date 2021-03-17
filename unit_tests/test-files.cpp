@@ -74,7 +74,7 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(f2);
 
   FILE* nullfile = Files::xfopen_fallback("prefer_this.txt", "r", NULL);
-  EXPECT_EQ(nullfile, null);
+  EXPECT_EQ(nullfile, NULL);
 
 
   //////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ TEST(Files, file_open_fallback_exists) {
   
   Files::xremove("to_this.txt");
   f_if_exists = Files::xfopen_if_exists("to_this.txt", "r");
-  EXPECT_EQ(f_if_exists, 0);
+  EXPECT_EQ(f_if_exists, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ TEST(Files, sscanf) {
   buf[3] = 0;
   int result = 0;
   Files::xsscanf(buf, 1, "%d", &result);
-  EXPECT_EQ(results, 123);
+  EXPECT_EQ(result, 123);
   delete[] buf;
 }
 
