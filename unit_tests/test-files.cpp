@@ -14,7 +14,7 @@ TEST(Files, BasicTests) {
   Files::fwrite_big(buf, sizeof(uint64_t), 10, f);
   Files::xfclose(f);
 
-  Files::xrename("test_basictest", "renamed_test_basictest.txt");
+  Files::xrename("test_basictest.txt", "renamed_test_basictest.txt");
   FILE* f2 = Files::xfopen("renamed_test_basictest.txt", "wb");
   Files::fread_big(compare, sizeof(uint64_t), 10, f2);
   Files::xfclose(f2);
