@@ -17,14 +17,23 @@ ParamMap test_map(std::string contents) {
 TEST(ReadParams, scalar_int) {
   Param P;
   ParamMap PM = test_map("[A]\n42[C]99");
-  EXPECT_EQ(Params::get_int(&PM, &PM, "A", 0, &P), 42);    // Basic usage
-  EXPECT_EQ(Params::get_int(&PM, &PM, "C", 0, &P), 99);    // End of file, no last line
-  EXPECT_EQ(Params::get_int(&PM, &PM, "B", 1, &P), 1);\
-  EXPECT_EQ(Params::get_int(&PM, &PM, &PM, "A", 0, &P), 42);
-  EXPECT_EQ(Params::get_int(&PM, &PM, &PM, "B", 1, &P), 1);
+  ParamMap PM2 = test_map("");
+  EXPECT_EQ(Params::get_int(PM2, PM, "A", 0, &P), 42);      // Found in first (2)
+  EXPECT_EQ(Params::get_int(PM, PM2, "A", 0, &P), 42);      // Found in fallback (2)
+  EXPECT_EQ(Params::get_int(PM2, PM2, PM, "A", 0, &P), 42); // Found in first (3)
+  EXPECT_EQ(Params::get_int(PM2, PM, PM2, "A", 0, &P), 42); // Found in fallback (3)
+  EXPECT_EQ(Params::get_int(PM, PM2, PM2, "A", 0, &P), 42); // Found in base (3)
+  EXPECT_EQ(Params::get_int(PM, PM, "B", 7, &P), 7);        // Not found in (2)
+  EXPECT_EQ(Params::get_int(PM, PM, PM, "B", 7, &P), 7);    // Not found in (3)
 
-  EXPECT_EQ(Params::get_int_ff(false, &PM, &PM, "A", 0, &P), 42);
-  EXPECT_EQ(Params::get_int_ff(true, &PM, &PM, "A", 37, &P), 37);
-  EXPECT_EQ(Params::req_int(&PM, &PM, &PM, "A", 0, &P), 42);
-  EXPECT_EQ(Params::req_int(&PM, &PM, "A", 0, &P), 42);
+  EXPECT_EQ(Params::get_int(PM, PM, "C", 0, &P), 99);       // End of file, no lineberak at end
+
+  EXPECT_EQ(Params::get_int_ff(false, PM, PM, "A", 0, &P), 42); // Force failure (false)
+  EXPECT_EQ(Params::get_int_ff(true, PM, PM, "A", 37, &P), 37); // Force failure (true)
+
+  EXPECT_EQ(Params::req_int(PM, PM, PM, "A", 0, &P), 42);     // Require in first (3)
+  EXPECT_EQ(Params::req_int(PM, PM, PM2, "A", 0, &P), 42);    // Require in fallback (3)
+  EXPECT_EQ(Params::req_int(PM, PM2, PM2, "A", 0, &P), 42);   // Require in base (3)
+  EXPECT_EQ(Params::req_int(PM, PM, "A", 0, &P), 42);         // Require in first (2)
+  EXPECT_EQ(Params::req_int(PM, PM2, "A", 0, &P), 42);        // Require in fallback (3)
 }
