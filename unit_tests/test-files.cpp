@@ -15,9 +15,11 @@ TEST(Files, BasicTests) {
   Files::xfclose(f);
 
   Files::xrename("test_basictest", "renamed_test_basictest.txt");
-  FILE* f2 = Files::xfopen("tesT_basictest.txt", "wb");
+  FILE* f2 = Files::xfopen("renamed_test_basictest.txt", "wb");
   Files::fread_big(compare, sizeof(uint64_t), 10, f2);
   Files::xfclose(f2);
+  Files::xremove("renamed_test_basictest.txt");
+
   int matches = 0;
   for (int i=0; i<10; i++) {
     matches += (buf[i] == compare[i]) ? 1 : 0;
@@ -26,6 +28,6 @@ TEST(Files, BasicTests) {
   delete [] compare;
   delete [] buf;
 
-  EXPECT_EQ (10, matches);
+  EXPECT_EQ(10, matches);
 }
 

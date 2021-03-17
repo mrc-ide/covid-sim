@@ -118,6 +118,15 @@ void Files::xrename(const char* oldname, const char* newname) noexcept
   }
 }
 
+void Files::xremove(const char* filename) noexcept
+{
+  int rc = remove(filename);
+  if (rc != 0)
+  {
+    ERR_CRITICAL_FMT("Error %d removing file %s - %s\n", errno, filename, strerror(errno));
+  }
+}
+
 void Files::xsprintf(char* str, const char* format, ...) noexcept
 {
   va_list args;
