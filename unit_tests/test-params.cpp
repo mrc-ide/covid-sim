@@ -31,9 +31,9 @@ TEST(ReadParams, scalar_int) {
   EXPECT_EQ(Params::get_int_ff(false, PM, PM, "A", 0, &P), 42); // Force failure (false)
   EXPECT_EQ(Params::get_int_ff(true, PM, PM, "A", 37, &P), 37); // Force failure (true)
 
-  EXPECT_EQ(Params::req_int(PM, PM, PM, "A", 0, &P), 42);     // Require in first (3)
-  EXPECT_EQ(Params::req_int(PM, PM, PM2, "A", 0, &P), 42);    // Require in fallback (3)
-  EXPECT_EQ(Params::req_int(PM, PM2, PM2, "A", 0, &P), 42);   // Require in base (3)
-  EXPECT_EQ(Params::req_int(PM, PM, "A", 0, &P), 42);         // Require in first (2)
-  EXPECT_EQ(Params::req_int(PM, PM2, "A", 0, &P), 42);        // Require in fallback (3)
+  EXPECT_EQ(Params::req_int(PM, PM, PM, "A", &P), 42);     // Require in first (3)
+  EXPECT_EQ(Params::req_int(PM, PM, PM2, "A", &P), 42);    // Require in fallback (3)
+  EXPECT_EQ(Params::req_int(PM, PM2, PM2, "A", &P), 42);   // Require in base (3)
+  EXPECT_EQ(Params::req_int(PM, PM, "A", &P), 42);         // Require in first (2)
+  EXPECT_EQ(Params::req_int(PM, PM2, "A", &P), 42);        // Require in fallback (3)
 }
