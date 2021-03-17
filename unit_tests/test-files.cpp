@@ -10,7 +10,7 @@ TEST(Files, BasicTests) {
   uint64_t* buf = new uint64_t[10];
   uint64_t* compare = new uint64_t[10];
   for (uint64_t i=0; i<10; i++) {
-    buf[i] = buf[i] = 18000000000000000000L + i;
+    buf[i] = 18000000000000000000L + i;
   }
 
   FILE* f = Files::xfopen("test_basictest.txt", "wb");
@@ -48,10 +48,10 @@ TEST(FilesDeathTests, file_close_fail) {
 
 TEST(Files, file_open_fallback_exists) {
   FILE* f = Files::xfopen("prefer_this.txt", "w");
-  Files::fprintf("1\n");
+  Files::xfprintf("1\n");
   Files::xfclose(f);
   FILE* f2 = Files::xfopen("to_this.txt", "w");
-  Files::fprintf("2\n");
+  Files::xfprintf("2\n");
   Files::xfclose(f);
 
   f2 = Files::xfopen("to_this.txt", "w");
@@ -64,7 +64,7 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(fav);
   EXPECT_EQ(result, 1);
 
-  Files::xfremove("prefer_this.txt");
+  Files::xremove("prefer_this.txt");
 
   FILE* fail = Files::xfopen_fallback("prefer_this.txt", "r", f2);
   Files::xfscanf(fail, 1, "%d", &result);
@@ -84,7 +84,7 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(f_if_exists);
   EXPECT_EQ(result, 2);
   
-  Files::xfremove("to_this.txt");
+  Files::xremove("to_this.txt");
   f_if_exists = Files::xfopen_if_exists("to_this.txt", "r");
   EXPECT_EQ(f_if_exists, 0);
 }
@@ -119,7 +119,7 @@ TEST(FilesDeathTests, remove_fail) {
 
 TEST(Files, sprintf) {
   char* buf = new char[10];
-  Files::xsprintf(&buf, "%d", 123);
+  Files::xsprintf(buf, "%d", 123);
   EXPECT_EQ(atoi(buf), 123);
   delete[] buf;
 }
@@ -140,7 +140,7 @@ TEST(Files, sscanf) {
   buf[2] = '3';
   buf[3] = 0;
   int result = 0;
-  Files::xsscanf(&buf, 1, "%d", &result);
+  Files::xsscanf(buf, 1, "%d", &result);
   EXPECT_EQ(results, 123);
   delete[] buf;
 }
@@ -148,7 +148,7 @@ TEST(Files, sscanf) {
 TEST(FilesDeathTests, sscanf_fail) {
   char* buf = new char[10];
   ASSERT_DEATH({
-    Files::xsscanf(&buf, 1, "%d");
+    Files::xsscanf(buf, 1, "%d");
   }, "Error, xsscanf looking for .* in .*, expected .* matches, got .*");
   delete[] buf;
 }
