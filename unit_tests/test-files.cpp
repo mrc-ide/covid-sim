@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include "Error.h"
 #include "Files.h"
+
 
 TEST(Files, BasicTests) {
   uint64_t* buf = new uint64_t[10];
