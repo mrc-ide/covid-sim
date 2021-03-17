@@ -74,8 +74,7 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(f2);
 
   FILE* nullfile = Files::xfopen_fallback("prefer_this.txt", "r", NULL);
-  EXPECT_EQ((int) nullfile, 0);
-
+  EXPECT_TRUE(nullfile == (FILE*) NULL)
 
   //////////////////////////////////////////////////////////////////////
 
@@ -86,7 +85,7 @@ TEST(Files, file_open_fallback_exists) {
   
   Files::xremove("to_this.txt");
   f_if_exists = Files::xfopen_if_exists("to_this.txt", "r");
-  EXPECT_EQ((int) f_if_exists, 0);
+  EXPECT_TRUE(f_if_exists = (FILE*) NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////
