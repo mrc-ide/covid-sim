@@ -1083,7 +1083,7 @@ void Params::seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamM
 		P->Seasonality[i] /= s;
 }
 
-void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames)
+void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames, AdminUnit AdUnits[])
 {
 	P->NumSeedLocations = Params::get_int(pre_params, adm_params, "Number of seed locations", 1, P);
 	if (P->NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
@@ -1207,7 +1207,7 @@ P->MoveRestrRadius = Params::get_double(params, pre_params, "Minimum radius of m
 ///// **** INTERVENTION DELAYS BY ADMIN UNIT
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit AdUnits[])
 { //Intervention delays and durations by admin unit: ggilani 16/03/20
 
 	P->DoInterventionDelaysByAdUnit = Params::get_int(params, pre_params, "Include intervention delays by admin unit", 0, P);
@@ -1262,7 +1262,7 @@ void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap 
 ///// **** DIGITAL CONTACT TRACING
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-void Params::digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+void Params::digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit AdUnits[])
 {
 	//New code for digital contact tracing - ggilani: 09/03/20
 	P->DoDigitalContactTracing = Params::get_int(params, pre_params, "Include digital contact tracing", 0, P);
@@ -1968,7 +1968,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	Params::place_type_params(adm_params, pre_params, params, P);
 	for (int i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	Params::seasonality_params(adm_params, pre_params, params, P);
-	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames);
+	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames, AdUnits);
 	
 	P->R0 = Params::req_double(params, pre_params, "Reproduction number", P);
 	if (Params::param_found(params, pre_params, "Beta for spatial transmission"))
@@ -2191,8 +2191,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
   Params::treatment_params(adm_params, pre_params, params, P);
 	Params::vaccination_params(adm_params, pre_params, params, P);
 	Params::movement_restriction_params(adm_params, pre_params, params, P);
-	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P);
-	Params::digital_contact_tracing_params(adm_params, pre_params, params, P);
+	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P, AdUnits);
+	Params::digital_contact_tracing_params(adm_params, pre_params, params, P, AdUnits);
 	Params::place_closure_params(adm_params, pre_params, params, P);
 	Params::social_distancing_params(adm_params, pre_params, params, P);
 	Params::case_isolation_params(adm_params, pre_params, params, P);
