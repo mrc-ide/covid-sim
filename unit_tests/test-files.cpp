@@ -13,7 +13,7 @@ TEST(Files, BasicTests) {
   Files::xfclose(f);
 
   Files::xrename("test_basictest", "renamed_test_basictest.txt");
-  File* f2 = Files::xfopen("tesT_basictest.txt", "wb");
+  FILE* f2 = Files::xfopen("tesT_basictest.txt", "wb");
   Files::fread_big(compare, sizeof(uint64_t), 10, f2);
   Files::xfclose(f2);
   int matches = 0;
