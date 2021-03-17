@@ -10,7 +10,7 @@ TEST(Files, BasicTests) {
   uint64_t* buf = new uint64_t[10];
   uint64_t* compare = new uint64_t[10];
   for (uint64_t i=0; i<10; i++) {
-    buf[i] = 18000000000000000000L + i;
+    buf[i] = 180000000000000000L + i;
   }
 
   FILE* f = Files::xfopen("test_basictest.txt", "wb");
@@ -48,10 +48,10 @@ TEST(FilesDeathTests, file_close_fail) {
 
 TEST(Files, file_open_fallback_exists) {
   FILE* f = Files::xfopen("prefer_this.txt", "w");
-  Files::xfprintf("1\n");
+  Files::xfprintf(f, "1\n");
   Files::xfclose(f);
   FILE* f2 = Files::xfopen("to_this.txt", "w");
-  Files::xfprintf("2\n");
+  Files::xfprintf(f2, "2\n");
   Files::xfclose(f);
 
   f2 = Files::xfopen("to_this.txt", "w");
