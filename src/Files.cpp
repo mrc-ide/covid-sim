@@ -44,7 +44,11 @@ size_t Files::fread_big(void* buffer, size_t size, size_t count, FILE* stream)
 
 void Files::xfclose(FILE* stream) noexcept
 {
-  int rc = fclose(stream);
+  int rc = 0;
+  if (stream != NULL)
+  {
+    fclose(stream);
+  }
   if (rc != 0)
   {
     ERR_CRITICAL_FMT("Error %d closing filestream - %s\n", errno, strerror(errno));

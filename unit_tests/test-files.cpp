@@ -83,7 +83,7 @@ TEST(Files, file_open_fallback_exists) {
   
   Files::xremove("to_this.txt");
   f_if_exists = Files::xfopen_if_exists("to_this.txt", "r");
-  EXPECT_TRUE(f_if_exists = (FILE*) NULL);
+  EXPECT_TRUE(f_if_exists == (FILE*) NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////
