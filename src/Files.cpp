@@ -111,7 +111,7 @@ void Files::xfscanf(FILE* stream, int n_expected, const char* format, ...) noexc
   if (stream != NULL) {
     va_list args;
     va_start(args, format);
-    int rc = vfscanf(stream, format, args);
+    rc = vfscanf(stream, format, args);
     va_end(args);
   }
   if (rc != n_expected) {
