@@ -74,7 +74,7 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(f2);
 
   FILE* nullfile = Files::xfopen_fallback("prefer_this.txt", "r", NULL);
-  EXPECT_TRUE(nullfile == (FILE*) NULL)
+  EXPECT_TRUE(nullfile == (FILE*) NULL);
 
   //////////////////////////////////////////////////////////////////////
 
