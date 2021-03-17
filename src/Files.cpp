@@ -44,10 +44,10 @@ size_t Files::fread_big(void* buffer, size_t size, size_t count, FILE* stream)
 
 void Files::xfclose(FILE* stream) noexcept
 {
-  int rc = 0;
+  int rc = 1;
   if (stream != NULL)
   {
-    fclose(stream);
+    rc = fclose(stream);
   }
   if (rc != 0)
   {
@@ -82,10 +82,13 @@ FILE* Files::xfopen_if_exists(const char* filename, const char* mode) noexcept
 
 void Files::xfprintf(FILE* stream, const char* format, ...) noexcept
 {
-  va_list args;
-  va_start(args, format);
-  int rc = vfprintf(stream, format, args);
-  va_end(args);
+  int rc = -1;
+  if (stream != NULL) {
+    va_list args;
+    va_start(args, format);
+    rc = vfprintf(stream, format, args);
+    va_end(args);
+  }
   if (rc < 0) {
     ERR_CRITICAL_FMT("Error %d doing fprintf %s - %s\n", errno, format, strerror(errno));
   }
