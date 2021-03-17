@@ -46,5 +46,5 @@ ADD_SUBDIRECTORY(geometry)
 
 add_unit_tests(TARGET test-error SOURCES test-error.cpp ${CMAKE_SOURCE_DIR}/src/Error.cpp)
 add_unit_tests(TARGET test-files SOURCES test-files.cpp ${CMAKE_SOURCE_DIR}/src/Files.cpp ${CMAKE_SOURCE_DIR}/src/Error.cpp)
-add_unit_tests(TARGET test-params SOURCES test-params.cpp ${CMAKE_SOURCE_DIR}/src/ReadParams.cpp ${CMAKE_SOURCE_DIR}/src/Files.cpp ${CMAKE_SOURCE_DIR}/src/Param.cpp ${CMAKE_SOURCE_DIR}/src/Error.cpp ${CMAKE_SOURCE_DIR}/src/Memory.cpp ${CMAKE_SOURCE_DIR}/src/Dist.cpp ${CMAKE_SOURCE_DIR}/src/Model.cpp)
+add_unit_tests(TARGET test-params SOURCES test-params.cpp ${CMAKE_SOURCE_DIR}/src/ReadParams.cpp ${CMAKE_SOURCE_DIR}/src/Files.cpp ${CMAKE_SOURCE_DIR}/src/Param.cpp ${CMAKE_SOURCE_DIR}/src/Error.cpp ${CMAKE_SOURCE_DIR}/src/Memory.cpp ${CMAKE_SOURCE_DIR}/src/Dist.cpp)
 add_unit_tests(TARGET test-person SOURCES test-person.cpp ${CMAKE_SOURCE_DIR}/src/Person.cpp) 
