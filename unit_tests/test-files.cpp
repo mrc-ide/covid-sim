@@ -52,9 +52,9 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfclose(f);
   FILE* f2 = Files::xfopen("to_this.txt", "w");
   Files::xfprintf(f2, "2\n");
-  Files::xfclose(f);
+  Files::xfclose(f2);
 
-  f2 = Files::xfopen("to_this.txt", "w");
+  f2 = Files::xfopen("to_this.txt", "r");
   int result;
 
   ////////////////////////////////////////////////////////////////////////
@@ -70,8 +70,6 @@ TEST(Files, file_open_fallback_exists) {
   Files::xfscanf(fail, 1, "%d", &result);
   Files::xfclose(fail);
   EXPECT_EQ(result, 2);
-
-  Files::xfclose(f2);
 
   FILE* nullfile = Files::xfopen_fallback("prefer_this.txt", "r", NULL);
   EXPECT_TRUE(nullfile == (FILE*) NULL);
