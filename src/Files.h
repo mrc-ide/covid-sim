@@ -16,7 +16,7 @@
 namespace Files
 {
 
-/** \brief             Write data with compatibility for large types
+/** \brief             Write a potentially large amount of data, using large buffer fwrites.
  *  \param  buffer     Buffer to write from
  *  \param  size       How many elements
  *  \param  count      Size of each element
@@ -29,8 +29,8 @@ namespace Files
 
 
 
-/** \brief             Read data with compatibility for large types
- *  \param  buffer     Buffer to write from
+/** \brief             Read a potentially large amount of data, using large buffered freads.
+ *  \param  buffer     Buffer to read into 
  *  \param  size       How many elements
  *  \param  count      Size of each element
  *  \param  stream     File stream to read from
