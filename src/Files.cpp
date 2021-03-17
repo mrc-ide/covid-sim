@@ -107,10 +107,13 @@ void Files::xfprintf_stderr(const char* format, ...) noexcept
 
 void Files::xfscanf(FILE* stream, int n_expected, const char* format, ...) noexcept
 {
-  va_list args;
-  va_start(args, format);
-  int rc = vfscanf(stream, format, args);
-  va_end(args);
+  int rc = -1;
+  if (stream != NULL) {
+    va_list args;
+    va_start(args, format);
+    int rc = vfscanf(stream, format, args);
+    va_end(args);
+  }
   if (rc != n_expected) {
     ERR_CRITICAL_FMT("Error, fsscanf looking for %s, expected %d matches, got %d\n", format, n_expected, rc);
   }
