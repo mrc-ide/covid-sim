@@ -3,7 +3,6 @@
  */
 
 #include "Files.h"
-#include "Error.h"
 
 size_t Files::fwrite_big(void* buffer, size_t size, size_t count, FILE* stream)
 {

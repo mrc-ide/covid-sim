@@ -10,6 +10,9 @@
 #include <cstring>
 #include <cstdarg>
 
+#include "Error.h"
+
+
 namespace Files
 {
 
