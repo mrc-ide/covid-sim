@@ -93,27 +93,27 @@ TEST(Files, file_open_fallback_exists) {
 TEST(FilesDeathTests, printf_fail) {
   ASSERT_DEATH({
     Files::xfprintf(NULL, "%d", 123);
-  }, "Error .* doing fprintf .*");
+  }, ".*Error .* doing fprintf .*");
 }
 
 TEST(FilesDeathTests, scanf_fail) {
   int result;
   ASSERT_DEATH({
     Files::xfscanf(NULL, 1, "%d", &result);
-  }, "Error fsscanf looking for .*, expected .* matches, got .*");
+  }, ".*Error fsscanf looking for .*, expected .* matches, got .*");
 }
 
 TEST(FilesDeathTests, rename_fail) {
   int result;
   ASSERT_DEATH({
     Files::xrename("this_doesn_exist.txt", "neither_does_this.txt");
-  }, "Error .* renaming file .* to fsscanf looking for .*, expected .* matches, got .*");
+  }, ".*Error .* renaming file .* to fsscanf looking for .*, expected .* matches, got .*");
 }
 
 TEST(FilesDeathTests, remove_fail) {
   ASSERT_DEATH({
     Files::xremove("this_doesn_exist.txt");
-  }, "Error .* removing file .*");
+  }, ".*Error .* removing file .*");
 }
 
 TEST(Files, sprintf) {
@@ -128,7 +128,7 @@ TEST(FilesDeathTests, sprintf_fail) {
   char* buf = new char[10];
   ASSERT_DEATH({
     Files::xsprintf(buf, "%d");
-  }, "Error .* doing sprintf .*");
+  }, ".*Error .* doing sprintf .*");
   delete[] buf;
 }
 
@@ -148,6 +148,6 @@ TEST(FilesDeathTests, sscanf_fail) {
   char* buf = new char[10];
   ASSERT_DEATH({
     Files::xsscanf(buf, 1, "%d");
-  }, "Error, xsscanf looking for .* in .*, expected .* matches, got .*");
+  }, ".*Error, xsscanf looking for .* in .*, expected .* matches, got .*");
   delete[] buf;
 }
