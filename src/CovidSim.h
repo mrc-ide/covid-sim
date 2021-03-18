@@ -24,7 +24,7 @@
 #include "Country.h"
 #include "Constants.h"
 #include "Files.h"
-#include "Params.h"
+#include "ReadParams.h"
 
 int ChooseTriggerVariableAndValue(int AdUnit);
 double ChooseThreshold(int AdUnit, double WhichThreshold);

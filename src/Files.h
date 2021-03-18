@@ -10,10 +10,13 @@
 #include <cstring>
 #include <cstdarg>
 
+#include "Error.h"
+
+
 namespace Files
 {
 
-/** \brief             Write data with compatibility for large types
+/** \brief             Write a potentially large amount of data, using large buffer fwrites.
  *  \param  buffer     Buffer to write from
  *  \param  size       How many elements
  *  \param  count      Size of each element
@@ -26,8 +29,8 @@ namespace Files
 
 
 
-/** \brief             Read data with compatibility for large types
- *  \param  buffer     Buffer to write from
+/** \brief             Read a potentially large amount of data, using large buffered freads.
+ *  \param  buffer     Buffer to read into 
  *  \param  size       How many elements
  *  \param  count      Size of each element
  *  \param  stream     File stream to read from
@@ -113,31 +116,40 @@ namespace Files
 
 
 
-  /** \brief             Wrapper around sprintf that aborts on error.
-   *  \param  str        The buffer to write result into
-   *  \param  format     The format string for sprintf
-   *  \param  ...        Sources for each placeholder
-   *
-   */
+/** \brief             Wrapper around sprintf that aborts on error.
+ *  \param  str        The buffer to write result into
+ *  \param  format     The format string for sprintf
+ *  \param  ...        Sources for each placeholder
+ *
+ */
 
   void xsprintf(char* str, const char* format, ...) noexcept;
 
 
 
-    /** \brief             Wrapper around rename that aborts on error.
-   *  \param  oldname    Original name of file
-   *  \param  newname    How many elements
-   *  \param  count      Size of each element
-   *  \param  stream     File stream to read from
-   *
-   */
+/** \brief             Wrapper around rename that aborts on error.
+ *  \param  oldname    Original name of file
+ *  \param  newname    How many elements
+ *
+ */
 
   void xrename(const char* oldname, const char* newname) noexcept;
 
 
 
+/** \brief             Wrapper around remove (delete file) that aborts on error.
+ *  \param  oldname    Original name of file
+ *  \param  stream     File stream to read from
+ *
+ */
+
+  void xremove(const char* filename) noexcept;
+
+
+
 /** \brief             Wrapper around sscanf that aborts on error.
  *  \param  s          The string to be parsed
+ *  \param n_expected  Number of arguments expected
  *  \param  format     The format string for sscanf
  *  \param  ...        Destinations for each placeholder
  *

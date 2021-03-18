@@ -3,7 +3,6 @@
  */
 
 #include "Files.h"
-#include "Error.h"
 
 size_t Files::fwrite_big(void* buffer, size_t size, size_t count, FILE* stream)
 {
@@ -45,7 +44,11 @@ size_t Files::fread_big(void* buffer, size_t size, size_t count, FILE* stream)
 
 void Files::xfclose(FILE* stream) noexcept
 {
-  int rc = fclose(stream);
+  int rc = 1;
+  if (stream != NULL)
+  {
+    rc = fclose(stream);
+  }
   if (rc != 0)
   {
     ERR_CRITICAL_FMT("Error %d closing filestream - %s\n", errno, strerror(errno));
@@ -79,10 +82,13 @@ FILE* Files::xfopen_if_exists(const char* filename, const char* mode) noexcept
 
 void Files::xfprintf(FILE* stream, const char* format, ...) noexcept
 {
-  va_list args;
-  va_start(args, format);
-  int rc = vfprintf(stream, format, args);
-  va_end(args);
+  int rc = -1;
+  if (stream != NULL) {
+    va_list args;
+    va_start(args, format);
+    rc = vfprintf(stream, format, args);
+    va_end(args);
+  }
   if (rc < 0) {
     ERR_CRITICAL_FMT("Error %d doing fprintf %s - %s\n", errno, format, strerror(errno));
   }
@@ -101,10 +107,13 @@ void Files::xfprintf_stderr(const char* format, ...) noexcept
 
 void Files::xfscanf(FILE* stream, int n_expected, const char* format, ...) noexcept
 {
-  va_list args;
-  va_start(args, format);
-  int rc = vfscanf(stream, format, args);
-  va_end(args);
+  int rc = -1;
+  if (stream != NULL) {
+    va_list args;
+    va_start(args, format);
+    rc = vfscanf(stream, format, args);
+    va_end(args);
+  }
   if (rc != n_expected) {
     ERR_CRITICAL_FMT("Error, fsscanf looking for %s, expected %d matches, got %d\n", format, n_expected, rc);
   }
@@ -116,6 +125,15 @@ void Files::xrename(const char* oldname, const char* newname) noexcept
   if (rc != 0)
   {
     ERR_CRITICAL_FMT("Error %d renaming file %s to %s - %s\n", errno, oldname, newname, strerror(errno));
+  }
+}
+
+void Files::xremove(const char* filename) noexcept
+{
+  int rc = remove(filename);
+  if (rc != 0)
+  {
+    ERR_CRITICAL_FMT("Error %d removing file %s - %s\n", errno, filename, strerror(errno));
   }
 }
 

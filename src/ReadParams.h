@@ -1,19 +1,23 @@
-/** \file  Params.h
+/** \file  ReadParams.h
  *  \brief Provide support for parsing param files.
  */
 
-#ifndef PARAMS_H_INCLUDED_
-#define PARAMS_H_INCLUDED_
+#ifndef READ_PARAMS_H_INCLUDED_
+#define READ_PARAMS_H_INCLUDED_
 
 #include <cstdint>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <map>
 
+#include "Dist.h"
 #include "Error.h"
 #include "Files.h"
+#include "Memory.h"
+#include "Model.h"
 #include "Param.h"
 
 
@@ -48,13 +52,15 @@ namespace Params
  *  \param fallback    A fallback if the parameter is not found in params
  *  \param base        A final map, should the parameter not be found in fallback.
  *  \param param_name  The name of the parameter to look up.
+ *  \param search_clp  Allow searching for a command-line parameter if result starts with #
  *  \param P           The params (for looking up /CLP)
  *  \return            A string (possibly including '\n' for that parameter. If the result starts
- *                     with '#', the matching command-line parameter (/CP01:) will be returned.
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned if
+ *                     search_clp is true
  */
 
   std::string lookup_param(ParamMap &base, ParamMap &fallback, ParamMap &params,
-                           std::string param_name, Param* P);
+                           std::string param_name, Param* P, bool search_clp);
 
 
 
@@ -63,11 +69,69 @@ namespace Params
  *  \param fallback    A fallback if the parameter is not found in params
  *  \param param_name  The name of the parameter to look up.
  *  \param P           The params (for looking up /CLP)
+ *  \param search_clp  Allow searching for a command-line parameter if result starts with #* 
+ *  \return            A string (possibly including '\n' for that parameter. If the result starts
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned if
+ *                     search_clp is true.
+ */
+
+  std::string lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P, bool search_clp);
+
+
+
+/** \brief             Lookup a param, and if it starts with # lookup matching command-line parameter
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param base        A final map, should the parameter not be found in fallback.
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
  *  \return            A string (possibly including '\n' for that parameter. If the result starts
  *                     with '#', the matching command-line parameter (/CP01:) will be returned.
  */
 
-  std::string lookup_param(ParamMap &fallback, ParamMap &params, std::string param_name, Param* P);
+  std::string lookup_param_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Two param-map version. Lookup a param, and if it starts with # lookup matching command-line parameter
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter. If the result starts
+ *                     with '#', the matching command-line parameter (/CP01:) will be returned.
+ */
+
+  std::string lookup_param_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Lookup a param, but do not search for command-line parameters, even if the
+ *                     value starts with #. (The # may refer to only the first part of a vector or matrix, so
+ *                     in this case, the inner loop will consider each element for CLP.)
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param base        A final map, should the parameter not be found in fallback.
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter.)
+ */
+
+  std::string lookup_param_non_clp(ParamMap& base, ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
+
+
+
+/** \brief             Two param version. Lookup a param, but do not search for command-line parameters, even if the
+ *                     value starts with #. (The # may refer to only the first part of a vector or matrix, so
+ *                     in this case, the inner loop will consider each element for CLP.)
+ *  \param params      The preferred map to find the parameter in
+ *  \param fallback    A fallback if the parameter is not found in params
+ *  \param param_name  The name of the parameter to look up.
+ *  \param P           The params (for looking up /CLP)
+ *  \return            A string (possibly including '\n' for that parameter.)
+ */
+
+  std::string lookup_param_non_clp(ParamMap& fallback, ParamMap& params, std::string param_name, Param* P);
 
 
 
@@ -176,13 +240,28 @@ namespace Params
  *  \param default_value  Value to return if the parameter is missing
  *  \param err_on_missing If true, and the parameter is not found, then stop.
  *  \param P              The Param struct, to loop up clP if necessary.
+ *  \param force_fail     If true, force to return the default_value
  *  \return               The integer result
  */
 
   int get_int(ParamMap &base, ParamMap &fallback, ParamMap &params,
               std::string param_name, int default_value,
-              bool err_on_missing, Param* P);
+              bool err_on_missing, Param* P, bool force_fail);
 
+
+
+  /** \brief                Wrapper for get_int, with force_fail option
+   *  \param params         The preferred map to find the parameter in
+   *  \param fallback       A fallback if the parameter is not found in params
+   *  \param param_name     The name of the parameter to look up.
+   *  \param default_value  Value to return if the parameter is missing
+   *  \param err_on_missing If true, and the parameter is not found, then stop.
+   *  \param P              The Param struct, to loop up clP if necessary.
+   *  \param force_fail     If true, force to return the default_value
+   *  \return               The integer result
+   */
+
+  int get_int_ff(bool force_fail, ParamMap& fallback, ParamMap& params, std::string param_name, int default_value, Param* P);
 
 
 /** \brief                A wrapper for get_int, taking only two parameter maps
@@ -512,11 +591,40 @@ namespace Params
                          std::string param_name, double** array, int sizex,
                          int sizey, double default_value, Param* P);
 
+/** \brief                Parse an inverse CDF
+ */
+   void get_inverse_cdf(ParamMap fallback, ParamMap params, const char* icdf_name, InverseCdf* inverseCdf, Param* P, double start_value);
 
 /** \brief                Allocate memory for 2-D (or higher) objects in params
  */
   void alloc_params(Param* P);
 
+  void waifw_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void output_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void household_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void serology_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void severity_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void vaccination_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames);
+  void movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void household_quarantine_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void set_variable_efficacy(ParamMap params, ParamMap pre_params, std::string param_name, Param* P, double** matrix, int change_times, double* default_vals, bool force_fail);
+  void variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+
+/** \brief                Top-level call for ReadParams.
+ */
+  void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, std::string const& AdUnitFile, Param* P, AdminUnit* AdUnits);
+
 } // namespace Params
 
-#endif // PARAMS_H_INCLUDED_
+#endif // READ_PARAMS_H_INCLUDED_
