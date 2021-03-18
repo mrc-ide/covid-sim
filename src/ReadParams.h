@@ -5,6 +5,11 @@
 #ifndef READ_PARAMS_H_INCLUDED_
 #define READ_PARAMS_H_INCLUDED_
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+
 #include <cstdint>
 #include <climits>
 #include <fstream>
@@ -13,7 +18,6 @@
 #include <string>
 #include <map>
 
-#include "Dist.h"
 #include "Error.h"
 #include "Files.h"
 #include "Memory.h"
@@ -610,10 +614,10 @@ namespace Params
   void carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames);
+  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames, AdminUnit* AdUnits);
   void movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits);
+  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits);
   void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);

@@ -102,7 +102,6 @@ TEST(FilesDeathTests, scanf_fail) {
 }
 
 TEST(FilesDeathTests, rename_fail) {
-  int result;
   ASSERT_DEATH({
     Files::xrename("this_doesnt_exist.txt", "neither_does_this.txt");
   }, "Error .* renaming file .* to .* - No such file or directory");
