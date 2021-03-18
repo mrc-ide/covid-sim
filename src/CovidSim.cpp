@@ -2766,15 +2766,50 @@ double ChooseThreshold(int AdUnit, double WhichThreshold) //// point is that thi
 	return Threshold;
 }
 
+int FindSplineSegment(double t, int* ChangePoints, const int& NumSegments)
+{
+	int Segment = NumSegments - 1;
+	while (ChangePoints[Segment] > t) Segment--;
+	return Segment;
+}
+
 void UpdateCFRs(double t_CalTime)
 {
-	for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++)
-		if (t_CalTime == P.CFR_ChangeTimes_CalTime[ChangeTime])
+	//// note this updates all CFRs using single scaling. The actual state (ILI, SARI, or Critical) is arbitrary, so here uses Critical.
+	double Scale = 1;
+	if (P.Num_CFR_ChangeTimes > 1)
+	{
+		if (t_CalTime <= P.CFR_ChangeTimes_CalTime[0])
+			Scale = P.CFR_TimeScaling_Critical[0]; // if t <= first change point, take value at first change point. 
+		else if (t_CalTime >= P.CFR_ChangeTimes_CalTime[P.Num_CFR_ChangeTimes - 1])
+			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1]; // if t >= last change point, take value at last change point. 
+		else
 		{
-			P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[ChangeTime];
-			P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[ChangeTime];
-			P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
+			int SplineSegment = FindSplineSegment(t_CalTime, P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes);
+
+			double x0 = P.CFR_ChangeTimes_CalTime[SplineSegment];
+			double x1 = P.CFR_ChangeTimes_CalTime[SplineSegment + 1];
+			double y0 = P.CFR_TimeScaling_Critical[SplineSegment];
+			double y1 = P.CFR_TimeScaling_Critical[SplineSegment + 1];
+			double Slope = (y1 - y0) / (x1 - x0);
+			double Intercept = y1 - Slope * x1;
+
+			Scale = Intercept + (Slope * t_CalTime);
 		}
+	}
+	// can generalise this if need be so that each CFR is scaled differently. For now scale them all the same and use Critical in pre-params
+	P.CFR_Critical_Scale_Current = Scale;
+	P.CFR_SARI_Scale_Current = Scale;
+	P.CFR_ILI_Scale_Current = Scale;
+
+	/// if doing step function keep code below. 
+	//for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++)
+	//	if (t_CalTime == P.CFR_ChangeTimes_CalTime[ChangeTime])
+	//	{
+	//		P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[ChangeTime];
+	//		P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[ChangeTime];
+	//		P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
+	//	}
 }
 
 

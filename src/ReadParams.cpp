@@ -2200,7 +2200,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	Params::variable_efficacy_over_time_params(adm_params, pre_params, params, P);
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME)
+	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME, although implementation is slightly different as there is linear scaling between changepoints, not step function as per variable efficacies)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	P->Num_CFR_ChangeTimes = Params::get_int(params, pre_params, "Num_CFR_ChangeTimes", 1, P);
 
@@ -2214,6 +2214,16 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_Critical", P->CFR_TimeScaling_Critical, P->Num_CFR_ChangeTimes, 1, P->Num_CFR_ChangeTimes, P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_SARI", P->CFR_TimeScaling_SARI, P->Num_CFR_ChangeTimes, 1, P->Num_CFR_ChangeTimes, P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_ILI", P->CFR_TimeScaling_ILI, P->Num_CFR_ChangeTimes, 1, P->Num_CFR_ChangeTimes, P);
+
+	//// Guards: make unused change values in array equal to final used value
+	for (int CFR_ChangeTime = P->Num_CFR_ChangeTimes; CFR_ChangeTime < MAX_NUM_CFR_CHANGE_TIMES - 1; CFR_ChangeTime++)
+	{
+		P->CFR_TimeScaling_Critical[CFR_ChangeTime] = P->CFR_TimeScaling_Critical[P->Num_CFR_ChangeTimes - 1];
+		P->CFR_TimeScaling_SARI[CFR_ChangeTime] = P->CFR_TimeScaling_SARI[P->Num_CFR_ChangeTimes - 1];
+		P->CFR_TimeScaling_ILI[CFR_ChangeTime] = P->CFR_TimeScaling_ILI[P->Num_CFR_ChangeTimes - 1];
+	}
+
+
 
 	if (P->FitIter == 0)
 	{
