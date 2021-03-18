@@ -71,5 +71,3 @@ TEST(ReadParams, scalar_wildcard) {
   EXPECT_EQ(Params::get_double(PM, PM, "C", 0, &P), 4.2);
 }
 
-TEST(ReadParams, int_vec) {
-  ParamMap PM = test_map("[A]\n-1 2 4 6 8\n");
