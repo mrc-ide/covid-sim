@@ -610,10 +610,10 @@ namespace Params
   void carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames, AdminUnit AdUnits[]);
+  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames);
   void movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit AdUnits[]);
-  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit AdUnits[]);
+  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
