@@ -1984,20 +1984,29 @@ void ReadParams(std::string const& ParamFile, std::string const& PreParamFile, s
 	}
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
-	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME)
+	///// **** CFR SCALINGS OVER TIME (logic to set this up is the same as for VARIABLE EFFICACIES OVER TIME, although implementation is slightly different as there is linear scaling between changepoints, not step function as per variable efficacies)
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	P.Num_CFR_ChangeTimes = Params::get_int(params, pre_params, "Num_CFR_ChangeTimes", 1, &P);
 
 	//// By default, initialize first change time to zero and all subsequent change times to occur after simulation time, i.e. single value e.g. of Critical CFR.
-	P.CFR_ChangeTimes_CalTime[0] = 0;
+	P.CFR_ChangeTimes_CalTime[0]	= 0;
 
-  for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX;
+	for (int ChangeTime = 1; ChangeTime < MAX_NUM_CFR_CHANGE_TIMES; ChangeTime++) P.CFR_ChangeTimes_CalTime[ChangeTime] = INT32_MAX;
 	Params::get_int_vec(params, pre_params, "CFR_ChangeTimes_CalTime", P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes, INT32_MAX, P.Num_CFR_ChangeTimes, &P);
 
 	// Get various CFR scalings. 
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_Critical", P.CFR_TimeScaling_Critical, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_SARI", P.CFR_TimeScaling_SARI, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
 	Params::get_double_vec(params, pre_params, "CFR_TimeScaling_ILI", P.CFR_TimeScaling_ILI, P.Num_CFR_ChangeTimes, 1, P.Num_CFR_ChangeTimes, &P);
+
+	//// Guards: make unused change values in array equal to final used value
+	for (int CFR_ChangeTime = P.Num_CFR_ChangeTimes; CFR_ChangeTime < MAX_NUM_CFR_CHANGE_TIMES - 1; CFR_ChangeTime++)
+	{
+		P.CFR_TimeScaling_Critical	[CFR_ChangeTime] = P.CFR_TimeScaling_Critical	[P.Num_CFR_ChangeTimes - 1];
+		P.CFR_TimeScaling_SARI		[CFR_ChangeTime] = P.CFR_TimeScaling_SARI		[P.Num_CFR_ChangeTimes - 1];
+		P.CFR_TimeScaling_ILI		[CFR_ChangeTime] = P.CFR_TimeScaling_ILI		[P.Num_CFR_ChangeTimes - 1];
+	}
+
 
 	if(P.FitIter == 0)
 	{
@@ -4454,15 +4463,49 @@ double ChooseThreshold(int AdUnit, double WhichThreshold) //// point is that thi
 	return Threshold;
 }
 
+int FindSplineSegment(double t, int * ChangePoints, const int &NumSegments)
+{
+	int Segment = NumSegments - 1;
+	while (ChangePoints[Segment] > t) Segment--;
+	return Segment;
+}
 void UpdateCFRs(double t_CalTime)
 {
-	for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++)
-		if (t_CalTime == P.CFR_ChangeTimes_CalTime[ChangeTime])
+	//// note this updates all CFRs using single scaling. The actual state (ILI, SARI, or Critical) is arbitrary, so here uses Critical.
+	double Scale = 1;
+	if (P.Num_CFR_ChangeTimes > 1)
+	{
+		if (t_CalTime <= P.CFR_ChangeTimes_CalTime[0])
+			Scale = P.CFR_TimeScaling_Critical[0]; // if t <= first change point, take value at first change point. 
+		else if (t_CalTime >= P.CFR_ChangeTimes_CalTime[P.Num_CFR_ChangeTimes - 1]	)
+			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1]; // if t >= last change point, take value at last change point. 
+		else 
 		{
-			P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[ChangeTime];
-			P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[ChangeTime];
-			P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
+			int SplineSegment = FindSplineSegment(t_CalTime, P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes);
+
+			double x0 = P.CFR_ChangeTimes_CalTime [SplineSegment];
+			double x1 = P.CFR_ChangeTimes_CalTime [SplineSegment + 1];
+			double y0 = P.CFR_TimeScaling_Critical[SplineSegment];
+			double y1 = P.CFR_TimeScaling_Critical[SplineSegment + 1];
+			double Slope = (y1 - y0) / (x1 - x0);
+			double Intercept = y1 - Slope * x1;
+
+			Scale = Intercept + (Slope * t_CalTime);
 		}
+	}
+	// can generalise this if need be so that each CFR is scaled differently. For now scale them all the same and use Critical in pre-params
+	P.CFR_Critical_Scale_Current	= Scale; 
+	P.CFR_SARI_Scale_Current		= Scale; 
+	P.CFR_ILI_Scale_Current			= Scale; 
+
+	/// if doing step function keep code below. 
+	//for (int ChangeTime = 0; ChangeTime < P.Num_CFR_ChangeTimes; ChangeTime++)
+	//	if (t_CalTime == P.CFR_ChangeTimes_CalTime[ChangeTime])
+	//	{
+	//		P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[ChangeTime];
+	//		P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[ChangeTime];
+	//		P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
+	//	}
 }
 
 
