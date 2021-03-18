@@ -98,7 +98,7 @@ TEST(FilesDeathTests, scanf_fail) {
   int result;
   ASSERT_DEATH({
     Files::xfscanf(NULL, 1, "%d", &result);
-  }, ".*Error, fsscanf looking for .*, expected .* matches, got .*");
+  }, ".*Error fsscanf looking for .*, expected .* matches, got .*");
 }
 
 TEST(FilesDeathTests, rename_fail) {
