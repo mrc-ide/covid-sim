@@ -348,7 +348,7 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 		{
 			if (!buffer.empty())
 			{
-				uint64_t lval = std::stoll(Params::clp_overwrite(buffer, P), &idx);
+				int64_t lval = std::stoll(Params::clp_overwrite(buffer, P), &idx);
 				int result;
 				if ((lval > (double)INT32_MAX) || (lval < (double)INT32_MIN))
 				{
