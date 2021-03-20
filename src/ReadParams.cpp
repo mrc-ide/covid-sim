@@ -230,7 +230,7 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::s
 	if (!force_fail && (str_value.compare("NULL") != 0))
 	{
 		std::string::size_type idx;
-		uint64_t lval = std::stoll(str_value, &idx);
+		int64_t lval = std::stoll(str_value, &idx);
 		int result;
 		if ((lval > (double) INT32_MAX) || (lval < (double) INT32_MIN))
 		{
