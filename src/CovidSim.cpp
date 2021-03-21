@@ -119,6 +119,7 @@ std::vector<std::string> InterventionFiles;
 int main(int argc, char* argv[])
 {
 	Params::alloc_params(&P);
+
 	///// Flags to ensure various parameters have been read; set to false as default.
 	std::string pre_param_file, param_file, density_file, load_network_file, save_network_file, air_travel_file, school_file;
 	std::string reg_demog_file, fit_file, data_file;
@@ -811,7 +812,6 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
 	int nim;
-	int NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS];
 
 	if (P.OutputBitmap)
 	{
@@ -1150,8 +1150,10 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 
+	int* NumSeedingInfections_byLocation = new int[P.NumSeedLocations];
 	for (int i = 0; i < P.NumSeedLocations; i++) NumSeedingInfections_byLocation[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
 	SeedInfection(0, NumSeedingInfections_byLocation, 0, run);
+	delete[] NumSeedingInfections_byLocation;
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
 
@@ -1329,7 +1331,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 		// v) Treat infected people with TreatSweep function
 		// Calculate/Record Model output if timestep is an output timestep. 
 
-	int KeepRunning = 1, IsEpidemicStillGoing = 0, NumSeedingInfections, NumSeedingInfections_byLocation[MAX_NUM_SEED_LOCATIONS] /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
+	int KeepRunning = 1, IsEpidemicStillGoing = 0, NumSeedingInfections; /*Denotes either Num imported Infections given rate ir, or number false positive "infections"*/;
 	double InfectionImportRate; // infection import rate?;
 	double CurrSimTime, ProportionSusceptible = 1, PreviousProportionSusceptible = 1, t2;
 	unsigned short int CurrTimeStep; //// Timestep in simulation time.
@@ -1391,6 +1393,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 					// Calculated number of seeding infections (and seed infections).
 					if (InfectionImportRate > 0) //// if infection import rate > 0, seed some infections
 					{
+						int* NumSeedingInfections_byLocation = new int[P.NumSeedLocations];
 						for (int SeedLoc = NumSeedingInfections = 0; SeedLoc < P.NumSeedLocations; SeedLoc++)
 						{
 							// sample number imported infections in this location from from Poisson distribution.
@@ -1398,8 +1401,10 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 							// Add to total
 							NumSeedingInfections += NumSeedingInfections_byLocation[SeedLoc];
 						}
+
 						// ** // ** SeedInfection
 						if (NumSeedingInfections > 0)	SeedInfection(CurrSimTime, NumSeedingInfections_byLocation, 1, run);
+						delete[] NumSeedingInfections_byLocation;
 					}
 
 					if (P.FalsePositivePerCapitaIncidence > 0)
@@ -3970,10 +3975,11 @@ void CalcOriginDestMatrix_adunit()
 		shared(P, Cells, CellLookup, Mcells, StateT)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
+		double* pop_dens_from = new double[MAX_ADUNITS];
 		for (int i = tn; i < P.NumPopulatedCells; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
-			double pop_dens_from[MAX_ADUNITS] = {};
+			for (int k=0; k<MAX_ADUNITS; k++) pop_dens_from[k] = 0;
 
 			//find index of cell from which flow travels
 			ptrdiff_t cl_from = CellLookup[i] - Cells;
@@ -4043,6 +4049,7 @@ void CalcOriginDestMatrix_adunit()
 				}
 			}
 		}
+		delete[] pop_dens_from;
 	}
 
 	//Sum up flow between adunits across threads
