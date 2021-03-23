@@ -449,7 +449,8 @@ void ReadInterventions(std::string const& IntFile)
 	FILE* dat;
 	double r, s, startt, stopt;
 	int j, k, au, ni, f, nsr;
-	char buf[65536], txt[65536];
+	char* buf = new char[65536];
+	char* txt = new char[65536];
 	Intervention CurInterv;
 
 	Files::xfprintf_stderr("Reading intervention file.\n");
@@ -637,13 +638,17 @@ void ReadInterventions(std::string const& IntFile)
 	if (strcmp(txt, "/InterventionSettings") != 0) ERR_CRITICAL("Intervention has no top level closure.\n");
 	Files::xfprintf_stderr("%i interventions read\n", ni);
 	Files::xfclose(dat);
+	delete[] buf;
+	delete[] txt;
 }
 int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Value, int ResetFilePos)
 {
 	// ResetFilePos=1 leaves dat cursor in same position as when function was called. 0 leaves it at end of NodeName closure
 	// GetXMLNode returns 1 if NodeName found, 0 otherwise. If NodeName not found, ParentName closure must be
 
-	char buf[65536], CloseNode[2048], CloseParent[2048];
+	char* buf = new char[65536];
+	char* CloseNode = new char[2048];
+	char* CloseParent = new char[2048];
 	int CurPos, ret;
 
 	Files::xsprintf(CloseParent, "/%s", ParentName);
@@ -667,6 +672,9 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 	}
 	if (ResetFilePos) fseek(dat, CurPos, 0);
 	return ret;
+	delete[] buf;
+	delete[] CloseNode;
+	delete[] CloseParent;
 }
 
 void ReadAirTravel(std::string const& air_travel_file, std::string const& output_file_base)
@@ -3976,6 +3984,7 @@ void CalcOriginDestMatrix_adunit()
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		double* pop_dens_from = new double[MAX_ADUNITS];
+		double* pop_dens_to = new double[MAX_ADUNITS];
 		for (int i = tn; i < P.NumPopulatedCells; i += P.NumThreads)
 		{
 			//reset pop density matrix to zero
@@ -4003,7 +4012,7 @@ void CalcOriginDestMatrix_adunit()
 			for (int j = i; j < P.NumPopulatedCells; j++)
 			{
 				//reset pop density matrix to zero
-				double pop_dens_to[MAX_ADUNITS] = {};
+				for (int k = 0; k < MAX_ADUNITS; k++) pop_dens_to[k] = 0;
 
 				//find index of cell which flow travels to
 				ptrdiff_t cl_to = CellLookup[j] - Cells;
@@ -4050,6 +4059,7 @@ void CalcOriginDestMatrix_adunit()
 			}
 		}
 		delete[] pop_dens_from;
+		delete[] pop_dens_to;
 	}
 
 	//Sum up flow between adunits across threads
