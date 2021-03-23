@@ -5,6 +5,11 @@
 #ifndef READ_PARAMS_H_INCLUDED_
 #define READ_PARAMS_H_INCLUDED_
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+
 #include <cstdint>
 #include <climits>
 #include <fstream>
@@ -13,7 +18,6 @@
 #include <string>
 #include <map>
 
-#include "Dist.h"
 #include "Error.h"
 #include "Files.h"
 #include "Memory.h"
@@ -27,6 +31,26 @@ typedef std::map<std::string, std::string>::iterator ParamIter;
 
 namespace Params
 {
+
+/** \brief             Attempt to parse an integer from a string, halting on exception.
+ *  \param  s          The string to parse
+ *  \param  param      The parameter key being parsed (for debugging)
+ *  \return            If successful, the parsed integer.
+ */
+
+  int parse_int(std::string s, std::string param);
+
+
+
+/** \brief             Attempt to parse a double from a string, halting on exception.
+ *  \param  s          The string to parse
+ *  \param  param      The parameter key being parsed (for debugging)
+ *  \return            If successful, the parsed integer.
+ */
+
+  double parse_double(std::string s, std::string param);
+
+
 
 /** \brief             Read a parameter file (ini-like format) into a map
  *  \param  file       The filename to be read
@@ -559,14 +583,14 @@ namespace Params
 
 
 
-/** \brief                Read a matrix of doubles from a parameter
+/** \brief                Read a matrix of doubles from a parameter, into array[x][y].
  *  \param params         The preferred map to find the parameter in
  *  \param fallback       A fallback if the parameter is not found in params
  *  \param base           A final map, should the parameter not be found in fallback.
  *  \param param_name     The name of the parameter to look up.
  *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
+ *  \param sizex          Size of x-dimesion in array[x][y]
+ *  \param sizey          Size of y-dimension in array[x][y]
  *  \param default_value  Double to fill array with if no param is found
  *  \param err_on_missing If true, stop if no matching param is found
  *  \param P              The param struct, for looking up command-line args
@@ -581,8 +605,8 @@ namespace Params
  *  \param fallback       A fallback if the parameter is not found in params
  *  \param param_name     The name of the parameter to look up.
  *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
+ *  \param sizex          Size of x-dimesion in A[x][y]
+ *  \param sizey          Size of y-dimension in A[x][y]
  *  \param default_value  Double to fill array with if no param is found
  *  \param P              The param struct, for looking up command-line args
  */
@@ -610,10 +634,10 @@ namespace Params
   void carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames);
+  void seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames, AdminUnit* AdUnits);
   void movement_restriction_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
-  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
+  void intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits);
+  void digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits);
   void place_closure_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void social_distancing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);
   void case_isolation_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P);

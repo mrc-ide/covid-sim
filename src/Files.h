@@ -4,7 +4,9 @@
 
 #ifndef FILES_H_INCLUDED_
 #define FILES_H_INCLUDED_
-
+#ifndef _CRT_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <cerrno>
 #include <cstdio>
 #include <cstring>

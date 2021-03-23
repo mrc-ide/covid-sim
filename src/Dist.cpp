@@ -7,8 +7,6 @@
 
 #include "Model.h"
 
-double sinx[DEGREES_PER_TURN + 1], cosx[DEGREES_PER_TURN + 1], asin2sqx[1001];
-
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 //// **** DISTANCE FUNCTIONS (return distance-squared, which is input for every Kernel function)
 //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -32,20 +30,20 @@ double dist2UTM(double x1, double y1, double x2, double y2)
 	yi = floor(y);
 	x -= xi;
 	y -= yi;
-	x = (1 - x) * sinx[(int)xi] + x * sinx[((int)xi) + 1];
-	y = (1 - y) * sinx[(int)yi] + y * sinx[((int)yi) + 1];
+	x = (1 - x) * P.sinx[(int)xi] + x * P.sinx[((int)xi) + 1];
+	y = (1 - y) * P.sinx[(int)yi] + y * P.sinx[((int)yi) + 1];
 	yt = fabs(y1 + P.SpatialBoundingBox.bottom_left().y);
 	yi = floor(yt);
 	cy1 = yt - yi;
-	cy1 = (1 - cy1) * cosx[((int)yi)] + cy1 * cosx[((int)yi) + 1];
+	cy1 = (1 - cy1) * P.cosx[((int)yi)] + cy1 * P.cosx[((int)yi) + 1];
 	yt = fabs(y2 + P.SpatialBoundingBox.bottom_left().y);
 	yi = floor(yt);
 	cy2 = yt - yi;
-	cy2 = (1 - cy2) * cosx[((int)yi)] + cy2 * cosx[((int)yi) + 1];
+	cy2 = (1 - cy2) * P.cosx[((int)yi)] + cy2 * P.cosx[((int)yi) + 1];
 	x = fabs(1000 * (y * y + x * x * cy1 * cy2));
 	xi = floor(x);
 	x -= xi;
-	y = (1 - x) * asin2sqx[((int)xi)] + x * asin2sqx[((int)xi) + 1];
+	y = (1 - x) * P.asin2sqx[((int)xi)] + x * P.asin2sqx[((int)xi) + 1];
 	return 4 * EARTHRADIUS * EARTHRADIUS * y;
 }
 double dist2(Person* a, Person* b)
@@ -144,6 +142,7 @@ double dist2_cc_min(Cell* a, Cell* b)
 		return periodic_xy(x, y);
 	}
 }
+
 double dist2_mm(Microcell* a, Microcell* b)
 {
 	double x, y;
@@ -152,26 +151,20 @@ double dist2_mm(Microcell* a, Microcell* b)
 	l = (int)(a - Mcells);
 	m = (int)(b - Mcells);
 	if (P.DoUTM_coords)
+	{
 		return dist2UTM(P.in_microcells_.width * fabs((double)(l / P.total_microcells_high_)), P.in_microcells_.height * fabs((double)(l % P.total_microcells_high_)),
 			P.in_microcells_.width * fabs((double)(m / P.total_microcells_high_)), P.in_microcells_.height * fabs((double)(m % P.total_microcells_high_)));
-	else
-	{
-		x = P.in_microcells_.width * fabs((double)(l / P.total_microcells_high_ - m / P.total_microcells_high_));
-		y = P.in_microcells_.height * fabs((double)(l % P.total_microcells_high_ - m % P.total_microcells_high_));
-		return periodic_xy(x, y);
 	}
+	x = P.in_microcells_.width * fabs((double)(l / P.total_microcells_high_ - m / P.total_microcells_high_));
+	y = P.in_microcells_.height * fabs((double)(l % P.total_microcells_high_ - m % P.total_microcells_high_));
+	return periodic_xy(x, y);
 }
 
 double dist2_raw(double ax, double ay, double bx, double by)
 {
-	double x, y;
-
 	if (P.DoUTM_coords)
-		return dist2UTM(ax, ay, bx, by);
-	else
 	{
-		x = fabs(ax - bx);
-		y = fabs(ay - by);
-		return periodic_xy(x, y);
+		return dist2UTM(ax, ay, bx, by);
 	}
+	return periodic_xy(fabs(ax - bx), fabs(ay - by));
 }

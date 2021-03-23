@@ -5,6 +5,11 @@
 #ifndef MEMORY_H_INCLUDED_
 #define MEMORY_H_INCLUDED_
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+
 #include <cstddef>
 
 namespace Memory

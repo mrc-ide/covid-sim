@@ -120,17 +120,19 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 
 		ToInfected(tn, a->infect_type, ai, radiusSquared);
 
-		if (radiusSquared > StateT[tn].maxRad2) StateT[tn].maxRad2 = radiusSquared; //// update maximum radius squared from seeding infection
+		if (radiusSquared > StateT[tn].maxRad2)
 		{
-			SusceptibleToLatent(a->pcell);
+			StateT[tn].maxRad2 = radiusSquared; //// update maximum radius squared from seeding infection
+		}
+		
+		SusceptibleToLatent(a->pcell);
 
-			if (a->listpos < Cells[a->pcell].S)
-			{
-				UpdateCell(Cells[a->pcell].susceptible, a->listpos, Cells[a->pcell].S);
+		if (a->listpos < Cells[a->pcell].S)
+		{
+			UpdateCell(Cells[a->pcell].susceptible, a->listpos, Cells[a->pcell].S);
 
-				a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
-				Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
-			}
+			a->listpos = Cells[a->pcell].S;	//// person a's position with cell.members now equal to number of susceptibles in cell.
+			Cells[a->pcell].latent[0] = ai; //// person ai joins front of latent queue.
 		}
 		StateT[tn].cumI_keyworker[a->keyworker]++;
 

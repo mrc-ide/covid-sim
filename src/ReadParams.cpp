@@ -84,12 +84,44 @@ ParamMap Params::read_params_map(const char* file)
 
 /*****************************************************************************/
 
+int Params::parse_int(std::string s, std::string param)
+{
+	try
+	{
+		std::string::size_type idx;
+		int res = std::stoi(s, &idx);
+		if (fabs(res - std::stod(s, &idx)) > 1e-10)
+		{
+			ERR_CRITICAL_FMT("Error - %s appears to be double, not int - value '%s'", param.c_str(), s.c_str());
+		}
+		return res;
+	}
+	catch (const std::exception& e)
+	{
+		ERR_CRITICAL_FMT("Error %s parsing int %s - value '%s'\n", e.what(), param.c_str(), s.c_str());
+	}
+}
+
+double Params::parse_double(std::string s, std::string param)
+{
+	try
+	{
+		std::string::size_type idx;
+		double result = std::stod(s, &idx);
+		return result;
+	}
+	catch (const std::exception& e)
+	{
+		ERR_CRITICAL_FMT("Error %s parsing double %s - value '%s'\n", e.what(), param.c_str(), s.c_str());
+	}
+}
+
 std::string Params::clp_overwrite(std::string value, Param* P) {
 	if (value.at(0) != '#')
 	{
 		return value;
 	} 
-  int clp_no = std::stoi(value.substr(1, std::string::npos));
+  int clp_no = Params::parse_int(value.substr(1, std::string::npos), value);
 	if ((clp_no < 0) || (clp_no > 99)) 
 	{
 		ERR_CRITICAL_FMT("CLP %d is out of bounds reading parameters\n", clp_no);
@@ -190,8 +222,7 @@ double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params, 
 
 	if (str_value.compare("NULL") != 0)
 	{
-		std::string::size_type idx;
-		return std::stod(str_value, &idx);
+		return Params::parse_double(str_value, param_name);
 	}
 	if (err_on_missing)
 	{
@@ -229,19 +260,7 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::s
 	
 	if (!force_fail && (str_value.compare("NULL") != 0))
 	{
-		std::string::size_type idx;
-		uint64_t lval = std::stoll(str_value, &idx);
-		int result;
-		if ((lval > (double) INT32_MAX) || (lval < (double) INT32_MIN))
-		{
-			Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
-			result = (int) lval;
-		}
-		else
-		{
-			result = std::stoi(str_value, &idx);
-		}
-		return result;
+		return Params::parse_int(str_value, param_name);
 	}
 	if (err_on_missing)
 	{
@@ -279,20 +298,18 @@ int Params::req_int(ParamMap &fallback, ParamMap &params, std::string param_name
 
 void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double* array, int expected, double default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
-
 	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int index = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-			  if (index < expected) array[index] = std::stod(Params::clp_overwrite(buffer, P), &idx);
+			  if (index < expected) array[index] = Params::parse_double(Params::clp_overwrite(buffer, P), param_name);
 			  index++;
 			}
 		}
@@ -300,15 +317,13 @@ void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params
 		{
 			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n", param_name.c_str(), index, expected);
 		}
+		return;
 	}
-	else
+	if (err_on_missing)
 	{
-		for (int i = 0; i < default_size; i++) array[i] = default_value;
-		if (err_on_missing)
-		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
+	for (int i = 0; i < default_size; i++) array[i] = default_value;
 }
 
 void Params::get_double_vec(ParamMap &fallback, ParamMap &params, std::string param_name, double* array, int expected, double default_value, int default_size, Param* P)
@@ -335,32 +350,22 @@ void Params::get_double_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &pa
 
 void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
-
 	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int index = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-				uint64_t lval = std::stoll(Params::clp_overwrite(buffer, P), &idx);
-				int result;
-				if ((lval > (double)INT32_MAX) || (lval < (double)INT32_MIN))
+				int result = Params::parse_int(Params::clp_overwrite(buffer, P), param_name);
+				if (index < expected)
 				{
-					Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), buffer.c_str());
-					result = (int) lval;
+					array[index] = result;
 				}
-				else
-				{
-					result = std::stoi(Params::clp_overwrite(buffer, P), &idx);
-				}
-
-				array[index] = result;
 				index++;
 			}
 		}
@@ -368,15 +373,13 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 		{
 			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n", param_name.c_str(), index, expected);
 		}
+		return;
 	}
-	else
+	if (err_on_missing)
 	{
-		for (int i = 0; i < default_size; i++) array[i] = default_value;
-		if (err_on_missing)
-		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
+	for (int i = 0; i < default_size; i++) array[i] = default_value;
 }
 
 void Params::get_int_vec(ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
@@ -391,12 +394,12 @@ void Params::get_int_vec(ParamMap &fallback, ParamMap &params, std::string param
 
 void Params::req_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, Param* P)
 {
-	Params::get_int_vec(base, fallback, params, param_name, array, expected, 0, 0, false, P, false);
+	Params::get_int_vec(base, fallback, params, param_name, array, expected, 0, 0, true, P, false);
 }
 
 void Params::req_int_vec(ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, Param* P)
 {
-	Params::get_int_vec(fallback, fallback, params, param_name, array, expected, 0, 0, false, P, false);
+	Params::get_int_vec(fallback, fallback, params, param_name, array, expected, 0, 0, true, P, false);
 }
 
 void Params::get_int_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, Param* P)
@@ -426,10 +429,7 @@ int Params::req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		}
 		return index;
 	}
-	else
-	{
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-	}
+	ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 }
 
 int Params::req_string_vec(ParamMap &fallback, ParamMap &params, std::string param_name, char** array, int expected, Param* P)
@@ -447,14 +447,15 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int x = 0;
 		int y = 0;
+		int count_values = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-				if ((y < sizey) && (x < sizex)) array[x][y] = std::stod(Params::clp_overwrite(buffer, P), &idx);
+				count_values++;
+				if ((y < sizey) && (x < sizex)) array[x][y] = Params::parse_double(Params::clp_overwrite(buffer, P), param_name);
 				x++;
 				if (x == sizex)
 				{
@@ -463,26 +464,24 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 				}
 			}
 		}
-		if ((x >= sizex) || (y >= sizey))
+		if (count_values != (sizex * sizey))
 		{
-			Files::xfprintf_stderr("Warning: more data available for %s than was read.\n", param_name.c_str());
+			Files::xfprintf_stderr("Warning: Expected %d values for matrix %s - actually available; %d\n", sizex * sizey, param_name.c_str(), count_values);
 		}
+		return;
 	}
-	else 
+
+	if (err_on_missing)
 	{
-		if (err_on_missing)
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
+		return;
+	}
+
+	for (int x = 0; x < sizex; x++)
+	{
+		for (int y = 0; y < sizey; y++)
 		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
-		else
-		{
-	    for (int x = 0; x < sizex; x++)
-			{
-		    for (int y = 0; y < sizey; y++)
-				{
-			    array[x][y] = default_value;
-				}
-			}
+			array[x][y] = default_value;
 		}
 	}
 }
@@ -1083,7 +1082,7 @@ void Params::seasonality_params(ParamMap adm_params, ParamMap pre_params, ParamM
 		P->Seasonality[i] /= s;
 }
 
-void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames)
+void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, char** AdunitListNames, AdminUnit* AdUnits)
 {
 	P->NumSeedLocations = Params::get_int(pre_params, adm_params, "Number of seed locations", 1, P);
 	if (P->NumSeedLocations > MAX_NUM_SEED_LOCATIONS)
@@ -1207,7 +1206,7 @@ P->MoveRestrRadius = Params::get_double(params, pre_params, "Minimum radius of m
 ///// **** INTERVENTION DELAYS BY ADMIN UNIT
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits)
 { //Intervention delays and durations by admin unit: ggilani 16/03/20
 
 	P->DoInterventionDelaysByAdUnit = Params::get_int(params, pre_params, "Include intervention delays by admin unit", 0, P);
@@ -1262,7 +1261,7 @@ void Params::intervention_delays_by_adunit_params(ParamMap adm_params, ParamMap 
 ///// **** DIGITAL CONTACT TRACING
 ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
-void Params::digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P)
+void Params::digital_contact_tracing_params(ParamMap adm_params, ParamMap pre_params, ParamMap params, Param* P, AdminUnit* AdUnits)
 {
 	//New code for digital contact tracing - ggilani: 09/03/20
 	P->DoDigitalContactTracing = Params::get_int(params, pre_params, "Include digital contact tracing", 0, P);
@@ -1968,7 +1967,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	Params::place_type_params(adm_params, pre_params, params, P);
 	for (int i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	Params::seasonality_params(adm_params, pre_params, params, P);
-	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames);
+	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames, AdUnits);
 	
 	P->R0 = Params::req_double(params, pre_params, "Reproduction number", P);
 	if (Params::param_found(params, pre_params, "Beta for spatial transmission"))
@@ -2191,8 +2190,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
   Params::treatment_params(adm_params, pre_params, params, P);
 	Params::vaccination_params(adm_params, pre_params, params, P);
 	Params::movement_restriction_params(adm_params, pre_params, params, P);
-	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P);
-	Params::digital_contact_tracing_params(adm_params, pre_params, params, P);
+	Params::intervention_delays_by_adunit_params(adm_params, pre_params, params, P, AdUnits);
+	Params::digital_contact_tracing_params(adm_params, pre_params, params, P, AdUnits);
 	Params::place_closure_params(adm_params, pre_params, params, P);
 	Params::social_distancing_params(adm_params, pre_params, params, P);
 	Params::case_isolation_params(adm_params, pre_params, params, P);
@@ -2330,14 +2329,14 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 	{
 		for (i = 0; i <= 1000; i++)
 		{
-			asin2sqx[i] = asin(sqrt(i / 1000.0));
-			asin2sqx[i] = asin2sqx[i] * asin2sqx[i];
+			P->asin2sqx[i] = asin(sqrt(i / 1000.0));
+			P->asin2sqx[i] = P->asin2sqx[i] * P->asin2sqx[i];
 		}
 		for (i = 0; i <= DEGREES_PER_TURN; i++)
 		{
 			t = PI * i / 180;
-			sinx[i] = sin(t);
-			cosx[i] = cos(t);
+			P->sinx[i] = sin(t);
+			P->cosx[i] = cos(t);
 		}
 	}
 	if (P->R0scale != 1.0)

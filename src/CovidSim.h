@@ -23,6 +23,7 @@
 
 #include "Country.h"
 #include "Constants.h"
+#include "Dist.h"
 #include "Files.h"
 #include "ReadParams.h"
 
