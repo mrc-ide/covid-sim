@@ -466,7 +466,7 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 		}
 		if (count_values != (sizex * sizey))
 		{
-			Files::xfprintf_stderr("Warning: Expected %d values for matrix %s - actually available; %d\n", param_name.c_str(), sizex * sizey, count_values);
+			Files::xfprintf_stderr("Warning: Expected %d values for matrix %s - actually available; %d\n", sizex * sizey, param_name.c_str(), count_values);
 		}
 		return;
 	}
