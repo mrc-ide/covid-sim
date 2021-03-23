@@ -266,7 +266,7 @@ TEST(ReadParams, parse_double) {
 TEST(ReadParamsDeathTests, parse_int_fail_str) {
   ASSERT_DEATH({
     Params::parse_int("Potato", "test");
-  }, "Error invalid stoi argument parsing int test - value 'Potato'");
+  }, "Error.*stoi.*parsing int test - value 'Potato'");
 }
 
 TEST(ReadParamsDeathTests, parse_int_fail_dbl) {
@@ -278,19 +278,19 @@ TEST(ReadParamsDeathTests, parse_int_fail_dbl) {
 TEST(ReadParamsDeathTests, parse_int_fail_empty) {
   ASSERT_DEATH({
     Params::parse_int("", "test");
-  }, "Error invalid stoi argument parsing int test - value ''");
+  }, "Error.*stoi.*parsing int test - value ''");
 }
 
 TEST(ReadParamsDeathTests, parse_dbl_fail_str) {
   ASSERT_DEATH({
     Params::parse_double("Potato", "test");
-  }, "Error invalid stod argument parsing double test - value 'Potato'");
+  }, "Error.*stod.*parsing double test - value 'Potato'");
 }
 
 TEST(ReadParamsDeathTests, parse_dbl_fail_empty) {
   ASSERT_DEATH({
     Params::parse_double("", "test");
-  }, "Error invalid stod argument parsing double test - value ''");
+  }, "Error.*stod.*argument parsing double test - value ''");
 }
 
 TEST(ReadParamDeathTests, read_params_dups_end) {
@@ -314,7 +314,7 @@ TEST(ReadParamDeathTests, clp_out_of_range) {
 TEST(ReadParamDeathTests, clp_invalid) {
   ASSERT_DEATH({
     Params::clp_overwrite("#A", &P);
-  }, "Error invalid stoi argument parsing int #A - value 'A'");
+  }, "Error.*stoi.*argument parsing int #A - value 'A'");
 }
 
 TEST(ReadParamDeathTests, req_dbl_failure) {
