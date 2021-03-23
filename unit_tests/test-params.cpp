@@ -326,35 +326,35 @@ TEST(ReadParamDeathTests, req_dbl_failure) {
 
 TEST(ReadParamDeathTests, req_int_failure) {
   ASSERT_DEATH({
-    ParamMap PM = test_map("[A]\n123\n", 10);
+    ParamMap PM = test_map("[A]\n123\n", 11);
     Params::req_int(PM, PM, "G", &P);
   }, "Required Parameter G not found.*");
 }
 
 TEST(ReadParamDeathTests, req_int_vec_failure) {
   ASSERT_DEATH({
-    ParamMap PM = test_map("[A]\n123\n", 10);
+    ParamMap PM = test_map("[A]\n123\n", 12);
     Params::req_int_vec(PM, PM, "G", NULL, 5, &P);
   }, "Required Parameter G not found.*");
 }
 
 TEST(ReadParamDeathTests, req_dbl_vec_failure) {
   ASSERT_DEATH({
-    ParamMap PM = test_map("[A]\n123\n", 10);
+    ParamMap PM = test_map("[A]\n123\n", 13);
     Params::req_double_vec(PM, PM, "G", NULL, 5, &P);
   }, "Required Parameter G not found.*");
 }
 
 TEST(ReadParamDeathTests, req_string_vec_failure) {
   ASSERT_DEATH({
-    ParamMap PM = test_map("[A]\nString\n", 10);
+    ParamMap PM = test_map("[A]\nString\n", 14);
     Params::req_string_vec(PM, PM, "G", NULL, 5, &P);
   }, "Required Parameter G not found.*");
 }
 
 TEST(ReadParamDeathTests, req_double_matrix) {
   ASSERT_DEATH({
-    ParamMap PM = test_map("[A]\n1 2 3 4\n", 10);
+    ParamMap PM = test_map("[A]\n1 2 3 4\n", 15);
     Params::get_double_matrix(PM, PM, PM, "M", NULL, 5, 5, 0, true, &P);
   }, "Required Parameter M not found.*");
 }
