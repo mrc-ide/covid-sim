@@ -290,7 +290,7 @@ TEST(ReadParamsDeathTests, parse_dbl_fail_str) {
 TEST(ReadParamsDeathTests, parse_dbl_fail_empty) {
   ASSERT_DEATH({
     Params::parse_double("", "test");
-  }, "Error.*stod.*argument parsing double test - value ''");
+  }, "Error.*stod.*parsing double test - value ''");
 }
 
 TEST(ReadParamDeathTests, read_params_dups_end) {
@@ -314,7 +314,7 @@ TEST(ReadParamDeathTests, clp_out_of_range) {
 TEST(ReadParamDeathTests, clp_invalid) {
   ASSERT_DEATH({
     Params::clp_overwrite("#A", &P);
-  }, "Error.*stoi.*argument parsing int #A - value 'A'");
+  }, "Error.*stoi.*parsing int #A - value 'A'");
 }
 
 TEST(ReadParamDeathTests, req_dbl_failure) {
