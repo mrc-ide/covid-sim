@@ -82,7 +82,7 @@ TEST(ReadParams, int_vec) {
 
   // Basic lookups
 
-  ParamMap PM = test_map("[A]\n-1 2 4 6 8\n[E]\n42\n", 4);
+  ParamMap PM = test_map("[A]\n-1 2 4 6 8\n[E]\n47\n", 4);
   ParamMap PM2 = test_map("[B]\n3 5 7 0 42\n", 4);
   ParamMap PM3 = test_map("[C]\n9 8 7 6 5\n[B]\n3 4 5 6 7\n[F]\n#4 #2 7 #3 #1", 4);
   int* res = new int[5];
@@ -108,7 +108,7 @@ TEST(ReadParams, int_vec) {
   // Length 1
 
   Params::req_int_vec(PM, PM2, "E", res, 1, &P);
-  EXPECT_EQ(res[0], 42);
+  EXPECT_EQ(res[0], 47);
 
   // Force-fail
 
@@ -249,9 +249,112 @@ TEST(ReadParams, double_matrix) {
   delete[] M;
 }
 
+TEST(ReadParams, parse_int) {
+  EXPECT_EQ(Params::parse_int("123", "test"), 123);
+  EXPECT_EQ(Params::parse_int("2147483647", "test"), 2147483647);
+  EXPECT_EQ(Params::parse_int("-2147483647", "test"), -2147483647);
+}
 
+TEST(ReadParams, parse_double) {
+  EXPECT_NEAR(Params::parse_double("123.0", "test"), 123.0, 1e-6);
+  EXPECT_NEAR(Params::parse_double("-2.00000001", "test"), -2.00000001, 1e-10);
+  EXPECT_NEAR(Params::parse_double("3.14e10", "test"), 3.14e10, 1e-6);
+}
 
+// DEATH TESTS 
 
-//  void get_double_matrix(ParamMap &fallback, ParamMap &params,
-//                         std::string param_name, double** array, int sizex,
-//                         int sizey, double default_value, Param* P);
+TEST(ReadParamsDeathTests, parse_int_fail_str) {
+  ASSERT_DEATH({
+    Params::parse_int("Potato", "test");
+  }, "Error invalid stoi argument parsing int test - value 'Potato'");
+}
+
+TEST(ReadParamsDeathTests, parse_int_fail_dbl) {
+  ASSERT_DEATH({
+    Params::parse_int("1.2345", "test");
+  }, "Error - test appears to be double, not int - value '1.2345'");
+}
+
+TEST(ReadParamsDeathTests, parse_int_fail_empty) {
+  ASSERT_DEATH({
+    Params::parse_int("", "test");
+  }, "Error invalid stoi argument parsing int test - value ''");
+}
+
+TEST(ReadParamsDeathTests, parse_dbl_fail_str) {
+  ASSERT_DEATH({
+    Params::parse_double("Potato", "test");
+  }, "Error invalid stod argument parsing double test - value 'Potato'");
+}
+
+TEST(ReadParamsDeathTests, parse_dbl_fail_empty) {
+  ASSERT_DEATH({
+    Params::parse_double("", "test");
+  }, "Error invalid stod argument parsing double test - value ''");
+}
+
+TEST(ReadParamDeathTests, read_params_dups_end) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n25\n[A]\n26", 8);
+  }, "Duplicate parameter values for A.*");
+}
+
+TEST(ReadParamDeathTests, read_params_dups2_not_end) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n25\n[A]\n26\n[B]\n1\n", 9);
+  }, "Duplicate parameter values for A.*");
+}
+
+TEST(ReadParamDeathTests, clp_out_of_range) {
+  ASSERT_DEATH({
+    Params::clp_overwrite("#999", &P);
+  }, "CLP 999 is out of bounds reading parameters.*");
+}
+
+TEST(ReadParamDeathTests, clp_invalid) {
+  ASSERT_DEATH({
+    Params::clp_overwrite("#A", &P);
+  }, "Error invalid stoi argument parsing int #A - value 'A'");
+}
+
+TEST(ReadParamDeathTests, req_dbl_failure) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n123\n", 10);
+    Params::req_double(PM, PM, "G", &P);
+  }, "Required Parameter G not found.*");
+}
+
+TEST(ReadParamDeathTests, req_int_failure) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n123\n", 10);
+    Params::req_int(PM, PM, "G", &P);
+  }, "Required Parameter G not found.*");
+}
+
+TEST(ReadParamDeathTests, req_int_vec_failure) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n123\n", 10);
+    Params::req_int_vec(PM, PM, "G", NULL, 5, &P);
+  }, "Required Parameter G not found.*");
+}
+
+TEST(ReadParamDeathTests, req_dbl_vec_failure) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n123\n", 10);
+    Params::req_double_vec(PM, PM, "G", NULL, 5, &P);
+  }, "Required Parameter G not found.*");
+}
+
+TEST(ReadParamDeathTests, req_string_vec_failure) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\nString\n", 10);
+    Params::req_string_vec(PM, PM, "G", NULL, 5, &P);
+  }, "Required Parameter G not found.*");
+}
+
+TEST(ReadParamDeathTests, req_double_matrix) {
+  ASSERT_DEATH({
+    ParamMap PM = test_map("[A]\n1 2 3 4\n", 10);
+    Params::get_double_matrix(PM, PM, PM, "M", NULL, 5, 5, 0, true, &P);
+  }, "Required Parameter M not found.*");
+}

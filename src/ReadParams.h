@@ -32,6 +32,26 @@ typedef std::map<std::string, std::string>::iterator ParamIter;
 namespace Params
 {
 
+/** \brief             Attempt to parse an integer from a string, halting on exception.
+ *  \param  s          The string to parse
+ *  \param  param      The parameter key being parsed (for debugging)
+ *  \return            If successful, the parsed integer.
+ */
+
+  int parse_int(std::string s, std::string param);
+
+
+
+/** \brief             Attempt to parse a double from a string, halting on exception.
+ *  \param  s          The string to parse
+ *  \param  param      The parameter key being parsed (for debugging)
+ *  \return            If successful, the parsed integer.
+ */
+
+  double parse_double(std::string s, std::string param);
+
+
+
 /** \brief             Read a parameter file (ini-like format) into a map
  *  \param  file       The filename to be read
  *  \return            A map of ParamPair (key, string) map
@@ -563,14 +583,14 @@ namespace Params
 
 
 
-/** \brief                Read a matrix of doubles from a parameter
+/** \brief                Read a matrix of doubles from a parameter, into array[x][y].
  *  \param params         The preferred map to find the parameter in
  *  \param fallback       A fallback if the parameter is not found in params
  *  \param base           A final map, should the parameter not be found in fallback.
  *  \param param_name     The name of the parameter to look up.
  *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
+ *  \param sizex          Size of x-dimesion in array[x][y]
+ *  \param sizey          Size of y-dimension in array[x][y]
  *  \param default_value  Double to fill array with if no param is found
  *  \param err_on_missing If true, stop if no matching param is found
  *  \param P              The param struct, for looking up command-line args
@@ -585,8 +605,8 @@ namespace Params
  *  \param fallback       A fallback if the parameter is not found in params
  *  \param param_name     The name of the parameter to look up.
  *  \param array          The array to write into
- *  \param sizex          Size of first dimesion in A[x][y]
- *  \param sizey          Size of second dimension in A[x][y]
+ *  \param sizex          Size of x-dimesion in A[x][y]
+ *  \param sizey          Size of y-dimension in A[x][y]
  *  \param default_value  Double to fill array with if no param is found
  *  \param P              The param struct, for looking up command-line args
  */

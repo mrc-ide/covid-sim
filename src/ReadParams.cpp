@@ -84,12 +84,44 @@ ParamMap Params::read_params_map(const char* file)
 
 /*****************************************************************************/
 
+int Params::parse_int(std::string s, std::string param)
+{
+	try
+	{
+		std::string::size_type idx;
+		int res = std::stoi(s, &idx);
+		if (fabs(res - std::stod(s, &idx)) > 1e-10)
+		{
+			ERR_CRITICAL_FMT("Error - %s appears to be double, not int - value '%s'", param.c_str(), s.c_str());
+		}
+		return res;
+	}
+	catch (const std::exception& e)
+	{
+		ERR_CRITICAL_FMT("Error %s parsing int %s - value '%s'\n", e.what(), param.c_str(), s.c_str());
+	}
+}
+
+double Params::parse_double(std::string s, std::string param)
+{
+	try
+	{
+		std::string::size_type idx;
+		double result = std::stod(s, &idx);
+		return result;
+	}
+	catch (const std::exception& e)
+	{
+		ERR_CRITICAL_FMT("Error %s parsing double %s - value '%s'\n", e.what(), param.c_str(), s.c_str());
+	}
+}
+
 std::string Params::clp_overwrite(std::string value, Param* P) {
 	if (value.at(0) != '#')
 	{
 		return value;
 	} 
-  int clp_no = std::stoi(value.substr(1, std::string::npos));
+  int clp_no = Params::parse_int(value.substr(1, std::string::npos), value);
 	if ((clp_no < 0) || (clp_no > 99)) 
 	{
 		ERR_CRITICAL_FMT("CLP %d is out of bounds reading parameters\n", clp_no);
@@ -190,8 +222,7 @@ double Params::get_double(ParamMap &base, ParamMap &fallback, ParamMap &params, 
 
 	if (str_value.compare("NULL") != 0)
 	{
-		std::string::size_type idx;
-		return std::stod(str_value, &idx);
+		return Params::parse_double(str_value, param_name);
 	}
 	if (err_on_missing)
 	{
@@ -229,19 +260,7 @@ int Params::get_int(ParamMap &base, ParamMap &fallback, ParamMap &params, std::s
 	
 	if (!force_fail && (str_value.compare("NULL") != 0))
 	{
-		std::string::size_type idx;
-		int64_t lval = std::stoll(str_value, &idx);
-		int result;
-		if ((lval > (double) INT32_MAX) || (lval < (double) INT32_MIN))
-		{
-			Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), str_value.c_str());
-			result = (int) lval;
-		}
-		else
-		{
-			result = std::stoi(str_value, &idx);
-		}
-		return result;
+		return Params::parse_int(str_value, param_name);
 	}
 	if (err_on_missing)
 	{
@@ -279,20 +298,18 @@ int Params::req_int(ParamMap &fallback, ParamMap &params, std::string param_name
 
 void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, double* array, int expected, double default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
-
 	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int index = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-			  if (index < expected) array[index] = std::stod(Params::clp_overwrite(buffer, P), &idx);
+			  if (index < expected) array[index] = Params::parse_double(Params::clp_overwrite(buffer, P), param_name);
 			  index++;
 			}
 		}
@@ -300,15 +317,13 @@ void Params::get_double_vec(ParamMap &base, ParamMap &fallback, ParamMap &params
 		{
 			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n", param_name.c_str(), index, expected);
 		}
+		return;
 	}
-	else
+	if (err_on_missing)
 	{
-		for (int i = 0; i < default_size; i++) array[i] = default_value;
-		if (err_on_missing)
-		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
+	for (int i = 0; i < default_size; i++) array[i] = default_value;
 }
 
 void Params::get_double_vec(ParamMap &fallback, ParamMap &params, std::string param_name, double* array, int expected, double default_value, int default_size, Param* P)
@@ -335,32 +350,22 @@ void Params::get_double_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &pa
 
 void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
 {
-
 	std::string str_value = Params::lookup_param_non_clp(base, fallback, params, param_name, P);
 
 	if ((str_value.compare("NULL") != 0) && (!force_fail))
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int index = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-				int64_t lval = std::stoll(Params::clp_overwrite(buffer, P), &idx);
-				int result;
-				if ((lval > (double)INT32_MAX) || (lval < (double)INT32_MIN))
+				int result = Params::parse_int(Params::clp_overwrite(buffer, P), param_name);
+				if (index < expected)
 				{
-					Files::xfprintf_stderr("Warning: int overflow param %s (%s)\n", param_name.c_str(), buffer.c_str());
-					result = (int) lval;
+					array[index] = result;
 				}
-				else
-				{
-					result = std::stoi(Params::clp_overwrite(buffer, P), &idx);
-				}
-
-				array[index] = result;
 				index++;
 			}
 		}
@@ -368,15 +373,13 @@ void Params::get_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, s
 		{
 			Files::xfprintf_stderr("Warning - Extra elements for %s (%d - only needed %d)\n", param_name.c_str(), index, expected);
 		}
+		return;
 	}
-	else
+	if (err_on_missing)
 	{
-		for (int i = 0; i < default_size; i++) array[i] = default_value;
-		if (err_on_missing)
-		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 	}
+	for (int i = 0; i < default_size; i++) array[i] = default_value;
 }
 
 void Params::get_int_vec(ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, int default_size, bool err_on_missing, Param* P, bool force_fail)
@@ -391,12 +394,12 @@ void Params::get_int_vec(ParamMap &fallback, ParamMap &params, std::string param
 
 void Params::req_int_vec(ParamMap &base, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, Param* P)
 {
-	Params::get_int_vec(base, fallback, params, param_name, array, expected, 0, 0, false, P, false);
+	Params::get_int_vec(base, fallback, params, param_name, array, expected, 0, 0, true, P, false);
 }
 
 void Params::req_int_vec(ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, Param* P)
 {
-	Params::get_int_vec(fallback, fallback, params, param_name, array, expected, 0, 0, false, P, false);
+	Params::get_int_vec(fallback, fallback, params, param_name, array, expected, 0, 0, true, P, false);
 }
 
 void Params::get_int_vec_ff(bool force_fail, ParamMap &fallback, ParamMap &params, std::string param_name, int* array, int expected, int default_value, Param* P)
@@ -426,10 +429,7 @@ int Params::req_string_vec(ParamMap &base, ParamMap &fallback, ParamMap &params,
 		}
 		return index;
 	}
-	else
-	{
-		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-	}
+	ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
 }
 
 int Params::req_string_vec(ParamMap &fallback, ParamMap &params, std::string param_name, char** array, int expected, Param* P)
@@ -447,14 +447,15 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 	{
 		std::stringstream str_stream(str_value);
 		std::string buffer;
-		std::string::size_type idx;
 		int x = 0;
 		int y = 0;
+		int count_values = 0;
 		while (str_stream >> buffer)
 		{
 			if (!buffer.empty())
 			{
-				if ((y < sizey) && (x < sizex)) array[x][y] = std::stod(Params::clp_overwrite(buffer, P), &idx);
+				count_values++;
+				if ((y < sizey) && (x < sizex)) array[x][y] = Params::parse_double(Params::clp_overwrite(buffer, P), param_name);
 				x++;
 				if (x == sizex)
 				{
@@ -463,26 +464,24 @@ void Params::get_double_matrix(ParamMap &base, ParamMap &fallback, ParamMap &par
 				}
 			}
 		}
-		if ((x >= sizex) || (y >= sizey))
+		if (count_values != (sizex * sizey))
 		{
-			Files::xfprintf_stderr("Warning: more data available for %s than was read.\n", param_name.c_str());
+			Files::xfprintf_stderr("Warning: Expected %d values for matrix %s - actually available; %d\n", param_name.c_str(), sizex * sizey, count_values);
 		}
+		return;
 	}
-	else 
+
+	if (err_on_missing)
 	{
-		if (err_on_missing)
+		ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
+		return;
+	}
+
+	for (int x = 0; x < sizex; x++)
+	{
+		for (int y = 0; y < sizey; y++)
 		{
-			ERR_CRITICAL_FMT("Required Parameter %s not found\n", param_name.c_str());
-		}
-		else
-		{
-	    for (int x = 0; x < sizex; x++)
-			{
-		    for (int y = 0; y < sizey; y++)
-				{
-			    array[x][y] = default_value;
-				}
-			}
+			array[x][y] = default_value;
 		}
 	}
 }
