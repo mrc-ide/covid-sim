@@ -671,10 +671,10 @@ int GetXMLNode(FILE* dat, const char* NodeName, const char* ParentName, char* Va
 		ret = 1;
 	}
 	if (ResetFilePos) fseek(dat, CurPos, 0);
-	return ret;
 	delete[] buf;
 	delete[] CloseNode;
 	delete[] CloseParent;
+	return ret;
 }
 
 void ReadAirTravel(std::string const& air_travel_file, std::string const& output_file_base)
