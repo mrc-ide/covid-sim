@@ -80,9 +80,24 @@ def parse_args():
 args = parse_args()
 
 # Lists of places that need to be handled specially
-united_states = [ "United_States" ]
+usa_contiguous = [
+        "United_States",
+        "Alabama", "Arizona", "Arkansas", "California", "Colorado",
+        "Connecticut", "Delaware", "District_Of_Columbia", "Florida",
+        "Georgia", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas",
+        "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
+        "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
+        "Nebraska", "Nevada", "New_Hampshire", "New_Jersey", "New_Mexico",
+        "New_York", "North_Carolina", "North_Dakota", "Ohio", "Oklahoma",
+        "Oregon", "Pennsylvania", "Rhode_Island", "South_Carolina",
+        "South_Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
+        "Washington", "West_Virginia", "Wisconsin", "Wyoming"
+        ]
 canada = [ "Canada" ]
-usa_territories = ["Alaska", "Hawaii", "Guam", "Virgin_Islands_US", "Puerto_Rico", "American_Samoa"]
+usa_non_contiguous = [
+        "Alaska", "American_Samoa", "Guam", "Hawaii", "Puerto_Rico",
+        "Virgin_Islands_US"
+        ]
 nigeria = ["Nigeria"]
 
 # Determine whether we need to build the tool or use a user supplied one:
@@ -124,9 +139,9 @@ if not os.path.exists(admin_file):
 
 # Population density file in gziped form, text file, and binary file as
 # processed by CovidSim
-if args.country in united_states + canada:
+if args.country in usa_contiguous + canada:
     wpop_file_root = "usacan"
-elif args.country in usa_territories:
+elif args.country in usa_non_contiguous:
     wpop_file_root = "us_terr"
 elif args.country in nigeria:
     wpop_file_root = "nga_adm1"
@@ -158,7 +173,7 @@ with gzip.open(wpop_file_gz, 'rb') as f_in:
         shutil.copyfileobj(f_in, f_out)
 
 # Configure pre-parameter file.  This file doesn't change between runs:
-if args.country in united_states:
+if args.country in usa_contiguous:
     pp_file = os.path.join(args.paramdir, "preUS_R0=2.0.txt")
 elif args.country in nigeria:
     pp_file = os.path.join(args.paramdir, "preNGA_R0=2.0.txt")
@@ -192,7 +207,7 @@ for root in control_roots:
         exit(1)
 
 school_file = None
-if args.country in united_states:
+if args.country in usa_contiguous:
     school_file = os.path.join(args.datadir, "populations", "USschools.txt")
 
     if not os.path.exists(school_file):

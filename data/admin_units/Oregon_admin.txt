@@ -1,0 +1,160 @@
+[Number of seed locations]
+1
+
+[Initial number of infecteds]
+100
+
+[Administrative unit to seed initial infection into]
+0
+
+[Population size]
+338798532
+
+[ONS pop proj]
+
+
+[Fix population size at specified value]
+0
+
+[Number of countries to include]
+0
+
+[List of names of countries to include]
+United_States
+
+[Number of level 1 administrative units to include]
+1
+
+[List of level 1 administrative units to include]
+Oregon
+
+[Codes and country/province names for admin units]
+613800	United_States	Oregon
+
+[Mask for level 1 administrative units]
+100000
+
+[Divisor for level 1 administrative units]
+100
+
+[Divisor for countries]
+100000
+
+[Correct administrative unit populations]
+0
+
+[Age distribution of population]
+0.059444636	0.060558887	0.063713953	0.064177457	0.067246426	0.072009485	0.069644395	0.065303982	0.061312498	0.060585008	0.062168104	0.065081866	0.062444041	0.053833488	0.043367819	0.029388689	0.039719265
+
+[ONS proj for 2020]
+
+
+[Household size distribution]
+0.283708848	0.345103011	0.150677793	0.12764915	0.057777709	0.022624223	0.007151747	0.002988208	0.001179132	0.001140178
+
+[Correct age distribution after household allocation to exactly match specified demography]
+1
+
+[Include places]
+1
+
+[Place overlap matrix]
+1	0	0
+0	1	0
+0	0	1
+
+[Number of types of places]
+3
+
+[Proportion of age group 1 in place types]
+1	0.68	0
+
+[Minimum age for age group 1 in place types]
+6	18	0
+
+[Maximum age for age group 1 in place types]
+18	65	85
+
+[Proportion of age group 2 in place types]
+0.25	0.32	0
+
+[Minimum age for age group 2 in place types]
+5	65	0
+
+[Maximum age for age group 2 in place types]
+6	75	85
+
+[Proportion of age group 3 in place types]
+0.014	0	0.01
+
+[Minimum age for age group 3 in place types]
+20	21	0
+
+[Maximum age for age group 3 in place types]
+65	65	85
+
+[Kernel type]
+6
+
+[Kernel scale]
+35000
+
+[Kernel Shape]
+6
+
+[Kernel type for place types]
+5	6	2
+
+[Kernel shape params for place types]
+11	6.5	3
+
+[Kernel scale params for place types]
+14000	35000	4000
+
+[Kernel 3rd param for place types]
+0	0.0004	0
+
+[Kernel 4th param for place types]
+0	2.2	0
+
+[Mean size of place types]
+460	14.28	100
+
+[Number of closest places people pick from (0=all) for place types]
+10	0	0
+
+[Param 1 of place group size distribution]
+25	10	1000
+
+[Power of place size distribution]
+0	1.34	0
+
+[Offset of place size distribution]
+0	5.35	0
+
+[Maximum of place size distribution]
+0	5927	0
+
+[Proportion of between group place links]
+0.25	0.25	1
+
+[Kernel resolution]
+4000000
+
+[Kernel higher resolution factor]
+2500
+
+[Include holidays]
+0
+
+[Proportion of places remaining open during holidays by place type]
+0	0	1	1
+
+[Number of holidays]
+5
+
+[Holiday start times]
+23	78	127	176	234
+
+[Holiday durations]
+14	7	14	7	42
