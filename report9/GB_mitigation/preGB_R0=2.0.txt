@@ -410,13 +410,13 @@ assume average time to symptom onset is a day
 0
 
 [Max number of infection events to record]
-10000000000
+1000000000
 
 [Limit number of infections]
 0
 
 [Max number of infections]
-10000000000
+1000000000
 
 
 [OutputSeverityAdminUnit]
