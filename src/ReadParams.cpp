@@ -1124,10 +1124,11 @@ void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 		{
 			if (!Params::param_found(pre_params, adm_params, "Administrative unit to seed initial infection into"))
 			{
-				Params::req_string_vec(pre_params, adm_params, "Administrative unit to seed initial infection into", AdunitListNames, P->NumSeedLocations, P);
 				for (int i = 0; i < P->NumSeedLocations; i++) P->InitialInfectionsAdminUnit[i] = 0;
 			}
-			else
+			else 
+			{
+				Params::req_string_vec(pre_params, adm_params, "Administrative unit to seed initial infection into", AdunitListNames, P->NumSeedLocations, P);
 				for (int i = 0; i < P->NumSeedLocations; i++)
 				{
 					int f = 0;
@@ -1142,6 +1143,7 @@ void Params::seeding_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 					P->InitialInfectionsAdminUnit[i] = k;
 					P->InitialInfectionsAdminUnitId[i] = P->AdunitLevel1Lookup[(k % P->AdunitLevel1Mask) / P->AdunitLevel1Divisor];
 				}
+			}
 			Params::get_double_vec(pre_params, adm_params, "Administrative unit seeding weights", P->InitialInfectionsAdminUnitWeight, P->NumSeedLocations, 1.0, P->NumSeedLocations, P);
 			double s = 0;
 			for (int i = 0; i < P->NumSeedLocations; i++) s += P->InitialInfectionsAdminUnitWeight[i];
