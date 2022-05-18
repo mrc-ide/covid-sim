@@ -622,21 +622,21 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									for (int m = 0; m < n; m++)
 									{
 										// select potential infectee from sampling queue
-										int i3 = Places[k][l].members[SamplingQueue[tn][m]];
+										int PotentialInfectee = Places[k][l].members[SamplingQueue[tn][m]];
 										// calculate place susceptibility s
-										s = CalcPlaceSusc(i3, k, ts);
+										s = CalcPlaceSusc(PotentialInfectee, k, ts);
 										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
-										if ((Hosts[ci].care_home_resident) && (Hosts[i3].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[i3].PlaceGroupLinks[k])) s *= P.CareHomeResidentPlaceScaling;
+										if ((Hosts[ci].care_home_resident) && (Hosts[PotentialInfectee].care_home_resident) && (Hosts[ci].PlaceGroupLinks[k]!= Hosts[PotentialInfectee].PlaceGroupLinks[k])) s *= P.CareHomeResidentPlaceScaling;
 										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
-										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[i3].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
+										if ((k == P.CareHomePlaceType) && ((!Hosts[ci].care_home_resident) || (!Hosts[PotentialInfectee].care_home_resident))) s *= P.CareHomeWorkerGroupScaling;
 										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 
 										//if infectee is also a user, add them as a contact
 										
-										// if contact tracing in place AND potential infectee i3 is a contact tracing user AND i3 isn't absent AND i3 isn't ci (suspect this should be si)
+										// if contact tracing in place AND potential infectee PotentialInfectee is a contact tracing user AND PotentialInfectee isn't absent AND PotentialInfectee isn't ci (suspect this should be si)
 
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (ci != i3) && (!HOST_ABSENT(i3)))
+										if ((fct) && (Hosts[PotentialInfectee].digitalContactTracingUser) && (ci != PotentialInfectee) && (!HOST_ABSENT(PotentialInfectee)))
 										{
 											// s6 = place susceptibility * proportion of digital contacts who self isolate
 											s6 = P.ProportionDigitalContactsIsolate * s;
@@ -644,11 +644,11 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((Hosts[ci].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(tn) < s6))
 											{
 												Hosts[ci].ncontacts++; //add to number of contacts made
-												int ad = Mcells[Hosts[i3].mcell].adunit;
+												int ad = Mcells[Hosts[PotentialInfectee].mcell].adunit;
 												if ((StateT[tn].ndct_queue[ad] < AdUnits[ad].n))
 												{
 													//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
-													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { i3,ci,ts };
+													StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { PotentialInfectee, ci, ts };
 												}
 												else
 												{
@@ -657,19 +657,19 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											}
 										}
 
-										// if potential infectee i3 uninfected and not absent.
-										if (Hosts[i3].is_susceptible() && (!HOST_ABSENT(i3)))
+										// if potential infectee PotentialInfectee uninfected and not absent.
+										if (Hosts[PotentialInfectee].is_susceptible() && (!HOST_ABSENT(PotentialInfectee)))
 										{
 											// mt = microcell of potential infectee
-											Microcell* mt = Mcells + Hosts[i3].mcell;
+											Microcell* mt = Mcells + Hosts[PotentialInfectee].mcell;
 
 											//if doing digital contact tracing, scale down susceptibility here
-											s*= CalcPersonSusc(i3, ts, ci)*s3/s3_scaled;
+											s*= CalcPersonSusc(PotentialInfectee, ts, ci)*s3/s3_scaled;
 											// if blanket movement restrictions are in place
 											if (bm)
 											{
 												// if potential infectees household is farther away from hotel than restriction radius
-												if ((dist2_raw(Households[Hosts[i3].hh].loc.x, Households[Hosts[i3].hh].loc.y,
+												if ((dist2_raw(Households[Hosts[PotentialInfectee].hh].loc.x, Households[Hosts[PotentialInfectee].hh].loc.y,
 													Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
 												{
 													// multiply susceptibility by movement restriction effect
@@ -691,9 +691,9 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 												// explicitly cast to short to resolve level 4 warning
 												const short int infect_type = static_cast<short int> (2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + si->infect_type / INFECT_TYPE_MASK));
 												
-												AddInfections(tn, Hosts[i3].pcell% P.NumThreads, ci, i3, infect_type);
+												AddInfections(tn, Hosts[PotentialInfectee].pcell% P.NumThreads, ci, PotentialInfectee, infect_type);
 											}// susceptibility test
-										}// potential infectee i3 uninfected and not absent.
+										}// PotentialInfectee uninfected and not absent.
 									}// loop over sampling queue
 								}// selected host si is not travelling or selected link is to a hotel
 								
@@ -736,12 +736,12 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					if (P.DoPlaces)
 					{
 						// loop over place types until closed place is found
-						for (int i3 = 0; (i3 < P.PlaceTypeNum) && (!f); i3++)
+						for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!f); PlaceType++)
 						{
-							if (si->PlaceLinks[i3] >= 0) //// if person has a link to place of type i3...
+							if (si->PlaceLinks[PlaceType] >= 0) //// if person has a link to place of type PlaceType...
 							{
 								// if place is closed set f=1
-								f = PLACE_CLOSED(i3, si->PlaceLinks[i3]); //// find out if that place of type i3 is closed.
+								f = PLACE_CLOSED(PlaceType, si->PlaceLinks[PlaceType]); //// find out if that place of type PlaceType is closed.
 							}
 						}
 					}// if doing places
