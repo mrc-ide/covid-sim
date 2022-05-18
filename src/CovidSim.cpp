@@ -3540,8 +3540,8 @@ void CalibrationThresholdCheck(double t,int n)
 		if (P.VaryEfficaciesOverTime)
 			UpdateCurrentInterventionParams(t - P.Epidemic_StartDate_CalTime); // t - P.Epidemic_StartDate_CalTime converts simulation time (t) into calendar time. 
 
-// changed to a define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
-#define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X>=1e10) X=Y;
+// changed to a #define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
+#define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X >= 1e10) X = Y;
 
 		//// Set Case isolation start time (by admin unit)
 		for (int i = 0; i < P.NumAdunits; i++)
