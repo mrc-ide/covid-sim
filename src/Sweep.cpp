@@ -1056,7 +1056,6 @@ void IncubRecoverySweep(double t)
 		}
 }
 
-
 void DigitalContactTracingSweep(double t)
 {
 	/**
@@ -1498,6 +1497,7 @@ int TreatSweep(double t)
 				DoVacc(State.mvacc_queue[i], ts);
 			State.mvacc_cum = m;
 		}
+
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
 		t_TreatStart				= (unsigned short int) (P.TimeStepsPerDay		* (t + P.TreatDelayMean));

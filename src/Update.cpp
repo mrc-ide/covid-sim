@@ -528,8 +528,6 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 		}
 
 		//// update pointers
-
-
 		LatentToInfectious(a->pcell);
 
 		if (Cells[a->pcell].L > 0)
@@ -1396,12 +1394,11 @@ Severity ChooseFinalDiseaseSeverity(int AgeGroup, int tn)
 	double x;
 
 	// assume normalised props
-
 	x = ranf_mt(tn);
-	if (x < P.Prop_ILI_ByAge[AgeGroup]) DiseaseSeverity = Severity::ILI;
-	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup]) DiseaseSeverity = Severity::SARI;
-	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup] + P.Prop_Critical_ByAge[AgeGroup]) DiseaseSeverity = Severity::Critical;
-	else DiseaseSeverity = Severity::Mild;
+		 if (x < P.Prop_ILI_ByAge[AgeGroup])																	DiseaseSeverity = Severity::ILI;
+	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup])										DiseaseSeverity = Severity::SARI;
+	else if (x < P.Prop_ILI_ByAge[AgeGroup] + P.Prop_SARI_ByAge[AgeGroup] + P.Prop_Critical_ByAge[AgeGroup])	DiseaseSeverity = Severity::Critical;
+	else																										DiseaseSeverity = Severity::Mild;
 	return DiseaseSeverity;
 }
 
@@ -1426,7 +1423,6 @@ static void SusceptibleToLatent(int cellIndex)
 	assert(Cells[cellIndex].S >= 0);
 }
 
-
 static void LatentToInfectious(int cellIndex)
 {
 	Cells[cellIndex].L--;		//// one fewer person latently infected.
@@ -1435,7 +1431,6 @@ static void LatentToInfectious(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].L >= 0);
-
 }
 
 static void InfectiousToRecovered(int cellIndex)
@@ -1445,9 +1440,7 @@ static void InfectiousToRecovered(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].I >= 0);
-
 }
-
 
 static void InfectiousToDeath(int cellIndex)
 {
@@ -1456,11 +1449,9 @@ static void InfectiousToDeath(int cellIndex)
 
 	// assert values are non-negative
 	assert(Cells[cellIndex].I >= 0);
-
 }
 
 // severity state functions
-
 static void ChangeSeverity(int& quantity, int* age, int* adUnit, int microCellIndex, int personIndex, std::function<void(int&)> action)
 {
 	action(quantity);

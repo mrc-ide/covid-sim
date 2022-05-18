@@ -840,7 +840,7 @@ void InitTransmissionCoeffs(void)
 		Files::xfprintf_stderr("Set spatial beta to %lg\n", P.LocalBeta);
 	}
 	P.R0spatial = Spatial_R0 * P.LocalBeta;
-	P.R0 = P.R0household + P.R0places + P.R0spatial;
+	P.R0		= P.R0household + P.R0places + P.R0spatial;
 	Files::xfprintf_stderr("R0 for random spatial = %lg\nOverall R0 = %lg\n", P.R0spatial, P.R0);
 	Files::xfprintf_stderr("Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
 }

@@ -501,7 +501,6 @@ void Params::get_inverse_cdf(ParamMap fallback, ParamMap params, const char* icd
 	inverseCdf->assign_exponent();
 }
 
-
 double** create_2d_double(int sizex, int sizey)
 {
 	double** arr = new double* [sizex];
@@ -514,18 +513,18 @@ double** create_2d_double(int sizex, int sizey)
 
 void Params::alloc_params(Param* P)
 {
-	P->LocationInitialInfection = create_2d_double(MAX_NUM_SEED_LOCATIONS, 2);
-	P->WAIFW_Matrix = create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
-	P->WAIFW_Matrix_SpatialOnly = create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
-	P->SD_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->Enhanced_SD_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->HQ_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->PC_PlaceEffects_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->PC_PropAttending_OverTime = create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->HouseholdSizeDistrib = create_2d_double(MAX_ADUNITS, MAX_HOUSEHOLD_SIZE);
-	P->PropAgeGroup = create_2d_double(MAX_ADUNITS, NUM_AGE_GROUPS);
-	P->PopByAdunit = create_2d_double(MAX_ADUNITS, 2);
-	P->InvLifeExpecDist = create_2d_double(MAX_ADUNITS, 1001);
+	P->LocationInitialInfection				= create_2d_double(MAX_NUM_SEED_LOCATIONS, 2);
+	P->WAIFW_Matrix							= create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
+	P->WAIFW_Matrix_SpatialOnly				= create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
+	P->SD_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->Enhanced_SD_PlaceEffects_OverTime	= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->HQ_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->PC_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->PC_PropAttending_OverTime			= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->HouseholdSizeDistrib					= create_2d_double(MAX_ADUNITS, MAX_HOUSEHOLD_SIZE);
+	P->PropAgeGroup							= create_2d_double(MAX_ADUNITS, NUM_AGE_GROUPS);
+	P->PopByAdunit							= create_2d_double(MAX_ADUNITS, 2);
+	P->InvLifeExpecDist						= create_2d_double(MAX_ADUNITS, 1001);
 }
 /**************************************************************************************************************/
 

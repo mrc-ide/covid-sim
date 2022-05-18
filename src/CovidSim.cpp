@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
 	P.FitIter = 0;
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input)
-  {
+	{
 		auto sep = input.find_first_of(',');
 		if (sep == std::string::npos)
 		{
@@ -2793,19 +2793,19 @@ void UpdateCFRs(double t_CalTime)
 	if (P.Num_CFR_ChangeTimes > 1)
 	{
 		if (t_CalTime <= P.CFR_ChangeTimes_CalTime[0])
-			Scale = P.CFR_TimeScaling_Critical[0]; // if t <= first change point, take value at first change point. 
+			Scale = P.CFR_TimeScaling_Critical[0];							// if t <= first change point, take value at first change point. 
 		else if (t_CalTime >= P.CFR_ChangeTimes_CalTime[P.Num_CFR_ChangeTimes - 1])
-			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1]; // if t >= last change point, take value at last change point. 
+			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1];	// if t >= last change point, take value at last change point. 
 		else
 		{
 			int SplineSegment = FindSplineSegment(t_CalTime, P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes);
 
-			double x0 = P.CFR_ChangeTimes_CalTime[SplineSegment];
-			double x1 = P.CFR_ChangeTimes_CalTime[SplineSegment + 1];
-			double y0 = P.CFR_TimeScaling_Critical[SplineSegment];
-			double y1 = P.CFR_TimeScaling_Critical[SplineSegment + 1];
-			double Slope = (y1 - y0) / (x1 - x0);
-			double Intercept = y1 - Slope * x1;
+			double x0			= P.CFR_ChangeTimes_CalTime	[SplineSegment];
+			double x1			= P.CFR_ChangeTimes_CalTime	[SplineSegment + 1];
+			double y0			= P.CFR_TimeScaling_Critical[SplineSegment];
+			double y1			= P.CFR_TimeScaling_Critical[SplineSegment + 1];
+			double Slope		= (y1 - y0) / (x1 - x0);
+			double Intercept	= y1 - Slope * x1;
 
 			Scale = Intercept + (Slope * t_CalTime);
 		}
@@ -2824,7 +2824,6 @@ void UpdateCFRs(double t_CalTime)
 	//		P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
 	//	}
 }
-
 
 void UpdateCurrentInterventionParams(double t_CalTime)
 {
@@ -3964,7 +3963,6 @@ void RecordInfTypes(void)
 	PeakTimeSum += t;
 	PeakTimeSS += t * t;
 }
-
 
 void CalcOriginDestMatrix_adunit()
 {

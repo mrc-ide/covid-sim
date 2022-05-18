@@ -136,7 +136,6 @@ Mean_CritRecovToRecov = rep(ProgParams["k_W_R"] / ProgParams["gamma_W_R"], NUM_A
 CritRecovToRecov_icdf = qgamma(QUANTILES, shape = ProgParams["k_W_R"], rate = ProgParams["k_W_R"])
 
 
-
 ## Save output
 AgeSpecificMeans = data.frame(LatentPeriod, InfectiousPeriod, Mean_MildToRecovery, 
 		Mean_ILIToRecovery, Mean_ILIToSARI, Mean_ILIToSARI, Mean_ILIToDeath, 
