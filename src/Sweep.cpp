@@ -898,10 +898,10 @@ void IncubRecoverySweep(double t)
 				for (int j = 0; j < P.PlaceTypeNum; j++)
 				{
 #pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
-					for(int tn=0;tn<P.NumThreads;tn++)
-						for (int k = tn; k < P.Nplace[j]; k+=P.NumThreads)
+					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
+						for (int k = ThreadNum; k < P.Nplace[j]; k+=P.NumThreads)
 						{
-							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(tn) >= P.HolidayEffect[j])))
+							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(ThreadNum) >= P.HolidayEffect[j])))
 							{
 								int l = (int)(ht * P.TimeStepsPerDay);
 								if (Places[j][k].close_start_time > l)  Places[j][k].close_start_time = (unsigned short) l;
@@ -919,61 +919,60 @@ void IncubRecoverySweep(double t)
 		}
 
 #pragma omp parallel for schedule(static,1) default(none) shared(t, P, CellLookup, Hosts, AdUnits, Mcells, StateT, TimeStepNow)
-	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
-		for (int b = tn; b < P.NumPopulatedCells; b += P.NumThreads)	//// loop/step over populated cells
+	for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)	//// loop over threads
+		for (int CellIndex = ThreadNum; CellIndex < P.NumPopulatedCells; CellIndex += P.NumThreads)	//// loop/step over populated cells
 		{
-			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
-			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
-				if (TimeStepNow == Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
-					DoIncub(c->latent[j], TimeStepNow, tn); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
-			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
-			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
+			Cell* cell = CellLookup[CellIndex]; //// find (pointer-to) cell.
+			for (int LatentPerson = ((int)cell->L - 1); LatentPerson >= 0; LatentPerson--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
+				if (TimeStepNow == Hosts[cell->latent[LatentPerson]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
+					DoIncub(cell->latent[LatentPerson], TimeStepNow, ThreadNum); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
+
+			for (int InfeciousPersonIndexWithinCell = cell->I - 1; InfeciousPersonIndexWithinCell >= 0; InfeciousPersonIndexWithinCell--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
-				int ci = c->infected[j];	//// person index
-				Person* si = Hosts + ci;		//// person
+				int InfeciousPersonIndex = cell->infected[InfeciousPersonIndexWithinCell];	//// person index
+				Person* InfeciousPerson = Hosts + InfeciousPersonIndex;	//// person
 
-				unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
-				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep))*/
-				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep)); //// time that person si/ci becomes case (symptomatic)...
-				if ((P.DoSymptoms) && (TimeStepNow == tc)) //// ... if now is that time...
-					DoCase(ci, t, TimeStepNow, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
+				unsigned short int CaseTime; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
+				CaseTime = InfeciousPerson->latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep)); //// time that person si/ci becomes case (symptomatic)...
+				if ((P.DoSymptoms) && (TimeStepNow == CaseTime)) //// ... if now is that time...
+					DoCase(InfeciousPersonIndex, t, TimeStepNow, ThreadNum);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
 
-				if (P.DoSeverity)
+				if (P.DoSeverity) // Don't be tempted to if/else or switch following code as there are edge cases where e.g. SARI_time = recovery_or_death_time, and so they're not mutually exclusive.
 				{
-					if (TimeStepNow == si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
-					if (TimeStepNow == si->Critical_time)	DoCritical				(ci, tn);
-					if (TimeStepNow == si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
-					if (TimeStepNow == si->recovery_or_death_time)
+					if (TimeStepNow == InfeciousPerson->SARI_time)		DoSARI					(InfeciousPersonIndex, ThreadNum);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
+					if (TimeStepNow == InfeciousPerson->Critical_time)	DoCritical				(InfeciousPersonIndex, ThreadNum);
+					if (TimeStepNow == InfeciousPerson->Stepdown_time)	DoRecoveringFromCritical(InfeciousPersonIndex, ThreadNum);
+					if (TimeStepNow == InfeciousPerson->recovery_or_death_time)
 					{
-						if (si->to_die)
-							DoDeath_FromCriticalorSARIorILI(ci, tn);
+						if (InfeciousPerson->to_die)
+							DoDeath_FromCriticalorSARIorILI	(InfeciousPersonIndex, ThreadNum);
 						else
-							DoRecover_FromSeverity(ci, tn);
+							DoRecover_FromSeverity			(InfeciousPersonIndex, ThreadNum);
 					}
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (TimeStepNow == si->recovery_or_death_time)
+				if (TimeStepNow == InfeciousPerson->recovery_or_death_time)
 				{
-					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
+					if (!InfeciousPerson->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
-						DoRecover(ci, tn);
-						//StateT[tn].inf_queue[0][StateT[tn].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
+						DoRecover(InfeciousPersonIndex, ThreadNum);
+						//StateT[ThreadNum].inf_queue[0][StateT[ThreadNum].n_queue[0]++] = ci; //// add them to end of 0th thread of inf queue. Don't get why 0 here.
 					}
 					else /// if they die and this timestep is after they've died.
 					{
-						if (HOST_TREATED(ci) && (ranf_mt(tn) < P.TreatDeathDrop))
-							DoRecover(ci, tn);
+						if (HOST_TREATED(InfeciousPersonIndex) && (ranf_mt(ThreadNum) < P.TreatDeathDrop))
+							DoRecover(InfeciousPersonIndex, ThreadNum);
 						else
-							DoDeath(ci, tn);
+							DoDeath(InfeciousPersonIndex, ThreadNum);
 					}
 
 					//once host recovers, will no longer make contacts for contact tracing - if we are doing contact tracing and case was infectious when contact tracing was active, increment state vector
-					if ((P.DoDigitalContactTracing) && (Hosts[ci].latent_time>= AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart) && (Hosts[ci].recovery_or_death_time < AdUnits[Mcells[Hosts[ci].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[ci].digitalContactTracingUser == 1) && (P.OutputDigitalContactDist))
+					if ((P.DoDigitalContactTracing) && (Hosts[InfeciousPersonIndex].latent_time>= AdUnits[Mcells[Hosts[InfeciousPersonIndex].mcell].adunit].DigitalContactTracingTimeStart) && (Hosts[InfeciousPersonIndex].recovery_or_death_time < AdUnits[Mcells[Hosts[InfeciousPersonIndex].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfeciousPersonIndex].digitalContactTracingUser == 1) && (P.OutputDigitalContactDist))
 					{
-						if (Hosts[ci].ncontacts > MAX_CONTACTS) Hosts[ci].ncontacts = MAX_CONTACTS;
+						if (Hosts[InfeciousPersonIndex].ncontacts > MAX_CONTACTS) Hosts[InfeciousPersonIndex].ncontacts = MAX_CONTACTS;
 						//increment bin in State corresponding to this number of contacts
-						StateT[tn].contact_dist[Hosts[ci].ncontacts]++;
+						StateT[ThreadNum].contact_dist[Hosts[InfeciousPersonIndex].ncontacts]++;
 					}
 				}
 			}
