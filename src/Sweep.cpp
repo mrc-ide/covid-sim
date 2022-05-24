@@ -889,28 +889,29 @@ void IncubRecoverySweep(double t)
 	TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	if (P.DoPlaces)
-		for (int i = 0; i < P.NumHolidays; i++)
+		for (int HolidayNumber = 0; HolidayNumber < P.NumHolidays; HolidayNumber++)
 		{
-			ht = P.HolidayStartTime[i] + P.HolidaysStartDay_SimTime;
+			ht = P.HolidayStartTime[HolidayNumber] + P.HolidaysStartDay_SimTime;
 			if ((t + P.ModelTimeStep >= ht) && (t < ht))
 			{
-//				Files::xfprintf_stderr("Holiday %i t=%lg\n", i, t);
-				for (int j = 0; j < P.PlaceTypeNum; j++)
+//				Files::xfprintf_stderr("Holiday %HolidayNumber t=%lg\n", HolidayNumber, t);
+				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 				{
-#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, i, j, ht)
+#pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, HolidayNumber, PlaceType, ht)
 					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
-						for (int k = ThreadNum; k < P.Nplace[j]; k+=P.NumThreads)
+						for (int PlaceNumber = ThreadNum; PlaceNumber < P.Nplace[PlaceType]; PlaceNumber += P.NumThreads)
 						{
-							if ((P.HolidayEffect[j] < 1) && ((P.HolidayEffect[j] == 0) || (ranf_mt(ThreadNum) >= P.HolidayEffect[j])))
+							if ((P.HolidayEffect[PlaceType] < 1) /*Proportion of Places of this type closed < 1*/ && ((P.HolidayEffect[PlaceType] == 0) || (ranf_mt(ThreadNum) >= P.HolidayEffect[PlaceType])))
 							{
-								int l = (int)(ht * P.TimeStepsPerDay);
-								if (Places[j][k].close_start_time > l)  Places[j][k].close_start_time = (unsigned short) l;
-								int b = (int)((ht + P.HolidayDuration[i]) * P.TimeStepsPerDay);
-								if (Places[j][k].close_end_time < b)	  Places[j][k].close_end_time = (unsigned short) b;
-								for (int ci = 0; ci < Places[j][k].n; ci++)
+								int HolidayStart	= (int)(ht * P.TimeStepsPerDay);
+								int HolidayEnd		= (int)((ht + P.HolidayDuration[HolidayNumber]) * P.TimeStepsPerDay);
+								if (Places[PlaceType][PlaceNumber].close_start_time > HolidayStart)  Places[PlaceType][PlaceNumber].close_start_time	= (unsigned short) HolidayStart;
+								if (Places[PlaceType][PlaceNumber].close_end_time	< HolidayEnd)	 Places[PlaceType][PlaceNumber].close_end_time		= (unsigned short) HolidayEnd;
+
+								for (int PlaceMember = 0; PlaceMember < Places[PlaceType][PlaceNumber].n; PlaceMember++)
 								{
-									if (Hosts[Places[j][k].members[ci]].absent_start_time > l) Hosts[Places[j][k].members[ci]].absent_start_time = (unsigned short)l;
-									if (Hosts[Places[j][k].members[ci]].absent_stop_time < b) Hosts[Places[j][k].members[ci]].absent_stop_time = (unsigned short)b;
+									if (Hosts[Places[PlaceType][PlaceNumber].members[PlaceMember]].absent_start_time	> HolidayStart	) Hosts[Places[PlaceType][PlaceNumber].members[PlaceMember]].absent_start_time	= (unsigned short) HolidayStart;
+									if (Hosts[Places[PlaceType][PlaceNumber].members[PlaceMember]].absent_stop_time		< HolidayEnd	) Hosts[Places[PlaceType][PlaceNumber].members[PlaceMember]].absent_stop_time	= (unsigned short) HolidayEnd;
 								}
 							}
 						}
@@ -1327,11 +1328,11 @@ int TreatSweep(double t)
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
 	int TreatFlag, TreatFlag1; //// Function returns TreatFlag. If TreatFlag == 0, function no longer called. Anytime any treatment used, TreatFlag set to 1. 
-	int f2, f3, f4; //// various fail conditions. Used for other things
+	int f2, f3, f4; //// various Flags. Used everywhere.
 	int nckwp;
 
 	//// time steps
-	unsigned short int TimeStepNow;								////  time-step now.
+	unsigned short int TimeStepNow;						////  time-step now.
 	unsigned short int t_TreatStart;					////  time-step treatment begin
 	unsigned short int t_TreatEnd;						////  time-step treatment finish
 	unsigned short int t_VacStart;						////  time-step vaccination begin
