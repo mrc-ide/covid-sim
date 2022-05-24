@@ -1327,25 +1327,23 @@ int TreatSweep(double t)
 {
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
-	int TreatFlag, TreatFlag1; //// Function returns TreatFlag. If TreatFlag == 0, function no longer called. Anytime any treatment used, TreatFlag set to 1. 
+	int TreatFlag = 0, TreatFlag1 = 0; //// Function returns TreatFlag. If TreatFlag == 0, function no longer called. Anytime any treatment used, TreatFlag set to 1. 
 	int f2, f3, f4; //// various Flags. Used everywhere.
 	int nckwp;
 
 	//// time steps
-	unsigned short int TimeStepNow;						////  time-step now.
-	unsigned short int t_TreatStart;					////  time-step treatment begin
-	unsigned short int t_TreatEnd;						////  time-step treatment finish
-	unsigned short int t_VacStart;						////  time-step vaccination begin
-	unsigned short int t_PlaceClosure_End;				////  time-step place closure finish
-	unsigned short int t_MoveRestrict_Start;			////  time-step movement restriction begin
-	unsigned short int t_MoveRestrict_End;				////  time-step movement restriction finish
-	unsigned short int t_SocDist_End;					////  time-step social distancing finish
-	unsigned short int t_KeyWorkerPlaceClosure_End;		////  time-step key worker place closure finish
-	int global_trig;
-	double r;
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);	////  time-step now.
+	unsigned short int t_TreatStart;												////  time-step treatment begin
+	unsigned short int t_TreatEnd;													////  time-step treatment finish
+	unsigned short int t_VacStart;													////  time-step vaccination begin
+	unsigned short int t_PlaceClosure_End;											////  time-step place closure finish
+	unsigned short int t_MoveRestrict_Start;										////  time-step movement restriction begin
+	unsigned short int t_MoveRestrict_End;											////  time-step movement restriction finish
+	unsigned short int t_SocDist_End;												////  time-step social distancing finish
+	unsigned short int t_KeyWorkerPlaceClosure_End;									////  time-step key worker place closure finish
+	double radius;
 
-	TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
-	TreatFlag = TreatFlag1 = 0;
+	int global_trig;
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)
@@ -1422,6 +1420,7 @@ int TreatSweep(double t)
 			State.mvacc_cum = m;
 		}
 
+	//// Main block of function
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
 		t_TreatStart				= (unsigned short int) (P.TimeStepsPerDay		* (t + P.TreatDelayMean));
@@ -1434,14 +1433,14 @@ int TreatSweep(double t)
 		t_KeyWorkerPlaceClosure_End = (unsigned short int) ceil(P.TimeStepsPerDay	* (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
-#pragma omp parallel for private(f2,f3,f4,r) reduction(+:TreatFlag) schedule(static,1) default(none) \
+#pragma omp parallel for private(f2,f3,f4,radius) reduction(+:TreatFlag) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, TimeStepNow, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int bs = tn; bs < P.NumPopulatedMicrocells; bs += P.NumThreads) //// loop over populated microcells
 			{
-				int mcellnum = (int)(McellLookup[bs] - Mcells); //// microcell number
-				int adi = (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
-				int ad = (P.DoAdUnits) ? AdUnits[adi].id : 0;
+				int mcellnum	= (int)(McellLookup[bs] - Mcells); //// microcell number
+				int adi			= (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
+				int AdminUnit	= (P.DoAdUnits) ? AdUnits[adi].id : 0;
 
 				//// Code block goes through various types of treatments/interventions (vaccination/movement restrictions etc.),
 				//// assesses whether various triggers (counts) are over a certain threshold, (specified in ReadParams)
@@ -1470,19 +1469,21 @@ int TreatSweep(double t)
 							DoProphNoDelay(l, TimeStepNow, tn, 1);
 					}
 				}
+
+				bool TrigThreshReached_Treatment = 0; 
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig >= P.TreatCellIncThresh);
+					TrigThreshReached_Treatment = (global_trig >= P.TreatCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
-					f2 = (State.trigDC_adunit[adi] > trig_thresh);
+					TrigThreshReached_Treatment = (State.trigDC_adunit[adi] > trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
-					f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+					TrigThreshReached_Treatment = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
-				if ((t >= P.TreatTimeStart) && (Mcells[mcellnum].treat == TreatStat::Untreated) && (f2) && (P.TreatRadius2 > 0))
+				if ((t >= P.TreatTimeStart) && (Mcells[mcellnum].treat == TreatStat::Untreated) && (TrigThreshReached_Treatment) && (P.TreatRadius2 > 0))
 				{
 					MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
 					Direction j = Direction::Right;
@@ -1491,9 +1492,10 @@ int TreatSweep(double t)
 					int i, m, l;
 					i = m = f2 = 0;
 					l = f3 = 1;
-					if ((!P.TreatByAdminUnit) || (ad > 0))
+
+					if ((!P.TreatByAdminUnit) || (AdminUnit > 0))
 					{
-						int ad2 = ad / P.TreatAdminUnitDivisor;
+						int ad2 = AdminUnit / P.TreatAdminUnitDivisor;
 						do
 						{
 							if (P.is_in_bounds(min))
@@ -1501,7 +1503,7 @@ int TreatSweep(double t)
 								if (P.TreatByAdminUnit)
 									f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
 								else
-									f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.TreatRadius2);
+									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.TreatRadius2);
 								if (f4)
 								{
 									TreatFlag = f2 = 1;
@@ -1577,9 +1579,9 @@ int TreatSweep(double t)
 					int i, l, m;
 					i = m = f2 = 0;
 					l = f3 = 1;
-					if ((!P.VaccByAdminUnit) || (ad > 0))
+					if ((!P.VaccByAdminUnit) || (AdminUnit > 0))
 					{
-						int ad2 = ad / P.VaccAdminUnitDivisor;
+						int ad2 = AdminUnit / P.VaccAdminUnitDivisor;
 						do
 						{
 							if (P.is_in_bounds(min))
@@ -1587,14 +1589,14 @@ int TreatSweep(double t)
 								if (P.VaccByAdminUnit)
 								{
 									f4 = (AdUnits[Mcells[k].adunit].id / P.VaccAdminUnitDivisor == ad2);
-									r = 1e20;
+									radius = 1e20;
 								}
 								else
-									f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.VaccRadius2);
+									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.VaccRadius2);
 								if (f4)
 								{
 									TreatFlag = f2 = 1;
-									if (r < P.VaccMinRadius2)
+									if (radius < P.VaccMinRadius2)
 										Mcells[k].vacc = TreatStat::DontTreatAgain;
 									else if ((Mcells[k].n > 0) && (Mcells[k].vacc == TreatStat::Untreated))
 									{
@@ -1685,7 +1687,7 @@ int TreatSweep(double t)
 						if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
 								interventionFlag = 0;
 
-						if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (ad > 0)))
+						if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (AdminUnit > 0)))
 						{
 							if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].placeclose == TreatStat::Untreated))
 							{
@@ -1747,9 +1749,9 @@ int TreatSweep(double t)
 					int i, l, m;
 					i = m = f2 = 0;
 					l = f3 = 1;
-					if ((!P.MoveRestrByAdminUnit) || (ad > 0))
+					if ((!P.MoveRestrByAdminUnit) || (AdminUnit > 0))
 					{
-						int ad2 = ad / P.MoveRestrAdminUnitDivisor;
+						int ad2 = AdminUnit / P.MoveRestrAdminUnitDivisor;
 						do
 						{
 							if (P.is_in_bounds(min))
@@ -1757,7 +1759,7 @@ int TreatSweep(double t)
 								if (P.MoveRestrByAdminUnit)
 									f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 								else
-									f4 = ((r = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.MoveRestrRadius2);
+									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.MoveRestrRadius2);
 								if (f4)
 								{
 									TreatFlag = f2 = 1;

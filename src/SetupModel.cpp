@@ -898,11 +898,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 							k = 1;
 							AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 						}
-						else
-							k = 0;
+						else	k = 0;
 					}
-					else
-						k = 0;
+					else	k = 0;
 				}
 				else
 				{
@@ -915,16 +913,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 						P.NumAdunits++;
 						if (P.NumAdunits >= MAX_ADUNITS) ERR_CRITICAL("Total number of administrative units exceeds MAX_ADUNITS\n");
 					}
-					else
-					{
-						AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
-					}
+					else AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 				}
 			}
-			else
-			{
-				k = 1;
-			}
+			else k = 1;
+
 			if ((k) && P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(x, y)))
 			{
 				j = (int)floor((x - P.SpatialBoundingBox.bottom_left().x) / P.in_microcells_.width  + 0.1);
