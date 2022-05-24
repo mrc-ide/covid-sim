@@ -475,8 +475,8 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 			}
 			else if (a->Severity_Final == Severity::Critical)
 			{
-				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.choose(P.Mean_ILIToSARI[age], tn, P.TimeStepsPerDay);
-				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age], tn, P.TimeStepsPerDay);
+				a->SARI_time		= CaseTime		+ P.ILIToSARI_icdf.		choose(P.Mean_ILIToSARI[age]		, tn, P.TimeStepsPerDay);
+				a->Critical_time	= a->SARI_time	+ P.SARIToCritical_icdf.choose(P.Mean_SARIToCritical[age]	, tn, P.TimeStepsPerDay);
 				if (a->to_die)
 				{
 					if (P.IncludeStepDownToDeath == 1)
