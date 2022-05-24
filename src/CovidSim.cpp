@@ -2880,12 +2880,12 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			if (t_CalTime == P.PC_ChangeTimes[ChangeTime])
 			{
 				//// First open all the places - keep commented out in case becomes necessary but avoid if possible to avoid runtime costs.
-//				unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+//				unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 //				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 //#pragma omp parallel for schedule(static,1)
 //					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 //						for (int PlaceNum = ThreadNum; PlaceNum < P.Nplace[PlaceType]; PlaceNum += P.NumThreads)
-//							DoPlaceOpen(PlaceType, PlaceNum, ts, ThreadNum);
+//							DoPlaceOpen(PlaceType, PlaceNum, TimeStepNow, ThreadNum);
 
 				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];					//// spatial
 				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];					//// household
@@ -2951,7 +2951,7 @@ void RecordAdminAgeBreakdowns(int t_int)
 		}
 }
 
-void RecordQuarNotInfected(int n, unsigned short int ts)
+void RecordQuarNotInfected(int n, unsigned short int TimeStepNow)
 {
 	int QuarNotInfected = 0, QuarNotSymptomatic = 0;
 #pragma omp parallel for schedule(static,1) reduction(+:QuarNotInfected, QuarNotSymptomatic)
@@ -2975,7 +2975,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	int cumDCT = 0; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
 	int cumHQ = 0, cumAC = 0, cumAH = 0, cumAA = 0, cumACS = 0, cumAPC = 0, cumAPA = 0, cumAPCS = 0, numPC, trigDetectedCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// Severity quantities
 	int Mild = 0, ILI = 0, SARI = 0, Critical = 0, CritRecov = 0, cumMild = 0, cumILI = 0, cumSARI = 0, cumCritical = 0;
@@ -3134,7 +3134,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts);
+	RecordQuarNotInfected(n, TimeStepNow);
 
 	if (P.DoSeverity)
 	{
@@ -3433,7 +3433,7 @@ void CalibrationThresholdCheck(double t,int n)
 	int k;
 	int trigAlert, trigAlertCases;
 	/* Never used
-	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 	*/
 
 	trigAlertCases = State.cumDC;

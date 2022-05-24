@@ -293,7 +293,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	int CellQueue /*cell queue*/;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
 
-	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t); // ts = the timestep number of the start of the current day
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t); // TimeStepNow = the timestep number of the start of the current day
 	double fp					= P.ModelTimeStep / (1 - P.FalsePositiveRate); // fp = false positive
 	double seasonality			= (P.DoSeasonality) ? (P.Seasonality[((int)t) % DAYS_PER_YEAR]) : 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
 	double SpatialSeasonal_Beta = seasonality * fp * P.LocalBeta;
@@ -305,7 +305,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	FILE* stderr_shared = stderr;
 	
 #pragma omp parallel for private(CellQueue) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, Household_Beta, SpatialSeasonal_Beta, seasonality, ts, fp, BlanketMoveRestrInPlace, stderr_shared)
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, Household_Beta, SpatialSeasonal_Beta, seasonality, TimeStepNow, fp, BlanketMoveRestrInPlace, stderr_shared)
 	for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 		for (int CellIndex = ThreadNum; CellIndex < P.NumPopulatedCells; CellIndex += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
@@ -328,7 +328,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				// AND the selected host is a digital contact tracing user
 				// otherwise DigiContactTrace_ThisPersonNow = 0
 				int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
-				&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (ts <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
+				&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
 				
@@ -344,7 +344,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// calculate person's infectiousness at household-level
 						// using the CalcHouseInf function on the selected cell and timestamp at start of current day
 						// then scaling by Household_Beta
-						double HH_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, ts);
+						double HH_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, TimeStepNow);
 
 						// Test if any of the individuals in the selected persons household are absent from places
 						int AtLeastOnePersonAbsent = 0; // initialise to 0
@@ -361,7 +361,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						{
 							if (Hosts[HouseholdMember].is_susceptible() && (!Hosts[HouseholdMember].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
-								double HH_FOI = HH_Infectiousness * CalcHouseSusc(HouseholdMember, ts, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
+								double HH_FOI = HH_Infectiousness * CalcHouseSusc(HouseholdMember, TimeStepNow, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
 								
 								// Force of Infection (HH_FOI) > random value between 0 and 1
 								if (ranf_mt(ThreadNum) < HH_FOI)
@@ -392,7 +392,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 							if (PlaceLink >= 0)  //// PlaceLink >= 0 means if place type PlaceType is relevant to InfectiousPerson. (Now allowing for partial attendance).
 							{
 								// Place_Infectiousness
-								double Place_Infectiousness = fp * seasonality * CalcPlaceInf(InfectiousPersonIndex, PlaceType, ts);
+								double Place_Infectiousness = fp * seasonality * CalcPlaceInf(InfectiousPersonIndex, PlaceType, TimeStepNow);
 								// select microcell of the place linked to InfectiousPerson with link PlaceLink
 								Microcell* Microcell_ThisPersonsPlaceLink = Mcells + Places[PlaceType][PlaceLink].mcell;
 								// if blanket movement restrictions are in place on current day
@@ -477,9 +477,9 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									{
 										// pick potential infectee index PotentialInfectee_PlaceGroup
 										int PotentialInfectee_PlaceGroup = Places[PlaceType][PlaceLink].members[Places[PlaceType][PlaceLink].group_start[PlaceGroupLink_index] + SamplingQueue[ThreadNum][PotentialInfectee_ThisPlaceGroupIndex]];
-										// calculate place susceptbility based on infectee (PotentialInfectee_PlaceGroup), place type (PlaceType), timestep (ts)
+										// calculate place susceptbility based on infectee (PotentialInfectee_PlaceGroup), place type (PlaceType), timestep (TimeStepNow)
 										// thread number (ThreadNum)
-										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee_PlaceGroup, PlaceType, ts);
+										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee_PlaceGroup, PlaceType, TimeStepNow);
 
 										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
 										if ((PlaceType == P.CareHomePlaceType) && ((!Hosts[InfectiousPersonIndex].care_home_resident) || (!Hosts[PotentialInfectee_PlaceGroup].care_home_resident))) PlaceSusceptibility *= P.CareHomeWorkerGroupScaling;
@@ -499,7 +499,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 												if ((StateT[ThreadNum].ndct_queue[AdminUnit] < AdUnits[AdminUnit].n))
 												{
 													//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
-													StateT[ThreadNum].dct_queue[AdminUnit][StateT[ThreadNum].ndct_queue[AdminUnit]++] = { PotentialInfectee_PlaceGroup, InfectiousPersonIndex, ts };
+													StateT[ThreadNum].dct_queue[AdminUnit][StateT[ThreadNum].ndct_queue[AdminUnit]++] = { PotentialInfectee_PlaceGroup, InfectiousPersonIndex, TimeStepNow };
 												}
 												else
 												{
@@ -512,7 +512,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										{
 											Microcell* MicroCell_PotentialInfectee_PlaceGroup = Mcells + Hosts[PotentialInfectee_PlaceGroup].mcell;
 											//downscale PlaceSusceptibility if it has been scaled up do to digital contact tracing
-											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee_PlaceGroup, ts, InfectiousPersonIndex) * Place_Infectiousness_DCT_copy / PlaceInfectiousness_Scaled_DCT_copy;
+											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee_PlaceGroup, TimeStepNow, InfectiousPersonIndex) * Place_Infectiousness_DCT_copy / PlaceInfectiousness_Scaled_DCT_copy;
 
 											// if blanket movement restrictions are in place
 											if (BlanketMoveRestrInPlace)
@@ -571,7 +571,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										// select potential infectee from sampling queue
 										int PotentialInfectee_Hotel = Places[PlaceType][PlaceLink].members[SamplingQueue[ThreadNum][PotentialInfectee_HotelIndex]];
 										// calculate place susceptibility PlaceSusceptibility
-										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee_Hotel, PlaceType, ts);
+										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee_Hotel, PlaceType, TimeStepNow);
 										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
 										if ((Hosts[InfectiousPersonIndex].care_home_resident) && (Hosts[PotentialInfectee_Hotel].care_home_resident) && (Hosts[InfectiousPersonIndex].PlaceGroupLinks[PlaceType]!= Hosts[PotentialInfectee_Hotel].PlaceGroupLinks[PlaceType])) PlaceSusceptibility *= P.CareHomeResidentPlaceScaling;
 										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
@@ -594,7 +594,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 												int ad = Mcells[Hosts[PotentialInfectee_Hotel].mcell].adunit;
 												// find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
 												if ((StateT[ThreadNum].ndct_queue[ad] < AdUnits[ad].n))
-													StateT[ThreadNum].dct_queue[ad][StateT[ThreadNum].ndct_queue[ad]++] = { PotentialInfectee_Hotel, InfectiousPersonIndex, ts };
+													StateT[ThreadNum].dct_queue[ad][StateT[ThreadNum].ndct_queue[ad]++] = { PotentialInfectee_Hotel, InfectiousPersonIndex, TimeStepNow };
 												else Files::xfprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", ThreadNum, ad);
 											}
 										}
@@ -606,7 +606,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											Microcell* MicroCell_PotentialInfectee_Hotel = Mcells + Hosts[PotentialInfectee_Hotel].mcell;
 
 											//if doing digital contact tracing, scale down susceptibility here
-											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee_Hotel, ts, InfectiousPersonIndex)*Place_Infectiousness/Place_Infectiousness_scaled;
+											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee_Hotel, TimeStepNow, InfectiousPersonIndex)*Place_Infectiousness/Place_Infectiousness_scaled;
 											// if blanket movement restrictions are in place
 											if (BlanketMoveRestrInPlace)
 											{
@@ -663,7 +663,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					else
 					{
 						// calculate SpatialInf_ThisPerson based on host and timestep
-						SpatialInf_ThisPerson = CalcSpatialInf(InfectiousPersonIndex, ts);
+						SpatialInf_ThisPerson = CalcSpatialInf(InfectiousPersonIndex, TimeStepNow);
 						// if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
 						if (DigiContactTrace_ThisPersonNow)
 							SpatialInf_ThisPerson *= P.ScalingFactorSpatialDigitalContacts;
@@ -748,7 +748,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 
 					//calculate flag (DigiContactTrace_ThisPersonNow) for digital contact tracing here at the beginning for each individual infector
 					int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart)
-						&& (t < AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[PotentialInfector_Index].digitalContactTracingUser == 1)); // && (ts <= (Hosts[PotentialInfector_Spatial].detected_time + P.usCaseIsolationDelay)));
+						&& (t < AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[PotentialInfector_Index].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[PotentialInfector_Spatial].detected_time + P.usCaseIsolationDelay)));
 
 					//// decide on infectee
 					
@@ -789,7 +789,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 								Microcell* Microcell_PotentialInfector = Mcells + PotentialInfector_Spatial->mcell;
 								// pick microcell of infectee (mt)
 								Microcell* mt = Mcells + Hosts[PotentialInfectee_Spatial].mcell;
-								double Spatial_Susc = CalcSpatialSusc(PotentialInfectee_Spatial, ts);
+								double Spatial_Susc = CalcSpatialSusc(PotentialInfectee_Spatial, TimeStepNow);
 								// Care home residents may have fewer contacts
 								if ((Hosts[PotentialInfectee_Spatial].care_home_resident) || (Hosts[PotentialInfector_Index].care_home_resident)) Spatial_Susc *= P.CareHomeResidentSpatialScaling;
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
@@ -805,7 +805,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((StateT[ThreadNum].ndct_queue[ad] < AdUnits[ad].n))
 											{
 												//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
-												StateT[ThreadNum].dct_queue[ad][StateT[ThreadNum].ndct_queue[ad]++] = { PotentialInfectee_Spatial, PotentialInfector_Index, ts };
+												StateT[ThreadNum].dct_queue[ad][StateT[ThreadNum].ndct_queue[ad]++] = { PotentialInfectee_Spatial, PotentialInfector_Index, TimeStepNow };
 											}
 											else
 											{
@@ -820,7 +820,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 							
 								if (SusceptiblePerson < ct->S)  // only consider susceptible people as possible infectees
 								{
-									Spatial_Susc *= CalcPersonSusc(PotentialInfectee_Spatial, ts, PotentialInfector_Index);
+									Spatial_Susc *= CalcPersonSusc(PotentialInfectee_Spatial, TimeStepNow, PotentialInfector_Index);
 									Spatial_Susc *= P.WAIFW_Matrix_SpatialOnly[HOST_AGE_GROUP(PotentialInfectee_Spatial)][HOST_AGE_GROUP(PotentialInfector_Index)]; //// 
 									if (BlanketMoveRestrInPlace)
 									{
@@ -860,7 +860,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 
 
 #pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, run, P, StateT, Hosts, ts)
+		shared(t, run, P, StateT, Hosts, TimeStepNow)
 	for (int j = 0; j < P.NumThreads; j++)
 	{
 		for (int k = 0; k < P.NumThreads; k++)
@@ -873,7 +873,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				Hosts[infectee].infector = infector;
 				Hosts[infectee].infect_type = infect_type;
 				if (infect_type == -1) //// i.e. if host doesn't have an infector
-					DoFalseCase(infectee, t, ts, j);
+					DoFalseCase(infectee, t, TimeStepNow, j);
 				else
 					DoInfect(infectee, t, j, run);
 			}
@@ -885,8 +885,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 void IncubRecoverySweep(double t)
 {
 	double ht;
-	unsigned short int ts; //// this timestep
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	unsigned short int TimeStepNow; //// this timestep
+	TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	if (P.DoPlaces)
 		for (int i = 0; i < P.NumHolidays; i++)
@@ -918,14 +918,14 @@ void IncubRecoverySweep(double t)
 			}
 		}
 
-#pragma omp parallel for schedule(static,1) default(none) shared(t, P, CellLookup, Hosts, AdUnits, Mcells, StateT, ts)
+#pragma omp parallel for schedule(static,1) default(none) shared(t, P, CellLookup, Hosts, AdUnits, Mcells, StateT, TimeStepNow)
 	for (int tn = 0; tn < P.NumThreads; tn++)	//// loop over threads
 		for (int b = tn; b < P.NumPopulatedCells; b += P.NumThreads)	//// loop/step over populated cells
 		{
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
-				if (ts >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
-					DoIncub(c->latent[j], ts, tn); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
+				if (TimeStepNow >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
+					DoIncub(c->latent[j], TimeStepNow, tn); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
 			{
@@ -935,15 +935,15 @@ void IncubRecoverySweep(double t)
 				unsigned short int tc; //// time at which person becomes case (i.e. moves from infectious and asymptomatic to infectious and symptomatic).
 				/* Following line not 100% consistent with DoIncub. All severity time points (e.g. SARI time) are added to latent_time, not latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep))*/
 				tc = si->latent_time + ((int)(P.LatentToSymptDelay / P.ModelTimeStep)); //// time that person si/ci becomes case (symptomatic)...
-				if ((P.DoSymptoms) && (ts == tc)) //// ... if now is that time...
-					DoCase(ci, t, ts, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
+				if ((P.DoSymptoms) && (TimeStepNow == tc)) //// ... if now is that time...
+					DoCase(ci, t, TimeStepNow, tn);		  //// ... change infectious (but asymptomatic) person to infectious and symptomatic. If doing severity, this contains DoMild and DoILI.
 
 				if (P.DoSeverity)
 				{
-					if (ts >= si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
-					if (ts >= si->Critical_time)	DoCritical				(ci, tn);
-					if (ts >= si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
-					if (ts >= si->recovery_or_death_time)
+					if (TimeStepNow >= si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
+					if (TimeStepNow >= si->Critical_time)	DoCritical				(ci, tn);
+					if (TimeStepNow >= si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
+					if (TimeStepNow >= si->recovery_or_death_time)
 					{
 						if (si->to_die)
 							DoDeath_FromCriticalorSARIorILI(ci, tn);
@@ -953,7 +953,7 @@ void IncubRecoverySweep(double t)
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (ts >= si->recovery_or_death_time)
+				if (TimeStepNow >= si->recovery_or_death_time)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{
@@ -991,14 +991,14 @@ void DigitalContactTracingSweep(double t)
 	 *
 	 * Author: ggilani, 10/03/20 - updated 24/03/20, 14/04/2020
 	 */
-	unsigned short int ts;
+	unsigned short int TimeStepNow;
 
 	//find current time step
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	FILE* stderr_shared = stderr;
 #pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, P, AdUnits, StateT, Hosts, ts, stderr_shared)
+		shared(t, P, AdUnits, StateT, Hosts, TimeStepNow, stderr_shared)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -1053,7 +1053,7 @@ void DigitalContactTracingSweep(double t)
 						}
 
 						//if we've reached the start time for isolation
-						if (dct_start_time == ts)
+						if (dct_start_time == TimeStepNow)
 						{
 							//if the host has been detected due to being symptomatic, they are now an index case - set this variable now. For index cases detected by testing, this will be set on testing
 							if ((infector==-1) && (Hosts[contact].index_case_dct == 0)) //don't really need the second condition as the first should only be true when the second isn't (due to how this contact is logged in DoDetectedCase)
@@ -1201,7 +1201,7 @@ void DigitalContactTracingSweep(double t)
 							}
 						}
 						//if contact of an asymptomatic host has passed the recovery time of their asymptomatic index, they would no longer be identified by testing of their index case - remove from the queue so they don't stay here forever
-						else if ((dct_start_time == (USHRT_MAX - 1)) && (dct_end_time == ts))
+						else if ((dct_start_time == (USHRT_MAX - 1)) && (dct_end_time == TimeStepNow))
 						{
 							//now remove this case from the queue
 							StateT[j].dct_queue[i][k] = StateT[j].dct_queue[i][StateT[j].ndct_queue[i] - 1];
@@ -1220,7 +1220,7 @@ void DigitalContactTracingSweep(double t)
 	}
 
 #pragma omp parallel for schedule(static,1) default(none) \
-		shared(t, P, AdUnits, Hosts, ts)
+		shared(t, P, AdUnits, Hosts, TimeStepNow)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
 		for (int i = tn; i < P.NumAdunits; i += P.NumThreads)
@@ -1234,7 +1234,7 @@ void DigitalContactTracingSweep(double t)
 					//first do testing of index cases and their contacts
 					if (P.DoDCTTest)
 					{
-						if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0))
+						if ((Hosts[contact].dct_test_time == TimeStepNow) && (Hosts[contact].index_case_dct == 0))
 						{
 							//if host is positive
 							if (Hosts[contact].is_infectious_asymptomatic_not_case() ||
@@ -1244,7 +1244,7 @@ void DigitalContactTracingSweep(double t)
 								//if the test is a false negative
 								if ((P.SensitivityDCT == 0) || ((P.SensitivityDCT < 1) && (ranf_mt(tn) >= P.SensitivityDCT)))
 								{
-									Hosts[contact].dct_end_time = ts;
+									Hosts[contact].dct_end_time = TimeStepNow;
 								}
 								//else if a true positive
 								else if (P.FindContactsOfDCTContacts)
@@ -1252,12 +1252,12 @@ void DigitalContactTracingSweep(double t)
 									//set them to be an index case
 									Hosts[contact].index_case_dct = 1;
 									//set trigger time to pick up their contacts in the next time step
-									Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
+									Hosts[contact].dct_trigger_time = TimeStepNow + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
 									//if they are an infectious, asymptomatic non-case, call DoDetectedCase in order to trigger HQ and PC too.
 									if (Hosts[contact].is_infectious_asymptomatic_not_case())
 									{
-										DoDetectedCase(contact, t, ts, tn);
-										Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
+										DoDetectedCase(contact, t, TimeStepNow, tn);
+										Hosts[contact].detected = 1; Hosts[contact].detected_time = TimeStepNow;
 									}
 								}
 							}
@@ -1267,7 +1267,7 @@ void DigitalContactTracingSweep(double t)
 								//and is a true negative
 								if ((P.SpecificityDCT == 1) || ((P.SpecificityDCT > 0) && (ranf_mt(tn) < P.SpecificityDCT)))
 								{
-									Hosts[contact].dct_end_time = ts;
+									Hosts[contact].dct_end_time = TimeStepNow;
 								}
 								//can't track contacts of false positives as they don't make any contacts in InfectSweep
 							}
@@ -1280,23 +1280,23 @@ void DigitalContactTracingSweep(double t)
 							Hosts[contact].is_infectious_almost_symptomatic() ||
 							Hosts[contact].is_case() ||
 							Hosts[contact].is_infectious_almost_symptomatic()))
-							//if ((Hosts[contact].dct_test_time == ts) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
+							//if ((Hosts[contact].dct_test_time == TimeStepNow) && (Hosts[contact].index_case_dct == 0) && ((abs(Hosts[contact].inf) == 2) || (Hosts[contact].inf == -1)))
 						{
 							//set them to be an index case
 							Hosts[contact].index_case_dct = 1;
 							//set trigger time to pick up their contacts in the next time step
-							Hosts[contact].dct_trigger_time = ts + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
+							Hosts[contact].dct_trigger_time = TimeStepNow + 1; //added the +1 here so that if there are no delays, the contacts will still get picked up correctly
 							//if they are asymptomatic, i.e. specifically if they have inf flag 2, call DoDetectedCase in order to trigger HQ and PC too.
 							if (Hosts[contact].is_infectious_asymptomatic_not_case())
 							{
-								DoDetectedCase(contact, t, ts, tn);
-								Hosts[contact].detected = 1; Hosts[contact].detected_time = ts;
+								DoDetectedCase(contact, t, TimeStepNow, tn);
+								Hosts[contact].detected = 1; Hosts[contact].detected_time = TimeStepNow;
 							}
 						}
 					}
 
 					//now remove hosts who have reached the end of their isolation time
-					if (Hosts[contact].dct_end_time == ts)
+					if (Hosts[contact].dct_end_time == TimeStepNow)
 					{
 						//stop contact tracing this host
 						Hosts[contact].digitalContactTraced = 0;
@@ -1332,7 +1332,7 @@ int TreatSweep(double t)
 	int nckwp;
 
 	//// time steps
-	unsigned short int ts;								////  time-step now.
+	unsigned short int TimeStepNow;								////  time-step now.
 	unsigned short int t_TreatStart;					////  time-step treatment begin
 	unsigned short int t_TreatEnd;						////  time-step treatment finish
 	unsigned short int t_VacStart;						////  time-step vaccination begin
@@ -1344,7 +1344,7 @@ int TreatSweep(double t)
 	int global_trig;
 	double r;
 
-	ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 	TreatFlag = TreatFlag1 = 0;
 	if (P.DoGlobalTriggers)
 	{
@@ -1362,7 +1362,7 @@ int TreatSweep(double t)
 		t_TreatEnd = (unsigned short int) (P.TimeStepsPerDay * (t + P.TreatDelayMean + P.TreatProphCourseLength));
 
 #pragma omp parallel for private(TreatFlag) reduction(+:TreatFlag1) schedule(static,1) default(none) \
-			shared(P, StateT, Places, Hosts, ts, t_TreatEnd)
+			shared(P, StateT, Places, Hosts, TimeStepNow, t_TreatEnd)
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 			{
@@ -1386,7 +1386,7 @@ int TreatSweep(double t)
 							else
 							*/
 							if ((!HOST_TO_BE_TREATED(Places[PlaceType][PlaceNum].members[PG_member])) && ((P.TreatPlaceTotalProp[PlaceType] == 1) || (ranf_mt(Thread) < P.TreatPlaceTotalProp[PlaceType])))
-								DoProph(Places[PlaceType][PlaceNum].members[PG_member], ts, Thread);
+								DoProph(Places[PlaceType][PlaceNum].members[PG_member], TimeStepNow, Thread);
 						}
 					}
 					else
@@ -1399,7 +1399,7 @@ int TreatSweep(double t)
 								if (!HOST_TO_BE_TREATED(Places[PlaceType][PlaceNum].members[PG_member]))
 								{
 									if ((P.TreatPlaceTotalProp[PlaceType] == 1) || (ranf_mt(Thread) < P.TreatPlaceTotalProp[PlaceType]))
-										DoProph(Places[PlaceType][PlaceNum].members[PG_member], ts, Thread);
+										DoProph(Places[PlaceType][PlaceNum].members[PG_member], TimeStepNow, Thread);
 								}
 						}
 						Places[PlaceType][PlaceNum].treat = 0;
@@ -1416,9 +1416,9 @@ int TreatSweep(double t)
 			int m = (int)P.VaccMaxCourses;
 			if (m > State.n_mvacc) m = State.n_mvacc;
 #pragma omp parallel for schedule(static,1000) default(none) \
-				shared(State, m, ts)
+				shared(State, m, TimeStepNow)
 			for (int i = State.mvacc_cum; i < m; i++)
-				DoVacc(State.mvacc_queue[i], ts);
+				DoVacc(State.mvacc_queue[i], TimeStepNow);
 			State.mvacc_cum = m;
 		}
 
@@ -1435,7 +1435,7 @@ int TreatSweep(double t)
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
 #pragma omp parallel for private(f2,f3,f4,r) reduction(+:TreatFlag) schedule(static,1) default(none) \
-			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, ts, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
+			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, TimeStepNow, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
 		for (int tn = 0; tn < P.NumThreads; tn++)
 			for (int bs = tn; bs < P.NumPopulatedMicrocells; bs += P.NumThreads) //// loop over populated microcells
 			{
@@ -1452,12 +1452,12 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** TREATMENT
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-				if ((Mcells[mcellnum].treat == TreatStat::Treated) && (ts >= Mcells[mcellnum].treat_end_time))
+				if ((Mcells[mcellnum].treat == TreatStat::Treated) && (TimeStepNow >= Mcells[mcellnum].treat_end_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].treat = TreatStat::Untreated;
 				}
-				if ((Mcells[mcellnum].treat == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].treat_start_time))
+				if ((Mcells[mcellnum].treat == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].treat_start_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].treat				= TreatStat::Treated;
@@ -1467,7 +1467,7 @@ int TreatSweep(double t)
 					{
 						int l = Mcells[mcellnum].members[i];
 						if ((!HOST_TO_BE_TREATED(l)) && ((P.TreatPropRadial == 1) || (ranf_mt(tn) < P.TreatPropRadial)))
-							DoProphNoDelay(l, ts, tn, 1);
+							DoProphNoDelay(l, TimeStepNow, tn, 1);
 					}
 				}
 				if (P.DoGlobalTriggers)
@@ -1538,7 +1538,7 @@ int TreatSweep(double t)
 
 
 				//// vaccinates proportion VaccProp of people in microcell (or at least adds them to geovacc_queue).
-				if ((Mcells[mcellnum].vacc == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].vacc_start_time))
+				if ((Mcells[mcellnum].vacc == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].vacc_start_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].vacc_trig = 0;
@@ -1551,7 +1551,7 @@ int TreatSweep(double t)
 							if (((P.VaccProp == 1) || (ranf_mt(tn) < P.VaccProp)))
 							{
 								//add to the queue
-								DoVaccNoDelay(l,ts);
+								DoVaccNoDelay(l,TimeStepNow);
 							}
 						}
 						Mcells[mcellnum].vacc = TreatStat::Treated;
@@ -1638,7 +1638,7 @@ int TreatSweep(double t)
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
 					f2 = (Mcells[mcellnum].treat_trig < trig_thresh);
 				}
-				if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((f2) || (ts >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
+				if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((f2) || (TimeStepNow >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 				{
 					TreatFlag = 1;
 					if (P.DoPlaceCloseOnceOnly)
@@ -1646,14 +1646,14 @@ int TreatSweep(double t)
 					else
 						Mcells[mcellnum].placeclose = TreatStat::Untreated;
 
-					Mcells[mcellnum].place_end_time = ts;
+					Mcells[mcellnum].place_end_time = TimeStepNow;
 					Mcells[mcellnum].place_trig = 0;
 					if (f2)
 					{
 						for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 							if (j2 != P.HotelPlaceType)
 								for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
-									DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], ts);
+									DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow);
 					}
 				}
 
@@ -1699,7 +1699,7 @@ int TreatSweep(double t)
 								for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 									if (j2 != P.HotelPlaceType)
 										for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
-											DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], ts, tn, 1);
+											DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow, tn, 1);
 							}
 						}
 					}
@@ -1710,7 +1710,7 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-				if ((Mcells[mcellnum].moverest == TreatStat::Treated) && (ts >= Mcells[mcellnum].move_end_time))
+				if ((Mcells[mcellnum].moverest == TreatStat::Treated) && (TimeStepNow >= Mcells[mcellnum].move_end_time))
 				{
 					TreatFlag = 1;
 					if (P.DoMoveRestrOnceOnly)
@@ -1719,7 +1719,7 @@ int TreatSweep(double t)
 						Mcells[mcellnum].moverest = TreatStat::Untreated;
 
 				}
-				if ((Mcells[mcellnum].moverest == TreatStat::ToBeTreated) && (ts >= Mcells[mcellnum].move_start_time))
+				if ((Mcells[mcellnum].moverest == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].move_start_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].moverest = TreatStat::Treated;
@@ -1801,7 +1801,7 @@ int TreatSweep(double t)
 				}
 
 				//// if: policy of social distancing has started AND this microcell cell has been labelled to as undergoing social distancing, AND either trigger not reached (note definition of f2 changes in next few lines) or end time has passed.
-				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Treated) && ((f2) || (ts >= Mcells[mcellnum].socdist_end_time)))
+				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Treated) && ((f2) || (TimeStepNow >= Mcells[mcellnum].socdist_end_time)))
 				{
 					TreatFlag = 1;
 					if (P.DoSocDistOnceOnly)
@@ -1811,7 +1811,7 @@ int TreatSweep(double t)
 
 
 					Mcells[mcellnum].socdist_trig = 0;	//// reset trigger
-					Mcells[mcellnum].socdist_end_time = ts; //// record end time.
+					Mcells[mcellnum].socdist_end_time = TimeStepNow; //// record end time.
 				}
 				if (P.DoGlobalTriggers)
 					f2 = (global_trig >= P.SocDistCellIncThresh);
@@ -1854,7 +1854,7 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** KEY-WORKER PROPHYLAXIS
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-				if ((Mcells[mcellnum].keyworkerproph == 2) && (ts >= Mcells[mcellnum].keyworkerproph_end_time))
+				if ((Mcells[mcellnum].keyworkerproph == 2) && (TimeStepNow >= Mcells[mcellnum].keyworkerproph_end_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].keyworkerproph = P.DoKeyWorkerProphOnceOnly;
@@ -1894,7 +1894,7 @@ int TreatSweep(double t)
 									{
 										int j2 = Mcells[k].members[i2];
 										if ((Hosts[j2].keyworker) && (!HOST_TO_BE_TREATED(j2)))
-											DoProphNoDelay(j2, ts, tn, nckwp);
+											DoProphNoDelay(j2, TimeStepNow, tn, nckwp);
 									}
 								}
 							}

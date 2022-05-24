@@ -101,7 +101,7 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 {
 	///// This updates a number of things concerning person ai (and their contacts/infectors/places etc.) at time t in thread tn for this run.
 	int i;
-	unsigned short int ts; //// time step
+	unsigned short int TimeStepNow; //// time step
 	double radiusSquared, x, y; //// radius squared, x and y coords. 
 	double q; //// quantile of inverse CDF to choose latent period.
 
@@ -109,9 +109,9 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 
 	if (a->is_susceptible()) //// Only change anything if person a/ai uninfected at start of this function.
 	{
-		ts = (unsigned short int) (P.TimeStepsPerDay * t);
+		TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 		a->set_latent(); //// set person a to be infected
-		a->infection_time = (unsigned short int) ts; //// record their infection time
+		a->infection_time = (unsigned short int) TimeStepNow; //// record their infection time
 
 		//// calculate radius squared, and increment sum of radii squared.
 		x = (Households[a->hh].loc.x - P.LocationInitialInfection[0][0]);
@@ -187,8 +187,8 @@ void DoInfect(int ai, double t, int tn, int run) // Change person from susceptib
 		}
 		if ((t > 0) && (P.DoOneGen))
 		{
-			DoIncub(ai, ts, tn);
-			DoCase(ai, t, ts, tn);
+			DoIncub(ai, TimeStepNow, tn);
+			DoCase(ai, t, TimeStepNow, tn);
 			DoRecover(ai, tn);
 		}
 	}
@@ -423,7 +423,7 @@ void DecideIfPersonDies(int PersonNum, int PersonAgeGroup, int ThreadNum)
 	}
 }
 
-void DoIncub(int ai, unsigned short int ts, int tn)
+void DoIncub(int ai, unsigned short int TimeStepNow, int tn)
 {
 	Person* a = Hosts + ai;;
 	double ProbSymptomatic;
@@ -515,7 +515,7 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 		if (a->is_infectious_almost_symptomatic() && ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId)))
 		{
 			Hosts[ai].detected = 1;
-			Hosts[ai].detected_time = ts + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
+			Hosts[ai].detected_time = TimeStepNow + (unsigned short int)(P.LatentToSymptDelay * P.TimeStepsPerDay);
 
 
 			if ((P.DoDigitalContactTracing) && (Hosts[ai].detected_time >= (unsigned short int)(AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart * P.TimeStepsPerDay)) && (Hosts[ai].detected_time < (unsigned short int)((AdUnits[Mcells[Hosts[ai].mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration)*P.TimeStepsPerDay)) && (Hosts[ai].digitalContactTracingUser))
@@ -540,7 +540,7 @@ void DoIncub(int ai, unsigned short int ts, int tn)
 	}
 }
 
-void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
+void DoDetectedCase(int ai, double t, unsigned short int TimeStepNow, int tn)
 {
 	//// Function DoDetectedCase does many things associated with various interventions.
 	//// Enacts Household quarantine, case isolation, place closure.
@@ -563,7 +563,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			for (j = 0; j < P.PlaceTypeNum; j++)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 				{
-					DoPlaceClose(j, a->PlaceLinks[j], ts, tn, 0);
+					DoPlaceClose(j, a->PlaceLinks[j], TimeStepNow, tn, 0);
 					if (!P.PlaceCloseRoundHousehold)
 					{
 						if (Mcells[Places[j][a->PlaceLinks[j]].mcell].place_trig < USHRT_MAX - 1)
@@ -578,14 +578,14 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 	if (t >= P.TreatTimeStart)
 		if ((P.TreatPropCases == 1) || (ranf_mt(tn) < P.TreatPropCases))
 		{
-			DoTreatCase(ai, ts, tn);
+			DoTreatCase(ai, TimeStepNow, tn);
 			if (P.DoHouseholds)
 			{
 				if ((t < P.TreatTimeStart + P.TreatHouseholdsDuration) && ((P.TreatPropCaseHouseholds == 1) || (ranf_mt(tn) < P.TreatPropCaseHouseholds)))
 				{
 					j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 					for (j = j1; j < j2; j++)
-						if (!HOST_TO_BE_TREATED(j)) DoProph(j, ts, tn);
+						if (!HOST_TO_BE_TREATED(j)) DoProph(j, TimeStepNow, tn);
 				}
 			}
 			if (P.DoPlaces)
@@ -633,7 +633,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			if (cumV_OK && (t < P.VaccTimeStart + P.VaccHouseholdsDuration) && ((P.VaccPropCaseHouseholds == 1) || (ranf_mt(tn) < P.VaccPropCaseHouseholds)))
 			{
 				j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-				for (j = j1; j < j2; j++) DoVacc(j, ts);
+				for (j = j1; j < j2; j++) DoVacc(j, TimeStepNow);
 			}
 		}
 
@@ -645,7 +645,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
 			if ((!HOST_TO_BE_QUARANTINED(j1)) || (P.DoHQretrigger))
 			{
-				HostsQuarantine[j1].start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
+				HostsQuarantine[j1].start_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.HQuarantineDelay));
 				k = (ranf_mt(tn) < P.HQuarantinePropHouseCompliant) ? 1 : 0; //// Is household compliant? True or false
 				if (k) StateT[tn].cumHQ++; ////  if compliant, increment cumulative numbers of households under quarantine.
 				//// if household not compliant then neither is first person. Otheswise ask whether first person is compliant?
@@ -673,16 +673,16 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 		(t >= AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart && (t < AdUnits[Mcells[a->mcell].adunit].CaseIsolationTimeStart + P.CaseIsolationPolicyDuration))								)
 		if ((P.CaseIsolationProp == 1) || (ranf_mt(tn) < P.CaseIsolationProp))
 		{
-			Hosts[ai].isolation_start_time = ts; //// set isolation start time.
+			Hosts[ai].isolation_start_time = TimeStepNow; //// set isolation start time.
 			if (HOST_ABSENT(ai))
 			{
-				if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseIsolationDuration) //// ensure that absent_stop_time is at least now + CaseIsolationDuraton
-					a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseIsolationDuration;
+				if (a->absent_stop_time < TimeStepNow + P.usCaseAbsenteeismDelay + P.usCaseIsolationDuration) //// ensure that absent_stop_time is at least now + CaseIsolationDuraton
+					a->absent_stop_time = TimeStepNow + P.usCaseAbsenteeismDelay + P.usCaseIsolationDuration;
 			}
 			else if (P.DoRealSymptWithdrawal) /* This calculates adult absenteeism from work due to care of isolated children.  */
 			{
-				Hosts[ai].absent_start_time = ts + P.usCaseIsolationDelay;
-				Hosts[ai].absent_stop_time	= ts + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
+				Hosts[ai].absent_start_time = TimeStepNow + P.usCaseIsolationDelay;
+				Hosts[ai].absent_stop_time	= TimeStepNow + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
 				if (P.DoPlaces)
 				{
 					if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
@@ -711,8 +711,8 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 								}
 							if (f) //// so finally, if at least one member of household is alive and does not need supervision by an adult, amend absent start and stop times
 							{
-								Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
-								Hosts[k].absent_stop_time = ts + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
+								Hosts[k].absent_start_time = TimeStepNow + P.usCaseIsolationDelay;
+								Hosts[k].absent_stop_time = TimeStepNow + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
 								StateT[tn].cumAA++;
 							}
 						}
@@ -733,7 +733,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 			if(StateT[tn].ndct_queue[ad] < AdUnits[ad].n)
 			{
 				//if we are isolating an index case, we set their infector as -1 in order to get the timings consistent.
-				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { ai,-1,ts };
+				StateT[tn].dct_queue[ad][StateT[tn].ndct_queue[ad]++] = { ai,-1,TimeStepNow };
 			}
 			else
 			{
@@ -809,7 +809,7 @@ void DoDetectedCase(int ai, double t, unsigned short int ts, int tn)
 
 }
 
-void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
+void DoCase(int ai, double t, unsigned short int TimeStepNow, int tn) //// makes an infectious (but asymptomatic) person symptomatic. Called in IncubRecoverySweep (and DoInfect if P.DoOneGen)
 {
 	int j, k, f, j1, j2;
 	Person* a;
@@ -823,8 +823,8 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 		a->set_case(); //// make person symptomatic and infectious (i.e. a case)
 		if (HOST_ABSENT(ai))
 		{
-			if (a->absent_stop_time < ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
-				a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
+			if (a->absent_stop_time < TimeStepNow + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration)
+				a->absent_stop_time = TimeStepNow + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
 		}
 		else if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
 		{
@@ -834,15 +834,15 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 				{
 					if ((!Hosts[ai].care_home_resident) && ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j])))
 					{
-						a->absent_start_time = ts + P.usCaseAbsenteeismDelay;
-						a->absent_stop_time = ts + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
+						a->absent_start_time = TimeStepNow + P.usCaseAbsenteeismDelay;
+						a->absent_stop_time = TimeStepNow + P.usCaseAbsenteeismDelay + P.usCaseAbsenteeismDuration;
 						if (P.AbsenteeismPlaceClosure)
 						{
 							if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
 							{
 								for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++)
 									if ((place_type != P.HotelPlaceType) && (a->PlaceLinks[place_type] >= 0))
-										DoPlaceClose(place_type, a->PlaceLinks[place_type], ts, tn, 0);
+										DoPlaceClose(place_type, a->PlaceLinks[place_type], TimeStepNow, tn, 0);
 
 								j = P.PlaceTypeNum;
 							}
@@ -871,8 +871,8 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 										}
 									if (f)
 									{
-										if (!HOST_ABSENT(k)) Hosts[k].absent_start_time = ts + P.usCaseIsolationDelay;
-										Hosts[k].absent_stop_time = ts + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
+										if (!HOST_ABSENT(k)) Hosts[k].absent_start_time = TimeStepNow + P.usCaseIsolationDelay;
+										Hosts[k].absent_stop_time = TimeStepNow + P.usCaseIsolationDelay + P.usCaseIsolationDuration;
 										StateT[tn].cumAA++;
 									}
 								}
@@ -888,7 +888,7 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 		{
 			StateT[tn].cumDC++;
 			StateT[tn].cumDC_adunit[Mcells[a->mcell].adunit]++;
-			DoDetectedCase(ai, t, ts, tn);
+			DoDetectedCase(ai, t, TimeStepNow, tn);
 			//add detection time
 
 		}
@@ -911,13 +911,13 @@ void DoCase(int ai, double t, unsigned short int ts, int tn) //// makes an infec
 	}
 }
 
-void DoFalseCase(int ai, double t, unsigned short int ts, int tn)
+void DoFalseCase(int ai, double t, unsigned short int TimeStepNow, int tn)
 {
 	/* Arguably adult absenteeism to take care of sick kids could be included here, but then output absenteeism would not be 'excess' absenteeism */
 	if ((P.ControlPropCasesId == 1) || (ranf_mt(tn) < P.ControlPropCasesId))
 	{
 		if (State.cumDC >= P.CaseOrDeathThresholdBeforeAlert) StateT[tn].cumDC++;
-		DoDetectedCase(ai, t, ts, tn);
+		DoDetectedCase(ai, t, TimeStepNow, tn);
 	}
 	StateT[tn].cumFC++;
 }
@@ -1015,7 +1015,7 @@ void DoDeath(int ai, int tn)
 	}
 }
 
-void DoTreatCase(int ai, unsigned short int ts, int tn)
+void DoTreatCase(int ai, unsigned short int TimeStepNow, int tn)
 {
 	if (State.cumT < P.TreatMaxCourses)
 	{
@@ -1023,8 +1023,8 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 		if (!HOST_TO_BE_TREATED(ai))
 #endif
 		{
-			Hosts[ai].treat_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
-			Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatCaseCourseLength)));
+			Hosts[ai].treat_start_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
+			Hosts[ai].treat_stop_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatCaseCourseLength)));
 			StateT[tn].cumT++;
 
 			// Orig: if ((abs(Hosts[ai].inf) > InfStat::Susceptible) && (Hosts[ai].inf != InfStat::Dead_WasAsymp)) Cells[Hosts[ai].pcell].cumTC++;
@@ -1052,14 +1052,14 @@ void DoTreatCase(int ai, unsigned short int ts, int tn)
 	}
 }
 
-void DoProph(int ai, unsigned short int ts, int tn)
+void DoProph(int ai, unsigned short int TimeStepNow, int tn)
 {
 	//// almost identical to DoProphNoDelay, except unsurprisingly this function includes delay between timestep and start of treatment. Also increments StateT[tn].cumT_keyworker by 1 every time.
 
 	if (State.cumT < P.TreatMaxCourses)
 	{
-		Hosts[ai].treat_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
-		Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatProphCourseLength)));
+		Hosts[ai].treat_start_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.TreatDelayMean));
+		Hosts[ai].treat_stop_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.TreatDelayMean + P.TreatProphCourseLength)));
 		StateT[tn].cumT++;
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker]++;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
@@ -1082,12 +1082,12 @@ void DoProph(int ai, unsigned short int ts, int tn)
 	}
 }
 
-void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
+void DoProphNoDelay(int ai, unsigned short int TimeStepNow, int tn, int nc)
 {
 	if (State.cumT < P.TreatMaxCourses)
 	{
-		Hosts[ai].treat_start_time = ts;
-		Hosts[ai].treat_stop_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.TreatProphCourseLength * nc));
+		Hosts[ai].treat_start_time = TimeStepNow;
+		Hosts[ai].treat_stop_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.TreatProphCourseLength * nc));
 		StateT[tn].cumT += nc;
 		StateT[tn].cumT_keyworker[Hosts[ai].keyworker] += nc;
 		if ((++Hosts[ai].num_treats) < 2) StateT[tn].cumUT++;
@@ -1110,7 +1110,7 @@ void DoProphNoDelay(int ai, unsigned short int ts, int tn, int nc)
 	}
 }
 
-void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
+void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAnyway)
 {
 	//// DoPlaceClose function called in TreatSweep (with arg DoAnyway = 1) and DoDetectedCase (with arg DoAnyway = 0).
 	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
@@ -1126,17 +1126,17 @@ void DoPlaceClose(int i, int j, unsigned short int ts, int tn, int DoAnyway)
 			Files::xfprintf_stderr("** %i %i *\n",i,j);
 		else
 	*/
-	t_new = (unsigned short)(((double)ts) / P.TimeStepsPerDay);
+	t_new = (unsigned short)(((double)TimeStepNow) / P.TimeStepsPerDay);
 	trig = 0;
-	t_start = ts + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
+	t_start = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
 	if (P.DoInterventionDelaysByAdUnit)
 	{
 		k = Mcells[Places[i][j].mcell].adunit;
-		t_stop = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + AdUnits[k].PlaceCloseDuration)));
+		t_stop = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + AdUnits[k].PlaceCloseDuration)));
 	}
 	else
 	{
-		t_stop = ts + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + P.PlaceCloseDuration)));
+		t_stop = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + P.PlaceCloseDuration)));
 	}
 #pragma omp critical (closeplace)
 	{
@@ -1271,19 +1271,19 @@ void UpdateHostClosure()
 	}
 }
 
-void DoPlaceOpen(int i, int j, unsigned short int ts)
+void DoPlaceOpen(int i, int j, unsigned short int TimeStepNow)
 {
 	int k, ai, j1, j2, l, f;
 
 #pragma omp critical (openplace)
 	{
-		if (ts < Places[i][j].close_end_time)
+		if (TimeStepNow < Places[i][j].close_end_time)
 		{
 			if (P.DoRealSymptWithdrawal)
 				for (k = 0; k < Places[i][j].n; k++)
 				{
 					ai = Places[i][j].members[k];
-					if (Hosts[ai].absent_stop_time == Places[i][j].close_end_time) Hosts[ai].absent_stop_time = ts;
+					if (Hosts[ai].absent_stop_time == Places[i][j].close_end_time) Hosts[ai].absent_stop_time = TimeStepNow;
 					if (Hosts[ai].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
 					{
 						if ((HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff) && (!HOST_QUARANTINED(ai)))
@@ -1297,18 +1297,18 @@ void DoPlaceOpen(int i, int j, unsigned short int ts)
 								for (l = j1; (l < j2) && (!f); l++)
 									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && (Hosts[l].is_alive()) && (HOST_ABSENT(l)))
 									{
-										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = ts;
+										if (Hosts[l].absent_stop_time == Places[i][j].close_end_time) Hosts[l].absent_stop_time = TimeStepNow;
 									}
 							}
 						}
 					}
 				}
-			Places[i][j].close_end_time = ts;
+			Places[i][j].close_end_time = TimeStepNow;
 		}
 	}
 }
 
-void DoVacc(int ai, unsigned short int ts)
+void DoVacc(int ai, unsigned short int TimeStepNow)
 {
 	bool cumV_OK = false;
 	// Orig inf status: (Hosts[ai].inf < InfStat::InfectiousAlmostSymptomatic) || (Hosts[ai].inf >= InfStat::Dead_WasAsymp))
@@ -1324,7 +1324,7 @@ void DoVacc(int ai, unsigned short int ts)
 	}
 	if (cumV_OK)
 	{
-		Hosts[ai].vacc_start_time = ts + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
+		Hosts[ai].vacc_start_time = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.VaccDelayMean));
 
 		if (P.VaccDosePerDay >= 0)
 		{
@@ -1349,7 +1349,7 @@ void DoVacc(int ai, unsigned short int ts)
 	}
 }
 
-void DoVaccNoDelay(int ai, unsigned short int ts)
+void DoVaccNoDelay(int ai, unsigned short int TimeStepNow)
 {
 	bool cumVG_OK = false;
 
@@ -1363,7 +1363,7 @@ void DoVaccNoDelay(int ai, unsigned short int ts)
 	}
 	if (cumVG_OK)
 	{
-		Hosts[ai].vacc_start_time = ts;
+		Hosts[ai].vacc_start_time = TimeStepNow;
 		if (P.VaccDosePerDay >= 0)
 		{
 #pragma omp atomic

@@ -32,6 +32,6 @@ double ChooseThreshold(int AdUnit, double WhichThreshold);
 void UpdateCurrentInterventionParams(double t);
 void UpdateCFRs(double t_CalTime);
 void RecordAdminAgeBreakdowns(int t_int);
-void RecordQuarNotInfected(int n, unsigned short int ts);
+void RecordQuarNotInfected(int n, unsigned short int TimeStepNow);
 
 #endif // COVIDSIM_COVIDSIM_H_INCLUDED_
