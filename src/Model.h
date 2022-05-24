@@ -84,7 +84,7 @@ struct PopVar
 	int host_closure_queue_size; // Number of host closures in host_closure_queue.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
-	float* cell_inf;  //// List of spatial infectiousnesses by person within cell.
+	float* cell_inf;  //// List of cumulative spatial infectiousnesses by person within cell. Negative value will refer to that person having their place closed
 	double sumRad2, maxRad2, cumT, cumV, cumVG, cumUT, cumTP, cumV_daily, cumVG_daily; //added cumVG, cumVG_daily
 	int* CellMemberArray, *CellSuscMemberArray;
 	int** InvAgeDist;
