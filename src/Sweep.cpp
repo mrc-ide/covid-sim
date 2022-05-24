@@ -291,59 +291,52 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
 	int n; //// number of people you could potentially infect in your place group, then number of potential spatial infections doled out by cell on other cells.
-	int f, f2, cq /*cell queue*/, bm/*movement restrictions in place*/;
+	int f, f2, cq /*cell queue*/;
 	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
-	double s3, s3_scaled; // household, then place infectiousness
 	double s4, s4_scaled; // place infectiousness (copy of s3 as some code commented out
-	double s5; //// total spatial infectiousness summed over all infectious people in cell.
 	double s6;
 
 	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t); // ts = the timestep number of the start of the current day
-	// fp = false positive
-	double fp = P.ModelTimeStep / (1 - P.FalsePositiveRate);
-	double seasonality = (P.DoSeasonality) ? (seasonality = P.Seasonality[((int)t) % DAYS_PER_YEAR]) : seasonality = 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
-	// SpatialSeasonal_Beta seasonality beta
+	double fp					= P.ModelTimeStep / (1 - P.FalsePositiveRate); // fp = false positive
+	double seasonality			= (P.DoSeasonality) ? (P.Seasonality[((int)t) % DAYS_PER_YEAR]) : seasonality = 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
 	double SpatialSeasonal_Beta = seasonality * fp * P.LocalBeta;
-	double Household_Beta = (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0; // if doing households, Household_Beta = seasonality * fp * P.HouseholdTrans, else Household_Beta = 0
+	double Household_Beta		= (P.DoHouseholds) ? (seasonality * fp * P.HouseholdTrans) : 0; // if doing households, Household_Beta = seasonality * fp * P.HouseholdTrans, else Household_Beta = 0
 	
-	// Establish if movement restrictions are in place on current day - store in bm, 0:false, 1:true 
-	bm = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
+	// Establish if movement restrictions are in place on current day - store in BlanketMoveRestrInPlace, 0:false, 1:true 
+	int BlanketMoveRestrInPlace = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
 	// File for storing error reports
 	FILE* stderr_shared = stderr;
 	
-#pragma omp parallel for private(n,f,f2,s3,s4,s5,s6,cq,s3_scaled,s4_scaled) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, Household_Beta, SpatialSeasonal_Beta, seasonality, ts, fp, bm, stderr_shared)
+#pragma omp parallel for private(n,f,f2,s4,s6,cq,s4_scaled) schedule(static,1) default(none) \
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, Household_Beta, SpatialSeasonal_Beta, seasonality, ts, fp, BlanketMoveRestrInPlace, stderr_shared)
 	for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
-		for (int b = ThreadNum; b < P.NumPopulatedCells; b += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
+		for (int CellIndex = ThreadNum; CellIndex < P.NumPopulatedCells; CellIndex += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
 		{
-			Cell* c = CellLookup[b]; // select Cell given by index b
-			s5 = 0; ///// spatial infectiousness summed over all infectious people in loop below
+			Cell* ThisCell = CellLookup[CellIndex]; // select Cell given by index CellIndex
+			double SpatialInf_AllPeopleThisCell = 0; ///// spatial infectiousness summed over all infectious people in loop below
 			
-			//// Loop over array of indices of infectious people c->I in cell c. Loop 1a)
-			for (int InfectiousPersonIndex_ThisCell = 0; InfectiousPersonIndex_ThisCell < c->I; InfectiousPersonIndex_ThisCell++)
+			//// Loop over array of indices of infectious people ThisCell->I in cell ThisCell. Loop 1a)
+			for (int InfectiousPersonIndex_ThisCell = 0; InfectiousPersonIndex_ThisCell < ThisCell->I; InfectiousPersonIndex_ThisCell++)
 			{
 				//// get InfectiousPersonIndex from InfectiousPersonIndex_ThisCell
-				int InfectiousPersonIndex = c->infected[InfectiousPersonIndex_ThisCell];
+				int InfectiousPersonIndex = ThisCell->infected[InfectiousPersonIndex_ThisCell];
 				//// get InfectiousPerson from Hosts (array of people) corresponding to InfectiousPersonIndex, using pointer arithmetic.
 				Person* InfectiousPerson = Hosts + InfectiousPersonIndex;
 
-				//evaluate flag for digital contact tracing (fct) here at the beginning for each individual
-				// fct = 1 if:
+				//evaluate flag for digital contact tracing (DigiContactTrace_ThisPersonNow) here at the beginning for each individual
+				// DigiContactTrace_ThisPersonNow = 1 if:
 				// P.DoDigitalContactTracing = 1 (ie. digital contact tracing functionlity is switched on)
 				// AND Day number (t) is greater than the start day for contact tracing in this administrative unit (ie. contact tracing has started)
 				// AND Day number (t) is less than the end day for contact tracing in this administrative unit (ie. contact tracing has not ended)
 				// AND the selected host is a digital contact tracing user
-				// otherwise fct = 0
-				int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
+				// otherwise DigiContactTrace_ThisPersonNow = 0
+				int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
 				&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (ts <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
 				
 				//// Household Force Of Infection (FOI) component
 				
-				// Household_Beta =  seasonality * fp * P.HouseholdTrans or 0 depending on whether households functionality is on or off - see start of function 
-				
-				// if household beta (Household_Beta) > 0 
 				if (Household_Beta > 0)
 				{
 					// For InfectiousPerson's household (InfectiousPerson->hh), 
@@ -402,57 +395,56 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				{
 					if (!HOST_ABSENT(InfectiousPersonIndex))
 					{
-						// select microcell (mi) corresponding to selected InfectiousPerson
-						Microcell* mi = Mcells + InfectiousPerson->mcell;
-						for (int k = 0; k < P.PlaceTypeNum; k++) //// loop over all place types
+						// select microcell (Microcell_ThisPerson) corresponding to selected InfectiousPerson
+						Microcell* Microcell_ThisPerson = Mcells + InfectiousPerson->mcell;
+						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++) //// loop over all place types
 						{
-							// select link (l) between selected host (InfectiousPerson) and place from InfectiousPerson's placelinks to place type k
-							int l = InfectiousPerson->PlaceLinks[k];
-							if (l >= 0)  //// l>=0 means if place type k is relevant to person InfectiousPerson. (Now allowing for partial attendance).
+							// select PlaceLink between selected InfectiousPerson and place from InfectiousPerson's placelinks to place type PlaceType
+							int PlaceLink = InfectiousPerson->PlaceLinks[PlaceType];
+							if (PlaceLink >= 0)  //// PlaceLink >= 0 means if place type PlaceType is relevant to InfectiousPerson. (Now allowing for partial attendance).
 							{
-								// infectiousness of place (s3)
-								// = false positive rate * seasonality * place infectiousness
-								s3 = fp * seasonality * CalcPlaceInf(InfectiousPersonIndex, k, ts);
-								// select microcell of the place linked to host InfectiousPerson with link l
-								Microcell* mp = Mcells + Places[k][l].mcell;
+								// Place_Infectiousness
+								double Place_Infectiousness = fp * seasonality * CalcPlaceInf(InfectiousPersonIndex, PlaceType, ts);
+								// select microcell of the place linked to InfectiousPerson with link PlaceLink
+								Microcell* Microcell_ThisPersonsPlaceLink = Mcells + Places[PlaceType][PlaceLink].mcell;
 								// if blanket movement restrictions are in place on current day
-								if (bm)
+								if (BlanketMoveRestrInPlace)
 								{
 									// if distance between InfectiousPerson's household and linked place
 									// is greater than movement restriction radius
 									if ((dist2_raw(Households[InfectiousPerson->hh].loc.x, Households[InfectiousPerson->hh].loc.y,
-										Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
+										Places[PlaceType][PlaceLink].loc.x, Places[PlaceType][PlaceLink].loc.y) > P.MoveRestrRadius2))
 									{
 										// multiply infectiousness of place by movement restriction effect
-										s3 *= P.MoveRestrEffect;
+										Place_Infectiousness *= P.MoveRestrEffect;
 									}
 								}
 								// else if movement restrictions in effect in either household microcell or place microcell
-								else if ((mi->moverest != mp->moverest) && ((mi->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
+								else if ((Microcell_ThisPerson->moverest != Microcell_ThisPersonsPlaceLink->moverest) && ((Microcell_ThisPerson->moverest == TreatStat::Treated) || (Microcell_ThisPersonsPlaceLink->moverest == TreatStat::Treated)))
 								{
 									// multiply infectiousness of place by movement restriction effect
-									s3 *= P.MoveRestrEffect;
+									Place_Infectiousness *= P.MoveRestrEffect;
 								}
 								
 								// BEGIN NON-HOTEL INFECTIONS
 								
 								// if linked place isn't a hotel and selected host isn't travelling
-								if ((k != P.HotelPlaceType) && (!InfectiousPerson->Travelling))
+								if ((PlaceType != P.HotelPlaceType) && (!InfectiousPerson->Travelling))
 								{
-									// i2 is index of group (of place type k) that selected host is linked to 
-									int i2 = (InfectiousPerson->PlaceGroupLinks[k]);
+									// i2 is index of group (of place type PlaceType) that selected host is linked to 
+									int i2 = (InfectiousPerson->PlaceGroupLinks[PlaceType]);
 									
 									// calculate infectiousness (s4_scaled) 
 									// which varies if contact tracing is in place
-									// if contact tracing isn't in place s4_scaled is a copy of s3 
-									// if contact tracing is in place, s4_scaled is s3  * P.ScalingFactorPlaceDigitalContacts
+									// if contact tracing isn't in place s4_scaled is a copy of Place_Infectiousness 
+									// if contact tracing is in place, s4_scaled is Place_Infectiousness  * P.ScalingFactorPlaceDigitalContacts
 									// in either case s4_scaled is capped at 1
 									
 									// if contact tracing
-									if (fct)
+									if (DigiContactTrace_ThisPersonNow)
 									{
-										// copy s3
-										s4 = s3;
+										// copy Place_Infectiousness
+										s4 = Place_Infectiousness;
 										// multiply s4 by P.ScalingFactorPlaceDigitalContacts 
 										s4_scaled = s4 *P.ScalingFactorPlaceDigitalContacts;
 										// cap s4 at 1
@@ -462,8 +454,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									}
 									else
 									{
-										// copy s3 to s4
-										s4 = s3;
+										// copy Place_Infectiousness to s4
+										s4 = Place_Infectiousness;
 										// cap s4 at 1
 										if (s4 > 1) s4 = 1;
 										s4_scaled = s4;
@@ -478,36 +470,36 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									// else if infectiousness == 1 (should never be more than 1 due to capping above)
 									else if (s4_scaled >= 1)	//// if place infectiousness above threshold, consider everyone in group a potential infectee...
 									{
-										// set n to be number of people in group in place k,l
-										n = Places[k][l].group_size[i2];
+										// set n to be number of people in group in place PlaceType,PlaceLink
+										n = Places[PlaceType][PlaceLink].group_size[i2];
 									}
 									else				//// ... otherwise randomly sample (from binomial distribution) number of potential infectees in this place.
 									{
-										n = (int)ignbin_mt((int32_t)Places[k][l].group_size[i2], s4_scaled, ThreadNum);
+										n = (int)ignbin_mt((int32_t)Places[PlaceType][PlaceLink].group_size[i2], s4_scaled, ThreadNum);
 									}
 									
 									// if potential infectees > 0	
 									if (n > 0) 
 									{
-										// pick n members of place k,l and add them to sampling queue for thread ThreadNum
-										SampleWithoutReplacement(ThreadNum, n, Places[k][l].group_size[i2]); //// changes thread-specific SamplingQueue.
+										// pick n members of place PlaceType,PlaceLink and add them to sampling queue for thread ThreadNum
+										SampleWithoutReplacement(ThreadNum, n, Places[PlaceType][PlaceLink].group_size[i2]); //// changes thread-specific SamplingQueue.
 									}
 									
 									// loop over sampling queue of potential infectees
 									for (int m = 0; m < n; m++)
 									{
 										// pick potential infectee index i3
-										int i3 = Places[k][l].members[Places[k][l].group_start[i2] + SamplingQueue[ThreadNum][m]];
-										// calculate place susceptbility based on infectee (i3), place type (k), timestep (ts)
+										int i3 = Places[PlaceType][PlaceLink].members[Places[PlaceType][PlaceLink].group_start[i2] + SamplingQueue[ThreadNum][m]];
+										// calculate place susceptbility based on infectee (i3), place type (PlaceType), timestep (ts)
 										// thread number (ThreadNum)
-										double PlaceSusceptibility = CalcPlaceSusc(i3, k, ts);
+										double PlaceSusceptibility = CalcPlaceSusc(i3, PlaceType, ts);
 
 										// allow care home residents to mix more intensely in "groups" (i.e. individual homes) than staff do - to allow for PPE/environmental contamination.
-										if ((k == P.CareHomePlaceType) && ((!Hosts[InfectiousPersonIndex].care_home_resident) || (!Hosts[i3].care_home_resident))) PlaceSusceptibility *= P.CareHomeWorkerGroupScaling;
+										if ((PlaceType == P.CareHomePlaceType) && ((!Hosts[InfectiousPersonIndex].care_home_resident) || (!Hosts[i3].care_home_resident))) PlaceSusceptibility *= P.CareHomeWorkerGroupScaling;
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 										//if infectee is also a user, add them as a contact
 										
-										if ((fct) && (Hosts[i3].digitalContactTracingUser) && (InfectiousPersonIndex != i3) && (!HOST_ABSENT(i3)))
+										if ((DigiContactTrace_ThisPersonNow) && (Hosts[i3].digitalContactTracingUser) && (InfectiousPersonIndex != i3) && (!HOST_ABSENT(i3)))
 										{
 											// scale place susceptibility by proportion who self isolate and store as s6
 											s6 = P.ProportionDigitalContactsIsolate * PlaceSusceptibility;
@@ -536,18 +528,18 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											PlaceSusceptibility *= CalcPersonSusc(i3, ts, InfectiousPersonIndex)*s4/s4_scaled;
 
 											// if blanket movement restrictions are in place
-											if (bm)
+											if (BlanketMoveRestrInPlace)
 											{
 												// if potential infectee i3's household is further from selected place
 												if ((dist2_raw(Households[Hosts[i3].hh].loc.x, Households[Hosts[i3].hh].loc.y,
-													Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
+													Places[PlaceType][PlaceLink].loc.x, Places[PlaceType][PlaceLink].loc.y) > P.MoveRestrRadius2))
 												{
 													// multiply susceptibility by movement restriction effect
 													PlaceSusceptibility *= P.MoveRestrEffect;
 												}
 											}
 											// else if movement restrictions are in place in either cell
-											else if ((mt->moverest != mp->moverest) && ((mt->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
+											else if ((mt->moverest != Microcell_ThisPersonsPlaceLink->moverest) && ((mt->moverest == TreatStat::Treated) || (Microcell_ThisPersonsPlaceLink->moverest == TreatStat::Treated)))
 											{
 												// multiply susceptibility by movement restriction effect
 												PlaceSusceptibility *= P.MoveRestrEffect;
@@ -557,7 +549,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((PlaceSusceptibility == 1) || (ranf_mt(ThreadNum) < PlaceSusceptibility))
 											{
 												// explicitly cast to short to resolve level 4 warning
-												const short int infect_type = static_cast<short int> (2 + k + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
+												const short int infect_type = static_cast<short int> (2 + PlaceType + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
 
 												AddInfections(ThreadNum, Hosts[i3].pcell % P.NumThreads, InfectiousPersonIndex, i3, infect_type);
 											}
@@ -570,37 +562,37 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 								// BEGIN HOTEL INFECTIONS
 								
 								// if InfectiousPerson is not travelling or selected link is to a hotel
-								if ((k == P.HotelPlaceType) || (!InfectiousPerson->Travelling))
+								if ((PlaceType == P.HotelPlaceType) || (!InfectiousPerson->Travelling))
 								{
-									s3 *= P.PlaceTypePropBetweenGroupLinks[k] * P.PlaceTypeGroupSizeParam1[k] / ((double)Places[k][l].n);
-									if (s3 > 1) s3 = 1;
-									// if contact tracing in place, multiply s3_scaled = s3*scalingfactor, otherwise s3_scaled = s3
-									s3_scaled = (fct) ? (s3 * P.ScalingFactorPlaceDigitalContacts) : s3;
+									Place_Infectiousness *= P.PlaceTypePropBetweenGroupLinks[PlaceType] * P.PlaceTypeGroupSizeParam1[PlaceType] / ((double)Places[PlaceType][PlaceLink].n);
+									if (Place_Infectiousness > 1) Place_Infectiousness = 1;
+									// if contact tracing in place, multiply Place_Infectiousness_scaled = Place_Infectiousness*scalingfactor, otherwise Place_Infectiousness_scaled = Place_Infectiousness
+									double Place_Infectiousness_scaled = (DigiContactTrace_ThisPersonNow) ? (Place_Infectiousness * P.ScalingFactorPlaceDigitalContacts) : Place_Infectiousness;
 									// s3_scales shouldn't be less than 0 so generate error if it is
-									if (s3_scaled < 0)
+									if (Place_Infectiousness_scaled < 0)
 									{
-										ERR_CRITICAL_FMT("@@@ %lg\n", s3);
+										ERR_CRITICAL_FMT("@@@ %lg\n", Place_Infectiousness);
 									}
-									// if s3_scaled >=1, everyone in the hotel is a potential infectee
-									else if (s3_scaled >= 1)
-										n = Places[k][l].n;
-									// if s3_scaled between 0 and 1, decide number of potential infectees based on
+									// if Place_Infectiousness_scaled >=1, everyone in the hotel is a potential infectee
+									else if (Place_Infectiousness_scaled >= 1)
+										n = Places[PlaceType][PlaceLink].n;
+									// if Place_Infectiousness_scaled between 0 and 1, decide number of potential infectees based on
 									// using ignbin_mt function
 									else
-										n = (int)ignbin_mt((int32_t)Places[k][l].n, s3_scaled, ThreadNum);
+										n = (int)ignbin_mt((int32_t)Places[PlaceType][PlaceLink].n, Place_Infectiousness_scaled, ThreadNum);
 									// if more than 0 potential infectees, pick n hosts from the hotel and add to sampling queue
-									if (n > 0) SampleWithoutReplacement(ThreadNum, n, Places[k][l].n);
+									if (n > 0) SampleWithoutReplacement(ThreadNum, n, Places[PlaceType][PlaceLink].n);
 									// loop over the sampling queue
 									for (int m = 0; m < n; m++)
 									{
 										// select potential infectee from sampling queue
-										int PotentialInfectee = Places[k][l].members[SamplingQueue[ThreadNum][m]];
+										int PotentialInfectee = Places[PlaceType][PlaceLink].members[SamplingQueue[ThreadNum][m]];
 										// calculate place susceptibility PlaceSusceptibility
-										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee, k, ts);
+										double PlaceSusceptibility = CalcPlaceSusc(PotentialInfectee, PlaceType, ts);
 										// use group structure to model multiple care homes with shared staff - in which case residents of one "group" don't mix with those in another, only staff do.
-										if ((Hosts[InfectiousPersonIndex].care_home_resident) && (Hosts[PotentialInfectee].care_home_resident) && (Hosts[InfectiousPersonIndex].PlaceGroupLinks[k]!= Hosts[PotentialInfectee].PlaceGroupLinks[k])) PlaceSusceptibility *= P.CareHomeResidentPlaceScaling;
+										if ((Hosts[InfectiousPersonIndex].care_home_resident) && (Hosts[PotentialInfectee].care_home_resident) && (Hosts[InfectiousPersonIndex].PlaceGroupLinks[PlaceType]!= Hosts[PotentialInfectee].PlaceGroupLinks[PlaceType])) PlaceSusceptibility *= P.CareHomeResidentPlaceScaling;
 										// allow care home staff to have lowere contacts in care homes - to allow for PPE/environmental contamination.
-										if ((k == P.CareHomePlaceType) && ((!Hosts[InfectiousPersonIndex].care_home_resident) || (!Hosts[PotentialInfectee].care_home_resident))) PlaceSusceptibility *= P.CareHomeWorkerGroupScaling;
+										if ((PlaceType == P.CareHomePlaceType) && ((!Hosts[InfectiousPersonIndex].care_home_resident) || (!Hosts[PotentialInfectee].care_home_resident))) PlaceSusceptibility *= P.CareHomeWorkerGroupScaling;
 										
 										//these are all place group contacts to be tracked for digital contact tracing - add to StateT queue for contact tracing
 
@@ -608,7 +600,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										
 										// if contact tracing in place AND potential infectee PotentialInfectee is a contact tracing user AND PotentialInfectee isn't absent AND PotentialInfectee isn't InfectiousPersonIndex (suspect this should be si)
 
-										if ((fct) && (Hosts[PotentialInfectee].digitalContactTracingUser) && (InfectiousPersonIndex != PotentialInfectee) && (!HOST_ABSENT(PotentialInfectee)))
+										if ((DigiContactTrace_ThisPersonNow) && (Hosts[PotentialInfectee].digitalContactTracingUser) && (InfectiousPersonIndex != PotentialInfectee) && (!HOST_ABSENT(PotentialInfectee)))
 										{
 											// s6 = place susceptibility * proportion of digital contacts who self isolate
 											s6 = P.ProportionDigitalContactsIsolate * PlaceSusceptibility;
@@ -636,20 +628,20 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											Microcell* mt = Mcells + Hosts[PotentialInfectee].mcell;
 
 											//if doing digital contact tracing, scale down susceptibility here
-											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee, ts, InfectiousPersonIndex)*s3/s3_scaled;
+											PlaceSusceptibility *= CalcPersonSusc(PotentialInfectee, ts, InfectiousPersonIndex)*Place_Infectiousness/Place_Infectiousness_scaled;
 											// if blanket movement restrictions are in place
-											if (bm)
+											if (BlanketMoveRestrInPlace)
 											{
 												// if potential infectees household is farther away from hotel than restriction radius
 												if ((dist2_raw(Households[Hosts[PotentialInfectee].hh].loc.x, Households[Hosts[PotentialInfectee].hh].loc.y,
-													Places[k][l].loc.x, Places[k][l].loc.y) > P.MoveRestrRadius2))
+													Places[PlaceType][PlaceLink].loc.x, Places[PlaceType][PlaceLink].loc.y) > P.MoveRestrRadius2))
 												{
 													// multiply susceptibility by movement restriction effect
 													PlaceSusceptibility *= P.MoveRestrEffect;
 												}
 											}
 											// else if movement restrictions are in place in potential infectee's cell or hotel's cell
-											else if ((mt->moverest != mp->moverest) && ((mt->moverest == TreatStat::Treated) || (mp->moverest == TreatStat::Treated)))
+											else if ((mt->moverest != Microcell_ThisPersonsPlaceLink->moverest) && ((mt->moverest == TreatStat::Treated) || (Microcell_ThisPersonsPlaceLink->moverest == TreatStat::Treated)))
 											{
 												// multiply susceptibility by movement restriction effect
 												PlaceSusceptibility *= P.MoveRestrEffect;
@@ -661,7 +653,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((PlaceSusceptibility == 1) || (ranf_mt(ThreadNum) < PlaceSusceptibility))
 											{
 												// explicitly cast to short to resolve level 4 warning
-												const short int infect_type = static_cast<short int> (2 + k + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
+												const short int infect_type = static_cast<short int> (2 + PlaceType + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
 												
 												AddInfections(ThreadNum, Hosts[PotentialInfectee].pcell% P.NumThreads, InfectiousPersonIndex, PotentialInfectee, infect_type);
 											} // susceptibility test
@@ -680,7 +672,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				
 				// BEGIN SPATIAL INFECTIONS
 				
-				//// First determine spatial FOI component (s5)
+				//// First determine spatial FOI component (SpatialInf_AllPeopleThisCell)
 				
 				// if seasonality beta > 0
 				// do spatial infections 
@@ -698,7 +690,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// calculate SpatialInf_ThisPerson based on host and timestep
 						SpatialInf_ThisPerson = CalcSpatialInf(InfectiousPersonIndex, ts);
 						//if do digital contact tracing, scale up spatial infectiousness of infectives who are using the app and will be detected
-						if (fct)
+						if (DigiContactTrace_ThisPersonNow)
 						{
 							SpatialInf_ThisPerson *= P.ScalingFactorSpatialDigitalContacts;
 						}
@@ -723,38 +715,38 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					{
 						SpatialInf_ThisPerson *= P.PlaceCloseSpatialRelContact;
 						/* NumPCD++; */
-						s5 += SpatialInf_ThisPerson;
-						StateT[ThreadNum].cell_inf[InfectiousPersonIndex_ThisCell] = (float)-s5;
+						SpatialInf_AllPeopleThisCell += SpatialInf_ThisPerson;
+						StateT[ThreadNum].cell_inf[InfectiousPersonIndex_ThisCell] = (float)-SpatialInf_AllPeopleThisCell;
 					}
 					else
 					{
-						s5 += SpatialInf_ThisPerson;
-						StateT[ThreadNum].cell_inf[InfectiousPersonIndex_ThisCell] = (float)s5;
+						SpatialInf_AllPeopleThisCell += SpatialInf_ThisPerson;
+						StateT[ThreadNum].cell_inf[InfectiousPersonIndex_ThisCell] = (float)SpatialInf_AllPeopleThisCell;
 					}
 				}
 			} // loop over infectious people in cell
 			
 			
-			//// Now allocate spatial infections using Force Of Infection (s5) calculated above
-			if (s5 > 0) //// if spatial infectiousness positive
+			//// Now allocate spatial infections using Force Of Infection (SpatialInf_AllPeopleThisCell) calculated above
+			if (SpatialInf_AllPeopleThisCell > 0) //// if spatial infectiousness positive
 			{
 				// decide how many potential cell to cell infections this cell could cause  
-				n = (int)ignpoi_mt(s5 * SpatialSeasonal_Beta * ((double)c->tot_prob), ThreadNum); //// number people this cell's population might infect elsewhere. poisson random number based on spatial infectiousness s5, SpatialSeasonal_Beta (seasonality) and this cell's "probability" (guessing this is a function of its population and geographical size).
-				// i2 = number of infectious people in cell c
-				int i2 = c->I;
+				n = (int)ignpoi_mt(SpatialInf_AllPeopleThisCell * SpatialSeasonal_Beta * ((double)ThisCell->tot_prob), ThreadNum); //// number people this cell's population might infect elsewhere. poisson random number based on spatial infectiousness s5, SpatialSeasonal_Beta (seasonality) and this cell's "probability" (guessing this is a function of its population and geographical size).
+				// i2 = number of infectious people in cell ThisCell
+				int i2 = ThisCell->I;
 				
 				if (n > 0) //// this block normalises cumulative infectiousness cell_inf by person. s5 is the total cumulative spatial infectiousness. Reason is so that infector can be chosen using ranf_mt, which returns random number between 0 and 1.
 				{
 					//// normalise by cumulative spatial infectiousness.
-					for (int j = 0; j < i2 - 1; j++) StateT[ThreadNum].cell_inf[j] /= ((float) s5);
+					for (int j = 0; j < i2 - 1; j++) StateT[ThreadNum].cell_inf[j] /= ((float)SpatialInf_AllPeopleThisCell);
 					//// does same as the above loop just a slightly faster calculation. i.e. StateT[ThreadNum].cell_inf[i2 - 1] / s5 would equal 1 or -1 anyway.
 					StateT[ThreadNum].cell_inf[i2 - 1] = (StateT[ThreadNum].cell_inf[i2 - 1] < 0) ? -1.0f : 1.0f;
 				}
 				
-				//// loop over infections to dole out. roughly speaking, this determines which infectious person in cell c infects which person elsewhere.
-				for (int k = 0; k < n; k++)  
+				//// loop over infections to dole out. roughly speaking, this determines which infectious person in cell ThisCell infects which person elsewhere.
+				for (int Infection = 0; Infection < n; Infection++)  
 				{
-					//// decide on infector PotentialInfector/InfectiousPerson from cell c.
+					//// decide on infector PotentialInfector/InfectiousPerson from cell ThisCell.
 					int j; // j = index of infector
 					// if only one infectious person in cell
 					if (i2 == 1)
@@ -762,12 +754,12 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						j = 0; // infector index is first in cell (person 0)
 					}
 					// if more than one infectious person in cell pick an infectious person (given by index j)
-					//// roughly speaking, this determines which infectious person in cell c infects which person elsewhere
+					//// roughly speaking, this determines which infectious person in cell ThisCell infects which person elsewhere
 					else				
 					{
 						int m;
 						double RandomNum = ranf_mt(ThreadNum);	///// choose random number between 0 and 1
-						j = m = i2 / 2;		///// assign j and m to be halfway between zero and number of infected people i2 = c->I.
+						j = m = i2 / 2;		///// assign j and m to be halfway between zero and number of infected people i2 = ThisCell->I.
 						f = 1;
 						do
 						{
@@ -787,12 +779,12 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					}
 					f = (StateT[ThreadNum].cell_inf[j] < 0); //// flag for whether infector j had their place(s) closed. <0 (true) = place closed / >=0 (false) = place not closed. Set in if (SpatialSeasonal_Beta > 0) part of loop over infectious people.
 
-					int PotentialInfector_Index = c->infected[j];
+					int PotentialInfector_Index = ThisCell->infected[j];
 					// PotentialInfector is the jth selected person in the cell
 					Person* PotentialInfector = Hosts + PotentialInfector_Index;
 
-					//calculate flag (fct) for digital contact tracing here at the beginning for each individual infector
-					int fct = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector->mcell].adunit].DigitalContactTracingTimeStart)
+					//calculate flag (DigiContactTrace_ThisPersonNow) for digital contact tracing here at the beginning for each individual infector
+					int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector->mcell].adunit].DigitalContactTracingTimeStart)
 						&& (t < AdUnits[Mcells[PotentialInfector->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[PotentialInfector_Index].digitalContactTracingUser == 1)); // && (ts <= (Hosts[PotentialInfector].detected_time + P.usCaseIsolationDelay)));
 
 					//// decide on infectee
@@ -804,41 +796,41 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// pick RandomNum between 0 and 1
 						double RandomNum = ranf_mt(ThreadNum);
 						// generate l using InvCDF of selected cell and random integer between 0 and 1024
-						int l = c->InvCDF[(int)floor(RandomNum * 1024)];
-						// loop over c->cum_trans array until find a value >= RandomNum
-						while (c->cum_trans[l] < RandomNum) l++;
+						int l = ThisCell->InvCDF[(int)floor(RandomNum * 1024)];
+						// loop over ThisCell->cum_trans array until find a value >= RandomNum
+						while (ThisCell->cum_trans[l] < RandomNum) l++;
 						// selecte the cell corresponding to l
 						Cell* ct = CellLookup[l];
 
-						///// pick random person m within susceptibles of cell ct (S0 initial number susceptibles within cell).
-						int m = (int)(ranf_mt(ThreadNum) * ((double)ct->S0));
-						int PotentialInfectee = ct->susceptible[m];
+						///// pick random person SusceptiblePerson within susceptibles of cell ct (S0 initial number susceptibles within cell).
+						int SusceptiblePerson = (int)(ranf_mt(ThreadNum) * ((double)ct->S0));
+						int PotentialInfectee = ct->susceptible[SusceptiblePerson];
 						
 						double PotentialInfectorInfecteeDistSquared = dist2(Hosts + PotentialInfectee, Hosts + PotentialInfector_Index); /// calculate distance squared between PotentialInfectee and PotentialInfector
-						double AcceptProb = P.KernelLookup.num(PotentialInfectorInfecteeDistSquared) / c->max_trans[l]; //// acceptance probability
+						double AcceptProb = P.KernelLookup.num(PotentialInfectorInfecteeDistSquared) / ThisCell->max_trans[l]; //// acceptance probability
 						
 						// initialise f2 = 0 (f2 = 1 is the while condition for this loop)
 						f2 = 0;
 						// if random number greater than acceptance probablility or infectee is dead
-						if ((ranf_mt(ThreadNum) >= AcceptProb) || Hosts[PotentialInfectee].is_dead()) //// if rejected, or infectee PotentialInfectee/m already dead, ensure do-while evaluated again (i.e. choose a new infectee).
+						if ((ranf_mt(ThreadNum) >= AcceptProb) || Hosts[PotentialInfectee].is_dead()) //// if rejected, or infectee PotentialInfectee/SusceptiblePerson already dead, ensure do-while evaluated again (i.e. choose a new infectee).
 						{
 							// set f2 = 1 so loop continues (i.e. another PotentialInfectee will be chosen)
 							f2 = 1;
 						}
 						else
 						{
-							//// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector.
-							if ((!Hosts[PotentialInfectee].Travelling) && ((c != ct) || (Hosts[PotentialInfectee].hh != PotentialInfector->hh)))
+							//// if potential infectee not travelling, and either is not part of cell ThisCell or doesn't share a household with infector.
+							if ((!Hosts[PotentialInfectee].Travelling) && ((ThisCell != ct) || (Hosts[PotentialInfectee].hh != PotentialInfector->hh)))
 							{
-								// pick microcell of infector (mi)
-								Microcell* mi = Mcells + PotentialInfector->mcell;
+								// pick microcell of infector (Microcell_PotentialInfector)
+								Microcell* Microcell_PotentialInfector = Mcells + PotentialInfector->mcell;
 								// pick microcell of infectee (mt)
 								Microcell* mt = Mcells + Hosts[PotentialInfectee].mcell;
 								double Spatial_Susc = CalcSpatialSusc(PotentialInfectee, ts);
 								// Care home residents may have fewer contacts
 								if ((Hosts[PotentialInfectee].care_home_resident) || (Hosts[PotentialInfector_Index].care_home_resident)) Spatial_Susc *= P.CareHomeResidentSpatialScaling;
 								//so this person is a contact - but might not be infected. if we are doing digital contact tracing, we want to add the person to the contacts list, if both are users
-								if (fct)
+								if (DigiContactTrace_ThisPersonNow)
 								{
 									//if infectee is also a user, add them as a contact
 									if (Hosts[PotentialInfectee].digitalContactTracingUser && (PotentialInfector_Index != PotentialInfectee))
@@ -863,25 +855,23 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 								}
 								
 							
-								if (m < ct->S)  // only consider susceptible people as possible infectees
+								if (SusceptiblePerson < ct->S)  // only consider susceptible people as possible infectees
 								{
 									Spatial_Susc *= CalcPersonSusc(PotentialInfectee, ts, PotentialInfector_Index);
 									Spatial_Susc *= P.WAIFW_Matrix_SpatialOnly[HOST_AGE_GROUP(PotentialInfectee)][HOST_AGE_GROUP(PotentialInfector_Index)]; //// 
-									if (bm)
+									if (BlanketMoveRestrInPlace)
 									{
 										if ((dist2_raw(Households[PotentialInfector->hh].loc.x, Households[PotentialInfector->hh].loc.y,
 											Households[Hosts[PotentialInfectee].hh].loc.x, Households[Hosts[PotentialInfectee].hh].loc.y) > P.MoveRestrRadius2))
 											Spatial_Susc *= P.MoveRestrEffect;
 									}
-									else if ((mt->moverest != mi->moverest) && ((mt->moverest == TreatStat::Treated) || (mi->moverest == TreatStat::Treated)))
+									else if ((mt->moverest != Microcell_PotentialInfector->moverest) && ((mt->moverest == TreatStat::Treated) || (Microcell_PotentialInfector->moverest == TreatStat::Treated)))
 										Spatial_Susc *= P.MoveRestrEffect;
 									if ((!f) && (HOST_ABSENT(PotentialInfectee))) //// if infector did not have place closed, loop over place types of PotentialInfectee to see if their places had closed. If they had, amend their susceptibility.
 									{
-										for (m = f2 = 0; (m < P.PlaceTypeNum) && (!f2); m++)
-											if (Hosts[PotentialInfectee].PlaceLinks[m] >= 0)
-											{
-												f2 = PLACE_CLOSED(m, Hosts[PotentialInfectee].PlaceLinks[m]);
-											}
+										for (int PlaceType = f2 = 0; (PlaceType < P.PlaceTypeNum) && (!f2); PlaceType++)
+											if (Hosts[PotentialInfectee].PlaceLinks[PlaceType] >= 0)
+												f2 = PLACE_CLOSED(PlaceType, Hosts[PotentialInfectee].PlaceLinks[PlaceType]);
 										if (f2) { Spatial_Susc *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
 										f2 = 0;
 									}
@@ -897,12 +887,12 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											AddInfections(ThreadNum, cq, PotentialInfector_Index, PotentialInfectee, infect_type);
 										}
 									}
-								} // m < susceptible people in target cell
-							} // //// if potential infectee not travelling, and either is not part of cell c or doesn't share a household with infector
+								} // SusceptiblePerson < susceptible people in target cell
+							} // //// if potential infectee not travelling, and either is not part of cell ThisCell or doesn't share a household with infector
 						} // infectee isn't dead
 					} while (f2);
 				} // loop over infections doled out by cell
-			} // s5 > 0
+			} // SpatialInf_AllPeopleThisCell > 0
 		}
 
 
@@ -914,9 +904,9 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 		{
 			for (int i = 0; i < StateT[k].n_queue[j]; i++)
 			{
-				int infector = StateT[k].inf_queue[j][i].infector;
-				int infectee = StateT[k].inf_queue[j][i].infectee;
-				short int infect_type = StateT[k].inf_queue[j][i].infect_type;
+				int infector			= StateT[k].inf_queue[j][i].infector;
+				int infectee			= StateT[k].inf_queue[j][i].infectee;
+				short int infect_type	= StateT[k].inf_queue[j][i].infect_type;
 				Hosts[infectee].infector = infector;
 				Hosts[infectee].infect_type = infect_type;
 				if (infect_type == -1) //// i.e. if host doesn't have an infector
