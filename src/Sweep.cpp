@@ -924,7 +924,7 @@ void IncubRecoverySweep(double t)
 		{
 			Cell* c = CellLookup[b]; //// find (pointer-to) cell.
 			for (int j = ((int)c->L - 1); j >= 0; j--) //// loop backwards over latently infected people, hence it starts from L - 1 and goes to zero. Runs backwards because of pointer swapping?
-				if (TimeStepNow >= Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
+				if (TimeStepNow == Hosts[c->latent[j]].latent_time) //// if now after time at which person became infectious (latent_time a slight misnomer).
 					DoIncub(c->latent[j], TimeStepNow, tn); //// move infected person from latently infected (L) to infectious (I), but not symptomatic
 			//StateT[tn].n_queue[0] = StateT[tn].n_queue[1] = 0;
 			for (int j = c->I - 1; j >= 0; j--) ///// loop backwards over Infectious people. Runs backwards because of pointer swapping?
@@ -940,10 +940,10 @@ void IncubRecoverySweep(double t)
 
 				if (P.DoSeverity)
 				{
-					if (TimeStepNow >= si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
-					if (TimeStepNow >= si->Critical_time)	DoCritical				(ci, tn);
-					if (TimeStepNow >= si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
-					if (TimeStepNow >= si->recovery_or_death_time)
+					if (TimeStepNow == si->SARI_time)		DoSARI					(ci, tn);	//// see if you can dispense with inequalities by initializing SARI_time, Critical_time etc. to USHRT_MAX
+					if (TimeStepNow == si->Critical_time)	DoCritical				(ci, tn);
+					if (TimeStepNow == si->Stepdown_time)	DoRecoveringFromCritical(ci, tn);
+					if (TimeStepNow == si->recovery_or_death_time)
 					{
 						if (si->to_die)
 							DoDeath_FromCriticalorSARIorILI(ci, tn);
@@ -953,7 +953,7 @@ void IncubRecoverySweep(double t)
 				}
 
 				//Adding code to assign recovery or death when leaving the infectious class: ggilani - 22/10/14
-				if (TimeStepNow >= si->recovery_or_death_time)
+				if (TimeStepNow == si->recovery_or_death_time)
 				{
 					if (!si->to_die) //// if person si recovers and this timestep is after they've recovered
 					{

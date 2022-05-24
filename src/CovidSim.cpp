@@ -981,9 +981,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			if(P.SusceptibilitySD > 0) Hosts[k].susc *= (float) gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn);
 			if (P.DoSeverity)
 			{
-				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-				Hosts[k].Critical_time = USHRT_MAX - 1;
-				Hosts[k].Stepdown_time = USHRT_MAX - 1;
+				Hosts[k].SARI_time		= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
+				Hosts[k].Critical_time	= USHRT_MAX - 1;
+				Hosts[k].Stepdown_time	= USHRT_MAX - 1;
 				Hosts[k].Severity_Current = Severity::Asymptomatic;
 				Hosts[k].Severity_Final = Severity::Asymptomatic;
 				Hosts[k].set_susceptible();
