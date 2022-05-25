@@ -257,53 +257,42 @@ void RecordEvent(double t, int ai, int run, int type, int tn) //added int as arg
 
 void DoMild(int ai, int tn)
 {
-	if (P.DoSeverity) //// shouldn't need this but best be careful.
+	Person* a = Hosts + ai;
+	if (a->Severity_Current == Severity::Asymptomatic)
 	{
-		Person* a = Hosts + ai;
-		if (a->Severity_Current == Severity::Asymptomatic)
-		{
-			a->Severity_Current = Severity::Mild;
+		a->Severity_Current = Severity::Mild;
 
-			ToMild(tn, a->mcell, ai);
-		}
+		ToMild(tn, a->mcell, ai);
 	}
+
 }
 void DoILI(int ai, int tn)
 {
-	if (P.DoSeverity) //// shouldn't need this but best be careful.
+	Person* a = Hosts + ai;
+	if (a->Severity_Current == Severity::Asymptomatic)
 	{
-		Person* a = Hosts + ai;
-		if (a->Severity_Current == Severity::Asymptomatic)
-		{
-			a->Severity_Current = Severity::ILI;
-			ToILI(tn, a->mcell, ai);
-		}
+		a->Severity_Current = Severity::ILI;
+		ToILI(tn, a->mcell, ai);
 	}
 }
 void DoSARI(int ai, int tn)
 {
-	if (P.DoSeverity) //// shouldn't need this but best be careful.
+	Person* a = Hosts + ai;
+	if (a->Severity_Current == Severity::ILI)
 	{
-		Person* a = Hosts + ai;
-		if (a->Severity_Current == Severity::ILI)
-		{
-			a->Severity_Current = Severity::SARI;
-			FromILI(tn, a->mcell, ai);
-			ToSARI(tn, a->mcell, ai);
-		}
+		a->Severity_Current = Severity::SARI;
+		FromILI(tn, a->mcell, ai);
+		ToSARI(tn, a->mcell, ai);
 	}
 }
 void DoCritical(int ai, int tn)
 {
-	if (P.DoSeverity) //// shouldn't need this but best be careful.
+	Person* a = Hosts + ai;
+	if (a->Severity_Current == Severity::SARI)
 	{
-		Person* a = Hosts + ai;
-		if (a->Severity_Current == Severity::SARI)
-		{
-			a->Severity_Current = Severity::Critical;
-			FromSARI(tn, a->mcell, ai);
-			ToCritical(tn, a->mcell, ai);
-		}
+		a->Severity_Current = Severity::Critical;
+		FromSARI(tn, a->mcell, ai);
+		ToCritical(tn, a->mcell, ai);
 	}
 }
 void DoRecoveringFromCritical(int ai, int tn)
@@ -311,51 +300,45 @@ void DoRecoveringFromCritical(int ai, int tn)
 	//// note function different from DoRecover_FromSeverity.
 	//// DoRecover_FromSeverity assigns people to state Recovered (and bookkeeps accordingly).
 	//// DoRecoveringFromCritical assigns people to intermediate state "recovering from critical condition" (and bookkeeps accordingly).
-	if (P.DoSeverity) //// shouldn't need this but best be careful.
+	Person* a = Hosts + ai;
+	if (a->Severity_Current == Severity::Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
 	{
-		Person* a = Hosts + ai;
-		if (a->Severity_Current == Severity::Critical && (!a->to_die)) //// second condition should be unnecessary but leave in for now.
-		{
-			a->Severity_Current = Severity::Stepdown;
-			FromCritical(tn, a->mcell, ai);
-			ToCritRecov(tn, a->mcell, ai);
-		}
+		a->Severity_Current = Severity::Stepdown;
+		FromCritical(tn, a->mcell, ai);
+		ToCritRecov(tn, a->mcell, ai);
 	}
 }
 void DoDeath_FromCriticalorSARIorILI(int ai, int tn)
 {
 	Person* a = Hosts + ai;
-	if (P.DoSeverity)
+	// Note: only assign a->Severity_Current = Severity::Dead inside the switch cases.
+	// In rare cases DoDeath_FromCriticalorSARIorILI can be called before a person has had their severity assigned.
+	switch(a->Severity_Current)
 	{
-		// Note: only assign a->Severity_Current = Severity::Dead inside the switch cases.
-		// In rare cases DoDeath_FromCriticalorSARIorILI can be called before a person has had their severity assigned.
-		switch(a->Severity_Current)
-		{
-			case Severity::Critical:
-				FromCritical(tn, a->mcell, ai);
-				ToDeathCritical(tn, a->mcell, ai);
-				a->Severity_Current = Severity::Dead;
-				break;
+		case Severity::Critical:
+			FromCritical(tn, a->mcell, ai);
+			ToDeathCritical(tn, a->mcell, ai);
+			a->Severity_Current = Severity::Dead;
+			break;
 
-			case Severity::SARI:
-				FromSARI(tn, a->mcell, ai);
-				ToDeathSARI(tn, a->mcell, ai);
-				a->Severity_Current = Severity::Dead;
-				break;
+		case Severity::SARI:
+			FromSARI(tn, a->mcell, ai);
+			ToDeathSARI(tn, a->mcell, ai);
+			a->Severity_Current = Severity::Dead;
+			break;
 
-			case Severity::ILI:
-				FromILI(tn, a->mcell, ai);
-				ToDeathILI(tn, a->mcell, ai);
-				a->Severity_Current = Severity::Dead;
-				break;
+		case Severity::ILI:
+			FromILI(tn, a->mcell, ai);
+			ToDeathILI(tn, a->mcell, ai);
+			a->Severity_Current = Severity::Dead;
+			break;
 
-			case Severity::Asymptomatic:
-			case Severity::Dead:
-			case Severity::Mild:
-			case Severity::Recovered:
-			case Severity::Stepdown:
-				break;
-		}
+		case Severity::Asymptomatic:
+		case Severity::Dead:
+		case Severity::Mild:
+		case Severity::Recovered:
+		case Severity::Stepdown:
+			break;
 	}
 }
 void DoRecover_FromSeverity(int ai, int tn)
@@ -369,38 +352,37 @@ void DoRecover_FromSeverity(int ai, int tn)
 
 	// Note: only assign a->Severity_Current = Severity::Recovered inside the switch cases.
 	// In rare cases DoRecover_FromSeverity can be called before a person has had their severity assigned.
-	if (P.DoSeverity)
-		if (a->is_infectious_asymptomatic_not_case() || a->is_case()) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
+	if (a->is_infectious_asymptomatic_not_case() || a->is_case()) ///// i.e same condition in DoRecover (make sure you don't recover people twice).
+	{
+		switch (a->Severity_Current)
 		{
-			switch (a->Severity_Current)
-			{
-				case Severity::Mild:
-					FromMild(tn, a->mcell, ai);
-					a->Severity_Current = Severity::Recovered;
-					break;
+			case Severity::Mild:
+				FromMild(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Recovered;
+				break;
 
-				case Severity::ILI:
-					FromILI(tn, a->mcell, ai);
-					a->Severity_Current = Severity::Recovered;
-					break;
+			case Severity::ILI:
+				FromILI(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Recovered;
+				break;
 
-				case Severity::SARI:
-					FromSARI(tn, a->mcell, ai);
-					a->Severity_Current = Severity::Recovered;
-					break;
+			case Severity::SARI:
+				FromSARI(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Recovered;
+				break;
 
-				case Severity::Stepdown:
-					FromCritRecov(tn, a->mcell, ai);
-					a->Severity_Current = Severity::Recovered;
-					break;
+			case Severity::Stepdown:
+				FromCritRecov(tn, a->mcell, ai);
+				a->Severity_Current = Severity::Recovered;
+				break;
 
-				case Severity::Asymptomatic:
-				case Severity::Critical:
-				case Severity::Dead:
-				case Severity::Recovered:
-					break;
-			}
+			case Severity::Asymptomatic:
+			case Severity::Critical:
+			case Severity::Dead:
+			case Severity::Recovered:
+				break;
 		}
+	}
 }
 
 void DecideIfPersonDies(int PersonNum, int PersonAgeGroup, int ThreadNum)
