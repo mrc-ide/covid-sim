@@ -840,7 +840,7 @@ void InitTransmissionCoeffs(void)
 		Files::xfprintf_stderr("Set spatial beta to %lg\n", P.LocalBeta);
 	}
 	P.R0spatial = Spatial_R0 * P.LocalBeta;
-	P.R0 = P.R0household + P.R0places + P.R0spatial;
+	P.R0		= P.R0household + P.R0places + P.R0spatial;
 	Files::xfprintf_stderr("R0 for random spatial = %lg\nOverall R0 = %lg\n", P.R0spatial, P.R0);
 	Files::xfprintf_stderr("Mean infectious period (sampled) = %lg (%lg)\n", recovery_time_days, recovery_time_timesteps);
 }
@@ -898,11 +898,9 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 							k = 1;
 							AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 						}
-						else
-							k = 0;
+						else	k = 0;
 					}
-					else
-						k = 0;
+					else	k = 0;
 				}
 				else
 				{
@@ -915,16 +913,11 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 						P.NumAdunits++;
 						if (P.NumAdunits >= MAX_ADUNITS) ERR_CRITICAL("Total number of administrative units exceeds MAX_ADUNITS\n");
 					}
-					else
-					{
-						AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
-					}
+					else AdUnits[P.AdunitLevel1Lookup[m]].cnt_id = country;
 				}
 			}
-			else
-			{
-				k = 1;
-			}
+			else k = 1;
+
 			if ((k) && P.SpatialBoundingBox.inside(CovidSim::Geometry::Vector2d(x, y)))
 			{
 				j = (int)floor((x - P.SpatialBoundingBox.bottom_left().x) / P.in_microcells_.width  + 0.1);
@@ -1474,7 +1467,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			for (int i = 0; i < m; i++)
 				Places[j][i].AvailByAge = (unsigned short int*)Memory::xcalloc(P.PlaceTypeMaxAgeRead[j], sizeof(unsigned short int));
 			P.Nplace[j] = 0;
-			for (int i = 0; i < P.NumMicrocells; i++) Mcells[i].np[j] = 0;
+			for (int i = 0; i < P.NumMicrocells; i++) Mcells[i].NumPlacesByType[j] = 0;
 		}
 		mr = 0;
 		while (!feof(dat))
@@ -1491,7 +1484,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				i = (int)(Places[j][P.Nplace[j]].loc.x / P.in_microcells_.width);
 				int k = (int)(Places[j][P.Nplace[j]].loc.y / P.in_microcells_.height);
 				j2 = i * P.total_microcells_high_ + k;
-				Mcells[j2].np[j]++;
+				Mcells[j2].NumPlacesByType[j]++;
 				Places[j][P.Nplace[j]].mcell = j2;
 				P.Nplace[j]++;
 				if (P.Nplace[j] % 1000 == 0) Files::xfprintf_stderr("%i read    \r", P.Nplace[j]);
@@ -1501,10 +1494,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Files::xfprintf_stderr("%i schools read (%i in empty cells)      \n", P.Nplace[j], mr);
 		for (int i = 0; i < P.NumMicrocells; i++)
 			for (j = 0; j < P.nsp; j++)
-				if (Mcells[i].np[j] > 0)
+				if (Mcells[i].NumPlacesByType[j] > 0)
 				{
-					Mcells[i].places[j] = (int*)Memory::xcalloc(Mcells[i].np[j], sizeof(int));
-					Mcells[i].np[j] = 0;
+					Mcells[i].places[j] = (int*)Memory::xcalloc(Mcells[i].NumPlacesByType[j], sizeof(int));
+					Mcells[i].NumPlacesByType[j] = 0;
 				}
 		for (j = 0; j < P.nsp; j++)
 		{
@@ -1514,7 +1507,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 			for (int i = 0; i < P.Nplace[j]; i++)
 			{
 				int k = Places[j][i].mcell;
-				Mcells[k].places[j][Mcells[k].np[j]++] = i;
+				Mcells[k].places[j][Mcells[k].NumPlacesByType[j]++] = i;
 				s += (double)Places[j][i].n;
 			}
 			Files::xfprintf_stderr("School type %i: capacity=%lg demand=%lg\n", j, s, t);
@@ -1546,16 +1539,16 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					s = ((double) Mcells[i].n) / maxd / t;
 					if (s > 1.0) s = 1.0;
 					if (i == last_i)
-						m += (Mcells[last_i].np[j2] = P.Nplace[j2] - m);
+						m += (Mcells[last_i].NumPlacesByType[j2] = P.Nplace[j2] - m);
 					else
-						m += (Mcells[i].np[j2] = (int)ignbin_mt((int32_t)(P.Nplace[j2] - m), s, tn));
+						m += (Mcells[i].NumPlacesByType[j2] = (int)ignbin_mt((int32_t)(P.Nplace[j2] - m), s, tn));
 					t -= ((double)Mcells[i].n) / maxd;
-					if (Mcells[i].np[j2] > 0)
+					if (Mcells[i].NumPlacesByType[j2] > 0)
 					{
-						Mcells[i].places[j2] = (int*)Memory::xcalloc(Mcells[i].np[j2], sizeof(int));
+						Mcells[i].places[j2] = (int*)Memory::xcalloc(Mcells[i].NumPlacesByType[j2], sizeof(int));
 						x = (double)(i / P.total_microcells_high_);
 						y = (double)(i % P.total_microcells_high_);
-						for (j = 0; j < Mcells[i].np[j2]; j++)
+						for (j = 0; j < Mcells[i].NumPlacesByType[j2]; j++)
 						{
 							xh = P.in_microcells_.width * (ranf_mt(tn) + x);
 							yh = P.in_microcells_.height * (ranf_mt(tn) + y);
@@ -1581,8 +1574,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				}
 /*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
 			for (i =0; i < P.NumMicrocells; i++)
-				if ((Mcells[i].np[j2]>0) && (Mcells[i].n == 0))
-					Files::xfprintf_stderr("\n##~ %i %i %i \n", i, j2, Mcells[i].np[j2]);
+				if ((Mcells[i].NumPlacesByType[j2]>0) && (Mcells[i].n == 0))
+					Files::xfprintf_stderr("\n##~ %i %i %i \n", i, j2, Mcells[i].NumPlacesByType[j2]);
 */		Files::xfprintf_stderr("Places assigned\n");
 	}
 	l = 0;
@@ -1759,7 +1752,7 @@ void SetupAirports(void)
 			}
 			l = 0;
 			for (int j = 0; j < Airports[i].num_mcell; j++)
-				l += Mcells[Airports[i].DestMcells[j].id].np[P.HotelPlaceType];
+				l += Mcells[Airports[i].DestMcells[j].id].NumPlacesByType[P.HotelPlaceType];
 			if (l < 10)
 			{
 				Files::xfprintf_stderr("(%i ", l);
@@ -2277,7 +2270,7 @@ void AssignPeopleToPlaces()
 									if (mcell_country[ic] == host_country)
 									{
 										auto const& cur_cell = Mcells[ic];
-										auto const place_type_count = cur_cell.np[tp];
+										auto const place_type_count = cur_cell.NumPlacesByType[tp];
 										for (cnt = 0; cnt < place_type_count; cnt++)
 										{
 											auto const place_idx = cur_cell.places[tp][cnt];

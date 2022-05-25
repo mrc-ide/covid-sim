@@ -120,8 +120,6 @@ MakePreParamList = function(NUM_AGE_GROUPS = 17,
 		SeroConvSpec = 0.989,		# taken from Neil pre-param code not Cpp default.  
 		InfPrevSurveyScale = 5,  # taken from Neil pre-param code not Cpp default.  
 
-		SeroConvP1 = 14, SeroConvP2 = 3, 
-		
 		# which outputs?
 		OutputEveryRealisation				= 1,
 		OutputBitmap 						= 0,

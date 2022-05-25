@@ -84,7 +84,7 @@ struct PopVar
 	int host_closure_queue_size; // Number of host closures in host_closure_queue.
 	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
 	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
-	float* cell_inf;  //// List of spatial infectiousnesses by person within cell.
+	float* cell_inf;  //// List of cumulative spatial infectiousnesses by person within cell. Negative value will refer to that person having their place closed
 	double sumRad2, maxRad2, cumT, cumV, cumVG, cumUT, cumTP, cumV_daily, cumVG_daily; //added cumVG, cumVG_daily
 	int* CellMemberArray, *CellSuscMemberArray;
 	int** InvAgeDist;
@@ -247,13 +247,15 @@ struct Airport
  */
 struct Place
 {
-	int n, mcell;
-	unsigned short int ng, treat, control_trig, country;
+	int n; // number of people in place
+	int mcell; // microcell that place is within
+	unsigned short int control_trig; // bit convoluted, but this is initialized to 0 in CovidSim.cpp::InitModel. Then incremented in Update.cpp::DoPlaceClose
+	unsigned short int ng, treat, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
 	CovidSim::Geometry::Vector2f loc;
-	float ProbClose;
+	float ProbClose; // Random number between 0 and 1 set in CovidSim.cpp::InitModel and unchanged thereafter. Used instead of repeated calls to rand_mt() to see if this place will close with probability PlaceCloseEffect in Update.cpp::DoPlaceClose. 
 	int* group_start, *group_size, *members;
 };
 

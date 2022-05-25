@@ -54,8 +54,8 @@ PreParamList = MakePreParamList(
 		#WAIFW_Matrix_SpatialOnly 	= WAIFW_Matrix,
 		
 		# Means
-		LatentPeriod 					= AS_Means$LatentPeriod 		, 
-		InfectiousPeriod 				= AS_Means$InfectiousPeriod 	, 
+		LatentPeriod 					= AS_Means$LatentPeriod[1]		, # these aren't age-specific in CovidSim (yet), so just use first number as they're all the same.
+		InfectiousPeriod 				= AS_Means$InfectiousPeriod [1]	, # these aren't age-specific in CovidSim (yet), so just use first number as they're all the same.
 		Mean_MildToRecovery				= AS_Means$Mean_MildToRecovery	,
 		Mean_ILIToRecovery 				= AS_Means$Mean_ILIToRecovery ,
 		Mean_ILIToSARI 					= AS_Means$Mean_ILIToSARI ,

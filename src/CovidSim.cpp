@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 	///// Read in command line arguments - lots of things, e.g. random number seeds; (pre)parameter files; binary files; population data; output directory? etc.
 	P.FitIter = 0;
 	auto parse_snapshot_save_option = [&snapshot_save_file](std::string const& input)
-  {
+	{
 		auto sep = input.find_first_of(',');
 		if (sep == std::string::npos)
 		{
@@ -981,9 +981,9 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			if(P.SusceptibilitySD > 0) Hosts[k].susc *= (float) gen_gamma_mt(1 / (P.SusceptibilitySD * P.SusceptibilitySD), 1 / (P.SusceptibilitySD * P.SusceptibilitySD), tn);
 			if (P.DoSeverity)
 			{
-				Hosts[k].SARI_time = USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
-				Hosts[k].Critical_time = USHRT_MAX - 1;
-				Hosts[k].Stepdown_time = USHRT_MAX - 1;
+				Hosts[k].SARI_time		= USHRT_MAX - 1; //// think better to set to initialize to maximum possible value, but keep this way for now.
+				Hosts[k].Critical_time	= USHRT_MAX - 1;
+				Hosts[k].Stepdown_time	= USHRT_MAX - 1;
 				Hosts[k].Severity_Current = Severity::Asymptomatic;
 				Hosts[k].Severity_Final = Severity::Asymptomatic;
 				Hosts[k].set_susceptible();
@@ -1441,7 +1441,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 					if (P.DoDigitalContactTracing)
 						DigitalContactTracingSweep(CurrSimTime);
 
-					IsEpidemicStillGoing = ((P.DoDeath) || (State.L + State.I > 0) || (InfectionImportRate > 0) || (P.FalsePositivePerCapitaIncidence > 0));
+					IsEpidemicStillGoing = ((P.DoDeath) || (State.L + State.I > 0) /*Still some infected people*/ || (InfectionImportRate > 0) || (P.FalsePositivePerCapitaIncidence > 0));
 
 					// ** // ** TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
 					if (!TreatSweep(CurrSimTime)) // TreatSweep will return zero if no treatments are used at CurrSimTime
@@ -2793,19 +2793,19 @@ void UpdateCFRs(double t_CalTime)
 	if (P.Num_CFR_ChangeTimes > 1)
 	{
 		if (t_CalTime <= P.CFR_ChangeTimes_CalTime[0])
-			Scale = P.CFR_TimeScaling_Critical[0]; // if t <= first change point, take value at first change point. 
+			Scale = P.CFR_TimeScaling_Critical[0];							// if t <= first change point, take value at first change point. 
 		else if (t_CalTime >= P.CFR_ChangeTimes_CalTime[P.Num_CFR_ChangeTimes - 1])
-			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1]; // if t >= last change point, take value at last change point. 
+			Scale = P.CFR_TimeScaling_Critical[P.Num_CFR_ChangeTimes - 1];	// if t >= last change point, take value at last change point. 
 		else
 		{
 			int SplineSegment = FindSplineSegment(t_CalTime, P.CFR_ChangeTimes_CalTime, P.Num_CFR_ChangeTimes);
 
-			double x0 = P.CFR_ChangeTimes_CalTime[SplineSegment];
-			double x1 = P.CFR_ChangeTimes_CalTime[SplineSegment + 1];
-			double y0 = P.CFR_TimeScaling_Critical[SplineSegment];
-			double y1 = P.CFR_TimeScaling_Critical[SplineSegment + 1];
-			double Slope = (y1 - y0) / (x1 - x0);
-			double Intercept = y1 - Slope * x1;
+			double x0			= P.CFR_ChangeTimes_CalTime	[SplineSegment];
+			double x1			= P.CFR_ChangeTimes_CalTime	[SplineSegment + 1];
+			double y0			= P.CFR_TimeScaling_Critical[SplineSegment];
+			double y1			= P.CFR_TimeScaling_Critical[SplineSegment + 1];
+			double Slope		= (y1 - y0) / (x1 - x0);
+			double Intercept	= y1 - Slope * x1;
 
 			Scale = Intercept + (Slope * t_CalTime);
 		}
@@ -2824,7 +2824,6 @@ void UpdateCFRs(double t_CalTime)
 	//		P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[ChangeTime];
 	//	}
 }
-
 
 void UpdateCurrentInterventionParams(double t_CalTime)
 {
@@ -2881,12 +2880,12 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			if (t_CalTime == P.PC_ChangeTimes[ChangeTime])
 			{
 				//// First open all the places - keep commented out in case becomes necessary but avoid if possible to avoid runtime costs.
-//				unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+//				unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 //				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 //#pragma omp parallel for schedule(static,1)
 //					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 //						for (int PlaceNum = ThreadNum; PlaceNum < P.Nplace[PlaceType]; PlaceNum += P.NumThreads)
-//							DoPlaceOpen(PlaceType, PlaceNum, ts, ThreadNum);
+//							DoPlaceOpen(PlaceType, PlaceNum, TimeStepNow, ThreadNum);
 
 				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];					//// spatial
 				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];					//// household
@@ -2952,7 +2951,7 @@ void RecordAdminAgeBreakdowns(int t_int)
 		}
 }
 
-void RecordQuarNotInfected(int n, unsigned short int ts)
+void RecordQuarNotInfected(int n, unsigned short int TimeStepNow)
 {
 	int QuarNotInfected = 0, QuarNotSymptomatic = 0;
 #pragma omp parallel for schedule(static,1) reduction(+:QuarNotInfected, QuarNotSymptomatic)
@@ -2976,7 +2975,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	int cumDCT = 0; //added cumulative number of cases who are digitally contact traced: ggilani 11/03/20
 	int cumHQ = 0, cumAC = 0, cumAH = 0, cumAA = 0, cumACS = 0, cumAPC = 0, cumAPA = 0, cumAPCS = 0, numPC, trigDetectedCases;
 	int cumC_country[MAX_COUNTRIES]; //add cumulative cases per country
-	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 
 	//// Severity quantities
 	int Mild = 0, ILI = 0, SARI = 0, Critical = 0, CritRecov = 0, cumMild = 0, cumILI = 0, cumSARI = 0, cumCritical = 0;
@@ -3135,7 +3134,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		RecordAdminAgeBreakdowns(n);
 
-	RecordQuarNotInfected(n, ts);
+	RecordQuarNotInfected(n, TimeStepNow);
 
 	if (P.DoSeverity)
 	{
@@ -3434,7 +3433,7 @@ void CalibrationThresholdCheck(double t,int n)
 	int k;
 	int trigAlert, trigAlertCases;
 	/* Never used
-	unsigned short int ts = (unsigned short int) (P.TimeStepsPerDay * t);
+	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
 	*/
 
 	trigAlertCases = State.cumDC;
@@ -3541,17 +3540,18 @@ void CalibrationThresholdCheck(double t,int n)
 		if (P.VaryEfficaciesOverTime)
 			UpdateCurrentInterventionParams(t - P.Epidemic_StartDate_CalTime); // t - P.Epidemic_StartDate_CalTime converts simulation time (t) into calendar time. 
 
-// changed to a define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
-#define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X>=1e10) X=Y;
+// changed to a #define for speed (though always likely inlined anyway) and to avoid clang compiler warnings re double alignment
+#define DO_OR_DONT_AMEND_START_TIME(X,Y) if(X >= 1e10) X = Y;
 
 		//// Set Case isolation start time (by admin unit)
 		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.CaseIsolation_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
 				DO_OR_DONT_AMEND_START_TIME(AdUnits[i].CaseIsolationTimeStart, t + ((P.DoInterventionDelaysByAdUnit)?AdUnits[i].CaseIsolationDelay: P.CaseIsolationTimeStartBase))
+
 		//// Set Household Quarantine start time (by admin unit)
 		for (int i = 0; i < P.NumAdunits; i++)
 			if (ChooseTriggerVariableAndValue(i) > ChooseThreshold(i, P.HHQuar_CellIncThresh)) //// a little wasteful if doing Global trigs as function called more times than necessary, but worth it for much simpler code. Also this function is small portion of runtime.
-					DO_OR_DONT_AMEND_START_TIME(AdUnits[i].HQuarantineTimeStart, t + ((P.DoInterventionDelaysByAdUnit)?AdUnits[i].HQuarantineDelay: P.HQuarantineTimeStartBase));
+				DO_OR_DONT_AMEND_START_TIME(AdUnits[i].HQuarantineTimeStart, t + ((P.DoInterventionDelaysByAdUnit)?AdUnits[i].HQuarantineDelay: P.HQuarantineTimeStartBase));
 
 		//// Set DigitalContactTracingTimeStart
 		if (P.DoDigitalContactTracing)
@@ -3964,7 +3964,6 @@ void RecordInfTypes(void)
 	PeakTimeSum += t;
 	PeakTimeSS += t * t;
 }
-
 
 void CalcOriginDestMatrix_adunit()
 {
