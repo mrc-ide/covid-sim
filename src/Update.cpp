@@ -1113,57 +1113,56 @@ void DoProphNoDelay(int ai, unsigned short int TimeStepNow, int tn, int nc)
 void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAnyway)
 {
 	//// DoPlaceClose function called in TreatSweep (with arg DoAnyway = 1) and DoDetectedCase (with arg DoAnyway = 0).
-	//// Basic pupose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true.
+	//// Basic purpose of this function is to change Places[i][j].close_start_time and Places[i][j].close_end_time, so that macro PLACE_CLOSED will return true or false accordingly.
 	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
 
-	int k, ai, j1, j2, l, f, f2;
+	int adminunit, WhichPerson;
 	unsigned short trig;
-	unsigned short int t_start, t_stop;
-	unsigned short int t_old, t_new;
+	unsigned short int t_start_place_close, t_stop_place_close;
+	unsigned short int LastUpdateTime, NewUpdateTime;
 
-	f2 = 0;
-	/*	if((j<0)||(j>=P.Nplace[i]))
-			Files::xfprintf_stderr("** %i %i *\n",i,j);
-		else
-	*/
-	t_new = (unsigned short)(((double)TimeStepNow) / P.TimeStepsPerDay);
-	trig = 0;
-	t_start = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
+	bool HasPlaceClosed = false;
+	bool PlaceClose_TriggerReached; 
+	NewUpdateTime	= (unsigned short)(((double)TimeStepNow) / P.TimeStepsPerDay);
+	t_start_place_close			= TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
+	trig			= 0;
+
 	if (P.DoInterventionDelaysByAdUnit)
 	{
-		k = Mcells[Places[i][j].mcell].adunit;
-		t_stop = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + AdUnits[k].PlaceCloseDuration)));
+		int adminunit = Mcells[Places[i][j].mcell].adunit;
+		t_stop_place_close = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + AdUnits[adminunit].PlaceCloseDuration)));
 	}
 	else
 	{
-		t_stop = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + P.PlaceCloseDuration)));
+		t_stop_place_close = TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * (P.PlaceCloseDelayMean + P.PlaceCloseDuration)));
 	}
 #pragma omp critical (closeplace)
 	{
 		//// close_start_time initialized to USHRT_MAX - 1.
 		//// close_end_time initialized to zero in InitModel (so will pass this check on at least first call of this function).
 
-		if (Places[i][j].close_end_time < t_stop)
+		if (Places[i][j].close_end_time < t_stop_place_close)
 		{
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
 				Places[i][j].control_trig++;
 				if (P.AbsenteeismPlaceClosure)
 				{
-					t_old = Places[i][j].AbsentLastUpdateTime;
-					if (t_new >= t_old + P.MaxAbsentTime)
-						for (l = 0; l < P.MaxAbsentTime; l++) Places[i][j].Absent[l] = 0;
+					LastUpdateTime = Places[i][j].AbsentLastUpdateTime;
+					if (NewUpdateTime >= LastUpdateTime + P.MaxAbsentTime)
+						for (int AbsentTime = 0; AbsentTime < P.MaxAbsentTime; AbsentTime++) Places[i][j].Absent[AbsentTime] = 0;
 					else
-						for (l = t_old; l < t_new; l++) Places[i][j].Absent[l % P.MaxAbsentTime] = 0;
-					for (l = t_new; l < t_new + P.usCaseAbsenteeismDuration / P.TimeStepsPerDay; l++) Places[i][j].Absent[l % P.MaxAbsentTime]++;
-					trig = Places[i][j].Absent[t_new % P.MaxAbsentTime];
-					Places[i][j].AbsentLastUpdateTime = t_new;
+						for (int AbsentTime = LastUpdateTime; AbsentTime < NewUpdateTime; AbsentTime++) Places[i][j].Absent[AbsentTime % P.MaxAbsentTime] = 0;
+
+					for (int AbsentTime = NewUpdateTime; AbsentTime < NewUpdateTime + P.usCaseAbsenteeismDuration / P.TimeStepsPerDay; AbsentTime++) Places[i][j].Absent[AbsentTime % P.MaxAbsentTime]++;
+					trig = Places[i][j].Absent[NewUpdateTime % P.MaxAbsentTime];
+					Places[i][j].AbsentLastUpdateTime = NewUpdateTime;
 					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
 						&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
 						//Files::xfprintf_stderr("** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
-						k = Mcells[Places[i][j].mcell].adunit;
-						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
+						adminunit = Mcells[Places[i][j].mcell].adunit;
+						if (AdUnits[adminunit].place_close_trig < USHRT_MAX - 1) AdUnits[adminunit].place_close_trig++;
 					}
 				}
 				else
@@ -1173,72 +1172,75 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 						&& (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
 						//Files::xfprintf_stderr("** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
-						k = Mcells[Places[i][j].mcell].adunit;
-						if (AdUnits[k].place_close_trig < USHRT_MAX - 1) AdUnits[k].place_close_trig++;
+						adminunit = Mcells[Places[i][j].mcell].adunit;
+						if (AdUnits[adminunit].place_close_trig < USHRT_MAX - 1) AdUnits[adminunit].place_close_trig++;
 					}
 				}
 			}
 			if (Places[i][j].control_trig < USHRT_MAX - 1) //// control_trig initialized to zero so this check will pass at least once
 			{
 				if (P.PlaceCloseFracIncTrig > 0)
-					k = (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseFracIncTrig);
+					PlaceClose_TriggerReached = (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseFracIncTrig);
 				else
-					k = (((int)trig) >= P.PlaceCloseIncTrig);
-				if (((!P.PlaceCloseByAdminUnit) && (k)) || (DoAnyway))
+					PlaceClose_TriggerReached = (((int)trig) >= P.PlaceCloseIncTrig);
+				if (((!P.PlaceCloseByAdminUnit) && (PlaceClose_TriggerReached)) || (DoAnyway))
 				{
 					if (P.DoPlaceCloseOnceOnly)
 						Places[i][j].control_trig = USHRT_MAX - 1;  //// Places only close once, and so this code block would not be entered again.
 					else
 						Places[i][j].control_trig = 0;				//// otherwise reset the trigger.
 
-					//// set close_start_time and close_end_time
-
+					//// set Places[i][j].close_start_time and Places[i][j].close_end_time and HasPlaceClosed flag to true.
 					if (Places[i][j].ProbClose >= P.PlaceCloseEffect[i]) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - PlaceCloseEffect[i]...
 					{
-						if (Places[i][j].close_start_time > t_start) Places[i][j].close_start_time = t_start;
-						Places[i][j].close_end_time = t_stop;
-						f2 = 1; /// /set flag to true so next part of function used.
+						if (Places[i][j].close_start_time > t_start_place_close)
+							Places[i][j].close_start_time	= t_start_place_close;
+
+						Places[i][j].close_end_time			= t_stop_place_close;
+						HasPlaceClosed						= true; /// /set flag to true so next part of function used.
 					}
 					else
-						Places[i][j].close_start_time = Places[i][j].close_end_time = t_stop; //// ... otherwise set start and end of closure to be the same, which will cause macro PLACE_CLOSED to always return false.
+						Places[i][j].close_start_time		= Places[i][j].close_end_time = t_stop_place_close; //// ... otherwise set start and end of closure to be the same, which will cause macro PLACE_CLOSED to always return false for this place.
 				}
 			}
 		}
 	}
 
-	if (f2)
+	if (HasPlaceClosed)
 	{
 		if (P.DoRealSymptWithdrawal)
-			for (k = 0; k < Places[i][j].n; k++) //// loop over all people in place.
+			for (int PlaceMember = 0; PlaceMember < Places[i][j].n; PlaceMember++) //// loop over all people in place.
 			{
-				ai = Places[i][j].members[k];
-				if (((P.PlaceClosePropAttending[i] == 0) || (Hosts[ai].ProbAbsent >= P.PlaceClosePropAttending[i])))
+				WhichPerson = Places[i][j].members[PlaceMember];
+				if (((P.PlaceClosePropAttending[i] == 0) || (Hosts[WhichPerson].ProbAbsent >= P.PlaceClosePropAttending[i])))
 				{
-					if ((!HOST_ABSENT(ai)) && (!HOST_QUARANTINED(ai)) && (HOST_AGE_YEAR(ai) < P.CaseAbsentChildAgeCutoff)) //// if person is a child and neither absent nor quarantined
+					if ((!HOST_ABSENT(WhichPerson)) && (!HOST_QUARANTINED(WhichPerson)) && (HOST_AGE_YEAR(WhichPerson) < P.CaseAbsentChildAgeCutoff)) //// if person is a child and neither absent nor quarantined
 					{
 						StateT[tn].cumAPCS++;
-						if (Hosts[ai].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
+						if (Hosts[WhichPerson].ProbCare < P.CaseAbsentChildPropAdultCarers) //// if child needs adult supervision
 						{
-							j1 = Households[Hosts[ai].hh].FirstPerson; j2 = j1 + Households[Hosts[ai].hh].nh;
-							if ((j1 < 0) || (j2 > P.PopSize)) Files::xfprintf_stderr("++ %i %i %i (%i %i %i)##  ", ai, j1, j2, i, j, k);
-							f = 0;
+							int FirstPerson_Household	= Households[Hosts[WhichPerson].hh].FirstPerson;
+							int LastPerson_Household	= FirstPerson_Household + Households[Hosts[WhichPerson].hh].nh;
+							if ((FirstPerson_Household < 0) || (LastPerson_Household > P.PopSize)) Files::xfprintf_stderr("++ %i %i %i (%i %i %i)##  ", WhichPerson, FirstPerson_Household, LastPerson_Household, i, j, PlaceMember);
+							bool AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace = 0;
 
-							//// in loop below, f true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
-							for (l = j1; (l < j2) && (!f); l++)
-								f = (Hosts[l].is_alive() && (HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[l].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(l))));
-							if (!f) //// so !f true if there's no living adult household member who is not quarantined already or isn't a home-worker.
+							//// in loop below, AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace true if any household member a) alive AND b) not a child AND c) has no links to workplace (or is absent from work or quarantined).
+							for (int HH_member = FirstPerson_Household; (HH_member < LastPerson_Household) && (!AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace); HH_member++)
+								AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace =
+								(Hosts[HH_member].is_alive() && (HOST_AGE_YEAR(HH_member) >= P.CaseAbsentChildAgeCutoff) && ((Hosts[HH_member].PlaceLinks[P.PlaceTypeNoAirNum - 1] < 0) || (HOST_QUARANTINED(HH_member))));
+							if (!AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace) //// so !AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace true if there's no living adult household member who is not quarantined already or isn't a home-worker.
 							{
-								for (l = j1; (l < j2) && (!f); l++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
-									if ((HOST_AGE_YEAR(l) >= P.CaseAbsentChildAgeCutoff) && Hosts[l].is_alive())
+								for (int HH_member = FirstPerson_Household; (HH_member < LastPerson_Household) && (!AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace); HH_member++) //// loop over all household members of child this place: find the adults and ensure they're not dead...
+									if ((HOST_AGE_YEAR(HH_member) >= P.CaseAbsentChildAgeCutoff) && Hosts[HH_member].is_alive())
 									{
 										int index = StateT[tn].host_closure_queue_size;
 										if (index >= P.InfQueuePeakLength) ERR_CRITICAL("Out of space in host_closure_queue\n");
-										StateT[tn].host_closure_queue[index].host_index = l;
-										StateT[tn].host_closure_queue[index].start_time = t_start;
-										StateT[tn].host_closure_queue[index].stop_time = t_stop;
+										StateT[tn].host_closure_queue[index].host_index = HH_member;
+										StateT[tn].host_closure_queue[index].start_time = t_start_place_close;
+										StateT[tn].host_closure_queue[index].stop_time	= t_stop_place_close;
 										StateT[tn].host_closure_queue_size++;
 										StateT[tn].cumAPA++;
-										f = 1;
+										AtLeastOneHouseMemberIsAlive_Adult_WithNoLinksToWorkplace = 1;
 									}
 							}
 						}
@@ -1246,10 +1248,10 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 					//#pragma omp critical (closeplace3)
 					{
 						///// finally amend absent start and stop times if they contradict place start and stop times.
-						if (Hosts[ai].absent_start_time > t_start) Hosts[ai].absent_start_time = t_start;
-						if (Hosts[ai].absent_stop_time < t_stop) Hosts[ai].absent_stop_time = t_stop;
+						if (Hosts[WhichPerson].absent_start_time > t_start_place_close	) Hosts[WhichPerson].absent_start_time	= t_start_place_close;
+						if (Hosts[WhichPerson].absent_stop_time	< t_stop_place_close	) Hosts[WhichPerson].absent_stop_time	= t_stop_place_close;
 					}
-					if ((HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0)) StateT[tn].cumAPC++;
+					if ((HOST_AGE_YEAR(WhichPerson) >= P.CaseAbsentChildAgeCutoff) && (Hosts[WhichPerson].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0)) StateT[tn].cumAPC++;
 				}
 			}
 	}
