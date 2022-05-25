@@ -1544,6 +1544,7 @@ int TreatSweep(double t)
 							}
 							// Change microcell 
 							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+
 						} while ((StillTreating) && (PeopleRequiringRadialProphylaxis < P.TreatMaxCoursesPerCase));
 					}
 				}
@@ -1645,6 +1646,7 @@ int TreatSweep(double t)
 							}
 							// Change microcell 
 							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+
 						} while (StillVaccinating);
 					}
 				}
@@ -1828,6 +1830,7 @@ int TreatSweep(double t)
 							}
 							// Change microcell 
 							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+
 						} while (StillTreating);
 					}
 				}
@@ -1984,6 +1987,7 @@ int TreatSweep(double t)
 						}
 						// Change microcell 
 						NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+
 					} while (StillTreating);
 				}
 
