@@ -1912,68 +1912,83 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** KEY-WORKER PROPHYLAXIS
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
+				// if Microcell already treated key-workers but TimeStepNow after treatment end time.
 				if ((Mcells[mcellnum].keyworkerproph == 2) && (TimeStepNow >= Mcells[mcellnum].keyworkerproph_end_time))
 				{
 					TreatFlag = 1;
 					Mcells[mcellnum].keyworkerproph = P.DoKeyWorkerProphOnceOnly;
 				}
+
+				// Has trigger threshold been reached (KeyWorkerProph)?
+				bool TrigThreshReached_KeyWorkerProph = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig >= P.KeyWorkerProphCellIncThresh);
+					TrigThreshReached_KeyWorkerProph = (global_trig >= P.KeyWorkerProphCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
-					f2 = (State.trigDC_adunit[adi] > trig_thresh);
+					TrigThreshReached_KeyWorkerProph = (State.trigDC_adunit[adi] > trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
-					f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+					TrigThreshReached_KeyWorkerProph = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
-				if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[mcellnum].keyworkerproph == 0) && (f2))
+
+				// Block below spirals around microcell, changing treatment status variables of nearby microcells, mostly flagging them for treatment in the lines above
+				if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[mcellnum].keyworkerproph == 0) && (TrigThreshReached_KeyWorkerProph))
 				{
-					MicroCellPosition Nearby_mcellposition = P.get_micro_cell_position_from_cell_index(mcellnum);
-					Direction CurrentDirection = Direction::Right;
-					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
-					int i, l, m;
-					i = m = f2 = 0;
-					l = f3 = 1;
+					MicroCellPosition Nearby_mcellposition	= P.get_micro_cell_position_from_cell_index(mcellnum); // initialize Nearby_mcellposition to be position of microcell.
+					Direction CurrentDirection				= Direction::Right; // initialize CurrentDirection to go to the right
+
+					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
+					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
+					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+
 					do
 					{
+						// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 						if (P.is_in_bounds(Nearby_mcellposition))
 							if (dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell) < P.KeyWorkerProphRadius2)
 							{
-								TreatFlag = f2 = 1;
+								TreatFlag = 1;
+								AskAgainIfStillTreating = 1;
+
 								if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].keyworkerproph == 0))
 								{
-									Mcells[NearbyMCell].keyworkerproph = 2;
-									Mcells[NearbyMCell].keyworkerproph_trig = 0;
+									Mcells[NearbyMCell].keyworkerproph			= 2;
+									Mcells[NearbyMCell].keyworkerproph_trig		= 0;							// reset trigger
 									Mcells[NearbyMCell].keyworkerproph_end_time = t_KeyWorkerPlaceClosure_End;
-									for (int i2 = 0; i2 < Mcells[NearbyMCell].n; i2++)
+
+									for (int MicrocellMember = 0; MicrocellMember < Mcells[NearbyMCell].n; MicrocellMember++)
 									{
-										int j2 = Mcells[NearbyMCell].members[i2];
-										if ((Hosts[j2].keyworker) && (!HOST_TO_BE_TREATED(j2)))
-											DoProphNoDelay(j2, TimeStepNow, ThreadNum, nckwp);
+										int PerosonInMicrocell = Mcells[NearbyMCell].members[MicrocellMember];
+										if ((Hosts[PerosonInMicrocell].keyworker) && (!HOST_TO_BE_TREATED(PerosonInMicrocell)))
+											DoProphNoDelay(PerosonInMicrocell, TimeStepNow, ThreadNum, nckwp);
 									}
 								}
 							}
-						Nearby_mcellposition += CurrentDirection;
-						m = (m + 1) % l;
-						if (m == 0)
+
+						// Change microcell position
+						Nearby_mcellposition += CurrentDirection; // (depending on CurrentDirection, increment or decrememnt x or y coordinates of microcell position
+						MicroCellCounter = (MicroCellCounter + 1) % ColumnCounter;
+						if (MicroCellCounter == 0)
 						{
-							CurrentDirection = rotate_left(CurrentDirection);
+							CurrentDirection = rotate_left(CurrentDirection); // up -> left, left -> down, down -> right, right -> up
 							i = (i + 1) % 2;
-							if (i == 0) l++;
+							if (i == 0) ColumnCounter++;
 							if (CurrentDirection == Direction::Up)
 							{
-								f3 = f2;
-								f2 = 0;
+								StillTreating = AskAgainIfStillTreating;
+								AskAgainIfStillTreating = 0; // reset AskAgainIfStillTreating to 0 (will be set to 1 again in block above if Still treating - i.e. radius and doses not exceeded and not all nearby admin units already treated). 
 							}
 						}
+						// Change microcell 
 						NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
-					} while (f3);
+					} while (StillTreating);
 				}
 
 			} // End of PopulatedMicroCellNum loop, ThreadNum loop, and pragma.
+
 		for (int i = 0; i < P.NumThreads; i++)
 		{
 			State.cumT += StateT[i].cumT;
