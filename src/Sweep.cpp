@@ -1743,6 +1743,7 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** MOVEMENT RESTRICTIONS
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
+				// if Microcell already treated but TimeStepNow after movement restriction end time.
 				if ((Mcells[mcellnum].moverest == TreatStat::Treated) && (TimeStepNow >= Mcells[mcellnum].move_end_time))
 				{
 					TreatFlag = 1;
@@ -1752,66 +1753,82 @@ int TreatSweep(double t)
 						Mcells[mcellnum].moverest = TreatStat::Untreated;
 
 				}
+				// if Microcell flagged as to be treated TimeStepNow after movement restriction start time.
 				if ((Mcells[mcellnum].moverest == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].move_start_time))
 				{
-					TreatFlag = 1;
-					Mcells[mcellnum].moverest = TreatStat::Treated;
-					Mcells[mcellnum].move_trig = 0;
-					Mcells[mcellnum].move_end_time = t_MoveRestrict_End;
+					TreatFlag						= 1;
+					Mcells[mcellnum].moverest		= TreatStat::Treated;
+					Mcells[mcellnum].move_trig		= 0;					// reset trigger
+					Mcells[mcellnum].move_end_time	= t_MoveRestrict_End;
 				}
+
+				// Has trigger threshold been reached (movement restriction)?
+				bool TrigThreshReached_MoveRestrict = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig >= P.MoveRestrCellIncThresh);
+					TrigThreshReached_MoveRestrict = (global_trig >= P.MoveRestrCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
-					f2 = (State.trigDC_adunit[adi] > trig_thresh);
+					TrigThreshReached_MoveRestrict = (State.trigDC_adunit[adi] > trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
-					f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+					TrigThreshReached_MoveRestrict = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
 
-				if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == TreatStat::Untreated) && (f2))
+				// Block below spirals around microcell, changing treatment status variables of nearby microcells, mostly flagging them for treatment in the lines above
+				if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == TreatStat::Untreated) && (TrigThreshReached_MoveRestrict))
 				{
-					MicroCellPosition Nearby_mcellposition = P.get_micro_cell_position_from_cell_index(mcellnum);
-					Direction j = Direction::Right;
-					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
-					int i, l, m;
-					i = m = f2 = 0;
-					l = f3 = 1;
+					MicroCellPosition Nearby_mcellposition	= P.get_micro_cell_position_from_cell_index(mcellnum); // initialize Nearby_mcellposition to be position of microcell.
+					Direction CurrentDirection				= Direction::Right; // initialize CurrentDirection to go to the right
+
+					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
+					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
+					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+
 					if ((!P.MoveRestrByAdminUnit) || (AdminUnit > 0))
 					{
 						int ad2 = AdminUnit / P.MoveRestrAdminUnitDivisor;
 						do
 						{
+							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
+								bool TreatThisMicroCell = 0;
 								if (P.MoveRestrByAdminUnit)
-									f4 = (AdUnits[Mcells[NearbyMCell].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
+									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 								else
-									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell)) < P.MoveRestrRadius2);
-								if (f4)
+									TreatThisMicroCell = ((radius = dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell)) < P.MoveRestrRadius2);
+								if (TreatThisMicroCell)
 								{
-									TreatFlag = f2 = 1;
+									TreatFlag = 1;
+									AskAgainIfStillTreating = 1;
 									if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].moverest == TreatStat::Untreated))
 									{
 										Mcells[NearbyMCell].move_start_time = t_MoveRestrict_Start;
-										Mcells[NearbyMCell].moverest = TreatStat::ToBeTreated;
+										Mcells[NearbyMCell].moverest		= TreatStat::ToBeTreated;
 									}
 								}
 							}
-							Nearby_mcellposition += j;
-							m = (m + 1) % l;
-							if (m == 0)
+
+							// Change microcell position
+							Nearby_mcellposition += CurrentDirection; // (depending on CurrentDirection, increment or decrememnt x or y coordinates of microcell position
+							MicroCellCounter = (MicroCellCounter + 1) % ColumnCounter;
+							if (MicroCellCounter == 0) // i.e. if MicroCellCounter before modulo arithmetic was some multiple of ColumnCounter (i.e. if you've got to the end of the row or column depending of direction). 
 							{
-								j = rotate_left(j);
+								CurrentDirection = rotate_left(CurrentDirection); // up -> left, left -> down, down -> right, right -> up
 								i = (i + 1) % 2;
-								if (i == 0) l++;
-								if (j == Direction::Up) { f3 = f2; f2 = 0; }
+								if (i == 0) ColumnCounter++;
+								if (CurrentDirection == Direction::Up)
+								{
+									StillTreating = AskAgainIfStillTreating;
+									AskAgainIfStillTreating = 0; // reset AskAgainIfStillTreating to 0 (will be set to 1 again in block above if Still treating - i.e. radius and doses not exceeded and not all nearby admin units already treated). 
+								}
 							}
+							// Change microcell 
 							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
-						} while (f3);
+						} while (StillTreating);
 					}
 				}
 
@@ -1907,7 +1924,7 @@ int TreatSweep(double t)
 				if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[mcellnum].keyworkerproph == 0) && (f2))
 				{
 					MicroCellPosition Nearby_mcellposition = P.get_micro_cell_position_from_cell_index(mcellnum);
-					Direction j = Direction::Right;
+					Direction CurrentDirection = Direction::Right;
 					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
 					int i, l, m;
 					i = m = f2 = 0;
@@ -1931,14 +1948,14 @@ int TreatSweep(double t)
 									}
 								}
 							}
-						Nearby_mcellposition += j;
+						Nearby_mcellposition += CurrentDirection;
 						m = (m + 1) % l;
 						if (m == 0)
 						{
-							j = rotate_left(j);
+							CurrentDirection = rotate_left(CurrentDirection);
 							i = (i + 1) % 2;
 							if (i == 0) l++;
-							if (j == Direction::Up)
+							if (CurrentDirection == Direction::Up)
 							{
 								f3 = f2;
 								f2 = 0;
