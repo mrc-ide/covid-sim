@@ -1668,50 +1668,53 @@ int TreatSweep(double t)
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
 					BelowTrigThreshold_PlaceOpen = (Mcells[mcellnum].treat_trig < trig_thresh);
 				}
+
+				// if Microcell already treated but TimeStepNow after placeclose end time.
 				if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((BelowTrigThreshold_PlaceOpen) || (TimeStepNow >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 				{
-					TreatFlag = 1;
 					if (P.DoPlaceCloseOnceOnly)
 						Mcells[mcellnum].placeclose = TreatStat::DontTreatAgain;
 					else
 						Mcells[mcellnum].placeclose = TreatStat::Untreated;
 
+					TreatFlag						= 1;
 					Mcells[mcellnum].place_end_time = TimeStepNow;
-					Mcells[mcellnum].place_trig = 0;
+					Mcells[mcellnum].place_trig		= 0;
+
 					if (BelowTrigThreshold_PlaceOpen)
-						for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
-							if (j2 != P.HotelPlaceType)
-								for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
-									DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow);
+						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+							if (PlaceType != P.HotelPlaceType)
+								for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].np[PlaceType]; PlaceNumber++)
+									DoPlaceOpen(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow);
 				}
 
 				if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[mcellnum].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
 				{
-					///// note that here f2 bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
+					///// note that here TrigThreshReached_PlaceClosure bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
 
+					bool TrigThreshReached_PlaceClosure = 0;
 					if (P.DoGlobalTriggers)
-					{
-						f2 = (global_trig >= P.PlaceCloseCellIncThresh);
-					}
+						TrigThreshReached_PlaceClosure = (global_trig >= P.PlaceCloseCellIncThresh);
 					else if (P.DoAdminTriggers)
 					{
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
-						f2 = (State.trigDC_adunit[adi] > trig_thresh);
+						TrigThreshReached_PlaceClosure = (State.trigDC_adunit[adi] > trig_thresh);
 					}
 					else
 					{
 						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
-						f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+						TrigThreshReached_PlaceClosure = (Mcells[mcellnum].treat_trig >= trig_thresh);
 					}
+
 					if (((P.PlaceCloseByAdminUnit) && (AdUnits[Mcells[mcellnum].adunit].place_close_trig < USHRT_MAX - 1)
 						&& (((double)AdUnits[Mcells[mcellnum].adunit].place_close_trig) / ((double)AdUnits[Mcells[mcellnum].adunit].NP) > P.PlaceCloseAdunitPropThresh))
-						|| ((!P.PlaceCloseByAdminUnit) && (f2)))
+						|| ((!P.PlaceCloseByAdminUnit) && (TrigThreshReached_PlaceClosure)))
 					{
 						//							if(P.PlaceCloseByAdminUnit) AdUnits[Mcells[mcellnum].adunit].place_close_trig=USHRT_MAX-1; // This means schools only close once
 						int interventionFlag; //added this as a way to help filter out when interventions start
 						interventionFlag = 1;
-						if ((P.DoInterventionDelaysByAdUnit)&&((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
-								interventionFlag = 0;
+						if ((P.DoInterventionDelaysByAdUnit) && ((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
+							interventionFlag = 0;
 
 						if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (AdminUnit > 0)))
 						{
@@ -1722,12 +1725,13 @@ int TreatSweep(double t)
 									Mcells[mcellnum].place_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + P.PlaceCloseDelayMean + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration));
 								else
 									Mcells[mcellnum].place_end_time = t_PlaceClosure_End;
+
 								Mcells[mcellnum].place_trig = 0;
 								Mcells[mcellnum].placeclose = TreatStat::Treated;
-								for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
-									if (j2 != P.HotelPlaceType)
-										for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
-											DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow, ThreadNum, 1);
+								for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+									if (PlaceType != P.HotelPlaceType)
+										for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].np[PlaceType]; PlaceNumber++)
+											DoPlaceClose(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow, ThreadNum, 1);
 							}
 						}
 					}
