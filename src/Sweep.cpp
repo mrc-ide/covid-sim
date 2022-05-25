@@ -1328,7 +1328,6 @@ int TreatSweep(double t)
 	///// function loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.)
 
 	int TreatFlag = 0, TreatFlag1 = 0; //// Function returns TreatFlag. If TreatFlag == 0, function no longer called. Anytime any treatment used, TreatFlag set to 1. 
-	int f2, f3, f4; //// various Flags. Used everywhere.
 	int nckwp;
 
 	//// time steps
@@ -1361,7 +1360,7 @@ int TreatSweep(double t)
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
 			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 			{
-				for (int PlaceNumQueueIndex = 0; PlaceNumQueueIndex < StateT[Thread].np_queue[PlaceType]; PlaceNumQueueIndex++) //// loop over all plaes IN QUEUE, not all a places
+				for (int PlaceNumQueueIndex = 0; PlaceNumQueueIndex < StateT[Thread].np_queue[PlaceType]; PlaceNumQueueIndex++) //// loop over all places IN QUEUE, not all a places
 				{
 					int PlaceNum = StateT[Thread].p_queue[PlaceType][PlaceNumQueueIndex]; //// note PlaceNum is index of place, not index of place in place queue.
 					if (P.DoPlaceGroupTreat)
@@ -1435,7 +1434,7 @@ int TreatSweep(double t)
 		t_KeyWorkerPlaceClosure_End = (unsigned short int) ceil(P.TimeStepsPerDay	* (t + P.KeyWorkerProphRenewalDuration));
 		nckwp = (int)ceil(P.KeyWorkerProphDuration / P.TreatProphCourseLength);
 
-#pragma omp parallel for private(f2,f3,f4,radius) reduction(+:TreatFlag) schedule(static,1) default(none) \
+#pragma omp parallel for private(radius) reduction(+:TreatFlag) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, TimeStepNow, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
 		for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 			for (int PopulatedMicroCellNum = ThreadNum; PopulatedMicroCellNum < P.NumPopulatedMicrocells; PopulatedMicroCellNum += P.NumThreads) //// loop over populated microcells

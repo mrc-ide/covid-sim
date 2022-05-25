@@ -247,7 +247,8 @@ struct Airport
  */
 struct Place
 {
-	int n, mcell;
+	int n; // number of people in place
+	int mcell; // microcell that place is within
 	unsigned short int ng, treat, control_trig, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
