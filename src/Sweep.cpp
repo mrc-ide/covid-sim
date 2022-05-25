@@ -1589,7 +1589,7 @@ int TreatSweep(double t)
 				}
 
 				// Block below spirals around microcell, changing treatment status variables of nearby microcells, mostly flagging them for vaccination in the lines above
-				if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[mcellnum].vacc == TreatStat::Untreated) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
+				if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[mcellnum].vacc == TreatStat::Untreated) && (TrigThreshReached_Vacc)) //changed from VaccTimeStart to VaccTimeStarGeo
 				{
 					MicroCellPosition Nearby_mcellposition	= P.get_micro_cell_position_from_cell_index(mcellnum); // initialize Nearby_mcellposition to be position of microcell.
 					Direction CurrentDirection				= Direction::Right;// initialize CurrentDirection to go to the right
@@ -1836,48 +1836,55 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** SOCIAL DISTANCING
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
+				// Has off-trigger threshold been reached? i.e. so social distancing can stop?
+				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to start social distancing..
 
+				bool BelowTrigThreshold_SocDist = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig < P.SocDistCellIncStopThresh);
+					BelowTrigThreshold_SocDist = (global_trig < P.SocDistCellIncStopThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
-					f2 = (State.trigDC_adunit[adi] < trig_thresh);
+					BelowTrigThreshold_SocDist = (State.trigDC_adunit[adi] < trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
-					f2 = (Mcells[mcellnum].treat_trig < trig_thresh);
+					BelowTrigThreshold_SocDist = (Mcells[mcellnum].treat_trig < trig_thresh);
 				}
 
 				//// if: policy of social distancing has started AND this microcell cell has been labelled to as undergoing social distancing, AND either trigger not reached (note definition of f2 changes in next few lines) or end time has passed.
-				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Treated) && ((f2) || (TimeStepNow >= Mcells[mcellnum].socdist_end_time)))
+				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Treated) && ((BelowTrigThreshold_SocDist) || (TimeStepNow >= Mcells[mcellnum].socdist_end_time)))
 				{
 					TreatFlag = 1;
 					if (P.DoSocDistOnceOnly)
-						Mcells[mcellnum].socdist = TreatStat::DontTreatAgain;
+						Mcells[mcellnum].socdist		= TreatStat::DontTreatAgain;
 					else
-						Mcells[mcellnum].socdist = TreatStat::Untreated;
+						Mcells[mcellnum].socdist		= TreatStat::Untreated;
 
 
-					Mcells[mcellnum].socdist_trig = 0;	//// reset trigger
-					Mcells[mcellnum].socdist_end_time = TimeStepNow; //// record end time.
+					Mcells[mcellnum].socdist_trig		= 0;	//// reset trigger
+					Mcells[mcellnum].socdist_end_time	= TimeStepNow; //// record end time.
 				}
+
+				///// note that here TrigThreshReached_SocDist bool asks whether trigger has exceeded threshold in order to social distance for first time. A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
+				bool TrigThreshReached_SocDist = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig >= P.SocDistCellIncThresh);
+					TrigThreshReached_SocDist = (global_trig >= P.SocDistCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
-					f2 = (State.trigDC_adunit[adi] >= trig_thresh);
+					TrigThreshReached_SocDist = (State.trigDC_adunit[adi] >= trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
-					f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+					TrigThreshReached_SocDist = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
-				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Untreated) && (f2))
+
+				if ((t >= P.SocDistTimeStart) && (Mcells[mcellnum].socdist == TreatStat::Untreated) && (TrigThreshReached_SocDist))
 				{
-					//some code to try and deal with intervention delays and durations by admin unit based on global triggers
+					// some code to try and deal with intervention delays and durations by admin unit based on global triggers
 					int interventionFlag; //added this as a way to help filter out when interventions start
 					interventionFlag = 1;
 
@@ -1889,8 +1896,9 @@ int TreatSweep(double t)
 					if (interventionFlag == 1)
 						if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].socdist == TreatStat::Untreated)) //// if microcell populated and not currently undergoing social distancing
 						{
-							Mcells[mcellnum].socdist = TreatStat::Treated; //// update flag to denote that cell is undergoing social distancing
-							Mcells[mcellnum].socdist_trig = 0; /// reset trigger
+							Mcells[mcellnum].socdist		= TreatStat::Treated; //// update flag to denote that cell is undergoing social distancing
+							Mcells[mcellnum].socdist_trig	= 0; /// reset trigger
+
 							//// set (admin-specific) social distancing end time.
 							if (P.DoInterventionDelaysByAdUnit)
 								Mcells[mcellnum].socdist_end_time = (unsigned short int) ceil(P.TimeStepsPerDay * (t + AdUnits[Mcells[mcellnum].adunit].SocialDistanceDuration));
