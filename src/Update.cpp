@@ -1117,15 +1117,14 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 	//// This will then scale peoples household, place, and spatial infectiousness and susceptibilities in function InfectSweep (but not in functions ini CalcInfSusc.cpp)
 
 	int adminunit, WhichPerson;
-	unsigned short trig;
+	unsigned short trig = 0;
 	unsigned short int t_start_place_close, t_stop_place_close;
 	unsigned short int LastUpdateTime, NewUpdateTime;
 
 	bool HasPlaceClosed = false;
 	bool PlaceClose_TriggerReached; 
-	NewUpdateTime	= (unsigned short)(((double)TimeStepNow) / P.TimeStepsPerDay);
+	NewUpdateTime				= (unsigned short)(((double)TimeStepNow) / P.TimeStepsPerDay);
 	t_start_place_close			= TimeStepNow + ((unsigned short int) (P.TimeStepsPerDay * P.PlaceCloseDelayMean));
-	trig			= 0;
 
 	if (P.DoInterventionDelaysByAdUnit)
 	{
@@ -1146,6 +1145,7 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 			if ((!DoAnyway) && (Places[i][j].control_trig < USHRT_MAX - 2))
 			{
 				Places[i][j].control_trig++;
+
 				if (P.AbsenteeismPlaceClosure)
 				{
 					LastUpdateTime = Places[i][j].AbsentLastUpdateTime;
@@ -1155,8 +1155,10 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 						for (int AbsentTime = LastUpdateTime; AbsentTime < NewUpdateTime; AbsentTime++) Places[i][j].Absent[AbsentTime % P.MaxAbsentTime] = 0;
 
 					for (int AbsentTime = NewUpdateTime; AbsentTime < NewUpdateTime + P.usCaseAbsenteeismDuration / P.TimeStepsPerDay; AbsentTime++) Places[i][j].Absent[AbsentTime % P.MaxAbsentTime]++;
+
 					trig = Places[i][j].Absent[NewUpdateTime % P.MaxAbsentTime];
-					Places[i][j].AbsentLastUpdateTime = NewUpdateTime;
+					Places[i][j].AbsentLastUpdateTime = NewUpdateTime; // reset AbsentLastUpdateTime with time now.
+
 					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
 						&& (((double)trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
@@ -1168,8 +1170,8 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 				else
 				{
 					trig = Places[i][j].control_trig;
-					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0)
-						&& (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
+
+					if ((P.PlaceCloseByAdminUnit) && (P.PlaceCloseAdunitPlaceTypes[i] > 0) && (((double)Places[i][j].control_trig) / ((double)Places[i][j].n) > P.PlaceCloseCasePropThresh))
 					{
 						//Files::xfprintf_stderr("** %i %i %i %i %lg ## ",i,j,(int) Places[i][j].control_trig, (int) Places[i][j].n,P.PlaceCloseCasePropThresh);
 						adminunit = Mcells[Places[i][j].mcell].adunit;

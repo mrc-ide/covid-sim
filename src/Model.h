@@ -249,7 +249,8 @@ struct Place
 {
 	int n; // number of people in place
 	int mcell; // microcell that place is within
-	unsigned short int ng, treat, control_trig, country;
+	unsigned short int control_trig; // bit convoluted, but this is initialized to 0 in CovidSim.cpp::InitModel. Then incremented in Update.cpp::DoPlaceClose
+	unsigned short int ng, treat, country;
 	unsigned short int close_start_time, close_end_time, treat_end_time;
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
