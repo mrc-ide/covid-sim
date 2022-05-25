@@ -1346,13 +1346,10 @@ int TreatSweep(double t)
 	int global_trig;
 	if (P.DoGlobalTriggers)
 	{
-		if (P.DoPerCapitaTriggers)
-			global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
-		else
-			global_trig = State.trigDetectedCases;
+		if (P.DoPerCapitaTriggers)	global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
+		else						global_trig = State.trigDetectedCases;
 	}
-	else
-		global_trig = 0;
+	else							global_trig = 0;
 
 	///// block loops over places (or place groups if P.DoPlaceGroupTreat == 1) and determines whom to prophylactically treat
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
@@ -1420,7 +1417,11 @@ int TreatSweep(double t)
 			State.mvacc_cum = m;
 		}
 
-	//// Main block of function
+	//// Main block of function - assigns various start and end times for various "treatments" (e.g. vaccination, treatment, place closure, social distancing)
+	//// Then Loops over microcells seeing which if any of these start and end times are relevant for each microcell. If they are, various "TreatStat" treatment status flags are changed.
+	//// When flagging microcells as "ToBeTreated", surrounding microcells also flagged for as "ToBeTreated".
+	//// Function returns TreatFlag. By default, TreatFlag is set to 0. Anytime any of these steps are performed, TreatFlag is set to 1.
+	//// Therefore if nothing happens over all microcells then this function TreatSweep is no longer called. 
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
 	{
 		t_TreatStart				= (unsigned short int) (P.TimeStepsPerDay		* (t + P.TreatDelayMean));
@@ -1435,10 +1436,10 @@ int TreatSweep(double t)
 
 #pragma omp parallel for private(f2,f3,f4,radius) reduction(+:TreatFlag) schedule(static,1) default(none) \
 			shared(t, P, Hosts, Mcells, McellLookup, AdUnits, State, global_trig, TimeStepNow, t_TreatEnd, t_TreatStart, t_VacStart, t_PlaceClosure_End, t_MoveRestrict_End, t_MoveRestrict_Start, t_SocDist_End, t_KeyWorkerPlaceClosure_End, nckwp)
-		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int bs = tn; bs < P.NumPopulatedMicrocells; bs += P.NumThreads) //// loop over populated microcells
+		for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
+			for (int PopulatedMicroCellNum = ThreadNum; PopulatedMicroCellNum < P.NumPopulatedMicrocells; PopulatedMicroCellNum += P.NumThreads) //// loop over populated microcells
 			{
-				int mcellnum	= (int)(McellLookup[bs] - Mcells); //// microcell number
+				int mcellnum	= (int)(McellLookup[PopulatedMicroCellNum] - Mcells); //// microcell number
 				int adi			= (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
 				int AdminUnit	= (P.DoAdUnits) ? AdUnits[adi].id : 0;
 
@@ -1451,25 +1452,29 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** TREATMENT
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-				if ((Mcells[mcellnum].treat == TreatStat::Treated) && (TimeStepNow >= Mcells[mcellnum].treat_end_time))
+				// if Microcell already treated but TimeStepNow after treatment end time.
+				if ((Mcells[mcellnum].treat == TreatStat::Treated		) && (TimeStepNow >= Mcells[mcellnum].treat_end_time))
 				{
-					TreatFlag = 1;
-					Mcells[mcellnum].treat = TreatStat::Untreated;
+					TreatFlag						= 1;
+					Mcells[mcellnum].treat			= TreatStat::Untreated;
 				}
-				if ((Mcells[mcellnum].treat == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].treat_start_time))
+				// if Microcell flagged as to be treated TimeStepNow after treatment start time.
+				if ((Mcells[mcellnum].treat == TreatStat::ToBeTreated	) && (TimeStepNow >= Mcells[mcellnum].treat_start_time))
 				{
-					TreatFlag = 1;
-					Mcells[mcellnum].treat				= TreatStat::Treated;
-					Mcells[mcellnum].treat_trig		= 0;
+					TreatFlag						= 1;
+					Mcells[mcellnum].treat			= TreatStat::Treated;
+					Mcells[mcellnum].treat_trig		= 0;					// reset trigger
 					Mcells[mcellnum].treat_end_time	= t_TreatEnd;
-					for (int i = 0; i < Mcells[mcellnum].n; i++)
+
+					for (int MicrocellMember = 0; MicrocellMember < Mcells[mcellnum].n; MicrocellMember++) // loop over microcell members
 					{
-						int l = Mcells[mcellnum].members[i];
-						if ((!HOST_TO_BE_TREATED(l)) && ((P.TreatPropRadial == 1) || (ranf_mt(tn) < P.TreatPropRadial)))
-							DoProphNoDelay(l, TimeStepNow, tn, 1);
+						int PersonInMicrocell = Mcells[mcellnum].members[MicrocellMember];
+						if ((!HOST_TO_BE_TREATED(PersonInMicrocell)) && ((P.TreatPropRadial == 1) || (ranf_mt(ThreadNum) < P.TreatPropRadial)))
+							DoProphNoDelay(PersonInMicrocell, TimeStepNow, ThreadNum, 1);
 					}
 				}
 
+				// Has trigger threshold been reached (treatment)?
 				bool TrigThreshReached_Treatment = 0; 
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_Treatment = (global_trig >= P.TreatCellIncThresh);
@@ -1483,53 +1488,62 @@ int TreatSweep(double t)
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
 					TrigThreshReached_Treatment = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
+
+				// Block below spirals around microcell, changing treatment status variables of nearby microcells, mostly flagging them for treatment in the lines above
 				if ((t >= P.TreatTimeStart) && (Mcells[mcellnum].treat == TreatStat::Untreated) && (TrigThreshReached_Treatment) && (P.TreatRadius2 > 0))
 				{
-					MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
-					Direction j = Direction::Right;
-					int k = mcellnum;
-					int maxx = 0;
-					int i, m, l;
-					i = m = f2 = 0;
-					l = f3 = 1;
+					MicroCellPosition Nearby_mcellposition	= P.get_micro_cell_position_from_cell_index(mcellnum); // initialize Nearby_mcellposition to be position of microcell.
+					Direction CurrentDirection				= Direction::Right; // initialize CurrentDirection to go to the right
+
+					int NearbyMCell	= mcellnum; // initialize NearbyMCell to mcellnum
+					int PeopleRequiringRadialProphylaxis = 0;
+					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
+					bool AskAgainIfStillTreating = 0, StillTreating = 1;
 
 					if ((!P.TreatByAdminUnit) || (AdminUnit > 0))
 					{
 						int ad2 = AdminUnit / P.TreatAdminUnitDivisor;
 						do
 						{
-							if (P.is_in_bounds(min))
+							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
+							if (P.is_in_bounds(Nearby_mcellposition))
 							{
+								bool TreatThisMicroCell = 0; 
 								if (P.TreatByAdminUnit)
-									f4 = (AdUnits[Mcells[k].adunit].id / P.TreatAdminUnitDivisor == ad2);
+									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.TreatAdminUnitDivisor == ad2);
 								else
-									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.TreatRadius2);
-								if (f4)
+									TreatThisMicroCell = ((radius = dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell)) < P.TreatRadius2);
+
+								if (TreatThisMicroCell)
 								{
-									TreatFlag = f2 = 1;
-									if ((Mcells[k].n > 0) && (Mcells[k].treat == TreatStat::Untreated))
+									TreatFlag = 1;
+									AskAgainIfStillTreating = 1;
+									if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].treat == TreatStat::Untreated))
 									{
-										Mcells[k].treat_start_time = t_TreatStart;
-										Mcells[k].treat = TreatStat::ToBeTreated;
-										maxx += Mcells[k].n;
+										Mcells[NearbyMCell].treat_start_time	= t_TreatStart;
+										Mcells[NearbyMCell].treat				= TreatStat::ToBeTreated;
+										PeopleRequiringRadialProphylaxis		+= Mcells[NearbyMCell].n; // add total number of people in microcell to PeopleRequiringRadialProphylaxis
 									}
 								}
 							}
-							min += j;
-							m = (m + 1) % l;
-							if (m == 0)
+
+							// Change microcell position
+							Nearby_mcellposition += CurrentDirection; // (depending on CurrentDirection, increment or decrememnt x or y coordinates of microcell position
+							MicroCellCounter = (MicroCellCounter + 1) % ColumnCounter;
+							if (MicroCellCounter == 0) // i.e. if MicroCellCounter before modulo arithmetic was some multiple of ColumnCounter (i.e. if you've got to the end of the row or column depending of direction). 
 							{
-								j = rotate_left(j);
+								CurrentDirection = rotate_left(CurrentDirection); // up -> left, left -> down, down -> right, right -> up
 								i = (i + 1) % 2;
-								if (i == 0) l++;
-								if (j == Direction::Up)
+								if (i == 0) ColumnCounter++;
+								if (CurrentDirection == Direction::Up)
 								{
-									f3 = f2;
-									f2 = 0;
+									StillTreating = AskAgainIfStillTreating;
+									AskAgainIfStillTreating = 0; // reset AskAgainIfStillTreating to 0 (will be set to 1 again in block above if Still treating - i.e. radius and doses not exceeded and not all nearby admin units already treated). 
 								}
 							}
-							k = P.get_micro_cell_index_from_position(min);
-						} while ((f3) && (maxx < P.TreatMaxCoursesPerCase));
+							// Change microcell 
+							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+						} while ((StillTreating) && (PeopleRequiringRadialProphylaxis < P.TreatMaxCoursesPerCase));
 					}
 				}
 
@@ -1539,87 +1553,98 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
 
+				// if Microcell flagged as to be treated TimeStepNow after vaccination start time.
 				//// vaccinates proportion VaccProp of people in microcell (or at least adds them to geovacc_queue).
 				if ((Mcells[mcellnum].vacc == TreatStat::ToBeTreated) && (TimeStepNow >= Mcells[mcellnum].vacc_start_time))
 				{
-					TreatFlag = 1;
-					Mcells[mcellnum].vacc_trig = 0;
+					TreatFlag					= 1;
+					Mcells[mcellnum].vacc		= TreatStat::Treated;
+					Mcells[mcellnum].vacc_trig	= 0;
 					//if(State.cumVG+P.NumThreads*Mcells[mcellnum].n<P.VaccMaxCourses) //changed to VG - commented this out for now, we'll add everyone to queues and deal with the number of doses available in the vaccination function
 					{
-						for (int i = 0; i < Mcells[mcellnum].n; i++)
+						for (int MicrocellMember = 0; MicrocellMember < Mcells[mcellnum].n; MicrocellMember++)
 						{
-							int l = Mcells[mcellnum].members[i];
+							int PersonInMicrocell = Mcells[mcellnum].members[MicrocellMember];
 							//#pragma omp critical (state_cumV_daily) //added this
-							if (((P.VaccProp == 1) || (ranf_mt(tn) < P.VaccProp)))
-							{
-								//add to the queue
-								DoVaccNoDelay(l,TimeStepNow);
-							}
+							if (((P.VaccProp == 1) || (ranf_mt(ThreadNum) < P.VaccProp)))
+								DoVaccNoDelay(PersonInMicrocell,TimeStepNow); //add to the queue
 						}
-						Mcells[mcellnum].vacc = TreatStat::Treated;
 					}
 				}
+
+				// Has trigger threshold been reached (vaccination)?
+				bool TrigThreshReached_Vacc = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig >= P.VaccCellIncThresh);
+					TrigThreshReached_Vacc = (global_trig >= P.VaccCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
-					f2 = (State.trigDC_adunit[adi] > trig_thresh);
+					TrigThreshReached_Vacc = (State.trigDC_adunit[adi] > trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
-					f2 = (Mcells[mcellnum].treat_trig >= trig_thresh);
+					TrigThreshReached_Vacc = (Mcells[mcellnum].treat_trig >= trig_thresh);
 				}
+
+				// Block below spirals around microcell, changing treatment status variables of nearby microcells, mostly flagging them for vaccination in the lines above
 				if ((!P.DoMassVacc) && (P.VaccRadius2 > 0) && (t >= P.VaccTimeStartGeo) && (Mcells[mcellnum].vacc == TreatStat::Untreated) && (f2)) //changed from VaccTimeStart to VaccTimeStarGeo
 				{
-					MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
-					Direction j = Direction::Right;
-					int k = mcellnum;
-					int i, l, m;
-					i = m = f2 = 0;
-					l = f3 = 1;
+					MicroCellPosition Nearby_mcellposition	= P.get_micro_cell_position_from_cell_index(mcellnum); // initialize Nearby_mcellposition to be position of microcell.
+					Direction CurrentDirection				= Direction::Right;// initialize CurrentDirection to go to the right
+
+					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
+					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
+					bool AskAgainIfStillVaccinating = 0, StillVaccinating = 1;
+
 					if ((!P.VaccByAdminUnit) || (AdminUnit > 0))
 					{
 						int ad2 = AdminUnit / P.VaccAdminUnitDivisor;
 						do
 						{
-							if (P.is_in_bounds(min))
+							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
+							if (P.is_in_bounds(Nearby_mcellposition))
 							{
+								bool VaccinateThisMicroCell = 0;
 								if (P.VaccByAdminUnit)
 								{
-									f4 = (AdUnits[Mcells[k].adunit].id / P.VaccAdminUnitDivisor == ad2);
+									VaccinateThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.VaccAdminUnitDivisor == ad2);
 									radius = 1e20;
 								}
 								else
-									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.VaccRadius2);
-								if (f4)
+									VaccinateThisMicroCell = ((radius = dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell)) < P.VaccRadius2);
+
+								if (VaccinateThisMicroCell)
 								{
-									TreatFlag = f2 = 1;
+									TreatFlag = 1;
+									AskAgainIfStillVaccinating = 1;
 									if (radius < P.VaccMinRadius2)
-										Mcells[k].vacc = TreatStat::DontTreatAgain;
-									else if ((Mcells[k].n > 0) && (Mcells[k].vacc == TreatStat::Untreated))
+										Mcells[NearbyMCell].vacc = TreatStat::DontTreatAgain;
+									else if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].vacc == TreatStat::Untreated))
 									{
-										Mcells[k].vacc_start_time = t_VacStart;
-										Mcells[k].vacc = TreatStat::ToBeTreated;
+										Mcells[NearbyMCell].vacc_start_time = t_VacStart;
+										Mcells[NearbyMCell].vacc			= TreatStat::ToBeTreated;
 									}
 								}
 							}
-							min += j;
-							m = (m + 1) % l;
-							if (m == 0)
+
+							// Change microcell position
+							Nearby_mcellposition += CurrentDirection; // (depending on CurrentDirection, increment or decrememnt x or y coordinates of microcell position
+							MicroCellCounter = (MicroCellCounter + 1) % ColumnCounter;
+							if (MicroCellCounter == 0) // i.e. if MicroCellCounter before modulo arithmetic was some multiple of ColumnCounter (i.e. if you've got to the end of the row or column depending of direction). 
 							{
-								j = rotate_left(j);
+								CurrentDirection = rotate_left(CurrentDirection); // up -> left, left -> down, down -> right, right -> up
 								i = (i + 1) % 2;
-								if (i == 0) l++;
-								if (j == Direction::Up)
+								if (i == 0) ColumnCounter++;
+								if (CurrentDirection == Direction::Up)
 								{
-									f3 = f2;
-									f2 = 0;
+									StillVaccinating = AskAgainIfStillVaccinating;
+									AskAgainIfStillVaccinating = 0; // reset AskAgainIfStillTreating to 0 (will be set to 1 again in block above if Still treating - i.e. radius and doses not exceeded and not all nearby admin units already treated). 
 								}
 							}
-							k = P.get_micro_cell_index_from_position(min);
-						} while (f3);
+							// Change microcell 
+							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
+						} while (StillVaccinating);
 					}
 				}
 
@@ -1627,20 +1652,23 @@ int TreatSweep(double t)
 				//// **** //// **** //// **** //// **** PLACE CLOSURE
 				//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-				///// note that here f2 bool asks whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
+				// Has off-trigger threshold been reached? I.e. so places can open again?
+				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
+
+				bool BelowTrigThreshold_PlaceOpen = 0;
 				if (P.DoGlobalTriggers)
-					f2 = (global_trig < P.PlaceCloseCellIncStopThresh);
+					BelowTrigThreshold_PlaceOpen = (global_trig < P.PlaceCloseCellIncStopThresh);
 				else if (P.DoAdminTriggers)
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
-					f2 = (State.trigDC_adunit[adi] < trig_thresh);
+					BelowTrigThreshold_PlaceOpen = (State.trigDC_adunit[adi] < trig_thresh);
 				}
 				else
 				{
 					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(Mcells[mcellnum].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
-					f2 = (Mcells[mcellnum].treat_trig < trig_thresh);
+					BelowTrigThreshold_PlaceOpen = (Mcells[mcellnum].treat_trig < trig_thresh);
 				}
-				if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((f2) || (TimeStepNow >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
+				if ((Mcells[mcellnum].placeclose == TreatStat::Treated) && ((BelowTrigThreshold_PlaceOpen) || (TimeStepNow >= Mcells[mcellnum].place_end_time))) //// if place closure has started, the places in this microcell are closed, and either stop threshold has been reached or place_end_time has passed, go through block
 				{
 					TreatFlag = 1;
 					if (P.DoPlaceCloseOnceOnly)
@@ -1650,13 +1678,11 @@ int TreatSweep(double t)
 
 					Mcells[mcellnum].place_end_time = TimeStepNow;
 					Mcells[mcellnum].place_trig = 0;
-					if (f2)
-					{
+					if (BelowTrigThreshold_PlaceOpen)
 						for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 							if (j2 != P.HotelPlaceType)
 								for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
 									DoPlaceOpen(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow);
-					}
 				}
 
 				if ((P.DoPlaces) && (t >= P.PlaceCloseTimeStart) && (Mcells[mcellnum].placeclose == TreatStat::Untreated)) //// if doing places, time now is after policy has begun, but place hasn't closed yet.
@@ -1701,7 +1727,7 @@ int TreatSweep(double t)
 								for (int j2 = 0; j2 < P.PlaceTypeNum; j2++)
 									if (j2 != P.HotelPlaceType)
 										for (int i2 = 0; i2 < Mcells[mcellnum].np[j2]; i2++)
-											DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow, tn, 1);
+											DoPlaceClose(j2, Mcells[mcellnum].places[j2][i2], TimeStepNow, ThreadNum, 1);
 							}
 						}
 					}
@@ -1743,9 +1769,9 @@ int TreatSweep(double t)
 
 				if ((t >= P.MoveRestrTimeStart) && (Mcells[mcellnum].moverest == TreatStat::Untreated) && (f2))
 				{
-					MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
+					MicroCellPosition Nearby_mcellposition = P.get_micro_cell_position_from_cell_index(mcellnum);
 					Direction j = Direction::Right;
-					int k = mcellnum;
+					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
 					int i, l, m;
 					i = m = f2 = 0;
 					l = f3 = 1;
@@ -1754,23 +1780,23 @@ int TreatSweep(double t)
 						int ad2 = AdminUnit / P.MoveRestrAdminUnitDivisor;
 						do
 						{
-							if (P.is_in_bounds(min))
+							if (P.is_in_bounds(Nearby_mcellposition))
 							{
 								if (P.MoveRestrByAdminUnit)
-									f4 = (AdUnits[Mcells[k].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
+									f4 = (AdUnits[Mcells[NearbyMCell].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 								else
-									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + k)) < P.MoveRestrRadius2);
+									f4 = ((radius = dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell)) < P.MoveRestrRadius2);
 								if (f4)
 								{
 									TreatFlag = f2 = 1;
-									if ((Mcells[k].n > 0) && (Mcells[k].moverest == TreatStat::Untreated))
+									if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].moverest == TreatStat::Untreated))
 									{
-										Mcells[k].move_start_time = t_MoveRestrict_Start;
-										Mcells[k].moverest = TreatStat::ToBeTreated;
+										Mcells[NearbyMCell].move_start_time = t_MoveRestrict_Start;
+										Mcells[NearbyMCell].moverest = TreatStat::ToBeTreated;
 									}
 								}
 							}
-							min += j;
+							Nearby_mcellposition += j;
 							m = (m + 1) % l;
 							if (m == 0)
 							{
@@ -1779,7 +1805,7 @@ int TreatSweep(double t)
 								if (i == 0) l++;
 								if (j == Direction::Up) { f3 = f2; f2 = 0; }
 							}
-							k = P.get_micro_cell_index_from_position(min);
+							NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
 						} while (f3);
 					}
 				}
@@ -1875,32 +1901,32 @@ int TreatSweep(double t)
 				}
 				if ((P.DoPlaces) && (t >= P.KeyWorkerProphTimeStart) && (Mcells[mcellnum].keyworkerproph == 0) && (f2))
 				{
-					MicroCellPosition min = P.get_micro_cell_position_from_cell_index(mcellnum);
+					MicroCellPosition Nearby_mcellposition = P.get_micro_cell_position_from_cell_index(mcellnum);
 					Direction j = Direction::Right;
-					int k = mcellnum;
+					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
 					int i, l, m;
 					i = m = f2 = 0;
 					l = f3 = 1;
 					do
 					{
-						if (P.is_in_bounds(min))
-							if (dist2_mm(Mcells + mcellnum, Mcells + k) < P.KeyWorkerProphRadius2)
+						if (P.is_in_bounds(Nearby_mcellposition))
+							if (dist2_mm(Mcells + mcellnum, Mcells + NearbyMCell) < P.KeyWorkerProphRadius2)
 							{
 								TreatFlag = f2 = 1;
-								if ((Mcells[k].n > 0) && (Mcells[k].keyworkerproph == 0))
+								if ((Mcells[NearbyMCell].n > 0) && (Mcells[NearbyMCell].keyworkerproph == 0))
 								{
-									Mcells[k].keyworkerproph = 2;
-									Mcells[k].keyworkerproph_trig = 0;
-									Mcells[k].keyworkerproph_end_time = t_KeyWorkerPlaceClosure_End;
-									for (int i2 = 0; i2 < Mcells[k].n; i2++)
+									Mcells[NearbyMCell].keyworkerproph = 2;
+									Mcells[NearbyMCell].keyworkerproph_trig = 0;
+									Mcells[NearbyMCell].keyworkerproph_end_time = t_KeyWorkerPlaceClosure_End;
+									for (int i2 = 0; i2 < Mcells[NearbyMCell].n; i2++)
 									{
-										int j2 = Mcells[k].members[i2];
+										int j2 = Mcells[NearbyMCell].members[i2];
 										if ((Hosts[j2].keyworker) && (!HOST_TO_BE_TREATED(j2)))
-											DoProphNoDelay(j2, TimeStepNow, tn, nckwp);
+											DoProphNoDelay(j2, TimeStepNow, ThreadNum, nckwp);
 									}
 								}
 							}
-						min += j;
+						Nearby_mcellposition += j;
 						m = (m + 1) % l;
 						if (m == 0)
 						{
@@ -1913,11 +1939,11 @@ int TreatSweep(double t)
 								f2 = 0;
 							}
 						}
-						k = P.get_micro_cell_index_from_position(min);
+						NearbyMCell = P.get_micro_cell_index_from_position(Nearby_mcellposition);
 					} while (f3);
 				}
 
-			} // End of bs loop, tn loop, and pragma.
+			} // End of PopulatedMicroCellNum loop, ThreadNum loop, and pragma.
 		for (int i = 0; i < P.NumThreads; i++)
 		{
 			State.cumT += StateT[i].cumT;

@@ -1441,7 +1441,7 @@ int RunModel(int run, std::string const& snapshot_save_file, std::string const& 
 					if (P.DoDigitalContactTracing)
 						DigitalContactTracingSweep(CurrSimTime);
 
-					IsEpidemicStillGoing = ((P.DoDeath) || (State.L + State.I > 0) || (InfectionImportRate > 0) || (P.FalsePositivePerCapitaIncidence > 0));
+					IsEpidemicStillGoing = ((P.DoDeath) || (State.L + State.I > 0) /*Still some infected people*/ || (InfectionImportRate > 0) || (P.FalsePositivePerCapitaIncidence > 0));
 
 					// ** // ** TreatSweep loops over microcells to decide which cells are treated (either with treatment, vaccine, social distancing, movement restrictions etc.). Calls DoVacc, DoPlaceClose, DoProphNoDelay etc. to change (threaded) State variables
 					if (!TreatSweep(CurrSimTime)) // TreatSweep will return zero if no treatments are used at CurrSimTime
