@@ -1419,7 +1419,8 @@ int TreatSweep(double t)
 
 	//// Main block of function - assigns various start and end times for various "treatments" (e.g. vaccination, treatment, place closure, social distancing)
 	//// Then Loops over microcells seeing which if any of these start and end times are relevant for each microcell. If they are, various "TreatStat" treatment status flags are changed.
-	//// When flagging microcells as "ToBeTreated", surrounding microcells also flagged for as "ToBeTreated".
+	//// When flagging microcells as "ToBeTreated", for some interventions (treatment, vaccination),
+	//// surrounding microcells also flagged for as "ToBeTreated".
 	//// Function returns TreatFlag. By default, TreatFlag is set to 0. Anytime any of these steps are performed, TreatFlag is set to 1.
 	//// Therefore if nothing happens over all microcells then this function TreatSweep is no longer called. 
 	if ((t >= P.TreatTimeStart) || (t >= P.VaccTimeStartGeo) || (t >= P.PlaceCloseTimeStart) || (t >= P.MoveRestrTimeStart) || (t >= P.SocDistTimeStart) || (t >= P.KeyWorkerProphTimeStart)) //changed this to start time geo
@@ -1684,7 +1685,7 @@ int TreatSweep(double t)
 					if (BelowTrigThreshold_PlaceOpen)
 						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 							if (PlaceType != P.HotelPlaceType)
-								for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].np[PlaceType]; PlaceNumber++)
+								for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 									DoPlaceOpen(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow);
 				}
 
@@ -1730,7 +1731,7 @@ int TreatSweep(double t)
 								Mcells[mcellnum].placeclose = TreatStat::Treated;
 								for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
 									if (PlaceType != P.HotelPlaceType)
-										for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].np[PlaceType]; PlaceNumber++)
+										for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 											DoPlaceClose(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow, ThreadNum, 1);
 							}
 						}

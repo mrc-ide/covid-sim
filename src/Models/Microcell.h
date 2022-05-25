@@ -34,7 +34,7 @@ struct Microcell
 	int* members; // array of members/hosts of microcell
 
 	int* places[NUM_PLACE_TYPES]; // list of places (of various place types) within microcell
-	unsigned short int np[NUM_PLACE_TYPES]; // number of places (of various place types) within mircocell
+	unsigned short int NumPlacesByType[NUM_PLACE_TYPES]; // number of places (of various place types) within mircocell
 	unsigned short int keyworkerproph, move_trig, place_trig, socdist_trig, keyworkerproph_trig;
 	unsigned short int move_start_time, move_end_time;
 	unsigned short int place_end_time, socdist_end_time, keyworkerproph_end_time;
