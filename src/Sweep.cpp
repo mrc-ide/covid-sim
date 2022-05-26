@@ -26,7 +26,7 @@ void TravelReturnSweep(double t)
 	int l, nr, ner;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.NumPlaceTypes)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t + P.ModelTimeStep) != floor(1 + t))
 	{
@@ -80,7 +80,7 @@ void TravelDepartSweep(double t)
 	double nl;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.NumPlaceTypes)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t - P.ModelTimeStep) != floor(1 + t))
 	{
@@ -347,7 +347,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// Test if any of the individuals in the selected persons household are absent from places
 						bool AtLeastOnePersonAbsent = false;
 						for (int HouseholdMember = FirstHouseholdMember; (HouseholdMember < LastHouseholdMember) && (!AtLeastOnePersonAbsent); HouseholdMember++) //// loop over household memberts
-							for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!AtLeastOnePersonAbsent); PlaceType++) //// loop over place types
+							for (int PlaceType = 0; (PlaceType < P.NumPlaceTypes) && (!AtLeastOnePersonAbsent); PlaceType++) //// loop over place types
 								if (Hosts[HouseholdMember].PlaceLinks[PlaceType] >= 0) //// if person in household has any sort of link to place type
 									AtLeastOnePersonAbsent = ((PLACE_CLOSED(PlaceType, Hosts[HouseholdMember].PlaceLinks[PlaceType])) && (HOST_ABSENT(HouseholdMember)));
 
@@ -383,7 +383,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					{
 						// select microcell (Microcell_ThisPerson) corresponding to selected InfectiousPerson
 						Microcell* Microcell_ThisPerson = Mcells + InfectiousPerson->mcell;
-						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++) //// loop over all place types
+						for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++) //// loop over all place types
 						{
 							// select PlaceLink between selected InfectiousPerson and place from InfectiousPerson's placelinks to place type PlaceType
 							int PlaceLink = InfectiousPerson->PlaceLinks[PlaceType];
@@ -671,7 +671,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 
 											 // If place functionality switched on
 					if (P.DoPlaces)
-						for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!PlaceClosedFlag); PlaceType++) // loop over place types until closed place is found
+						for (int PlaceType = 0; (PlaceType < P.NumPlaceTypes) && (!PlaceClosedFlag); PlaceType++) // loop over place types until closed place is found
 							if (InfectiousPerson->PlaceLinks[PlaceType] >= 0) //// if person has a link to place of type PlaceType...
 								PlaceClosedFlag = PLACE_CLOSED(PlaceType, InfectiousPerson->PlaceLinks[PlaceType]); //// find out if that place of type PlaceType is closed.
 
@@ -830,7 +830,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										Spatial_Susc *= P.MoveRestrEffect;
 									if ((!InfectorPlaceClosedFlag) && (HOST_ABSENT(PotentialInfectee_Spatial))) //// if infector did not have place closed, loop over place types of PotentialInfectee_Spatial to see if their places had closed. If they had, amend their susceptibility.
 									{
-										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.PlaceTypeNum) && (!KeepSearchingForCellToInfect); PlaceType++)
+										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.NumPlaceTypes) && (!KeepSearchingForCellToInfect); PlaceType++)
 											if (Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType] >= 0)
 												KeepSearchingForCellToInfect = PLACE_CLOSED(PlaceType, Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType]);
 										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
@@ -893,7 +893,7 @@ void IncubRecoverySweep(double t)
 			if ((t + P.ModelTimeStep >= ht) && (t < ht))
 			{
 //				Files::xfprintf_stderr("Holiday %HolidayNumber t=%lg\n", HolidayNumber, t);
-				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 				{
 #pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, HolidayNumber, PlaceType, ht)
 					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
@@ -1356,7 +1356,7 @@ int TreatSweep(double t)
 #pragma omp parallel for private(TreatFlag) reduction(+:TreatFlag1) schedule(static,1) default(none) \
 			shared(P, StateT, Places, Hosts, TimeStepNow, t_TreatEnd)
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
-			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 			{
 				for (int PlaceNumQueueIndex = 0; PlaceNumQueueIndex < StateT[Thread].np_queue[PlaceType]; PlaceNumQueueIndex++) //// loop over all places IN QUEUE, not all a places
 				{
@@ -1682,7 +1682,7 @@ int TreatSweep(double t)
 					Mcells[mcellnum].place_trig		= 0;
 
 					if (BelowTrigThreshold_PlaceOpen)
-						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+						for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 							if (PlaceType != P.HotelPlaceType)
 								for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 									DoPlaceOpen(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow);
@@ -1728,7 +1728,7 @@ int TreatSweep(double t)
 
 								Mcells[mcellnum].place_trig = 0;
 								Mcells[mcellnum].placeclose = TreatStat::Treated;
-								for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+								for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 									if (PlaceType != P.HotelPlaceType)
 										for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 											DoPlaceClose(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow, ThreadNum, 1);
