@@ -290,9 +290,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
-	int CellQueue /*cell queue*/;
-	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
-
+	int CellQueue;
 	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t); // TimeStepNow = the timestep number of the start of the current day
 	double fp					= P.ModelTimeStep / (1 - P.FalsePositiveRate); // fp = false positive
 	double seasonality			= (P.DoSeasonality) ? (P.Seasonality[((int)t) % DAYS_PER_YEAR]) : 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
@@ -344,27 +342,27 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// calculate person's infectiousness at household-level
 						// using the CalcHouseInf function on the selected cell and timestamp at start of current day
 						// then scaling by Household_Beta
-						double HH_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, TimeStepNow);
+						double Household_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, TimeStepNow);
 
 						// Test if any of the individuals in the selected persons household are absent from places
-						int AtLeastOnePersonAbsent = 0; // initialise to 0
+						bool AtLeastOnePersonAbsent = false;
 						for (int HouseholdMember = FirstHouseholdMember; (HouseholdMember < LastHouseholdMember) && (!AtLeastOnePersonAbsent); HouseholdMember++) //// loop over household memberts
 							for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!AtLeastOnePersonAbsent); PlaceType++) //// loop over place types
 								if (Hosts[HouseholdMember].PlaceLinks[PlaceType] >= 0) //// if person in household has any sort of link to place type
 									AtLeastOnePersonAbsent = ((PLACE_CLOSED(PlaceType, Hosts[HouseholdMember].PlaceLinks[PlaceType])) && (HOST_ABSENT(HouseholdMember)));
 
-						// if individuals in the household are absent from places (ie. AtLeastOnePersonAbsent from test immediately above), scale up the infectiousness (HH_Infectiousness) of the household
-						if (AtLeastOnePersonAbsent) { HH_Infectiousness *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
+						// if individuals in the household are absent from places (ie. AtLeastOnePersonAbsent from test immediately above), scale up the infectiousness (Household_Infectiousness) of the household
+						if (AtLeastOnePersonAbsent) { Household_Infectiousness *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
 						
 						// Loop over household members
 						for (int HouseholdMember = FirstHouseholdMember; HouseholdMember < LastHouseholdMember; HouseholdMember++) //// loop over all people in household 
 						{
 							if (Hosts[HouseholdMember].is_susceptible() && (!Hosts[HouseholdMember].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
-								double HH_FOI = HH_Infectiousness * CalcHouseSusc(HouseholdMember, TimeStepNow, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
+								double Household_FOI = Household_Infectiousness * CalcHouseSusc(HouseholdMember, TimeStepNow, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
 								
-								// Force of Infection (HH_FOI) > random value between 0 and 1
-								if (ranf_mt(ThreadNum) < HH_FOI)
+								// Force of Infection (Household_FOI) > random value between 0 and 1
+								if (ranf_mt(ThreadNum) < Household_FOI)
 								{
 									// explicitly cast to short to resolve level 4 warning
 									const short int infect_type = static_cast<short int>(1 + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));

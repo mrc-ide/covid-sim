@@ -647,7 +647,7 @@ void InitTransmissionCoeffs(void)
 	double SpatialInfections = 0; // total number of spatial infections summed over entire population in #pragma loop below.
 	double PlaceInfections = 0; // total number of place infections (and all place types) summed over entire population in #pragma loop below
 
-	double HH_Infectiousness = 0; /// Household infectiousness
+	double Household_Infectiousness = 0; /// Household infectiousness
 	double Spatial_Infectiousness = 0; /// Household infectiousness
 	double Place_Infectiousness = 0;
 
@@ -663,7 +663,7 @@ void InitTransmissionCoeffs(void)
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
-#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
+#pragma omp parallel for private(Household_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
 	for (int Thread = 0; Thread < P.NumThreads; Thread++) // loop over threads
 	{
 		for (int Person = Thread; Person < P.PopSize; Person += P.NumThreads) // loop over people
@@ -698,16 +698,16 @@ void InitTransmissionCoeffs(void)
 			{
 				// choose multiplier of infectiousness
 				if (P.NoInfectiousnessSDinHH)
-					HH_Infectiousness = ((Hosts[Person].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
+					Household_Infectiousness = ((Hosts[Person].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
 				else
-					HH_Infectiousness = fabs(Hosts[Person].infectiousness);
+					Household_Infectiousness = fabs(Hosts[Person].infectiousness);
 				// Care home residents less likely to infect via "household" contacts.
-				if (Hosts[Person].care_home_resident) HH_Infectiousness *= P.CareHomeResidentHouseholdScaling;
-				HH_Infectiousness *= P.ModelTimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[Person].hh].nhr - 1];
+				if (Hosts[Person].care_home_resident) Household_Infectiousness *= P.CareHomeResidentHouseholdScaling;
+				Household_Infectiousness *= P.ModelTimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[Person].hh].nhr - 1];
 				ProbSurvive = 1.0;
 				for (int InfectiousDay = 0; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++) // loop over days adding to force of infection, probability that other household members will be infected.
 				{ 
-					double ProbSurviveToday = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
+					double ProbSurviveToday = 1.0 - Household_Infectiousness * P.infectiousness[InfectiousDay];
 					ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 				}
 
