@@ -255,7 +255,7 @@ struct Place
 	unsigned short int* AvailByAge;
 	unsigned short int Absent[MAX_ABSENT_TIME], AbsentLastUpdateTime;
 	CovidSim::Geometry::Vector2f loc;
-	float ProbClose; // Random number between 0 and 1 set in CovidSim.cpp::InitModel and unchanged thereafter. Used instead of repeated calls to rand_mt() to see if this place will close with probability PlaceCloseEffect in Update.cpp::DoPlaceClose. 
+	float ProbClose; // Random number between 0 and 1 set in CovidSim.cpp::InitModel and unchanged thereafter. Used instead of repeated calls to rand_mt() to see if this place will close with probability PlaceCloseEffect / P.Efficacies[PlaceClosure] in Update.cpp::DoPlaceClose. 
 	int* group_start, *group_size, *members;
 };
 

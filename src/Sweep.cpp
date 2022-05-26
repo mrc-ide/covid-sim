@@ -352,7 +352,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									AtLeastOnePersonAbsent = ((PLACE_CLOSED(PlaceType, Hosts[HouseholdMember].PlaceLinks[PlaceType])) && (HOST_ABSENT(HouseholdMember)));
 
 						// if individuals in the household are absent from places (ie. AtLeastOnePersonAbsent from test immediately above), scale up the infectiousness (Household_Infectiousness) of the household
-						if (AtLeastOnePersonAbsent) { Household_Infectiousness *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
+						if (AtLeastOnePersonAbsent) { Household_Infectiousness *= P.Efficacies[PlaceClosure][House]; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
 						
 						// Loop over household members
 						for (int HouseholdMember = FirstHouseholdMember; HouseholdMember < LastHouseholdMember; HouseholdMember++) //// loop over all people in household 
@@ -677,7 +677,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 
 					if ((PlaceClosedFlag) && (HOST_ABSENT(InfectiousPersonIndex))) //// if place is closed and person is absent then adjust the spatial infectiousness (similar logic to household infectiousness: place closure affects spatial infectiousness
 					{
-						SpatialInf_ThisPerson *= P.PlaceCloseSpatialRelContact;
+						SpatialInf_ThisPerson *= P.Efficacies[PlaceClosure][Spatial];
 						/* NumPCD++; */
 						SpatialInf_AllPeopleThisCell += SpatialInf_ThisPerson;
 						StateT[ThreadNum].cell_inf[InfectiousPersonIndex_ThisCell] = (float)-SpatialInf_AllPeopleThisCell;
@@ -833,7 +833,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.NumPlaceTypes) && (!KeepSearchingForCellToInfect); PlaceType++)
 											if (Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType] >= 0)
 												KeepSearchingForCellToInfect = PLACE_CLOSED(PlaceType, Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType]);
-										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
+										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.Efficacies[PlaceClosure][Spatial]; }/* NumPCD++;} */
 										KeepSearchingForCellToInfect = 0;
 									}
 									if ((Spatial_Susc == 1) || (ranf_mt(ThreadNum) < Spatial_Susc)) //// accept/reject

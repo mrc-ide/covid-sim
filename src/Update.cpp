@@ -1175,7 +1175,7 @@ void DoPlaceClose(int i, int j, unsigned short int TimeStepNow, int tn, int DoAn
 						Places[i][j].control_trig = 0;				//// otherwise reset the trigger.
 
 					//// set Places[i][j].close_start_time and Places[i][j].close_end_time and HasPlaceClosed flag to true.
-					if (Places[i][j].ProbClose >= P.PlaceCloseEffect[i]) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - PlaceCloseEffect[i]...
+					if (Places[i][j].ProbClose >= P.Efficacies[PlaceClosure][i]) //// if proportion of places of type i remaining open is 0 or if place is closed with prob 1 - P.Efficacies[PlaceClosure][i]...
 					{
 						if (Places[i][j].close_start_time > t_start_place_close)
 							Places[i][j].close_start_time	= t_start_place_close;

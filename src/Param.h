@@ -308,7 +308,7 @@ struct Param
 	double PC_ChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of place closure */
 	double PC_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseSpatialRelContact
 	double PC_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseHouseholdRelContact
-	double** PC_PlaceEffects_OverTime; //   [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; //// time-varying equivalent of PlaceCloseEffect
+	double** PC_PlaceEffects_OverTime; //   [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; //// time-varying equivalent of PlaceCloseEffect / P.Efficacies[PlaceClosure]
 	double** PC_PropAttending_OverTime; //  [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;
 	int PC_IncThresh_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseIncTrig / PlaceCloseIncTrig1
 	double PC_FracIncThresh_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseFracIncTrig
