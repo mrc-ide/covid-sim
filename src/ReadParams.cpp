@@ -503,11 +503,8 @@ void Params::get_inverse_cdf(ParamMap fallback, ParamMap params, const char* icd
 
 double** create_2d_double(int sizex, int sizey)
 {
-	double** arr = new double* [sizex];
-	for (int i = 0; i < sizex; i++)
-	{
-		arr[i] = new double[sizey];
-	}
+	double** arr = new double* [sizex]();
+	for (int i = 0; i < sizex; i++)	arr[i] = new double[sizey]();
 	return arr;
 }
 
