@@ -325,8 +325,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				// AND Day number (t) is less than the end day for contact tracing in this administrative unit (ie. contact tracing has not ended)
 				// AND the selected host is a digital contact tracing user
 				// otherwise DigiContactTrace_ThisPersonNow = 0
-				int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
-				&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
+				bool DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
+					&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
 				
@@ -745,7 +745,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					Person* PotentialInfector_Spatial = Hosts + PotentialInfector_Index;
 
 					//calculate flag (DigiContactTrace_ThisPersonNow) for digital contact tracing here at the beginning for each individual infector
-					int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart)
+					bool DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart)
 						&& (t < AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[PotentialInfector_Index].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[PotentialInfector_Spatial].detected_time + P.usCaseIsolationDelay)));
 
 					//// decide on infectee
