@@ -107,23 +107,21 @@ const int MAX_NUM_CFR_CHANGE_TIMES = 100; /**< To allow IFR to scale over time. 
 
 #define _I64(x) static_cast<int64_t>(x)
 
-// Settings
-const int House				= 0; 
-const int PrimarySchool		= 1; 
-const int SecondarySchool	= 2; 
-const int University		= 3; 
-const int Workplace			= 4; 
+// Settings (numbers not arbitrary - don't change without checking)
+const int PrimarySchool		= 0; 
+const int SecondarySchool	= 1; 
+const int University		= 2; 
+const int Workplace			= 3; 
+const int House				= 4;
 const int Spatial			= 5;  // community
 
 // NPIs
 const int CaseIsolation				= 0;
 const int HomeQuarantine			= 1;
-const int PrimarySchoolClosure		= 2;
-const int SecondarySchoolClosure	= 3;
-const int UniversityClosure			= 4;
-const int WorkplaceClosure			= 5;
-const int SocialDistancing			= 6; 
-const int DigContactTracing			= 7; 
+const int PlaceClosure				= 2;
+const int SocialDistancing			= 3; 
+const int EnhancedSocialDistancing	= 4; 
+const int DigContactTracing			= 5; 
 
 
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_

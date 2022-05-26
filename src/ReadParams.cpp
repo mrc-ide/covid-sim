@@ -529,8 +529,6 @@ void Params::alloc_params(Param* P)
 	P->PropAgeGroup							= create_2d_double(MAX_ADUNITS, NUM_AGE_GROUPS);
 	P->PopByAdunit							= create_2d_double(MAX_ADUNITS, 2);
 	P->InvLifeExpecDist						= create_2d_double(MAX_ADUNITS, 1001);
-
-	//P->SocDistSpatialEffects				= create_2d_double(P->NumAdunits, P->TimeStepsPerDay * P->SimulationDuration);
 }
 /**************************************************************************************************************/
 

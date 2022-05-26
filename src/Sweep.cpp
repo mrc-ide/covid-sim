@@ -449,7 +449,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 									int NumPotentialInfecteesPlaceGroup; 
 									if (PlaceInfectiousness_Scaled_DCT_copy < 0)
 									{
-										Files::xfprintf(stderr_shared, "@@@ %lg\NumPotentialInfecteesPlaceGroup", PlaceInfectiousness_Scaled_DCT_copy);
+										Files::xfprintf(stderr_shared, "@@@ %lg\n", PlaceInfectiousness_Scaled_DCT_copy);
 										exit(1);
 									}
 									// else if infectiousness == 1 (should never be more than 1 due to capping above)

@@ -258,8 +258,8 @@ struct Param
 	//// Third index: TimeStep 1, ...., P->TimeStepsPerDay * P->SimulationDuration
 	//// Fourth index: AdminUnit 1, ...., P.NumAdminUnits
 
-	//double**** Efficacies = NULL; //// indexed by i) Setting; ii) NPI; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
-	double** Efficacies = NULL; //// just 2d while setting up. indexed by i) Setting; ii) NPI; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+	//double**** Efficacies = NULL; //// indexed by i) NPI; ii) Setting; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+	double** Efficacies = NULL; //// just 2d while setting up. indexed by i) NPI; ii) Setting; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
 
 	int NumInterventionClasses = 0, NumInfectionSettings = 0; // initialized in CovidSim.cpp::main.
 

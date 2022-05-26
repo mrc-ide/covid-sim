@@ -273,10 +273,7 @@ int main(int argc, char* argv[])
 	Params::ReadParams(param_file, pre_param_file, ad_unit_file, &P, AdUnits);
 	if (P.DoAirports)
 	{
-		if (air_travel_file.empty())
-		{
-			ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
-		}
+		if (air_travel_file.empty()) ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
 		ReadAirTravel(air_travel_file, output_file_base);
 	}
 
@@ -294,7 +291,10 @@ int main(int argc, char* argv[])
 	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 	// Allocate memory for Efficacies array
-	//P.Efficacies = new double*[](); 
+	P.NumInfectionSettings		= P.NumPlaceTypes + 2;	// Household, Place (x P.NumPlaceTypes), Spatial / Community
+	P.NumInterventionClasses	= 6;					// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
+	P.Efficacies = new double*[P.NumInterventionClasses]();
+	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -348,6 +348,7 @@ int main(int argc, char* argv[])
 				int32_t thisRunSeed1, thisRunSeed2;
 				int ContCalib, ModelCalibLoop = 0;
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop = 0;
+
 				do
 				{	// has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
@@ -367,23 +368,26 @@ int main(int argc, char* argv[])
 						int32_t tmp2 = thisRunSeed2;
 						setall(&tmp1, &tmp2); // reset random number seeds to generate same run again after calibration.
 					}
+
+					// initialize model
 					InitModel(Realisation);
+
+					// load snapshot
 					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
+
+					// Run Model - return value is a flag stating whether to keep calibrating model simulation time to calendar time based on user-specified triggers (cases/deaths).
 					ContCalib = RunModel(Realisation, snapshot_save_file, snapshot_load_file, output_file_base);
-				}
-				while (ContCalib);
+
+				} while (ContCalib);
+
 				if (!data_file.empty()) CalcLikelihood(Realisation, data_file, output_file_base);
+
 				if (P.OutputNonSummaryResults)
-				{
 					if (((!TimeSeries[P.NumOutputTimeSteps - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
-					{
 						SaveResults(output_file);
-					}
-				}
+
 				if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 1))
-				{
 					SaveEvents(output_file);
-				}
 			}
 			output_file = output_file_base + ".avNE";
 			SaveSummaryResults(output_file);
@@ -818,6 +822,49 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	Files::xfclose(dat);
 }
 
+void UpdateEfficacyArray()
+{
+	//// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** 
+	//// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** 
+	//// ==== **** add various NPI parameters to Efficacies array.
+
+	//// **** case isolation
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[CaseIsolation][PlaceType]		= P.CaseIsolationEffectiveness;
+	P.Efficacies[CaseIsolation][House			]	= P.CaseIsolationHouseEffectiveness;
+	P.Efficacies[CaseIsolation][Spatial			]	= P.CaseIsolationEffectiveness;
+
+	//// **** household quarantine
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[HomeQuarantine][PlaceType]		= P.HQuarantinePlaceEffect[PlaceType];
+	P.Efficacies[HomeQuarantine][House			]	= P.HQuarantineHouseEffect;
+	P.Efficacies[HomeQuarantine][Spatial		]	= P.HQuarantineSpatialEffect;
+
+	//// **** place closure
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[PlaceClosure][PlaceType]		= P.PlaceCloseEffect[PlaceType];
+	P.Efficacies[PlaceClosure][House			]	= P.PlaceCloseHouseholdRelContact;
+	P.Efficacies[PlaceClosure][Spatial			]	= P.PlaceCloseSpatialRelContact;
+
+	//// **** soc dist
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[SocialDistancing][PlaceType]		= P.SocDistPlaceEffectCurrent[PlaceType];
+	P.Efficacies[SocialDistancing][House			]	= P.SocDistHouseholdEffectCurrent;
+	P.Efficacies[SocialDistancing][Spatial			]	= P.SocDistSpatialEffectCurrent;
+
+	//// **** enhanced soc dist
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[EnhancedSocialDistancing][PlaceType]		= P.EnhancedSocDistPlaceEffectCurrent[PlaceType];
+	P.Efficacies[EnhancedSocialDistancing][House			]	= P.EnhancedSocDistHouseholdEffectCurrent;
+	P.Efficacies[EnhancedSocialDistancing][Spatial			]	= P.EnhancedSocDistSpatialEffectCurrent;
+
+	//// **** digital contact tracing
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[DigContactTracing][PlaceType]		= P.DCTCaseIsolationEffectiveness;
+	P.Efficacies[DigContactTracing][House			]	= P.DCTCaseIsolationHouseEffectiveness;
+	P.Efficacies[DigContactTracing][Spatial			]	= P.DCTCaseIsolationEffectiveness;
+}
+
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
 	int nim;
@@ -1131,11 +1178,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[0];	//// compliance
 	P.MaxDigitalContactsToTrace				= P.DCT_MaxToTrace_OverTime				[0];
 
+	//// Add all of the above to P.Efficacies array.
+	UpdateEfficacyArray();
+
 	// Initialize CFR scalings
 	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];
 	P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[0];
 	P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[0];
-
 
 	for (int i = 0; i < MAX_NUM_THREADS; i++)
 	{
@@ -2921,6 +2970,9 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[ChangeTime];	//// compliance
 			P.MaxDigitalContactsToTrace				= P.DCT_MaxToTrace_OverTime				[ChangeTime];
 		}
+
+	//// Update P.Efficacies array.
+	UpdateEfficacyArray();
 }
 
 void RecordAdminAgeBreakdowns(int t_int)
