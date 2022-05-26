@@ -21,7 +21,7 @@
 
 void* BinFileBuf;
 BinFile* BF;
-int netbuf[NUM_PLACE_TYPES * 1000000];
+int netbuf[MAX_NUM_PLACE_TYPES * 1000000];
 
 
 ///// INITIALIZE / SET UP FUNCTIONS
@@ -1995,7 +1995,7 @@ void AssignPeopleToPlaces()
 	Cell* ct;
 	int npt;
 
-	npt = NUM_PLACE_TYPES;
+	npt = MAX_NUM_PLACE_TYPES;
 
 	if (P.DoPlaces)
 	{
@@ -2473,7 +2473,7 @@ void StratifyPlaces(void)
 #pragma omp parallel for schedule(static,500) default(none) \
 			shared(P, Hosts)
 		for (int i = 0; i < P.PopSize; i++)
-			for (int j = 0; j < NUM_PLACE_TYPES; j++)
+			for (int j = 0; j < MAX_NUM_PLACE_TYPES; j++)
 				Hosts[i].PlaceGroupLinks[j] = 0;
 		for (int j = 0; j < P.NumPlaceTypes; j++)
 			for (int i = 0; i < P.Nplace[j]; i++)

@@ -73,7 +73,7 @@ struct Param
 	CovidSim::Geometry::Vector2i bmin;
 	BitmapFormats BitmapFormat; // Format of bitmap (platform dependent and command-line /BM: specified).
 	int DoSI, DoPeriodicBoundaries, DoImmuneBitmap, OutputBitmapDetected; //added OutputBitmapDetected - ggilani 04/08/15
-	int DoHouseholds, DoPlaces, NumPlaceTypes, Nplace[NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
+	int DoHouseholds, DoPlaces, NumPlaceTypes, Nplace[MAX_NUM_PLACE_TYPES], SmallEpidemicCases, DoPlaceGroupTreat;
 	int NumInitialInfections[MAX_NUM_SEED_LOCATIONS], DoRandomInitialInfectionLoc, DoAllInitialInfectioninSameLoc;
 	int MinPopDensForInitialInfection, NumSeedLocations,InitialInfectionsAdminUnitId[MAX_NUM_SEED_LOCATIONS],InitialInfectionsAdminUnit[MAX_NUM_SEED_LOCATIONS], MaxPopDensForInitialInfection, MaxAgeForInitialInfection;
 	int DoAge, DoSymptoms, LoadSaveNetwork, IncThreshPop, GlobalIncThreshPop;
@@ -121,10 +121,10 @@ struct Param
 	double Seasonality[DAYS_PER_YEAR];
 	double SusceptibilitySD, InfectiousnessSD, R0DensityScalePower;
 	double LatentToSymptDelay, SymptInfectiousness, AsymptInfectiousness;
-	double SymptSpatialContactRate, SymptPlaceTypeContactRate[NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[NUM_PLACE_TYPES];
+	double SymptSpatialContactRate, SymptPlaceTypeContactRate[MAX_NUM_PLACE_TYPES], InhibitInterAdunitPlaceAssignment[MAX_NUM_PLACE_TYPES];
 	int CareHomePlaceType, CareHomeResidentMinimumAge, CareHomeAllowInitialInfections;
 	double CareHomeResidentHouseholdScaling, CareHomeResidentSpatialScaling, CareHomeWorkerGroupScaling, CareHomeResidentPlaceScaling, CareHomeRelProbHosp, CareHomePropResidents;
-	double SymptPlaceTypeWithdrawalProp[NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
+	double SymptPlaceTypeWithdrawalProp[MAX_NUM_PLACE_TYPES], CaseAbsenteeismDuration, CaseAbsenteeismDelay;
 	double CaseAbsentChildPropAdultCarers;
 	double RelativeTravelRate[NUM_AGE_GROUPS], RelativeSpatialContact[NUM_AGE_GROUPS], RelativeSpatialContactSusc[NUM_AGE_GROUPS];
 	double AgeSusceptibility[NUM_AGE_GROUPS], AgeInfectiousness[NUM_AGE_GROUPS], InitialImmunity[NUM_AGE_GROUPS];
@@ -143,16 +143,16 @@ struct Param
 	double HouseholdTrans, HouseholdTransPow;
 	double** HouseholdSizeDistrib; // [MAX_ADUNITS] [MAX_HOUSEHOLD_SIZE]
 	double HouseholdDenomLookup[MAX_HOUSEHOLD_SIZE];
-	int PlaceTypeAgeMin[NUM_PLACE_TYPES], PlaceTypeAgeMax[NUM_PLACE_TYPES], PlaceTypeMaxAgeRead[NUM_PLACE_TYPES];
-	int PlaceTypeAgeMin2[NUM_PLACE_TYPES], PlaceTypeAgeMax2[NUM_PLACE_TYPES];
-	int PlaceTypeAgeMin3[NUM_PLACE_TYPES], PlaceTypeAgeMax3[NUM_PLACE_TYPES];
-	int PlaceTypeNearestNeighb[NUM_PLACE_TYPES], PlaceTypeKernelType[NUM_PLACE_TYPES];
-	double PlaceTypePropAgeGroup[NUM_PLACE_TYPES], PlaceTypePropAgeGroup2[NUM_PLACE_TYPES];
-	double PlaceTypePropAgeGroup3[NUM_PLACE_TYPES], PlaceTypeKernelShape[NUM_PLACE_TYPES], PlaceTypeKernelScale[NUM_PLACE_TYPES];
-	double PlaceTypeKernelP3[NUM_PLACE_TYPES], PlaceTypeKernelP4[NUM_PLACE_TYPES], PlaceTypeTrans[NUM_PLACE_TYPES];
-	double PlaceTypeMeanSize[NUM_PLACE_TYPES], PlaceTypePropBetweenGroupLinks[NUM_PLACE_TYPES], PlaceTypeSizeSD[NUM_PLACE_TYPES]; //added PlaceTypeSizeSD for lognormal distribution - ggilani 09/02/17
-	double PlaceTypeSizePower[NUM_PLACE_TYPES], PlaceTypeSizeOffset[NUM_PLACE_TYPES], PlaceTypeSizeMax[NUM_PLACE_TYPES], PlaceTypeSizeMin[NUM_PLACE_TYPES];
-	double PlaceTypeGroupSizeParam1[NUM_PLACE_TYPES], PlaceExclusivityMatrix[NUM_PLACE_TYPES * NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [NUM_PLACE_TYPES][NUM_PLACE_TYPES]
+	int PlaceTypeAgeMin[MAX_NUM_PLACE_TYPES], PlaceTypeAgeMax[MAX_NUM_PLACE_TYPES], PlaceTypeMaxAgeRead[MAX_NUM_PLACE_TYPES];
+	int PlaceTypeAgeMin2[MAX_NUM_PLACE_TYPES], PlaceTypeAgeMax2[MAX_NUM_PLACE_TYPES];
+	int PlaceTypeAgeMin3[MAX_NUM_PLACE_TYPES], PlaceTypeAgeMax3[MAX_NUM_PLACE_TYPES];
+	int PlaceTypeNearestNeighb[MAX_NUM_PLACE_TYPES], PlaceTypeKernelType[MAX_NUM_PLACE_TYPES];
+	double PlaceTypePropAgeGroup[MAX_NUM_PLACE_TYPES], PlaceTypePropAgeGroup2[MAX_NUM_PLACE_TYPES];
+	double PlaceTypePropAgeGroup3[MAX_NUM_PLACE_TYPES], PlaceTypeKernelShape[MAX_NUM_PLACE_TYPES], PlaceTypeKernelScale[MAX_NUM_PLACE_TYPES];
+	double PlaceTypeKernelP3[MAX_NUM_PLACE_TYPES], PlaceTypeKernelP4[MAX_NUM_PLACE_TYPES], PlaceTypeTrans[MAX_NUM_PLACE_TYPES];
+	double PlaceTypeMeanSize[MAX_NUM_PLACE_TYPES], PlaceTypePropBetweenGroupLinks[MAX_NUM_PLACE_TYPES], PlaceTypeSizeSD[MAX_NUM_PLACE_TYPES]; //added PlaceTypeSizeSD for lognormal distribution - ggilani 09/02/17
+	double PlaceTypeSizePower[MAX_NUM_PLACE_TYPES], PlaceTypeSizeOffset[MAX_NUM_PLACE_TYPES], PlaceTypeSizeMax[MAX_NUM_PLACE_TYPES], PlaceTypeSizeMin[MAX_NUM_PLACE_TYPES];
+	double PlaceTypeGroupSizeParam1[MAX_NUM_PLACE_TYPES], PlaceExclusivityMatrix[MAX_NUM_PLACE_TYPES * MAX_NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [MAX_NUM_PLACE_TYPES][MAX_NUM_PLACE_TYPES]
 	double** PropAgeGroup; // [MAX_ADUNITS] [NUM_AGE_GROUPS]
 	double** PopByAdunit; // [MAX_ADUNITS] [2] ;
 	double** InvLifeExpecDist; // [MAX_ADUNITS] [1001] ;
@@ -207,10 +207,10 @@ struct Param
 
 	// Place closure parameters
 	double PlaceCloseTimeStart, PlaceCloseTimeStart2, PlaceCloseDurationBase, PlaceCloseDuration, PlaceCloseDuration2, PlaceCloseDelayMean, PlaceCloseRadius, PlaceCloseRadius2;
-	double PlaceCloseEffect[NUM_PLACE_TYPES], PlaceClosePropAttending[NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
+	double PlaceCloseEffect[MAX_NUM_PLACE_TYPES], PlaceClosePropAttending[MAX_NUM_PLACE_TYPES], PlaceCloseSpatialRelContact, PlaceCloseHouseholdRelContact;
 	double PlaceCloseCasePropThresh, PlaceCloseAdunitPropThresh, PlaceCloseFracIncTrig;
 	int DoHolidays, NumHolidays;
-	double HolidayEffect[NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
+	double HolidayEffect[MAX_NUM_PLACE_TYPES], HolidayStartTime[DAYS_PER_YEAR], HolidayDuration[DAYS_PER_YEAR];
 	double ColourPeriod;
 	CovidSim::Geometry::BoundingBox2d BoundingBox;
 	double BitmapScale;
@@ -218,7 +218,7 @@ struct Param
 	double TreatProphCourseLength, TreatCaseCourseLength, TreatPropRadial, TreatRadius, TreatRadius2, TreatCellIncThresh;
 	double CaseIsolation_CellIncThresh, HHQuar_CellIncThresh, DigitalContactTracing_CellIncThresh;
 	double TreatPropCases, TreatPropCaseHouseholds, TreatHouseholdsDuration;
-	double TreatPlaceProbCaseId[NUM_PLACE_TYPES], TreatPlaceTotalProp[NUM_PLACE_TYPES];
+	double TreatPlaceProbCaseId[MAX_NUM_PLACE_TYPES], TreatPlaceTotalProp[MAX_NUM_PLACE_TYPES];
 	double TreatMaxCoursesBase, TreatNewCoursesRate, TreatNewCoursesStartTime, TreatMaxCourses;
 	double VaccSuscDrop, VaccSuscDrop2, VaccInfDrop, VaccMortDrop, VaccSympDrop, VaccDelayMean, VaccTimeStart, VaccTimeEfficacySwitch, VaccTimeStartGeo;
 	double VaccTimeToEfficacy, VaccProp, VaccRadius, VaccRadius2, VaccMinRadius, VaccMinRadius2, VaccPropCaseHouseholds, VaccHouseholdsDuration, VaccMaxCoursesBase;
@@ -235,19 +235,33 @@ struct Param
 	double CaseIsolationDelay, CaseIsolationPolicyDuration, CaseIsolationProp;
 
 	double HQuarantineTimeStart, HQuarantineDelay, HQuarantineHouseDuration, HQuarantinePolicyDuration, HQuarantinePropIndivCompliant;
-	double HQuarantinePropHouseCompliant, HQuarantinePlaceEffect[NUM_PLACE_TYPES], HQuarantineSpatialEffect, HQuarantineHouseEffect;
+	double HQuarantinePropHouseCompliant, HQuarantinePlaceEffect[MAX_NUM_PLACE_TYPES], HQuarantineSpatialEffect, HQuarantineHouseEffect;
 
-	double SocDistTimeStart, SocDistDuration, SocDistHouseholdEffect, SocDistPlaceEffect[NUM_PLACE_TYPES], SocDistSpatialEffect;
-	double EnhancedSocDistHouseholdEffect, EnhancedSocDistPlaceEffect[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect, EnhancedSocDistProportionCompliant[NUM_AGE_GROUPS];
+	double SocDistTimeStart, SocDistDuration, SocDistHouseholdEffect, SocDistPlaceEffect[MAX_NUM_PLACE_TYPES], SocDistSpatialEffect;
+	double EnhancedSocDistHouseholdEffect, EnhancedSocDistPlaceEffect[MAX_NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect, EnhancedSocDistProportionCompliant[NUM_AGE_GROUPS];
 
-	double SocDistChangeDelay, SocDistDuration2, SocDistHouseholdEffect2, SocDistPlaceEffect2[NUM_PLACE_TYPES], SocDistSpatialEffect2;
-	double EnhancedSocDistHouseholdEffect2, EnhancedSocDistPlaceEffect2[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect2;
+	double SocDistChangeDelay, SocDistDuration2, SocDistHouseholdEffect2, SocDistPlaceEffect2[MAX_NUM_PLACE_TYPES], SocDistSpatialEffect2;
+	double EnhancedSocDistHouseholdEffect2, EnhancedSocDistPlaceEffect2[MAX_NUM_PLACE_TYPES], EnhancedSocDistSpatialEffect2;
 
-	double SocDistDurationCurrent, SocDistHouseholdEffectCurrent, SocDistPlaceEffectCurrent[NUM_PLACE_TYPES], SocDistSpatialEffectCurrent;
-	double EnhancedSocDistHouseholdEffectCurrent, EnhancedSocDistPlaceEffectCurrent[NUM_PLACE_TYPES], EnhancedSocDistSpatialEffectCurrent;
+	double SocDistDurationCurrent, SocDistHouseholdEffectCurrent, SocDistPlaceEffectCurrent[MAX_NUM_PLACE_TYPES], SocDistSpatialEffectCurrent;
+	double EnhancedSocDistHouseholdEffectCurrent, EnhancedSocDistPlaceEffectCurrent[MAX_NUM_PLACE_TYPES], EnhancedSocDistSpatialEffectCurrent;
 
 	double SocDistRadius, SocDistRadius2;
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** VARIABLE EFFICACIES OVER TIME by region
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+	//// General array containing multiple "efficacies" for Non-pharmaceutical interventions;
+	//// First index: Setting \in {Household, PlaceType1, ..., PlaceTypeN, Spatial}
+	//// Second index: NPI \in {Case Isolation, Home Quarantine, Place Closure, Social Distancing, Digital Contact Tracing}
+	//// Third index: TimeStep 1, ...., P->TimeStepsPerDay * P->SimulationDuration
+	//// Fourth index: AdminUnit 1, ...., P.NumAdminUnits
+
+	//double**** Efficacies = NULL; //// indexed by i) NPI; ii) Setting; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+	double** Efficacies; //// just 2d while setting up. indexed by i) NPI; ii) Setting; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+
+	int NumInterventionClasses = 0, NumInfectionSettings = 0; // initialized in CovidSim.cpp::main.
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
@@ -261,13 +275,13 @@ struct Param
 	double SD_ChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of (enhanced) social distancing */
 	double SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistSpatialEffectCurrent
 	double SD_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistHouseholdEffectCurrent
-	double** SD_PlaceEffects_OverTime;   // [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type;  //// time-varying equivalent of SocDistPlaceEffectCurrent
+	double** SD_PlaceEffects_OverTime;   // [MAX_NUM_INTERVENTION_CHANGE_TIMES] [MAX_NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type;  //// time-varying equivalent of SocDistPlaceEffectCurrent
 	int SD_CellIncThresh_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of SocDistCellIncThresh
 
 	/**< enhanced	*/
 	double Enhanced_SD_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistSpatialEffectCurrent
 	double Enhanced_SD_HouseholdEffects_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of EnhancedSocDistHouseholdEffectCurrent
-	double** Enhanced_SD_PlaceEffects_OverTime; //  [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type;  time-varying equivalent of EnhancedSocDistPlaceEffectCurrent
+	double** Enhanced_SD_PlaceEffects_OverTime; //  [MAX_NUM_INTERVENTION_CHANGE_TIMES] [MAX_NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type;  time-varying equivalent of EnhancedSocDistPlaceEffectCurrent
 
 	int Num_CI_ChangeTimes;  //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
 	int Num_HQ_ChangeTimes;  //// must be at most MAX_NUM_INTERVENTION_CHANGE_TIMES
@@ -285,7 +299,7 @@ struct Param
 	double HQ_ChangeTimes						[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of household quarantine */
 	double HQ_SpatialEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of HQuarantineSpatialEffect
 	double HQ_HouseholdEffects_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of HQuarantineHouseEffect
-	double** HQ_PlaceEffects_OverTime; //		[MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; time-varying equivalent of HQuarantinePlaceEffect
+	double** HQ_PlaceEffects_OverTime; //		[MAX_NUM_INTERVENTION_CHANGE_TIMES] [MAX_NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; time-varying equivalent of HQuarantinePlaceEffect
 	double HQ_Individual_PropComply_OverTime	[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of HQuarantinePropIndivCompliant
 	double HQ_Household_PropComply_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of HQuarantinePropHouseCompliant
 	double HQ_CellIncThresh_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of HHQuar_CellIncThresh
@@ -294,8 +308,8 @@ struct Param
 	double PC_ChangeTimes					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; /**< change times for intensity of place closure */
 	double PC_SpatialEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseSpatialRelContact
 	double PC_HouseholdEffects_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseHouseholdRelContact
-	double** PC_PlaceEffects_OverTime; //   [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; //// time-varying equivalent of PlaceCloseEffect
-	double** PC_PropAttending_OverTime; //  [MAX_NUM_INTERVENTION_CHANGE_TIMES] [NUM_PLACE_TYPES] ;
+	double** PC_PlaceEffects_OverTime; //   [MAX_NUM_INTERVENTION_CHANGE_TIMES] [MAX_NUM_PLACE_TYPES] ;	//// indexed by i) change time; ii) place type; //// time-varying equivalent of PlaceCloseEffect / P.Efficacies[PlaceClosure]
+	double** PC_PropAttending_OverTime; //  [MAX_NUM_INTERVENTION_CHANGE_TIMES] [MAX_NUM_PLACE_TYPES] ;
 	int PC_IncThresh_OverTime				[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseIncTrig / PlaceCloseIncTrig1
 	double PC_FracIncThresh_OverTime		[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseFracIncTrig
 	int PC_CellIncThresh_OverTime			[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of PlaceCloseCellIncThresh
@@ -308,7 +322,7 @@ struct Param
 	double DCT_Prop_OverTime					[MAX_NUM_INTERVENTION_CHANGE_TIMES]; //// time-varying equivalent of ProportionDigitalContactsIsolate
 	int DCT_MaxToTrace_OverTime					[MAX_NUM_INTERVENTION_CHANGE_TIMES];
 
-	double KeyWorkerProphTimeStart, KeyWorkerProphDuration, KeyWorkerPropInKeyPlaces[NUM_PLACE_TYPES], KeyWorkerHouseProp;
+	double KeyWorkerProphTimeStart, KeyWorkerProphDuration, KeyWorkerPropInKeyPlaces[MAX_NUM_PLACE_TYPES], KeyWorkerHouseProp;
 	double KeyWorkerProphRenewalDuration, KeyWorkerProphRadius, KeyWorkerProphRadius2;
 
 	double TreatTimeStartBase, VaccTimeStartBase, MoveRestrTimeStartBase, PlaceCloseTimeStartBase, PlaceCloseTimeStartBase2,PlaceCloseTimeStartPrevious;
@@ -356,12 +370,12 @@ struct Param
 
 	int PlaceCloseCellIncThresh, PlaceCloseCellIncThresh1, PlaceCloseCellIncThresh2, PlaceCloseIndepThresh, SocDistCellIncThresh, VaccPriorityGroupAge[2];
 	int PlaceCloseCellIncStopThresh, SocDistCellIncStopThresh;
-	int PlaceCloseAdunitPlaceTypes[NUM_PLACE_TYPES];
+	int PlaceCloseAdunitPlaceTypes[MAX_NUM_PLACE_TYPES];
 
 	int DoPlaceCloseOnceOnly, DoSocDistOnceOnly, DoMoveRestrOnceOnly, DoKeyWorkerProphOnceOnly;
 
 	int VaccMaxRounds, VaccByAdminUnit, VaccAdminUnitDivisor, TreatByAdminUnit, TreatAdminUnitDivisor, MoveRestrByAdminUnit, MoveRestrAdminUnitDivisor, PlaceCloseByAdminUnit, PlaceCloseAdminUnitDivisor;
-	int KeyWorkerProphCellIncThresh, KeyWorkerPlaceNum[NUM_PLACE_TYPES], KeyWorkerPopNum, KeyWorkerNum, KeyWorkerIncHouseNum;
+	int KeyWorkerProphCellIncThresh, KeyWorkerPlaceNum[MAX_NUM_PLACE_TYPES], KeyWorkerPopNum, KeyWorkerNum, KeyWorkerIncHouseNum;
 	int DoBlanketMoveRestr, PlaceCloseIncTrig, PlaceCloseIncTrig1, PlaceCloseIncTrig2, TreatMaxCoursesPerCase, DoImportsViaAirports, DoMassVacc, DurImportTimeProfile;
 	int DoRecordInfEvents, MaxInfEvents, RecordInfEventsPerRun;
 	unsigned short int usHQuarantineHouseDuration, usVaccTimeToEfficacy, usVaccTimeEfficacySwitch; //// us = unsigned short versions of their namesakes, multiplied by P.TimeStepsPerDay

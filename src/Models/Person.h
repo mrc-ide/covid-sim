@@ -15,7 +15,7 @@ struct Person
 	int infector;		/**< If >=0, Hosts[person->infector] was who infected this person */
 	int listpos;		/**< Goes up to at least MAX_SEC_REC, also used as a temp variable? */
 
-	int PlaceLinks[NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
+	int PlaceLinks[MAX_NUM_PLACE_TYPES]; //// indexed by i) place type. Value is the number of that place type (e.g. school no. 17; office no. 310 etc.) Place[i][person->PlaceLinks[i]], can be up to P.Nplace[i]
 	float infectiousness, susc, ProbAbsent, ProbCare;
 
 	unsigned int esocdist_comply : 1; /**< boolean: compliant with enhanced social distancing? */
@@ -31,7 +31,7 @@ struct Person
 	unsigned char Travelling;	// Range up to MAX_TRAVEL_TIME
 	unsigned char age;
 	unsigned char num_treats;		// set to 0 and tested < 2. but never modified?
-	unsigned short int PlaceGroupLinks[NUM_PLACE_TYPES];	// These can definitely get > 255
+	unsigned short int PlaceGroupLinks[MAX_NUM_PLACE_TYPES];	// These can definitely get > 255
 
 	short int infect_type;		// INFECT_TYPE_MASK
 	

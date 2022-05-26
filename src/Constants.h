@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_CONSTANTS_H_INCLUDED_
 #define COVIDSIM_CONSTANTS_H_INCLUDED_
 
+#include "Country.h"
+
 /**
  * Math constant defined as the ratio of a circle's circumference to its diameter.
  *
@@ -69,7 +71,7 @@ const int MAX_NUM_SEED_LOCATIONS = 10000;
 
 const int MAX_CLP_COPIES = 50;
 
-const int CDF_RES = 20;
+const int CDF_RES = 20; // resolution of (inverse) cumulative distribution functions, used mostly for severity progressions/delay distributions.
 const int INFPROF_RES = 56;
 
 const int NUM_AGE_GROUPS = 17;
@@ -106,5 +108,22 @@ const int MAX_NUM_CFR_CHANGE_TIMES = 100; /**< To allow IFR to scale over time. 
 // to increase the cast size and clean them up.
 
 #define _I64(x) static_cast<int64_t>(x)
+
+// Settings (numbers not arbitrary - don't change without checking)
+// const int PrimarySchool		= 0; 
+// const int SecondarySchool	= 1; 
+// const int University		= 2; 
+// const int Workplace			= 3; 
+const int House				= MAX_NUM_PLACE_TYPES;      // Max number of potential place types.
+const int Spatial			= MAX_NUM_PLACE_TYPES + 1;  // community
+
+// NPIs
+const int CaseIsolation				= 0;
+const int HomeQuarantine			= 1;
+const int PlaceClosure				= 2;
+const int SocialDistancing			= 3; 
+const int EnhancedSocialDistancing	= 4; 
+const int DigContactTracing			= 5; 
+
 
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_

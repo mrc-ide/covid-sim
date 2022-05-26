@@ -97,8 +97,8 @@ double indivR0[MAX_SEC_REC][MAX_GEN_REC], indivR0_av[MAX_SEC_REC][MAX_GEN_REC];
 double inf_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], denom_household[MAX_HOUSEHOLD_SIZE + 1];
 double inf_household_av[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], AgeDist[NUM_AGE_GROUPS], AgeDist2[NUM_AGE_GROUPS];
 double case_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], case_household_av[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1];
-double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES];
-double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
+double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][MAX_NUM_PLACE_TYPES];
+double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][MAX_NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
 double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
 
 // These allow up to about 2 billion people per pixel, which should be ample.
@@ -110,7 +110,7 @@ int32_t *bmTreated; // The number of treated people in each bitmap pixel.
 int OutputTimeStepNumber; //// output timestep index. Global variable used in InitModel and RunModel
 int DoInitUpdateProbs;
 int InterruptRun = 0; // global variable set to zero at start of RunModel, and possibly modified in CalibrationThresholdCheck 
-int PlaceDistDistrib[NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[NUM_PLACE_TYPES][MAX_PLACE_SIZE];
+int PlaceDistDistrib[MAX_NUM_PLACE_TYPES][MAX_DIST], PlaceSizeDistrib[MAX_NUM_PLACE_TYPES][MAX_PLACE_SIZE];
 
 /* int NumPC,NumPCD; */
 const int MAXINTFILE = 10;
@@ -273,10 +273,7 @@ int main(int argc, char* argv[])
 	Params::ReadParams(param_file, pre_param_file, ad_unit_file, &P, AdUnits);
 	if (P.DoAirports)
 	{
-		if (air_travel_file.empty())
-		{
-			ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
-		}
+		if (air_travel_file.empty()) ERR_CRITICAL("Parameter file indicated airports should be used but '/AP' file was not given");
 		ReadAirTravel(air_travel_file, output_file_base);
 	}
 
@@ -292,6 +289,12 @@ int main(int argc, char* argv[])
 		ReadInterventions(int_file);
 
 	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
+
+	// Allocate memory for Efficacies array
+	P.NumInfectionSettings		= MAX_NUM_PLACE_TYPES + 2;	// Maximum number of place types, plus household, and spatial
+	P.NumInterventionClasses	= 6;					// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
+	P.Efficacies = new double*[P.NumInterventionClasses]();
+	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -321,8 +324,8 @@ int main(int argc, char* argv[])
 				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter);
 			}
 		}
-		else
-			StopFit = 1;
+		else StopFit = 1;
+
 		if ((fit_file.empty()) || (!StopFit))
 		{
 			P.NRactE = P.NRactNE = 0;
@@ -340,13 +343,12 @@ int main(int argc, char* argv[])
 					P.nextRunSeed1 = P.runSeed1;
 					P.nextRunSeed2 = P.runSeed2;
 				}
-				if (P.ResetSeeds) {
-					//save these seeds to file
-					SaveRandomSeeds(output_file);
-				}
+				if (P.ResetSeeds)	SaveRandomSeeds(output_file);	//save these seeds to file
+				
 				int32_t thisRunSeed1, thisRunSeed2;
 				int ContCalib, ModelCalibLoop = 0;
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop = 0;
+
 				do
 				{	// has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
@@ -366,23 +368,26 @@ int main(int argc, char* argv[])
 						int32_t tmp2 = thisRunSeed2;
 						setall(&tmp1, &tmp2); // reset random number seeds to generate same run again after calibration.
 					}
+
+					// initialize model
 					InitModel(Realisation);
+
+					// load snapshot
 					if (!snapshot_load_file.empty()) LoadSnapshot(snapshot_load_file);
+
+					// Run Model - return value is a flag stating whether to keep calibrating model simulation time to calendar time based on user-specified triggers (cases/deaths).
 					ContCalib = RunModel(Realisation, snapshot_save_file, snapshot_load_file, output_file_base);
-				}
-				while (ContCalib);
+
+				} while (ContCalib);
+
 				if (!data_file.empty()) CalcLikelihood(Realisation, data_file, output_file_base);
+
 				if (P.OutputNonSummaryResults)
-				{
 					if (((!TimeSeries[P.NumOutputTimeSteps - 1].extinct) || (!P.OutputOnlyNonExtinct)) && (P.OutputEveryRealisation))
-					{
 						SaveResults(output_file);
-					}
-				}
+
 				if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 1))
-				{
 					SaveEvents(output_file);
-				}
 			}
 			output_file = output_file_base + ".avNE";
 			SaveSummaryResults(output_file);
@@ -817,6 +822,49 @@ void ReadAirTravel(std::string const& air_travel_file, std::string const& output
 	Files::xfclose(dat);
 }
 
+void UpdateEfficacyArray()
+{
+	//// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** 
+	//// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** //// ==== **** 
+	//// ==== **** add various NPI parameters to Efficacies array.
+
+	//// **** case isolation
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[CaseIsolation][PlaceType]		= P.CaseIsolationEffectiveness;
+	P.Efficacies[CaseIsolation][House			]	= P.CaseIsolationHouseEffectiveness;
+	P.Efficacies[CaseIsolation][Spatial			]	= P.CaseIsolationEffectiveness;
+
+	//// **** household quarantine
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[HomeQuarantine][PlaceType]		= P.HQuarantinePlaceEffect[PlaceType];
+	P.Efficacies[HomeQuarantine][House			]	= P.HQuarantineHouseEffect;
+	P.Efficacies[HomeQuarantine][Spatial		]	= P.HQuarantineSpatialEffect;
+
+	//// **** place closure
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[PlaceClosure][PlaceType]		= P.PlaceCloseEffect[PlaceType];
+	P.Efficacies[PlaceClosure][House			]	= P.PlaceCloseHouseholdRelContact;
+	P.Efficacies[PlaceClosure][Spatial			]	= P.PlaceCloseSpatialRelContact;
+
+	//// **** soc dist
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[SocialDistancing][PlaceType]		= P.SocDistPlaceEffectCurrent[PlaceType];
+	P.Efficacies[SocialDistancing][House			]	= P.SocDistHouseholdEffectCurrent;
+	P.Efficacies[SocialDistancing][Spatial			]	= P.SocDistSpatialEffectCurrent;
+
+	//// **** enhanced soc dist
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[EnhancedSocialDistancing][PlaceType]		= P.EnhancedSocDistPlaceEffectCurrent[PlaceType];
+	P.Efficacies[EnhancedSocialDistancing][House			]	= P.EnhancedSocDistHouseholdEffectCurrent;
+	P.Efficacies[EnhancedSocialDistancing][Spatial			]	= P.EnhancedSocDistSpatialEffectCurrent;
+
+	//// **** digital contact tracing
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+		P.Efficacies[DigContactTracing][PlaceType]		= P.DCTCaseIsolationEffectiveness;
+	P.Efficacies[DigContactTracing][House			]	= P.DCTCaseIsolationHouseEffectiveness;
+	P.Efficacies[DigContactTracing][Spatial			]	= P.DCTCaseIsolationEffectiveness;
+}
+
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
 	int nim;
@@ -837,6 +885,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 	OutputTimeStepNumber = 0;
+
 	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
 	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDetectedCases = State.DCT = State.cumDCT
@@ -878,7 +927,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	for (int i = 0; i < NUM_AGE_GROUPS; i++) State.cumCa[i] = State.cumIa[i] = State.cumDa[i] = 0;
 	for (int i = 0; i < 2; i++) State.cumC_keyworker[i] = State.cumI_keyworker[i] = State.cumT_keyworker[i] = 0;
-	for (int i = 0; i < NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
+	for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++) State.NumPlacesClosed[i] = 0;
 	for (int i = 0; i < INFECT_TYPE_MASK; i++) State.cumItype[i] = 0;
 	//initialise cumulative case counts per country to zero: ggilani 12/11/14
 	for (int i = 0; i < MAX_COUNTRIES; i++) State.cumC_country[i] = 0;
@@ -904,7 +953,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		StateT[j].cumT = StateT[j].cumUT = StateT[j].cumTP = StateT[j].cumV = StateT[j].sumRad2 = StateT[j].maxRad2 = StateT[j].cumV_daily = 0;
 		for (int i = 0; i < NUM_AGE_GROUPS; i++) StateT[j].cumCa[i] = StateT[j].cumIa[i] = StateT[j].cumDa[i] = 0;
 		for (int i = 0; i < 2; i++) StateT[j].cumC_keyworker[i] = StateT[j].cumI_keyworker[i] = StateT[j].cumT_keyworker[i] = 0;
-		for (int i = 0; i < NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
+		for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++) StateT[j].NumPlacesClosed[i] = 0;
 		for (int i = 0; i < INFECT_TYPE_MASK; i++) StateT[j].cumItype[i] = 0;
 		//initialise cumulative case counts per country per thread to zero: ggilani 12/11/14
 		for (int i = 0; i < MAX_COUNTRIES; i++) StateT[j].cumC_country[i] = 0;
@@ -994,7 +1043,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NumCells; i+=P.NumThreads)
+		for (int i = tn; i < P.NumCells; i += P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
@@ -1129,11 +1178,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[0];	//// compliance
 	P.MaxDigitalContactsToTrace				= P.DCT_MaxToTrace_OverTime				[0];
 
+	//// Add all of the above to P.Efficacies array.
+	UpdateEfficacyArray();
+
 	// Initialize CFR scalings
 	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];
 	P.CFR_SARI_Scale_Current		= P.CFR_TimeScaling_SARI	[0];
 	P.CFR_ILI_Scale_Current			= P.CFR_TimeScaling_ILI		[0];
-
 
 	for (int i = 0; i < MAX_NUM_THREADS; i++)
 	{
@@ -1953,9 +2004,9 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 		outname = output_file_base + ".controls.xls";
 		dat = Files::xfopen(outname.c_str(), "wb");
 		Files::xfprintf(dat, "t\tS\tincC\tincTC\tincFC\tcumT\tcumUT\tcumTP\tcumV\tincHQ\tincAC\tincAH\tincAA\tincACS\tincAPC\tincAPA\tincAPCS\tpropSocDist");
-		for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tprClosed_%i", j);
+		for(j = 0; j < MAX_NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tprClosed_%i", j);
 		Files::xfprintf(dat, "t\tvS\tvincC\tvincTC\tvincFC\tvcumT\tvcumUT\tvcumTP\tvcumV");
-		for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tvprClosed_%i", j);
+		for(j = 0; j < MAX_NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\tvprClosed_%i", j);
 		Files::xfprintf(dat, "\n");
 		for(i = 0; i < P.NumOutputTimeSteps; i++)
 		{
@@ -1964,7 +2015,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSMean[i].cumT, c * TSMean[i].cumUT, c * TSMean[i].cumTP, c * TSMean[i].cumV, c * TSMean[i].incHQ,
 				c * TSMean[i].incAC, c * TSMean[i].incAH, c * TSMean[i].incAA, c * TSMean[i].incACS,
 				c * TSMean[i].incAPC, c * TSMean[i].incAPA, c * TSMean[i].incAPCS,c*TSMean[i].PropSocDist);
-			for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].PropPlacesClosed[j]);
+			for(j = 0; j < MAX_NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", c * TSMean[i].PropPlacesClosed[j]);
 			Files::xfprintf(dat, "\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf",
 				c * TSVar[i].S - c * c * TSMean[i].S * TSMean[i].S,
 				c * TSVar[i].incC - c * c * TSMean[i].incC * TSMean[i].incC,
@@ -1974,7 +2025,7 @@ void SaveSummaryResults(std::string const& output_file_base) //// calculates and
 				c * TSVar[i].cumUT - c * c * TSMean[i].cumUT * TSMean[i].cumUT,
 				c * TSVar[i].cumTP - c * c * TSMean[i].cumTP * TSMean[i].cumTP,
 				c * TSVar[i].cumV - c * c * TSMean[i].cumV * TSMean[i].cumV);
-			for(j = 0; j < NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", TSVar[i].PropPlacesClosed[j]);
+			for(j = 0; j < MAX_NUM_PLACE_TYPES; j++) Files::xfprintf(dat, "\t%lf", TSVar[i].PropPlacesClosed[j]);
 			Files::xfprintf(dat, "\n");
 		}
 		Files::xfclose(dat);
@@ -2919,6 +2970,9 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			P.ProportionDigitalContactsIsolate		= P.DCT_Prop_OverTime					[ChangeTime];	//// compliance
 			P.MaxDigitalContactsToTrace				= P.DCT_MaxToTrace_OverTime				[ChangeTime];
 		}
+
+	//// Update P.Efficacies array.
+	UpdateEfficacyArray();
 }
 
 void RecordAdminAgeBreakdowns(int t_int)
@@ -3400,7 +3454,7 @@ void RecordSample(double t, int n, std::string const& output_file_base)
 		for (int i = 0; i < P.NumAdunits; i++)
 			TimeSeries[n].DCT_adunit[i] = (double)AdUnits[i].ndct; //added total numbers of contacts currently isolated due to digital contact tracing: ggilani 11/03/20
 	if (P.DoPlaces)
-		for (int i = 0; i < NUM_PLACE_TYPES; i++)
+		for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)
 		{
 			numPC = 0;
 			for (j = 0; j < P.Nplace[i]; j++)
