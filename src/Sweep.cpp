@@ -833,7 +833,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.NumPlaceTypes) && (!KeepSearchingForCellToInfect); PlaceType++)
 											if (Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType] >= 0)
 												KeepSearchingForCellToInfect = PLACE_CLOSED(PlaceType, Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType]);
-										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.Efficacies[PlaceClosure][Spatial]; }/* NumPCD++;} */
+										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.Efficacies[PlaceClosure][Spatial]; } /* NumPCD++;} */
 										KeepSearchingForCellToInfect = 0;
 									}
 									if ((Spatial_Susc == 1) || (ranf_mt(ThreadNum) < Spatial_Susc)) //// accept/reject
