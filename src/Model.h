@@ -82,8 +82,8 @@ struct PopVar
 	int n_queue[MAX_NUM_THREADS]; 	// number of infections in inf_queue
 	HostClosure *host_closure_queue;  // When places close, buffer host index, and closure times here.
 	int host_closure_queue_size; // Number of host closures in host_closure_queue.
-	int* p_queue[NUM_PLACE_TYPES], *pg_queue[NUM_PLACE_TYPES], np_queue[NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
-	int NumPlacesClosed[NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
+	int* p_queue[MAX_NUM_PLACE_TYPES], *pg_queue[MAX_NUM_PLACE_TYPES], np_queue[MAX_NUM_PLACE_TYPES];		// np_queue is number of places in place queue (by place type), p_queue, and pg_queue is the actual place and place-group queue (i.e. list) of places. 1st index is place type, 2nd is place.
+	int NumPlacesClosed[MAX_NUM_PLACE_TYPES], n_mvacc, mvacc_cum;
 	float* cell_inf;  //// List of cumulative spatial infectiousnesses by person within cell. Negative value will refer to that person having their place closed
 	double sumRad2, maxRad2, cumT, cumV, cumVG, cumUT, cumTP, cumV_daily, cumVG_daily; //added cumVG, cumVG_daily
 	int* CellMemberArray, *CellSuscMemberArray;
@@ -146,7 +146,7 @@ struct Results
 	double incHQ, incAC, incAH, incAA, incACS, incAPC, incAPA, incAPCS;
 	double incIa[NUM_AGE_GROUPS], incCa[NUM_AGE_GROUPS], incDa[NUM_AGE_GROUPS];
 	double incItype[INFECT_TYPE_MASK], Rtype[INFECT_TYPE_MASK], Rage[NUM_AGE_GROUPS], Rdenom;
-	double rmsRad, maxRad, PropPlacesClosed[NUM_PLACE_TYPES], PropSocDist;
+	double rmsRad, maxRad, PropPlacesClosed[MAX_NUM_PLACE_TYPES], PropSocDist;
 	double incI_adunit[MAX_ADUNITS], incC_adunit[MAX_ADUNITS], cumT_adunit[MAX_ADUNITS], incD_adunit[MAX_ADUNITS], cumD_adunit[MAX_ADUNITS], incH_adunit[MAX_ADUNITS], incDC_adunit[MAX_ADUNITS]; //added incidence of hospitalisation per day: ggilani 28/10/14, incidence of detected cases per adunit,: ggilani 03/02/15
 	double incCT_adunit[MAX_ADUNITS], incCC_adunit[MAX_ADUNITS], incDCT_adunit[MAX_ADUNITS], DCT_adunit[MAX_ADUNITS]; //added incidence of contact tracing and number of people being contact traced per admin unit: ggilani 15/06/17
 	double incI_keyworker[2], incC_keyworker[2], cumT_keyworker[2];
@@ -317,8 +317,8 @@ extern double indivR0[MAX_SEC_REC][MAX_GEN_REC], indivR0_av[MAX_SEC_REC][MAX_GEN
 extern double inf_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], denom_household[MAX_HOUSEHOLD_SIZE + 1];
 extern double inf_household_av[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], AgeDist[NUM_AGE_GROUPS], AgeDist2[NUM_AGE_GROUPS];
 extern double case_household[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1], case_household_av[MAX_HOUSEHOLD_SIZE + 1][MAX_HOUSEHOLD_SIZE + 1];
-extern double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES];
-extern double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
+extern double PropPlaces[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][MAX_NUM_PLACE_TYPES];
+extern double PropPlacesC[NUM_AGE_GROUPS * AGE_GROUP_WIDTH][MAX_NUM_PLACE_TYPES], AirTravelDist[MAX_DIST];
 extern double PeakHeightSum, PeakHeightSS, PeakTimeSum, PeakTimeSS;
 
 extern int DoInitUpdateProbs;

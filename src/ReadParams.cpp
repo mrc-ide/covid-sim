@@ -520,11 +520,11 @@ void Params::alloc_params(Param* P)
 	P->LocationInitialInfection				= create_2d_double(MAX_NUM_SEED_LOCATIONS, 2);
 	P->WAIFW_Matrix							= create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
 	P->WAIFW_Matrix_SpatialOnly				= create_2d_double(NUM_AGE_GROUPS, NUM_AGE_GROUPS);
-	P->SD_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->Enhanced_SD_PlaceEffects_OverTime	= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->HQ_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->PC_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
-	P->PC_PropAttending_OverTime			= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, NUM_PLACE_TYPES);
+	P->SD_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, MAX_NUM_PLACE_TYPES);
+	P->Enhanced_SD_PlaceEffects_OverTime	= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, MAX_NUM_PLACE_TYPES);
+	P->HQ_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, MAX_NUM_PLACE_TYPES);
+	P->PC_PlaceEffects_OverTime				= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, MAX_NUM_PLACE_TYPES);
+	P->PC_PropAttending_OverTime			= create_2d_double(MAX_NUM_INTERVENTION_CHANGE_TIMES, MAX_NUM_PLACE_TYPES);
 	P->HouseholdSizeDistrib					= create_2d_double(MAX_ADUNITS, MAX_HOUSEHOLD_SIZE);
 	P->PropAgeGroup							= create_2d_double(MAX_ADUNITS, NUM_AGE_GROUPS);
 	P->PopByAdunit							= create_2d_double(MAX_ADUNITS, 2);
@@ -921,8 +921,8 @@ void Params::treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap
 	P->TreatTimeStartBase = Params::get_double(params, pre_params, "Treatment start time", USHRT_MAX / P->TimeStepsPerDay, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
 	}
 	P->TreatMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of doses available", 1e20, P);
 	P->TreatNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional treatment production", USHRT_MAX / P->TimeStepsPerDay, P);
@@ -955,7 +955,7 @@ void Params::carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap 
 	  return;
 	}
 
-	if (P->NumPlaceTypes > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+	if (P->NumPlaceTypes > MAX_NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
 	P->CareHomePlaceType = Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, P);
 	P->CareHomeAllowInitialInfections = Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, P);
 	P->CareHomeResidentMinimumAge = Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, P);
@@ -979,7 +979,7 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 
 		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 2 in place types"))
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)
 			{
 				P->PlaceTypePropAgeGroup2[i] = 0;
 				P->PlaceTypeAgeMin2[i] = 0;
@@ -994,7 +994,7 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 3 in place types"))
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)
 			{
 				P->PlaceTypePropAgeGroup3[i] = 0;
 				P->PlaceTypeAgeMin3[i] = 0;
@@ -1009,7 +1009,7 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		if (!Params::param_found(pre_params, adm_params, "Kernel shape params for place types"))
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)
 			{
 				P->PlaceTypeKernelShape[i] = P->MoveKernel.shape_;
 				P->PlaceTypeKernelScale[i] = P->MoveKernel.scale_;
@@ -1022,7 +1022,7 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		if (!Params::param_found(pre_params, adm_params, "Kernel 3rd param for place types"))
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++)
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)
 			{
 				P->PlaceTypeKernelP3[i] = P->MoveKernel.p3_;
 				P->PlaceTypeKernelP4[i] = P->MoveKernel.p4_;
@@ -1033,29 +1033,29 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 			Params::req_double_vec(pre_params, adm_params, "Kernel 3rd param for place types", P->PlaceTypeKernelP3, P->NumPlaceTypes, P);
 			Params::req_double_vec(pre_params, adm_params, "Kernel 4th param for place types", P->PlaceTypeKernelP4, P->NumPlaceTypes, P);
 		}
-		Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
 		if (P->DoAdUnits != 0)
 		{
-			Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+			Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
 		}
 
 		Params::airport_params(adm_params, pre_params, params, P);
 
 		Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->NumPlaceTypes, P);
 		Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->NumPlaceTypes, P);
-		Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
 
 		//added to enable lognormal distribution - ggilani 09/02/17
-		Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->NumPlaceTypes, 1e20, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->NumPlaceTypes, 1.0, NUM_PLACE_TYPES, P);
-		Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->NumPlaceTypes, P->MoveKernel.type_, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->NumPlaceTypes, 1e20, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->NumPlaceTypes, 1.0, MAX_NUM_PLACE_TYPES, P);
+		Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->NumPlaceTypes, P->MoveKernel.type_, MAX_NUM_PLACE_TYPES, P);
 		Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P->PlaceExclusivityMatrix, P->NumPlaceTypes * P->NumPlaceTypes, 0, P->NumPlaceTypes * P->NumPlaceTypes, P);
 		if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
-				P->PlaceExclusivityMatrix[i * (NUM_PLACE_TYPES + 1)] = 1; // this line sets the diagonal to 1 (identity matrix)
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
+				P->PlaceExclusivityMatrix[i * (MAX_NUM_PLACE_TYPES + 1)] = 1; // this line sets the diagonal to 1 (identity matrix)
 		}
 	}
 	/* Note P->PlaceExclusivityMatrix not used at present - places assumed exclusive (each person belongs to 0 or 1 place) */
@@ -1353,8 +1353,8 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	P->PlaceCloseDuration2 = Params::get_double(params, pre_params, "Duration of second place closure", 7, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
 	}
 	if (P->DoHouseholds != 0)
 		P->PlaceCloseHouseholdRelContact = Params::get_double(params, pre_params, "Relative household contact rate after closure", 1, P);
@@ -1363,7 +1363,7 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	P->DoHolidays = Params::get_int(pre_params, adm_params, "Include holidays", 0, P);
 	if (P->DoHolidays != 0)
 	{
-		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
 		P->NumHolidays = Params::get_int(pre_params, adm_params, "Number of holidays", 0, P);
 		if (P->NumHolidays > DAYS_PER_YEAR) P->NumHolidays = DAYS_PER_YEAR;
 		if (P->NumHolidays > 0)
@@ -1412,14 +1412,14 @@ void Params::social_distancing_params(ParamMap adm_params, ParamMap pre_params, 
 	P->SocDistDuration2 = Params::get_double(params, pre_params, "Duration of social distancing after change", 7, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
 		if (Params::param_found(params, pre_params, "Relative place contact rate given social distancing by place type after change"))
 		{
 			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P->SocDistPlaceEffect2, P->NumPlaceTypes, P);
 		}
 		else {
-			for (int i = 0; i < NUM_PLACE_TYPES; i++) P->SocDistPlaceEffect2[i] = P->SocDistPlaceEffect[i];
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++) P->SocDistPlaceEffect2[i] = P->SocDistPlaceEffect[i];
 		}
 
 		if (Params::param_found(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change"))
@@ -1428,7 +1428,7 @@ void Params::social_distancing_params(ParamMap adm_params, ParamMap pre_params, 
 		}
 		else
 		{
-			for (int i = 0; i < NUM_PLACE_TYPES; i++) P->EnhancedSocDistPlaceEffect2[i] = P->EnhancedSocDistPlaceEffect[i];
+			for (int i = 0; i < MAX_NUM_PLACE_TYPES; i++) P->EnhancedSocDistPlaceEffect2[i] = P->EnhancedSocDistPlaceEffect[i];
 		}
 	}
 	if (P->DoHouseholds != 0)
@@ -1505,7 +1505,7 @@ void Params::household_quarantine_params(ParamMap adm_params, ParamMap pre_param
 	P->CaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after case isolation", P->CaseIsolationEffectiveness, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
 	}
 	P->HQuarantineSpatialEffect = Params::get_double(params, pre_params, "Residual spatial contacts after household quarantine", 1, P);
 	P->HQuarantinePropHouseCompliant = Params::get_double(params, pre_params, "Household level compliance with quarantine", 1, P);
@@ -2064,14 +2064,14 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 			Params::req_double_vec(params, pre_params, "Relative level of place attendance if symptomatic", P->SymptPlaceTypeContactRate, P->NumPlaceTypes, P);
 			if (P->DoRealSymptWithdrawal != 0)
 			{
-				for (j = 0; j < NUM_PLACE_TYPES; j++)
+				for (j = 0; j < MAX_NUM_PLACE_TYPES; j++)
 				{
 					P->SymptPlaceTypeWithdrawalProp[j] = 1.0 - P->SymptPlaceTypeContactRate[j];
 					P->SymptPlaceTypeContactRate[j] = 1.0;
 				}
 			}
 			else
-				for (j = 0; j < NUM_PLACE_TYPES; j++) P->SymptPlaceTypeWithdrawalProp[j] = 0.0;
+				for (j = 0; j < MAX_NUM_PLACE_TYPES; j++) P->SymptPlaceTypeWithdrawalProp[j] = 0.0;
 		}
 		P->CaseAbsentChildAgeCutoff = Params::get_int(params, pre_params, "Maximum age of child at home for whom one adult also stays at home", 0, P);
 		P->CaseAbsentChildPropAdultCarers = Params::get_double(params, pre_params, "Proportion of children at home for whom one adult also stays at home", 0, P);
@@ -2234,8 +2234,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		if (P->DoPlaces != 0)
 		{
 			P->KeyWorkerPopNum = Params::get_int(params, pre_params, "Number of key workers randomly distributed in the population", 0, P);
-			Params::get_int_vec(params, pre_params, "Number of key workers in different places by place type", P->KeyWorkerPlaceNum, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(params, pre_params, "Proportion of staff who are key workers per chosen place by place type", P->KeyWorkerPropInKeyPlaces, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+			Params::get_int_vec(params, pre_params, "Number of key workers in different places by place type", P->KeyWorkerPlaceNum, P->NumPlaceTypes, 0, MAX_NUM_PLACE_TYPES, P);
+			Params::get_double_vec(params, pre_params, "Proportion of staff who are key workers per chosen place by place type", P->KeyWorkerPropInKeyPlaces, P->NumPlaceTypes, 1, MAX_NUM_PLACE_TYPES, P);
 			P->KeyWorkerProphCellIncThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for key worker prophylaxis", 1000000000, P);
 			P->KeyWorkerProphTimeStartBase = Params::get_double(params, pre_params, "Key worker prophylaxis start time", USHRT_MAX / P->TimeStepsPerDay, P);
 			P->KeyWorkerProphDuration = Params::get_double(params, pre_params, "Duration of key worker prophylaxis", 0, P);

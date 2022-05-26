@@ -629,7 +629,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((PlaceSusceptibility == 1) || (ranf_mt(ThreadNum) < PlaceSusceptibility))
 											{
 												// explicitly cast to short to resolve level 4 warning
-												const short int infect_type = static_cast<short int> (2 + PlaceType + NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
+												const short int infect_type = static_cast<short int> (2 + PlaceType + MAX_NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
 												
 												AddInfections(ThreadNum, Hosts[PotentialInfectee_Hotel].pcell% P.NumThreads, InfectiousPersonIndex, PotentialInfectee_Hotel, infect_type);
 											} // susceptibility test
@@ -843,7 +843,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										if (Hosts[PotentialInfectee_Spatial].is_susceptible())
 										{
 											// explicitly cast to short to resolve level 4 warning
-											const short int infect_type = static_cast<short int>(2 + 2 * NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + PotentialInfector_Spatial->infect_type / INFECT_TYPE_MASK));
+											const short int infect_type = static_cast<short int>(2 + 2 * MAX_NUM_PLACE_TYPES + INFECT_TYPE_MASK * (1 + PotentialInfector_Spatial->infect_type / INFECT_TYPE_MASK));
 											
 											AddInfections(ThreadNum, CellQueue, PotentialInfector_Index, PotentialInfectee_Spatial, infect_type);
 										}
@@ -2052,9 +2052,9 @@ bool AddInfections(const int tn, const int infectee_cell_index, const int infect
 
 			// infect_type: first 4 bits store type of infection
 			//				1= household
-			//				2..NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
-			//				NUM_PLACE_TYPES+2..2*NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
-			//				2*NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
+			//				2..MAX_NUM_PLACE_TYPES+1 = within-class/work-group place based transmission
+			//				MAX_NUM_PLACE_TYPES+2..2*MAX_NUM_PLACE_TYPES+1 = between-class/work-group place based transmission
+			//				2*MAX_NUM_PLACE_TYPES+2 = "spatial" transmission (spatially local random mixing)
 			// bits >4 store the generation of infection
 
 			AddToInfectionQueue(tn, infectee_cell_index, infector_index, infectee_index, infect_type);

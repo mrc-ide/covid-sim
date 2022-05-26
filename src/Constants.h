@@ -1,6 +1,8 @@
 #ifndef COVIDSIM_CONSTANTS_H_INCLUDED_
 #define COVIDSIM_CONSTANTS_H_INCLUDED_
 
+#include "Country.h"
+
 /**
  * Math constant defined as the ratio of a circle's circumference to its diameter.
  *
@@ -108,12 +110,12 @@ const int MAX_NUM_CFR_CHANGE_TIMES = 100; /**< To allow IFR to scale over time. 
 #define _I64(x) static_cast<int64_t>(x)
 
 // Settings (numbers not arbitrary - don't change without checking)
-const int PrimarySchool		= 0; 
-const int SecondarySchool	= 1; 
-const int University		= 2; 
-const int Workplace			= 3; 
-const int House				= 4;
-const int Spatial			= 5;  // community
+// const int PrimarySchool		= 0; 
+// const int SecondarySchool	= 1; 
+// const int University		= 2; 
+// const int Workplace			= 3; 
+const int House				= MAX_NUM_PLACE_TYPES;      // Max number of potential place types.
+const int Spatial			= MAX_NUM_PLACE_TYPES + 1;  // community
 
 // NPIs
 const int CaseIsolation				= 0;
