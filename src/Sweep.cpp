@@ -1472,7 +1472,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (treatment)?
-				bool TrigThreshReached_Treatment = 0; 
+				bool TrigThreshReached_Treatment = false; 
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_Treatment = (global_trig >= P.TreatCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1495,7 +1495,7 @@ int TreatSweep(double t)
 					int NearbyMCell	= mcellnum; // initialize NearbyMCell to mcellnum
 					int PeopleRequiringRadialProphylaxis = 0;
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					if ((!P.TreatByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1505,7 +1505,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool TreatThisMicroCell = 0; 
+								bool TreatThisMicroCell = false; 
 								if (P.TreatByAdminUnit)
 									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.TreatAdminUnitDivisor == ad2);
 								else
@@ -1571,7 +1571,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (vaccination)?
-				bool TrigThreshReached_Vacc = 0;
+				bool TrigThreshReached_Vacc = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_Vacc = (global_trig >= P.VaccCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1593,7 +1593,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillVaccinating = 0, StillVaccinating = 1;
+					bool AskAgainIfStillVaccinating = false, StillVaccinating = true;
 
 					if ((!P.VaccByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1603,7 +1603,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool VaccinateThisMicroCell = 0;
+								bool VaccinateThisMicroCell = false;
 								if (P.VaccByAdminUnit)
 								{
 									VaccinateThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.VaccAdminUnitDivisor == ad2);
@@ -1654,7 +1654,7 @@ int TreatSweep(double t)
 				// Has off-trigger threshold been reached? I.e. so places can open again?
 				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
 
-				bool BelowTrigThreshold_PlaceOpen = 0;
+				bool BelowTrigThreshold_PlaceOpen = false;
 				if (P.DoGlobalTriggers)
 					BelowTrigThreshold_PlaceOpen = (global_trig < P.PlaceCloseCellIncStopThresh);
 				else if (P.DoAdminTriggers)
@@ -1691,7 +1691,7 @@ int TreatSweep(double t)
 				{
 					///// note that here TrigThreshReached_PlaceClosure bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
 
-					bool TrigThreshReached_PlaceClosure = 0;
+					bool TrigThreshReached_PlaceClosure = false;
 					if (P.DoGlobalTriggers)
 						TrigThreshReached_PlaceClosure = (global_trig >= P.PlaceCloseCellIncThresh);
 					else if (P.DoAdminTriggers)
@@ -1761,7 +1761,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (movement restriction)?
-				bool TrigThreshReached_MoveRestrict = 0;
+				bool TrigThreshReached_MoveRestrict = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_MoveRestrict = (global_trig >= P.MoveRestrCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1783,7 +1783,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					if ((!P.MoveRestrByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1793,7 +1793,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool TreatThisMicroCell = 0;
+								bool TreatThisMicroCell = false;
 								if (P.MoveRestrByAdminUnit)
 									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 								else
@@ -1838,7 +1838,7 @@ int TreatSweep(double t)
 				// Has off-trigger threshold been reached? i.e. so social distancing can stop?
 				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to start social distancing..
 
-				bool BelowTrigThreshold_SocDist = 0;
+				bool BelowTrigThreshold_SocDist = false;
 				if (P.DoGlobalTriggers)
 					BelowTrigThreshold_SocDist = (global_trig < P.SocDistCellIncStopThresh);
 				else if (P.DoAdminTriggers)
@@ -1867,7 +1867,7 @@ int TreatSweep(double t)
 				}
 
 				///// note that here TrigThreshReached_SocDist bool asks whether trigger has exceeded threshold in order to social distance for first time. A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
-				bool TrigThreshReached_SocDist = 0;
+				bool TrigThreshReached_SocDist = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_SocDist = (global_trig >= P.SocDistCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1919,7 +1919,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (KeyWorkerProph)?
-				bool TrigThreshReached_KeyWorkerProph = 0;
+				bool TrigThreshReached_KeyWorkerProph = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_KeyWorkerProph = (global_trig >= P.KeyWorkerProphCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1941,7 +1941,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					do
 					{
