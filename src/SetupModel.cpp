@@ -392,7 +392,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		if (P.DoAdUnits)
 		{
 			for (int i = 0; i < P.NumAdunits; i++) AdUnits[i].NP = 0;
-			for (int j = 0; j < P.PlaceTypeNum; j++)
+			for (int j = 0; j < P.NumPlaceTypes; j++)
 				if (P.PlaceCloseAdunitPlaceTypes[j] > 0)
 				{
 					for (int k = 0; k < P.Nplace[j]; k++)
@@ -647,7 +647,7 @@ void InitTransmissionCoeffs(void)
 	double SpatialInfections = 0; // total number of spatial infections summed over entire population in #pragma loop below.
 	double PlaceInfections = 0; // total number of place infections (and all place types) summed over entire population in #pragma loop below
 
-	double HH_Infectiousness = 0; /// Household infectiousness
+	double Household_Infectiousness = 0; /// Household infectiousness
 	double Spatial_Infectiousness = 0; /// Household infectiousness
 	double Place_Infectiousness = 0;
 
@@ -663,7 +663,7 @@ void InitTransmissionCoeffs(void)
 
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
-#pragma omp parallel for private(HH_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
+#pragma omp parallel for private(Household_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
 	for (int Thread = 0; Thread < P.NumThreads; Thread++) // loop over threads
 	{
 		for (int Person = Thread; Person < P.PopSize; Person += P.NumThreads) // loop over people
@@ -698,16 +698,16 @@ void InitTransmissionCoeffs(void)
 			{
 				// choose multiplier of infectiousness
 				if (P.NoInfectiousnessSDinHH)
-					HH_Infectiousness = ((Hosts[Person].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
+					Household_Infectiousness = ((Hosts[Person].infectiousness < 0) ? P.SymptInfectiousness : P.AsymptInfectiousness);
 				else
-					HH_Infectiousness = fabs(Hosts[Person].infectiousness);
+					Household_Infectiousness = fabs(Hosts[Person].infectiousness);
 				// Care home residents less likely to infect via "household" contacts.
-				if (Hosts[Person].care_home_resident) HH_Infectiousness *= P.CareHomeResidentHouseholdScaling;
-				HH_Infectiousness *= P.ModelTimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[Person].hh].nhr - 1];
+				if (Hosts[Person].care_home_resident) Household_Infectiousness *= P.CareHomeResidentHouseholdScaling;
+				Household_Infectiousness *= P.ModelTimeStep * P.HouseholdTrans * P.HouseholdDenomLookup[Households[Hosts[Person].hh].nhr - 1];
 				ProbSurvive = 1.0;
 				for (int InfectiousDay = 0; InfectiousDay < (int)Hosts[Person].recovery_or_death_time; InfectiousDay++) // loop over days adding to force of infection, probability that other household members will be infected.
 				{ 
-					double ProbSurviveToday = 1.0 - HH_Infectiousness * P.infectiousness[InfectiousDay];
+					double ProbSurviveToday = 1.0 - Household_Infectiousness * P.infectiousness[InfectiousDay];
 					ProbSurvive *= ((ProbSurviveToday < 0) ? 0 : ProbSurviveToday);
 				}
 
@@ -760,7 +760,7 @@ void InitTransmissionCoeffs(void)
 	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
 	// ** // ** Place Infections
 	if (P.DoPlaces)
-		for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+		for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 			if (PlaceType != P.HotelPlaceType)
 			{
 				double PreviousTotalPlaceInfections = PlaceInfections;
@@ -1424,7 +1424,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	Files::xfprintf_stderr("Allocating place/age groups...\n");
 	for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
 	{
-		for (l = 0; l < P.PlaceTypeNum; l++)
+		for (l = 0; l < P.NumPlaceTypes; l++)
 		{
 			PropPlaces[k][l] = PropPlacesC[k][l] = 0.0;
 			if ((k < P.PlaceTypeAgeMax[l]) && (k >= P.PlaceTypeAgeMin[l]))
@@ -1440,7 +1440,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		}
 	}
 	/*
-		for(l=0;l<P.PlaceTypeNum;l++)
+		for(l=0;l<P.NumPlaceTypes;l++)
 			{
 			for(k=0;k<NUM_AGE_GROUPS*AGE_GROUP_WIDTH;k++)
 				Files::xfprintf_stderr("%i:%lg ",k,PropPlaces[k][l]);
@@ -1454,7 +1454,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		Memory::xfree(State.InvAgeDist);
 	*/	P.nsp = 0;
 	if (P.DoPlaces)
-		Places = (Place **)Memory::xcalloc(P.PlaceTypeNum, sizeof(Place*));
+		Places = (Place **)Memory::xcalloc(P.NumPlaceTypes, sizeof(Place*));
 	if (!school_file.empty() && (P.DoPlaces))
 	{
 		Files::xfprintf_stderr("Reading school file\n");
@@ -1523,7 +1523,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 #pragma omp parallel for private(j2,j,t,m,s,x,y,xh,yh) schedule(static,1) default(none) \
 			shared(P, Hosts, Places, PropPlaces, Mcells, maxd, last_i, mcell_country, stderr_shared)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (j2 = P.nsp + tn; j2 < P.PlaceTypeNum; j2 += P.NumThreads)
+			for (j2 = P.nsp + tn; j2 < P.NumPlaceTypes; j2 += P.NumThreads)
 			{
 				t = 0;
 				P.PlaceTypeMaxAgeRead[j2] = 0;
@@ -1564,7 +1564,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				}
 			}
 		for (int k = 0; k < NUM_AGE_GROUPS * AGE_GROUP_WIDTH; k++)
-			for (l = 1; l < P.PlaceTypeNum; l++)
+			for (l = 1; l < P.NumPlaceTypes; l++)
 				if (l != P.HotelPlaceType)
 				{
 					if (PropPlacesC[k][l - 1] < 1)
@@ -1572,7 +1572,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 					else if (PropPlaces[k][l] != 0)
 						PropPlaces[k][l] = 1.0;
 				}
-/*		for (j2 = 0; j2 < P.PlaceTypeNum; j2++)
+/*		for (j2 = 0; j2 < P.NumPlaceTypes; j2++)
 			for (i =0; i < P.NumMicrocells; i++)
 				if ((Mcells[i].NumPlacesByType[j2]>0) && (Mcells[i].n == 0))
 					Files::xfprintf_stderr("\n##~ %i %i %i \n", i, j2, Mcells[i].NumPlacesByType[j2]);
@@ -1648,7 +1648,7 @@ void SetupAirports(void)
 
 	Files::xfprintf_stderr("Assigning airports to microcells\n");
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.NumPlaceTypes)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	P.Kernel = P.AirportKernel;
 	P.KernelLookup.init(1.0, P.Kernel);
@@ -2010,13 +2010,13 @@ void AssignPeopleToPlaces()
 		//PropPlaces initialisation is only valid for non-overlapping places.
 		for (int i = 0; i < P.PopSize; i++)
 		{
-			for (tp = 0; tp < npt; tp++) //Changed from 'for(tp=0;tp<P.PlaceTypeNum;tp++)' to try and assign -1 early and avoid problems when using less than the default number of placetypes later
+			for (tp = 0; tp < npt; tp++) //Changed from 'for(tp=0;tp<P.NumPlaceTypes;tp++)' to try and assign -1 early and avoid problems when using less than the default number of placetypes later
 			{
 				Hosts[i].PlaceLinks[tp] = -1;
 			}
 		}
 
-		for (tp = 0; tp < P.PlaceTypeNum; tp++)
+		for (tp = 0; tp < P.NumPlaceTypes; tp++)
 		{
 			if (tp != P.HotelPlaceType)
 			{
@@ -2475,13 +2475,13 @@ void StratifyPlaces(void)
 		for (int i = 0; i < P.PopSize; i++)
 			for (int j = 0; j < NUM_PLACE_TYPES; j++)
 				Hosts[i].PlaceGroupLinks[j] = 0;
-		for (int j = 0; j < P.PlaceTypeNum; j++)
+		for (int j = 0; j < P.NumPlaceTypes; j++)
 			for (int i = 0; i < P.Nplace[j]; i++)
 				Places[j][i].n = 0;
 #pragma omp parallel for schedule(static,1) default(none) \
 			shared(P, Places, Hosts)
 		for (int tn = 0; tn < P.NumThreads; tn++)
-			for (int j = tn; j < P.PlaceTypeNum; j += P.NumThreads)
+			for (int j = tn; j < P.NumPlaceTypes; j += P.NumThreads)
 			{
 				if (j == P.HotelPlaceType)
 				{
@@ -2557,7 +2557,7 @@ void StratifyPlaces(void)
 			shared(P, Places, StateT)
 		for (int i = 0; i < P.NumThreads; i++)
 		{
-			for (int k = 0; k < P.PlaceTypeNum; k++)
+			for (int k = 0; k < P.NumPlaceTypes; k++)
 			{
 				if (P.DoPlaceGroupTreat)
 				{
@@ -2576,7 +2576,7 @@ void StratifyPlaces(void)
 		}
 		Files::xfprintf_stderr("Groups initialised\n");
 		/*		s2=t2=0;
-				for(j=0;j<P.PlaceTypeNum;j++)
+				for(j=0;j<P.NumPlaceTypes;j++)
 					{
 					t=s=0;
 					for(i=0;i<P.Nplace[j];i++)
@@ -2592,7 +2592,7 @@ void StratifyPlaces(void)
 					}
 				t=0;
 				for(i=0;i<P.PopSize;i++)
-					for(j=0;j<P.PlaceTypeNum;j++)
+					for(j=0;j<P.NumPlaceTypes;j++)
 						if(Hosts[i].PlaceLinks[j]>=0)
 							t+=(double) Places[j][Hosts[i].PlaceLinks[j]].group_size[Hosts[i].PlaceGroupLinks[j]];
 				Files::xfprintf_stderr("Overall mean group size = %lg (%lg)\n",t/((double) P.PopSize),t2/s2);
@@ -2627,7 +2627,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	}
 	k = (P.PopSize + 999999) / 1000000;
 	for (i = 0; i < P.PopSize; i++)
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			Hosts[i].PlaceLinks[j] = -1;
 	for (i = i2 = 0; i < k; i++)
 	{
@@ -2653,7 +2653,7 @@ void LoadPeopleToPlaces(std::string const& load_network_file)
 	/*	for(i=0;i<P.PopSize;i++)
 			{
 			if((i+1)%100000==0) Files::xfprintf_stderr("%i loaded            \r",i+1);
-			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.PlaceTypeNum,dat);
+			fread_big(&(Hosts[i].PlaceLinks[0]),sizeof(int),P.NumPlaceTypes,dat);
 			}
 	*/	Files::xfprintf_stderr("\n");
 	Files::xfclose(dat);
@@ -2668,7 +2668,7 @@ void SavePeopleToPlaces(std::string const& save_network_file)
 	dat = Files::xfopen(save_network_file.c_str(), "wb");
 	Files::fwrite_big(&fileversion, sizeof(fileversion), 1, dat);
 
-	if (P.PlaceTypeNum > 0)
+	if (P.NumPlaceTypes > 0)
 	{
 		Files::fwrite_big(&npt, sizeof(int), 1, dat);
 		Files::fwrite_big(&(P.PopSize), sizeof(int), 1, dat);

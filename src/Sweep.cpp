@@ -1,4 +1,4 @@
-#include <climits>
+	#include <climits>
 #include <cmath>
 #include <cstdlib>
 
@@ -26,7 +26,7 @@ void TravelReturnSweep(double t)
 	int l, nr, ner;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.NumPlaceTypes)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t + P.ModelTimeStep) != floor(1 + t))
 	{
@@ -80,7 +80,7 @@ void TravelDepartSweep(double t)
 	double nl;
 
 	// Convince static analysers that values are set correctly:
-	if (!(P.DoAirports && P.HotelPlaceType < P.PlaceTypeNum)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
+	if (!(P.DoAirports && P.HotelPlaceType < P.NumPlaceTypes)) ERR_CRITICAL("DoAirports || HotelPlaceType not set\n");
 
 	if (floor(1 + t - P.ModelTimeStep) != floor(1 + t))
 	{
@@ -290,9 +290,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	//// Susceptibility is (broadly) a function of 2 people (a person's susceptibility TO ANOTHER PERSON / potential infector)
 	//// After loop 1a) over infectious people, spatial infections are doled out.
 
-	int CellQueue /*cell queue*/;
-	//// various quantities of force of infection, including "infectiousness" and "susceptibility" components
-
+	int CellQueue;
 	unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t); // TimeStepNow = the timestep number of the start of the current day
 	double fp					= P.ModelTimeStep / (1 - P.FalsePositiveRate); // fp = false positive
 	double seasonality			= (P.DoSeasonality) ? (P.Seasonality[((int)t) % DAYS_PER_YEAR]) : 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
@@ -327,8 +325,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				// AND Day number (t) is less than the end day for contact tracing in this administrative unit (ie. contact tracing has not ended)
 				// AND the selected host is a digital contact tracing user
 				// otherwise DigiContactTrace_ThisPersonNow = 0
-				int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
-				&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
+				bool DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
+					&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
 				
@@ -344,27 +342,27 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 						// calculate person's infectiousness at household-level
 						// using the CalcHouseInf function on the selected cell and timestamp at start of current day
 						// then scaling by Household_Beta
-						double HH_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, TimeStepNow);
+						double Household_Infectiousness = Household_Beta * CalcHouseInf(InfectiousPersonIndex, TimeStepNow);
 
 						// Test if any of the individuals in the selected persons household are absent from places
-						int AtLeastOnePersonAbsent = 0; // initialise to 0
+						bool AtLeastOnePersonAbsent = false;
 						for (int HouseholdMember = FirstHouseholdMember; (HouseholdMember < LastHouseholdMember) && (!AtLeastOnePersonAbsent); HouseholdMember++) //// loop over household memberts
-							for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!AtLeastOnePersonAbsent); PlaceType++) //// loop over place types
+							for (int PlaceType = 0; (PlaceType < P.NumPlaceTypes) && (!AtLeastOnePersonAbsent); PlaceType++) //// loop over place types
 								if (Hosts[HouseholdMember].PlaceLinks[PlaceType] >= 0) //// if person in household has any sort of link to place type
 									AtLeastOnePersonAbsent = ((PLACE_CLOSED(PlaceType, Hosts[HouseholdMember].PlaceLinks[PlaceType])) && (HOST_ABSENT(HouseholdMember)));
 
-						// if individuals in the household are absent from places (ie. AtLeastOnePersonAbsent from test immediately above), scale up the infectiousness (HH_Infectiousness) of the household
-						if (AtLeastOnePersonAbsent) { HH_Infectiousness *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
+						// if individuals in the household are absent from places (ie. AtLeastOnePersonAbsent from test immediately above), scale up the infectiousness (Household_Infectiousness) of the household
+						if (AtLeastOnePersonAbsent) { Household_Infectiousness *= P.PlaceCloseHouseholdRelContact; }/* NumPCD++;}*/ //// if people in your household are absent from places, person InfectiousPerson/InfectiousPersonIndex is more infectious to them, as they spend more time at home.
 						
 						// Loop over household members
 						for (int HouseholdMember = FirstHouseholdMember; HouseholdMember < LastHouseholdMember; HouseholdMember++) //// loop over all people in household 
 						{
 							if (Hosts[HouseholdMember].is_susceptible() && (!Hosts[HouseholdMember].Travelling)) //// if people in household uninfected/susceptible and not travelling
 							{
-								double HH_FOI = HH_Infectiousness * CalcHouseSusc(HouseholdMember, TimeStepNow, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
+								double Household_FOI = Household_Infectiousness * CalcHouseSusc(HouseholdMember, TimeStepNow, InfectiousPersonIndex);		//// Household force of infection (FOI = infectiousness x susceptibility) from person InfectiousPersonIndex/InfectiousPerson on fellow household member
 								
-								// Force of Infection (HH_FOI) > random value between 0 and 1
-								if (ranf_mt(ThreadNum) < HH_FOI)
+								// Force of Infection (Household_FOI) > random value between 0 and 1
+								if (ranf_mt(ThreadNum) < Household_FOI)
 								{
 									// explicitly cast to short to resolve level 4 warning
 									const short int infect_type = static_cast<short int>(1 + INFECT_TYPE_MASK * (1 + InfectiousPerson->infect_type / INFECT_TYPE_MASK));
@@ -385,7 +383,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					{
 						// select microcell (Microcell_ThisPerson) corresponding to selected InfectiousPerson
 						Microcell* Microcell_ThisPerson = Mcells + InfectiousPerson->mcell;
-						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++) //// loop over all place types
+						for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++) //// loop over all place types
 						{
 							// select PlaceLink between selected InfectiousPerson and place from InfectiousPerson's placelinks to place type PlaceType
 							int PlaceLink = InfectiousPerson->PlaceLinks[PlaceType];
@@ -673,7 +671,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 
 											 // If place functionality switched on
 					if (P.DoPlaces)
-						for (int PlaceType = 0; (PlaceType < P.PlaceTypeNum) && (!PlaceClosedFlag); PlaceType++) // loop over place types until closed place is found
+						for (int PlaceType = 0; (PlaceType < P.NumPlaceTypes) && (!PlaceClosedFlag); PlaceType++) // loop over place types until closed place is found
 							if (InfectiousPerson->PlaceLinks[PlaceType] >= 0) //// if person has a link to place of type PlaceType...
 								PlaceClosedFlag = PLACE_CLOSED(PlaceType, InfectiousPerson->PlaceLinks[PlaceType]); //// find out if that place of type PlaceType is closed.
 
@@ -747,7 +745,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					Person* PotentialInfector_Spatial = Hosts + PotentialInfector_Index;
 
 					//calculate flag (DigiContactTrace_ThisPersonNow) for digital contact tracing here at the beginning for each individual infector
-					int DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart)
+					bool DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart)
 						&& (t < AdUnits[Mcells[PotentialInfector_Spatial->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[PotentialInfector_Index].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[PotentialInfector_Spatial].detected_time + P.usCaseIsolationDelay)));
 
 					//// decide on infectee
@@ -832,7 +830,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 										Spatial_Susc *= P.MoveRestrEffect;
 									if ((!InfectorPlaceClosedFlag) && (HOST_ABSENT(PotentialInfectee_Spatial))) //// if infector did not have place closed, loop over place types of PotentialInfectee_Spatial to see if their places had closed. If they had, amend their susceptibility.
 									{
-										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.PlaceTypeNum) && (!KeepSearchingForCellToInfect); PlaceType++)
+										for (int PlaceType = KeepSearchingForCellToInfect = 0; (PlaceType < P.NumPlaceTypes) && (!KeepSearchingForCellToInfect); PlaceType++)
 											if (Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType] >= 0)
 												KeepSearchingForCellToInfect = PLACE_CLOSED(PlaceType, Hosts[PotentialInfectee_Spatial].PlaceLinks[PlaceType]);
 										if (KeepSearchingForCellToInfect) { Spatial_Susc *= P.PlaceCloseSpatialRelContact; }/* NumPCD++;} */
@@ -895,7 +893,7 @@ void IncubRecoverySweep(double t)
 			if ((t + P.ModelTimeStep >= ht) && (t < ht))
 			{
 //				Files::xfprintf_stderr("Holiday %HolidayNumber t=%lg\n", HolidayNumber, t);
-				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 				{
 #pragma omp parallel for schedule(static,1) default(none) shared(P, Places, Hosts, HolidayNumber, PlaceType, ht)
 					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
@@ -1342,13 +1340,12 @@ int TreatSweep(double t)
 	unsigned short int t_KeyWorkerPlaceClosure_End;									////  time-step key worker place closure finish
 	double radius;
 
-	int global_trig;
+	int global_trig = 0;
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)	global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else						global_trig = State.trigDetectedCases;
 	}
-	else							global_trig = 0;
 
 	///// block loops over places (or place groups if P.DoPlaceGroupTreat == 1) and determines whom to prophylactically treat
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
@@ -1358,7 +1355,7 @@ int TreatSweep(double t)
 #pragma omp parallel for private(TreatFlag) reduction(+:TreatFlag1) schedule(static,1) default(none) \
 			shared(P, StateT, Places, Hosts, TimeStepNow, t_TreatEnd)
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
-			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 			{
 				for (int PlaceNumQueueIndex = 0; PlaceNumQueueIndex < StateT[Thread].np_queue[PlaceType]; PlaceNumQueueIndex++) //// loop over all places IN QUEUE, not all a places
 				{
@@ -1475,7 +1472,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (treatment)?
-				bool TrigThreshReached_Treatment = 0; 
+				bool TrigThreshReached_Treatment = false; 
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_Treatment = (global_trig >= P.TreatCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1498,7 +1495,7 @@ int TreatSweep(double t)
 					int NearbyMCell	= mcellnum; // initialize NearbyMCell to mcellnum
 					int PeopleRequiringRadialProphylaxis = 0;
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					if ((!P.TreatByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1508,7 +1505,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool TreatThisMicroCell = 0; 
+								bool TreatThisMicroCell = false; 
 								if (P.TreatByAdminUnit)
 									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.TreatAdminUnitDivisor == ad2);
 								else
@@ -1574,7 +1571,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (vaccination)?
-				bool TrigThreshReached_Vacc = 0;
+				bool TrigThreshReached_Vacc = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_Vacc = (global_trig >= P.VaccCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1596,7 +1593,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum;  // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillVaccinating = 0, StillVaccinating = 1;
+					bool AskAgainIfStillVaccinating = false, StillVaccinating = true;
 
 					if ((!P.VaccByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1606,7 +1603,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool VaccinateThisMicroCell = 0;
+								bool VaccinateThisMicroCell = false;
 								if (P.VaccByAdminUnit)
 								{
 									VaccinateThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.VaccAdminUnitDivisor == ad2);
@@ -1657,7 +1654,7 @@ int TreatSweep(double t)
 				// Has off-trigger threshold been reached? I.e. so places can open again?
 				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to close places for first time.
 
-				bool BelowTrigThreshold_PlaceOpen = 0;
+				bool BelowTrigThreshold_PlaceOpen = false;
 				if (P.DoGlobalTriggers)
 					BelowTrigThreshold_PlaceOpen = (global_trig < P.PlaceCloseCellIncStopThresh);
 				else if (P.DoAdminTriggers)
@@ -1684,7 +1681,7 @@ int TreatSweep(double t)
 					Mcells[mcellnum].place_trig		= 0;
 
 					if (BelowTrigThreshold_PlaceOpen)
-						for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+						for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 							if (PlaceType != P.HotelPlaceType)
 								for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 									DoPlaceOpen(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow);
@@ -1694,7 +1691,7 @@ int TreatSweep(double t)
 				{
 					///// note that here TrigThreshReached_PlaceClosure bool asks whether trigger has exceeded threshold in order to close places for first time.A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
 
-					bool TrigThreshReached_PlaceClosure = 0;
+					bool TrigThreshReached_PlaceClosure = false;
 					if (P.DoGlobalTriggers)
 						TrigThreshReached_PlaceClosure = (global_trig >= P.PlaceCloseCellIncThresh);
 					else if (P.DoAdminTriggers)
@@ -1730,7 +1727,7 @@ int TreatSweep(double t)
 
 								Mcells[mcellnum].place_trig = 0;
 								Mcells[mcellnum].placeclose = TreatStat::Treated;
-								for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+								for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 									if (PlaceType != P.HotelPlaceType)
 										for (int PlaceNumber = 0; PlaceNumber < Mcells[mcellnum].NumPlacesByType[PlaceType]; PlaceNumber++)
 											DoPlaceClose(PlaceType, Mcells[mcellnum].places[PlaceType][PlaceNumber], TimeStepNow, ThreadNum, 1);
@@ -1764,7 +1761,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (movement restriction)?
-				bool TrigThreshReached_MoveRestrict = 0;
+				bool TrigThreshReached_MoveRestrict = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_MoveRestrict = (global_trig >= P.MoveRestrCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1786,7 +1783,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					if ((!P.MoveRestrByAdminUnit) || (AdminUnit > 0))
 					{
@@ -1796,7 +1793,7 @@ int TreatSweep(double t)
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
 							if (P.is_in_bounds(Nearby_mcellposition))
 							{
-								bool TreatThisMicroCell = 0;
+								bool TreatThisMicroCell = false;
 								if (P.MoveRestrByAdminUnit)
 									TreatThisMicroCell = (AdUnits[Mcells[NearbyMCell].adunit].id / P.MoveRestrAdminUnitDivisor == ad2);
 								else
@@ -1841,7 +1838,7 @@ int TreatSweep(double t)
 				// Has off-trigger threshold been reached? i.e. so social distancing can stop?
 				///// note that here question is whether trigger lower than stop threshold. A few blocks down meaning changes to almost the opposite: asking whether trigger has exceeded threshold in order to start social distancing..
 
-				bool BelowTrigThreshold_SocDist = 0;
+				bool BelowTrigThreshold_SocDist = false;
 				if (P.DoGlobalTriggers)
 					BelowTrigThreshold_SocDist = (global_trig < P.SocDistCellIncStopThresh);
 				else if (P.DoAdminTriggers)
@@ -1870,7 +1867,7 @@ int TreatSweep(double t)
 				}
 
 				///// note that here TrigThreshReached_SocDist bool asks whether trigger has exceeded threshold in order to social distance for first time. A few blocks up meaning was almost the opposite: asking whether trigger lower than stop threshold.
-				bool TrigThreshReached_SocDist = 0;
+				bool TrigThreshReached_SocDist = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_SocDist = (global_trig >= P.SocDistCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1922,7 +1919,7 @@ int TreatSweep(double t)
 				}
 
 				// Has trigger threshold been reached (KeyWorkerProph)?
-				bool TrigThreshReached_KeyWorkerProph = 0;
+				bool TrigThreshReached_KeyWorkerProph = false;
 				if (P.DoGlobalTriggers)
 					TrigThreshReached_KeyWorkerProph = (global_trig >= P.KeyWorkerProphCellIncThresh);
 				else if (P.DoAdminTriggers)
@@ -1944,7 +1941,7 @@ int TreatSweep(double t)
 
 					int NearbyMCell = mcellnum; // initialize NearbyMCell to mcellnum
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
-					bool AskAgainIfStillTreating = 0, StillTreating = 1;
+					bool AskAgainIfStillTreating = false, StillTreating = true;
 
 					do
 					{

@@ -1061,7 +1061,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	if (P.DoPlaces)
 #pragma omp parallel for schedule(static,1) default(none) \
 			shared(P, Places)
-		for (int m = 0; m < P.PlaceTypeNum; m++)
+		for (int m = 0; m < P.NumPlaceTypes; m++)
 		{
 			for(int l = 0; l < P.Nplace[m]; l++)
 			{
@@ -1082,14 +1082,14 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.SocDistDurationCurrent			= P.SocDistDuration;
 	P.SocDistSpatialEffectCurrent		= P.SD_SpatialEffects_OverTime	[0];				//// spatial
 	P.SocDistHouseholdEffectCurrent		= P.SD_HouseholdEffects_OverTime[0];				//// household
-	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 		P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[0][PlaceType];	//// place
 	P.SocDistCellIncThresh				= P.SD_CellIncThresh_OverTime	[0];				//// cell incidence threshold
 
 	//// **** enhanced soc dist
 	P.EnhancedSocDistSpatialEffectCurrent		= P.Enhanced_SD_SpatialEffects_OverTime		[0];	//// spatial
 	P.EnhancedSocDistHouseholdEffectCurrent		= P.Enhanced_SD_HouseholdEffects_OverTime	[0];	//// household
-	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 		P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[0][PlaceType];	//// place
 
 	//// **** case isolation
@@ -1102,7 +1102,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// **** household quarantine
 	P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime	[0];	//// spatial
 	P.HQuarantineHouseEffect	= P.HQ_HouseholdEffects_OverTime[0];	//// household
-	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 		P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[0][PlaceType];	//// place
 	P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[0]; //// individual compliance
 	P.HQuarantinePropHouseCompliant = P.HQ_Household_PropComply_OverTime	[0]; //// household compliance
@@ -1112,7 +1112,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// **** place closure
 	P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[0];			//// spatial
 	P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[0];			//// household
-	for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+	for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 	{
 		P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[0][PlaceType];	//// place
 		P.PlaceClosePropAttending[PlaceType] = P.PC_PropAttending_OverTime[0][PlaceType];
@@ -1138,7 +1138,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	for (int i = 0; i < MAX_NUM_THREADS; i++)
 	{
 		for (int j = 0; j < MAX_NUM_THREADS; j++)	StateT[i].n_queue[j] = 0;
-		for (int j = 0; j < P.PlaceTypeNum; j++)	StateT[i].np_queue[j] = 0;
+		for (int j = 0; j < P.NumPlaceTypes; j++)	StateT[i].np_queue[j] = 0;
 		StateT[i].host_closure_queue_size = 0;
 	}
 	if (DoInitUpdateProbs)
@@ -1500,7 +1500,7 @@ void SaveDistribs(std::string const& output_file_base)
 
 	if (P.DoPlaces)
 	{
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			if (j != P.HotelPlaceType)
 			{
 				for (i = 0; i < P.Nplace[j]; i++)
@@ -1513,11 +1513,11 @@ void SaveDistribs(std::string const& output_file_base)
 						Places[j][Hosts[i].PlaceLinks[j]].n++;
 				}
 			}
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			for (i = 0; i < MAX_DIST; i++)
 				PlaceDistDistrib[j][i] = 0;
 		for (i = 0; i < P.PopSize; i++)
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (j = 0; j < P.NumPlaceTypes; j++)
 				if ((j != P.HotelPlaceType) && (Hosts[i].PlaceLinks[j] >= 0))
 				{
 					if (Hosts[i].PlaceLinks[j] >= P.Nplace[j])
@@ -1531,10 +1531,10 @@ void SaveDistribs(std::string const& output_file_base)
 						if (k < MAX_DIST) PlaceDistDistrib[j][k]++;
 					}
 				}
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			for (i = 0; i < MAX_PLACE_SIZE; i++)
 				PlaceSizeDistrib[j][i] = 0;
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			if (j != P.HotelPlaceType)
 				for (i = 0; i < P.Nplace[j]; i++)
 					if (Places[j][i].n < MAX_PLACE_SIZE)
@@ -1542,14 +1542,14 @@ void SaveDistribs(std::string const& output_file_base)
 		outname = output_file_base + ".placedist.xls";
 		dat = Files::xfopen(outname.c_str(), "wb");
 		Files::xfprintf(dat, "dist");
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			if (j != P.HotelPlaceType)
 				Files::xfprintf(dat, "\tfreq_p%i", j);
 		Files::xfprintf(dat, "\n");
 		for (i = 0; i < MAX_DIST; i++)
 		{
 			Files::xfprintf(dat, "%i", i);
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (j = 0; j < P.NumPlaceTypes; j++)
 				if (j != P.HotelPlaceType)
 					Files::xfprintf(dat, "\t%i", PlaceDistDistrib[j][i]);
 			Files::xfprintf(dat, "\n");
@@ -1558,14 +1558,14 @@ void SaveDistribs(std::string const& output_file_base)
 		outname = output_file_base + ".placesize.xls";
 		dat = Files::xfopen(outname.c_str(), "wb");
 		Files::xfprintf(dat, "size");
-		for (j = 0; j < P.PlaceTypeNum; j++)
+		for (j = 0; j < P.NumPlaceTypes; j++)
 			if (j != P.HotelPlaceType)
 				Files::xfprintf(dat, "\tfreq_p%i", j);
 		Files::xfprintf(dat, "\n");
 		for (i = 0; i < MAX_PLACE_SIZE; i++)
 		{
 			Files::xfprintf(dat, "%i", i);
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (j = 0; j < P.NumPlaceTypes; j++)
 				if (j != P.HotelPlaceType)
 					Files::xfprintf(dat, "\t%i", PlaceSizeDistrib[j][i]);
 			Files::xfprintf(dat, "\n");
@@ -2834,13 +2834,13 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			//// **** non-enhanced
 			P.SocDistHouseholdEffectCurrent = P.SD_HouseholdEffects_OverTime[ChangeTime];	//// household
 			P.SocDistSpatialEffectCurrent	= P.SD_SpatialEffects_OverTime	[ChangeTime];	//// spatial
-			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 				P.SocDistPlaceEffectCurrent[PlaceType] = P.SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
 
 			//// **** enhanced
 			P.EnhancedSocDistHouseholdEffectCurrent = P.Enhanced_SD_HouseholdEffects_OverTime	[ChangeTime];	//// household
 			P.EnhancedSocDistSpatialEffectCurrent	= P.Enhanced_SD_SpatialEffects_OverTime		[ChangeTime];	//// spatial
-			for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 				P.EnhancedSocDistPlaceEffectCurrent[PlaceType] = P.Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType]; ///// place
 
 			P.SocDistCellIncThresh = P.SD_CellIncThresh_OverTime[ChangeTime];				//// cell incidence threshold
@@ -2864,7 +2864,7 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			{
 				P.HQuarantineSpatialEffect	= P.HQ_SpatialEffects_OverTime				[ChangeTime];				//// spatial
 				P.HQuarantineHouseEffect 	= P.HQ_HouseholdEffects_OverTime			[ChangeTime];				//// household
-				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 					P.HQuarantinePlaceEffect[PlaceType] = P.HQ_PlaceEffects_OverTime	[ChangeTime][PlaceType];	//// place
 
 				P.HQuarantinePropIndivCompliant = P.HQ_Individual_PropComply_OverTime	[ChangeTime]; //// individual compliance
@@ -2881,7 +2881,7 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 			{
 				//// First open all the places - keep commented out in case becomes necessary but avoid if possible to avoid runtime costs.
 //				unsigned short int TimeStepNow = (unsigned short int) (P.TimeStepsPerDay * t);
-//				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+//				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 //#pragma omp parallel for schedule(static,1)
 //					for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 //						for (int PlaceNum = ThreadNum; PlaceNum < P.Nplace[PlaceType]; PlaceNum += P.NumThreads)
@@ -2889,7 +2889,7 @@ void UpdateCurrentInterventionParams(double t_CalTime)
 
 				P.PlaceCloseSpatialRelContact	= P.PC_SpatialEffects_OverTime	[ChangeTime];					//// spatial
 				P.PlaceCloseHouseholdRelContact = P.PC_HouseholdEffects_OverTime[ChangeTime];					//// household
-				for (int PlaceType = 0; PlaceType < P.PlaceTypeNum; PlaceType++)
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
 				{
 					P.PlaceCloseEffect[PlaceType] = P.PC_PlaceEffects_OverTime[ChangeTime][PlaceType];			//// place
 					P.PlaceClosePropAttending[PlaceType] = P.PC_PropAttending_OverTime[ChangeTime][PlaceType];	//// place
@@ -3606,7 +3606,7 @@ void CalibrationThresholdCheck(double t,int n)
 		P.SocDistSpatialEffectCurrent = P.SocDistSpatialEffect2;
 		P.EnhancedSocDistHouseholdEffectCurrent = P.EnhancedSocDistHouseholdEffect2;
 		P.EnhancedSocDistSpatialEffectCurrent = P.EnhancedSocDistSpatialEffect2;
-		for (int i = 0; i < P.PlaceTypeNum; i++)
+		for (int i = 0; i < P.NumPlaceTypes; i++)
 		{
 			P.SocDistPlaceEffectCurrent[i] = P.SocDistPlaceEffect2[i];
 			P.EnhancedSocDistPlaceEffectCurrent[i] = P.EnhancedSocDistPlaceEffect2[i];

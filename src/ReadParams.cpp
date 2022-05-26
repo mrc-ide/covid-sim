@@ -652,8 +652,8 @@ void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 	P->DoAirports = Params::get_int(params, pre_params, "Include air travel", 0, P);
 	if (P->DoAirports == 0)  // Airports disabled => all places are not to do with airports, and we have no hotels
 	{
-		P->PlaceTypeNoAirNum = P->PlaceTypeNum;
-		P->HotelPlaceType = P->PlaceTypeNum;
+		P->PlaceTypeNoAirNum = P->NumPlaceTypes;
+		P->HotelPlaceType = P->NumPlaceTypes;
 		return;
 	}
 	
@@ -661,13 +661,13 @@ void Params::airport_params(ParamMap adm_params, ParamMap pre_params, ParamMap p
 	// // and a hotel type.
 	P->PlaceTypeNoAirNum = Params::req_int(pre_params, adm_params, "Number of non-airport places", P);
 	P->HotelPlaceType = Params::req_int(pre_params, adm_params, "Hotel place type", P);
-	if (P->PlaceTypeNoAirNum >= P->PlaceTypeNum)
+	if (P->PlaceTypeNoAirNum >= P->NumPlaceTypes)
 	{
-		ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P->PlaceTypeNoAirNum, P->PlaceTypeNum);
+		ERR_CRITICAL_FMT("[Number of non-airport places] parameter (%d) is greater than number of places (%d).\n", P->PlaceTypeNoAirNum, P->NumPlaceTypes);
 	}
-	if (P->HotelPlaceType < P->PlaceTypeNoAirNum || P->HotelPlaceType >= P->PlaceTypeNum)
+	if (P->HotelPlaceType < P->PlaceTypeNoAirNum || P->HotelPlaceType >= P->NumPlaceTypes)
 	{
-		ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P->HotelPlaceType, P->PlaceTypeNoAirNum, P->PlaceTypeNum);
+		ERR_CRITICAL_FMT("[Hotel place type] parameter (%d) not in the range [%d, %d)\n", P->HotelPlaceType, P->PlaceTypeNoAirNum, P->NumPlaceTypes);
 	}
 
 	P->AirportTrafficScale = Params::get_double(params, pre_params, "Scaling factor for input file to convert to daily traffic", 1.0, P);
@@ -917,8 +917,8 @@ void Params::treatment_params(ParamMap adm_params, ParamMap pre_params, ParamMap
 	P->TreatTimeStartBase = Params::get_double(params, pre_params, "Treatment start time", USHRT_MAX / P->TimeStepsPerDay, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of places treated after case detected", P->TreatPlaceProbCaseId, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of people treated in targeted places", P->TreatPlaceTotalProp, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
 	}
 	P->TreatMaxCoursesBase = Params::get_double(params, pre_params, "Maximum number of doses available", 1e20, P);
 	P->TreatNewCoursesStartTime = Params::get_double(params, pre_params, "Start time of additional treatment production", USHRT_MAX / P->TimeStepsPerDay, P);
@@ -951,7 +951,7 @@ void Params::carehome_params(ParamMap adm_params, ParamMap pre_params, ParamMap 
 	  return;
 	}
 
-	if (P->PlaceTypeNum > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
+	if (P->NumPlaceTypes > NUM_PLACE_TYPES) ERR_CRITICAL("Too many place types\n");
 	P->CareHomePlaceType = Params::get_int(pre_params, adm_params, "Place type number for care homes", -1, P);
 	P->CareHomeAllowInitialInfections = Params::get_int(pre_params, adm_params, "Allow initial infections to be in care homes", 0, P);
 	P->CareHomeResidentMinimumAge = Params::get_int(pre_params, adm_params, "Minimum age of care home residents", 1000, P);
@@ -962,16 +962,16 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 	if (P->DoPlaces != 0)
 	{
 		Params::carehome_params(adm_params, pre_params, params, P);
-		Params::req_double_vec(params, pre_params, "Proportion of between group place links", P->PlaceTypePropBetweenGroupLinks, P->PlaceTypeNum, P);
-		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P->PlaceTypeTrans, P->PlaceTypeNum, P);
+		Params::req_double_vec(params, pre_params, "Proportion of between group place links", P->PlaceTypePropBetweenGroupLinks, P->NumPlaceTypes, P);
+		Params::req_double_vec(params, pre_params, "Relative transmission rates for place types", P->PlaceTypeTrans, P->NumPlaceTypes, P);
 
 		if (P->FitIter != 0)
 		{
 			return;
 		}
-		Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P->PlaceTypeAgeMin, P->PlaceTypeNum, P);
-		Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P->PlaceTypeAgeMax, P->PlaceTypeNum, P);
-		Params::req_double_vec(pre_params, adm_params, "Proportion of age group 1 in place types", P->PlaceTypePropAgeGroup, P->PlaceTypeNum, P);
+		Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 1 in place types", P->PlaceTypeAgeMin, P->NumPlaceTypes, P);
+		Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 1 in place types", P->PlaceTypeAgeMax, P->NumPlaceTypes, P);
+		Params::req_double_vec(pre_params, adm_params, "Proportion of age group 1 in place types", P->PlaceTypePropAgeGroup, P->NumPlaceTypes, P);
 
 		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 2 in place types"))
 		{
@@ -984,9 +984,9 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		else
 		{
-			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 2 in place types", P->PlaceTypePropAgeGroup2, P->PlaceTypeNum, P);
-			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P->PlaceTypeAgeMin2, P->PlaceTypeNum, P);
-			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 2 in place types", P->PlaceTypeAgeMax2, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 2 in place types", P->PlaceTypePropAgeGroup2, P->NumPlaceTypes, P);
+			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 2 in place types", P->PlaceTypeAgeMin2, P->NumPlaceTypes, P);
+			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 2 in place types", P->PlaceTypeAgeMax2, P->NumPlaceTypes, P);
 		}
 		if (!Params::param_found(pre_params, adm_params, "Proportion of age group 3 in place types"))
 		{
@@ -999,9 +999,9 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		else
 		{
-			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 3 in place types", P->PlaceTypePropAgeGroup3, P->PlaceTypeNum, P);
-			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P->PlaceTypeAgeMin3, P->PlaceTypeNum, P);
-			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 3 in place types", P->PlaceTypeAgeMax3, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Proportion of age group 3 in place types", P->PlaceTypePropAgeGroup3, P->NumPlaceTypes, P);
+			Params::req_int_vec(pre_params, adm_params, "Minimum age for age group 3 in place types", P->PlaceTypeAgeMin3, P->NumPlaceTypes, P);
+			Params::req_int_vec(pre_params, adm_params, "Maximum age for age group 3 in place types", P->PlaceTypeAgeMax3, P->NumPlaceTypes, P);
 		}
 		if (!Params::param_found(pre_params, adm_params, "Kernel shape params for place types"))
 		{
@@ -1013,8 +1013,8 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		else
 		{
-			Params::req_double_vec(pre_params, adm_params, "Kernel shape params for place types", P->PlaceTypeKernelShape, P->PlaceTypeNum, P);
-			Params::req_double_vec(pre_params, adm_params, "Kernel scale params for place types", P->PlaceTypeKernelScale, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel shape params for place types", P->PlaceTypeKernelShape, P->NumPlaceTypes, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel scale params for place types", P->PlaceTypeKernelScale, P->NumPlaceTypes, P);
 		}
 		if (!Params::param_found(pre_params, adm_params, "Kernel 3rd param for place types"))
 		{
@@ -1026,28 +1026,28 @@ void Params::place_type_params(ParamMap adm_params, ParamMap pre_params, ParamMa
 		}
 		else
 		{
-			Params::req_double_vec(pre_params, adm_params, "Kernel 3rd param for place types", P->PlaceTypeKernelP3, P->PlaceTypeNum, P);
-			Params::req_double_vec(pre_params, adm_params, "Kernel 4th param for place types", P->PlaceTypeKernelP4, P->PlaceTypeNum, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel 3rd param for place types", P->PlaceTypeKernelP3, P->NumPlaceTypes, P);
+			Params::req_double_vec(pre_params, adm_params, "Kernel 4th param for place types", P->PlaceTypeKernelP4, P->NumPlaceTypes, P);
 		}
-		Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_int_vec(pre_params, adm_params, "Number of closest places people pick from (0=all) for place types", P->PlaceTypeNearestNeighb, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
 		if (P->DoAdUnits != 0)
 		{
-			Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+			Params::get_double_vec(params, pre_params, "Degree to which crossing administrative unit boundaries to go to places is inhibited", P->InhibitInterAdunitPlaceAssignment, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
 		}
 
 		Params::airport_params(adm_params, pre_params, params, P);
 
-		Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->PlaceTypeNum, P);
-		Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->PlaceTypeNum, P);
-		Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::req_double_vec(pre_params, adm_params, "Mean size of place types", P->PlaceTypeMeanSize, P->NumPlaceTypes, P);
+		Params::req_double_vec(pre_params, adm_params, "Param 1 of place group size distribution", P->PlaceTypeGroupSizeParam1, P->NumPlaceTypes, P);
+		Params::get_double_vec(pre_params, adm_params, "Power of place size distribution", P->PlaceTypeSizePower, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
 
 		//added to enable lognormal distribution - ggilani 09/02/17
-		Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->PlaceTypeNum, 1e20, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->PlaceTypeNum, 1.0, NUM_PLACE_TYPES, P);
-		Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->PlaceTypeNum, P->MoveKernel.type_, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P->PlaceExclusivityMatrix, P->PlaceTypeNum * P->PlaceTypeNum, 0, P->PlaceTypeNum * P->PlaceTypeNum, P);
+		Params::get_double_vec(pre_params, adm_params, "Standard deviation of place size distribution", P->PlaceTypeSizeSD, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Offset of place size distribution", P->PlaceTypeSizeOffset, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Maximum of place size distribution", P->PlaceTypeSizeMax, P->NumPlaceTypes, 1e20, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Minimum of place size distribution", P->PlaceTypeSizeMin, P->NumPlaceTypes, 1.0, NUM_PLACE_TYPES, P);
+		Params::get_int_vec(pre_params, adm_params, "Kernel type for place types", P->PlaceTypeKernelType, P->NumPlaceTypes, P->MoveKernel.type_, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Place overlap matrix", P->PlaceExclusivityMatrix, P->NumPlaceTypes * P->NumPlaceTypes, 0, P->NumPlaceTypes * P->NumPlaceTypes, P);
 		if (!Params::param_found(pre_params, adm_params, "Place overlap matrix"))
 		{
 			for (int i = 0; i < NUM_PLACE_TYPES; i++)  // get_double_vec will set the zeroes if missing;
@@ -1349,8 +1349,8 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	P->PlaceCloseDuration2 = Params::get_double(params, pre_params, "Duration of second place closure", 7, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportion of places remaining open after closure by place type", P->PlaceCloseEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Proportional attendance after closure by place type", P->PlaceClosePropAttending, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
 	}
 	if (P->DoHouseholds != 0)
 		P->PlaceCloseHouseholdRelContact = Params::get_double(params, pre_params, "Relative household contact rate after closure", 1, P);
@@ -1359,7 +1359,7 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	P->DoHolidays = Params::get_int(pre_params, adm_params, "Include holidays", 0, P);
 	if (P->DoHolidays != 0)
 	{
-		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(pre_params, adm_params, "Proportion of places remaining open during holidays by place type", P->HolidayEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
 		P->NumHolidays = Params::get_int(pre_params, adm_params, "Number of holidays", 0, P);
 		if (P->NumHolidays > DAYS_PER_YEAR) P->NumHolidays = DAYS_PER_YEAR;
 		if (P->NumHolidays > 0)
@@ -1384,7 +1384,7 @@ void Params::place_closure_params(ParamMap adm_params, ParamMap pre_params, Para
 	{
 		P->PlaceCloseByAdminUnit = Params::get_int(params, pre_params, "Place closure in administrative units rather than rings", 0, P);
 		P->PlaceCloseAdminUnitDivisor = Params::get_int(params, pre_params, "Administrative unit divisor for place closure", 1, P);
-		Params::get_int_vec(params, pre_params, "Place types to close for admin unit closure (0/1 array)", P->PlaceCloseAdunitPlaceTypes, P->PlaceTypeNum, 0, P->PlaceTypeNum, P);
+		Params::get_int_vec(params, pre_params, "Place types to close for admin unit closure (0/1 array)", P->PlaceCloseAdunitPlaceTypes, P->NumPlaceTypes, 0, P->NumPlaceTypes, P);
 		P->PlaceCloseCasePropThresh = Params::get_double(params, pre_params, "Cumulative proportion of place members needing to become sick for admin unit closure", 2, P);
 		P->PlaceCloseAdunitPropThresh = Params::get_double(params, pre_params, "Proportion of places in admin unit needing to pass threshold for place closure", 2, P);
 		if ((P->PlaceCloseAdminUnitDivisor < 1) || (P->PlaceCloseByAdminUnit == 0)) P->PlaceCloseAdminUnitDivisor = 1;
@@ -1408,11 +1408,11 @@ void Params::social_distancing_params(ParamMap adm_params, ParamMap pre_params, 
 	P->SocDistDuration2 = Params::get_double(params, pre_params, "Duration of social distancing after change", 7, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
-		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type", P->SocDistPlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type", P->EnhancedSocDistPlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
 		if (Params::param_found(params, pre_params, "Relative place contact rate given social distancing by place type after change"))
 		{
-			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P->SocDistPlaceEffect2, P->PlaceTypeNum, P);
+			Params::req_double_vec(params, pre_params, "Relative place contact rate given social distancing by place type after change", P->SocDistPlaceEffect2, P->NumPlaceTypes, P);
 		}
 		else {
 			for (int i = 0; i < NUM_PLACE_TYPES; i++) P->SocDistPlaceEffect2[i] = P->SocDistPlaceEffect[i];
@@ -1420,7 +1420,7 @@ void Params::social_distancing_params(ParamMap adm_params, ParamMap pre_params, 
 
 		if (Params::param_found(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change"))
 		{
-			Params::req_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change", P->EnhancedSocDistPlaceEffect2, P->PlaceTypeNum, P);
+			Params::req_double_vec(params, pre_params, "Relative place contact rate given enhanced social distancing by place type after change", P->EnhancedSocDistPlaceEffect2, P->NumPlaceTypes, P);
 		}
 		else
 		{
@@ -1501,7 +1501,7 @@ void Params::household_quarantine_params(ParamMap adm_params, ParamMap pre_param
 	P->CaseIsolationHouseEffectiveness = Params::get_double(params, pre_params, "Residual household contacts after case isolation", P->CaseIsolationEffectiveness, P);
 	if (P->DoPlaces != 0)
 	{
-		Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+		Params::get_double_vec(params, pre_params, "Residual place contacts after household quarantine by place type", P->HQuarantinePlaceEffect, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
 	}
 	P->HQuarantineSpatialEffect = Params::get_double(params, pre_params, "Residual spatial contacts after household quarantine", 1, P);
 	P->HQuarantinePropHouseCompliant = Params::get_double(params, pre_params, "Household level compliance with quarantine", 1, P);
@@ -1513,10 +1513,10 @@ void Params::household_quarantine_params(ParamMap adm_params, ParamMap pre_param
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 
 void Params::set_variable_efficacy(ParamMap params, ParamMap pre_params, std::string param_name, Param* P, double** matrix, int change_times, double* default_vals, bool force_fail) {
-	Params::get_double_matrix(params, pre_params, param_name, matrix, change_times, P->PlaceTypeNum, 0, P);
+	Params::get_double_matrix(params, pre_params, param_name, matrix, change_times, P->NumPlaceTypes, 0, P);
 	if (force_fail || !Params::param_found(params, pre_params, param_name))
 		for (int ChangeTime = 0; ChangeTime < change_times; ChangeTime++) //// by default populate to values of P->SocDistPlaceEffect
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 				matrix[ChangeTime][PlaceType] = default_vals[PlaceType];
 }
 
@@ -1576,7 +1576,7 @@ void Params::variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pr
 		P->DCT_HouseholdEffects_OverTime[ChangeTime] = 0;
 
 		//// place
-		for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+		for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 		{
 			P->SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
 			P->Enhanced_SD_PlaceEffects_OverTime[ChangeTime][PlaceType] = 0;
@@ -1658,12 +1658,12 @@ void Params::variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pr
 			//// non-enhanced
 			P->SD_SpatialEffects_OverTime[SD_ChangeTime] = P->SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
 			P->SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 				P->SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
 			//// enhanced
 			P->Enhanced_SD_SpatialEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_SpatialEffects_OverTime[P->Num_SD_ChangeTimes - 1];
 			P->Enhanced_SD_HouseholdEffects_OverTime[SD_ChangeTime] = P->Enhanced_SD_HouseholdEffects_OverTime[P->Num_SD_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 				P->Enhanced_SD_PlaceEffects_OverTime[SD_ChangeTime][PlaceType] = P->Enhanced_SD_PlaceEffects_OverTime[P->Num_SD_ChangeTimes - 1][PlaceType];
 
 			P->SD_CellIncThresh_OverTime[SD_ChangeTime] = P->SD_CellIncThresh_OverTime[P->Num_SD_ChangeTimes - 1];
@@ -1683,7 +1683,7 @@ void Params::variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pr
 		{
 			P->HQ_SpatialEffects_OverTime[HQ_ChangeTime] = P->HQ_SpatialEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
 			P->HQ_HouseholdEffects_OverTime[HQ_ChangeTime] = P->HQ_HouseholdEffects_OverTime[P->Num_HQ_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 				P->HQ_PlaceEffects_OverTime[HQ_ChangeTime][PlaceType] = P->HQ_PlaceEffects_OverTime[P->Num_HQ_ChangeTimes - 1][PlaceType];
 
 			P->HQ_Individual_PropComply_OverTime[HQ_ChangeTime] = P->HQ_Individual_PropComply_OverTime[P->Num_HQ_ChangeTimes - 1];
@@ -1697,7 +1697,7 @@ void Params::variable_efficacy_over_time_params(ParamMap adm_params, ParamMap pr
 		{
 			P->PC_SpatialEffects_OverTime[PC_ChangeTime] = P->PC_SpatialEffects_OverTime[P->Num_PC_ChangeTimes - 1];
 			P->PC_HouseholdEffects_OverTime[PC_ChangeTime] = P->PC_HouseholdEffects_OverTime[P->Num_PC_ChangeTimes - 1];
-			for (int PlaceType = 0; PlaceType < P->PlaceTypeNum; PlaceType++)
+			for (int PlaceType = 0; PlaceType < P->NumPlaceTypes; PlaceType++)
 			{
 				P->PC_PlaceEffects_OverTime[PC_ChangeTime][PlaceType] = P->PC_PlaceEffects_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
 				P->PC_PropAttending_OverTime[PC_ChangeTime][PlaceType] = P->PC_PropAttending_OverTime[P->Num_PC_ChangeTimes - 1][PlaceType];
@@ -1958,15 +1958,15 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		P->DoPlaces = Params::get_int(pre_params, adm_params, "Include places", 1, P);
 		if (P->DoPlaces != 0)
 		{
-			P->PlaceTypeNum = Params::get_int(pre_params, adm_params, "Number of types of places", 0, P);
-			if (P->PlaceTypeNum == 0) P->DoPlaces = P->DoAirports = 0;
+			P->NumPlaceTypes = Params::get_int(pre_params, adm_params, "Number of types of places", 0, P);
+			if (P->NumPlaceTypes == 0) P->DoPlaces = P->DoAirports = 0;
 		}
 		else
-			P->PlaceTypeNum = P->DoAirports = 0;
+			P->NumPlaceTypes = P->DoAirports = 0;
 	}
 
 	Params::place_type_params(adm_params, pre_params, params, P);
-	for (int i = 0; i < P->PlaceTypeNum; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
+	for (int i = 0; i < P->NumPlaceTypes; i++) P->PlaceTypeTrans[i] *= AgeSuscScale;
 	Params::seasonality_params(adm_params, pre_params, params, P);
 	Params::seeding_params(adm_params, pre_params, params, P, AdunitListNames, AdUnits);
 	
@@ -2057,7 +2057,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		P->DoRealSymptWithdrawal = Params::get_int(params, pre_params, "Model symptomatic withdrawal to home as true absenteeism", 0, P);
 		if (P->DoPlaces != 0)
 		{
-			Params::req_double_vec(params, pre_params, "Relative level of place attendance if symptomatic", P->SymptPlaceTypeContactRate, P->PlaceTypeNum, P);
+			Params::req_double_vec(params, pre_params, "Relative level of place attendance if symptomatic", P->SymptPlaceTypeContactRate, P->NumPlaceTypes, P);
 			if (P->DoRealSymptWithdrawal != 0)
 			{
 				for (j = 0; j < NUM_PLACE_TYPES; j++)
@@ -2230,8 +2230,8 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		if (P->DoPlaces != 0)
 		{
 			P->KeyWorkerPopNum = Params::get_int(params, pre_params, "Number of key workers randomly distributed in the population", 0, P);
-			Params::get_int_vec(params, pre_params, "Number of key workers in different places by place type", P->KeyWorkerPlaceNum, P->PlaceTypeNum, 0, NUM_PLACE_TYPES, P);
-			Params::get_double_vec(params, pre_params, "Proportion of staff who are key workers per chosen place by place type", P->KeyWorkerPropInKeyPlaces, P->PlaceTypeNum, 1, NUM_PLACE_TYPES, P);
+			Params::get_int_vec(params, pre_params, "Number of key workers in different places by place type", P->KeyWorkerPlaceNum, P->NumPlaceTypes, 0, NUM_PLACE_TYPES, P);
+			Params::get_double_vec(params, pre_params, "Proportion of staff who are key workers per chosen place by place type", P->KeyWorkerPropInKeyPlaces, P->NumPlaceTypes, 1, NUM_PLACE_TYPES, P);
 			P->KeyWorkerProphCellIncThresh = Params::get_int(params, pre_params, "Trigger incidence per cell for key worker prophylaxis", 1000000000, P);
 			P->KeyWorkerProphTimeStartBase = Params::get_double(params, pre_params, "Key worker prophylaxis start time", USHRT_MAX / P->TimeStepsPerDay, P);
 			P->KeyWorkerProphDuration = Params::get_double(params, pre_params, "Duration of key worker prophylaxis", 0, P);
@@ -2345,7 +2345,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		P->HouseholdTrans *= P->R0scale;
 		if (P->FixLocalBeta) P->LocalBeta *= P->R0scale;
 		P->R0 *= P->R0scale;
-		for (int place_type = 0; place_type < P->PlaceTypeNum; place_type++) {
+		for (int place_type = 0; place_type < P->NumPlaceTypes; place_type++) {
 			P->PlaceTypeTrans[place_type] *= P->R0scale;
 		}
 		Files::xfprintf_stderr("Rescaled transmission coefficients by factor of %lg\n", P->R0scale);

@@ -542,7 +542,7 @@ void DoDetectedCase(int ai, double t, unsigned short int TimeStepNow, int tn)
 	{
 		if ((P.PlaceCloseRoundHousehold)&& (Mcells[a->mcell].place_trig < USHRT_MAX - 1)) Mcells[a->mcell].place_trig++;
 		if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!((P.DoGlobalTriggers)&&(P.PlaceCloseCellIncThresh<1000000000))))
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (j = 0; j < P.NumPlaceTypes; j++)
 				if ((j != P.HotelPlaceType) && (a->PlaceLinks[j] >= 0))
 				{
 					DoPlaceClose(j, a->PlaceLinks[j], TimeStepNow, tn, 0);
@@ -573,7 +573,7 @@ void DoDetectedCase(int ai, double t, unsigned short int TimeStepNow, int tn)
 			if (P.DoPlaces)
 			{
 				if (t < P.TreatTimeStart + P.TreatPlaceGeogDuration)
-					for (j = 0; j < P.PlaceTypeNum; j++)
+					for (j = 0; j < P.NumPlaceTypes; j++)
 						if (a->PlaceLinks[j] >= 0)
 						{
 							if (P.DoPlaceGroupTreat)
@@ -753,7 +753,7 @@ void DoDetectedCase(int ai, double t, unsigned short int TimeStepNow, int tn)
 		//if(P.IncludePlaceGroupDigitalContactTracing)
 		//{
 		//	//then loop over place group contacts as well
-		//	for (int i = 0; i < P.PlaceTypeNum; i++)
+		//	for (int i = 0; i < P.NumPlaceTypes; i++)
 		//	{
 		//		k = Hosts[ai].PlaceLinks[i];
 		//		if (k >= 0)
@@ -811,7 +811,7 @@ void DoCase(int ai, double t, unsigned short int TimeStepNow, int tn) //// makes
 		else if((P.DoRealSymptWithdrawal)&&(P.DoPlaces))
 		{
 			a->absent_start_time = USHRT_MAX - 1;
-			for (j = 0; j < P.PlaceTypeNum; j++)
+			for (j = 0; j < P.NumPlaceTypes; j++)
 				if ((a->PlaceLinks[j] >= 0) && (j != P.HotelPlaceType) && (!HOST_ABSENT(ai)) && (P.SymptPlaceTypeWithdrawalProp[j] > 0))
 				{
 					if ((!Hosts[ai].care_home_resident) && ((P.SymptPlaceTypeWithdrawalProp[j] == 1) || (ranf_mt(tn) < P.SymptPlaceTypeWithdrawalProp[j])))
@@ -822,11 +822,11 @@ void DoCase(int ai, double t, unsigned short int TimeStepNow, int tn) //// makes
 						{
 							if ((t >= P.PlaceCloseTimeStart) && (!P.DoAdminTriggers) && (!P.DoGlobalTriggers))
 							{
-								for (int place_type = 0; place_type < P.PlaceTypeNum; place_type++)
+								for (int place_type = 0; place_type < P.NumPlaceTypes; place_type++)
 									if ((place_type != P.HotelPlaceType) && (a->PlaceLinks[place_type] >= 0))
 										DoPlaceClose(place_type, a->PlaceLinks[place_type], TimeStepNow, tn, 0);
 
-								j = P.PlaceTypeNum;
+								j = P.NumPlaceTypes;
 							}
 						}
 						if ((!HOST_QUARANTINED(ai)) && (Hosts[ai].PlaceLinks[P.PlaceTypeNoAirNum - 1] >= 0) && (HOST_AGE_YEAR(ai) >= P.CaseAbsentChildAgeCutoff))
