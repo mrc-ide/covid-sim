@@ -508,6 +508,13 @@ double** create_2d_double(int sizex, int sizey)
 	return arr;
 }
 
+double*** create_3d_double(int sizex, int sizey, int sizez)
+{
+	double*** arr = new double** [sizex]();
+	for (int i = 0; i < sizex; i++)	arr[i] = create_2d_double(sizey, sizez);
+	return arr;
+}
+
 void Params::alloc_params(Param* P)
 {
 	P->LocationInitialInfection				= create_2d_double(MAX_NUM_SEED_LOCATIONS, 2);
