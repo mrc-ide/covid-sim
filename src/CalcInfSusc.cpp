@@ -24,18 +24,18 @@ double CalcHouseInf(int person, unsigned short int TimeStepNow)
 
 double CalcPlaceInf(int person, int PlaceType, unsigned short int TimeStepNow)
 {
-	return	((HOST_ISOLATED(person) && (Hosts[person].digitalContactTraced != 1)) ? P.CaseIsolationEffectiveness : 1.0)
-		*	((Hosts[person].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
-		*	((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1) && (!(HOST_ISOLATED(person)))) ? P.HQuarantinePlaceEffect[PlaceType] : 1.0)
+	return	((HOST_ISOLATED(person) && (Hosts[person].digitalContactTraced != 1)) ? P.Efficacies[CaseIsolation][PlaceType] : 1.0)
+		*	((Hosts[person].digitalContactTraced == 1) ? P.Efficacies[DigContactTracing][PlaceType] : 1.0)
+		*	((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1) && (!(HOST_ISOLATED(person)))) ? P.Efficacies[HomeQuarantine][PlaceType] : 1.0)
 		*	((Hosts[person].is_case() && (!Hosts[person].care_home_resident)) ? P.SymptPlaceTypeContactRate[PlaceType] : 1.0)
 		*	P.PlaceTypeTrans[PlaceType] / P.PlaceTypeGroupSizeParam1[PlaceType] * CalcPersonInf(person, TimeStepNow);
 }
 
 double CalcSpatialInf(int person, unsigned short int TimeStepNow)
 {
-	return	((HOST_ISOLATED(person) && (Hosts[person].digitalContactTraced != 1)) ? P.CaseIsolationEffectiveness : 1.0)
-		*	((Hosts[person].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0)
-		*   ((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1) && (!(HOST_ISOLATED(person)))) ? P.HQuarantineSpatialEffect : 1.0)
+	return	((HOST_ISOLATED(person) && (Hosts[person].digitalContactTraced != 1)) ? P.Efficacies[CaseIsolation][Spatial] : 1.0)
+		*	((Hosts[person].digitalContactTraced==1) ? P.Efficacies[DigContactTracing][Spatial] : 1.0)
+		*   ((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1) && (!(HOST_ISOLATED(person)))) ? P.Efficacies[HomeQuarantine][Spatial] : 1.0)
 		*	(Hosts[person].is_case() ? P.SymptSpatialContactRate : 1.0)
 		*	P.RelativeSpatialContact[HOST_AGE_GROUP(person)]
 		*	CalcPersonInf(person, TimeStepNow); 		/*	*Hosts[person].spatial_norm */
@@ -51,30 +51,30 @@ double CalcPersonInf(int person, unsigned short int TimeStepNow)
 
 //// Susceptibility functions (House, Place, Spatial, Person). Similarly, idea is that in addition to a person's personal susceptibility, they have separate "susceptibilities" for their house, place and on other cells (spatial)
 //// These functions consider two people. A person has a susceptibility TO ANOTHER PERSON/infector. Slightly different therefore than infectiousness functions.
-double CalcHouseSusc(int ai, unsigned short int TimeStepNow, int infector)
+double CalcHouseSusc(int person, unsigned short int TimeStepNow, int infector)
 {
-	return CalcPersonSusc(ai, TimeStepNow, infector)
-		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistHouseholdEffectCurrent : P.SocDistHouseholdEffectCurrent) : 1.0)
-		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationHouseEffectiveness : 1.0)
-		* ((Hosts[ai].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
+	return CalcPersonSusc(person, TimeStepNow, infector)
+		* ((Mcells[Hosts[person].mcell].socdist == TreatStat::Treated) ? ((Hosts[person].esocdist_comply) ? P.Efficacies[EnhancedSocialDistancing][House] : P.Efficacies[SocialDistancing][House]) : 1.0)
+		* ((Hosts[person].digitalContactTraced == 1) ? P.Efficacies[DigContactTracing][House] : 1.0)
+		* ((Hosts[person].care_home_resident) ? P.CareHomeResidentHouseholdScaling : 1.0);
 }
-double CalcPlaceSusc(int ai, int PlaceType, unsigned short int TimeStepNow)
+double CalcPlaceSusc(int person, int PlaceType, unsigned short int TimeStepNow)
 {
-	return		((HOST_QUARANTINED(ai) && (!Hosts[ai].care_home_resident) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantinePlaceEffect[PlaceType] : 1.0)
-		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistPlaceEffectCurrent[PlaceType] : P.SocDistPlaceEffectCurrent[PlaceType]) : 1.0)
-		* ((Hosts[ai].digitalContactTraced==1) ? P.DCTCaseIsolationEffectiveness : 1.0);
+	return		((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1)) ? P.Efficacies[HomeQuarantine][PlaceType] : 1.0)
+		* ((Mcells[Hosts[person].mcell].socdist == TreatStat::Treated) ? ((Hosts[person].esocdist_comply) ? P.Efficacies[EnhancedSocialDistancing][PlaceType] : P.Efficacies[SocialDistancing][PlaceType]) : 1.0)
+		* ((Hosts[person].digitalContactTraced == 1) ? P.Efficacies[DigContactTracing][PlaceType] : 1.0);
 }
-double CalcSpatialSusc(int ai, unsigned short int TimeStepNow)
+double CalcSpatialSusc(int person, unsigned short int TimeStepNow)
 {
-	return	 ((HOST_QUARANTINED(ai) && (!Hosts[ai].care_home_resident) && (Hosts[ai].digitalContactTraced != 1)) ? P.HQuarantineSpatialEffect : 1.0)
-		* ((Mcells[Hosts[ai].mcell].socdist == TreatStat::Treated) ? ((Hosts[ai].esocdist_comply) ? P.EnhancedSocDistSpatialEffectCurrent : P.SocDistSpatialEffectCurrent) : 1.0)
-		* ((Hosts[ai].digitalContactTraced == 1) ? P.DCTCaseIsolationEffectiveness : 1.0)
-		* P.RelativeSpatialContactSusc[HOST_AGE_GROUP(ai)];
+	return	 ((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1)) ? P.Efficacies[HomeQuarantine][Spatial] : 1.0)
+		* ((Mcells[Hosts[person].mcell].socdist == TreatStat::Treated) ? ((Hosts[person].esocdist_comply) ? P.Efficacies[EnhancedSocialDistancing][Spatial] : P.Efficacies[SocialDistancing][Spatial]) : 1.0)
+		* ((Hosts[person].digitalContactTraced == 1) ? P.Efficacies[DigContactTracing][Spatial] : 1.0)
+		* P.RelativeSpatialContactSusc[HOST_AGE_GROUP(person)];
 }
-double CalcPersonSusc(int ai, unsigned short int TimeStepNow, int infector)
+double CalcPersonSusc(int person, unsigned short int TimeStepNow, int infector)
 {
-	return		P.WAIFW_Matrix[HOST_AGE_GROUP(ai)][HOST_AGE_GROUP(infector)]
-		* P.AgeSusceptibility[HOST_AGE_GROUP(ai)] * Hosts[ai].susc
-		*	(HOST_TREATED(ai) ? P.TreatSuscDrop : 1.0)
-		*	(HOST_VACCED(ai) ? (HOST_VACCED_SWITCH(ai) ? P.VaccSuscDrop2 : P.VaccSuscDrop) : 1.0);
+	return		P.WAIFW_Matrix[HOST_AGE_GROUP(person)][HOST_AGE_GROUP(infector)]
+		* P.AgeSusceptibility[HOST_AGE_GROUP(person)] * Hosts[person].susc
+		*	(HOST_TREATED(person) ? P.TreatSuscDrop : 1.0)
+		*	(HOST_VACCED(person) ? (HOST_VACCED_SWITCH(person) ? P.VaccSuscDrop2 : P.VaccSuscDrop) : 1.0);
 }
