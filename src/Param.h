@@ -248,6 +248,20 @@ struct Param
 
 	double SocDistRadius, SocDistRadius2;
 
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+	///// **** VARIABLE EFFICACIES OVER TIME by region
+	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
+
+	//// General array containing multiple "efficacies" for Non-pharmaceutical interventions;
+	//// First index: Setting \in {Household, PlaceType1, ..., PlaceTypeN, Spatial}
+	//// Second index: NPI \in {Case Isolation, Home Quarantine, Place Closure, Social Distancing, Digital Contact Tracing}
+	//// Third index: TimeStep 1, ...., P->TimeStepsPerDay * P->SimulationDuration
+	//// Fourth index: AdminUnit 1, ...., P.NumAdminUnits
+
+	//double**** Efficacies = NULL; //// indexed by i) Setting; ii) NPI; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+	double** Efficacies = NULL; //// just 2d while setting up. indexed by i) Setting; ii) NPI; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
+
+	int NumInterventionClasses = 0, NumInfectionSettings = 0; // initialized in CovidSim.cpp::main.
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME

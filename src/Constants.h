@@ -69,7 +69,7 @@ const int MAX_NUM_SEED_LOCATIONS = 10000;
 
 const int MAX_CLP_COPIES = 50;
 
-const int CDF_RES = 20;
+const int CDF_RES = 20; // resolution of (inverse) cumulative distribution functions, used mostly for severity progressions/delay distributions.
 const int INFPROF_RES = 56;
 
 const int NUM_AGE_GROUPS = 17;
@@ -106,5 +106,24 @@ const int MAX_NUM_CFR_CHANGE_TIMES = 100; /**< To allow IFR to scale over time. 
 // to increase the cast size and clean them up.
 
 #define _I64(x) static_cast<int64_t>(x)
+
+// Settings
+const int House				= 0; 
+const int PrimarySchool		= 1; 
+const int SecondarySchool	= 2; 
+const int University		= 3; 
+const int Workplace			= 4; 
+const int Spatial			= 5;  // community
+
+// NPIs
+const int CaseIsolation				= 0;
+const int HomeQuarantine			= 1;
+const int PrimarySchoolClosure		= 2;
+const int SecondarySchoolClosure	= 3;
+const int UniversityClosure			= 4;
+const int WorkplaceClosure			= 5;
+const int SocialDistancing			= 6; 
+const int DigContactTracing			= 7; 
+
 
 #endif // COVIDSIM_CONSTANTS_H_INCLUDED_

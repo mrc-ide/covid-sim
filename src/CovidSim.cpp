@@ -293,6 +293,9 @@ int main(int argc, char* argv[])
 
 	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
+	// Allocate memory for Efficacies array
+	//P.Efficacies = new double*[](); 
+
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
@@ -321,8 +324,8 @@ int main(int argc, char* argv[])
 				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter);
 			}
 		}
-		else
-			StopFit = 1;
+		else StopFit = 1;
+
 		if ((fit_file.empty()) || (!StopFit))
 		{
 			P.NRactE = P.NRactNE = 0;
@@ -340,10 +343,8 @@ int main(int argc, char* argv[])
 					P.nextRunSeed1 = P.runSeed1;
 					P.nextRunSeed2 = P.runSeed2;
 				}
-				if (P.ResetSeeds) {
-					//save these seeds to file
-					SaveRandomSeeds(output_file);
-				}
+				if (P.ResetSeeds)	SaveRandomSeeds(output_file);	//save these seeds to file
+				
 				int32_t thisRunSeed1, thisRunSeed2;
 				int ContCalib, ModelCalibLoop = 0;
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop = 0;
@@ -837,6 +838,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		}
 	}
 	OutputTimeStepNumber = 0;
+
 	State.S = P.PopSize;
 	State.L = State.I = State.R = State.D = 0;
 	State.cumI = State.cumR = State.cumC = State.cumFC = State.cumCT = State.cumCC = State.cumTC = State.cumD = State.cumDC = State.trigDetectedCases = State.DCT = State.cumDCT
@@ -994,7 +996,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
-		for (int i = tn; i < P.NumCells; i+=P.NumThreads)
+		for (int i = tn; i < P.NumCells; i += P.NumThreads)
 		{
 			if ((Cells[i].tot_treat != 0) || (Cells[i].tot_vacc != 0) || (Cells[i].S != Cells[i].n) || (Cells[i].D > 0) || (Cells[i].R > 0))
 			{
