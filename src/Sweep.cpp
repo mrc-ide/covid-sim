@@ -1,4 +1,4 @@
-#include <climits>
+	#include <climits>
 #include <cmath>
 #include <cstdlib>
 
@@ -1340,13 +1340,12 @@ int TreatSweep(double t)
 	unsigned short int t_KeyWorkerPlaceClosure_End;									////  time-step key worker place closure finish
 	double radius;
 
-	int global_trig;
+	int global_trig = 0;
 	if (P.DoGlobalTriggers)
 	{
 		if (P.DoPerCapitaTriggers)	global_trig = (int)floor(((double)State.trigDetectedCases) * P.GlobalIncThreshPop / ((double)P.PopSize));
 		else						global_trig = State.trigDetectedCases;
 	}
-	else							global_trig = 0;
 
 	///// block loops over places (or place groups if P.DoPlaceGroupTreat == 1) and determines whom to prophylactically treat
 	if ((P.DoPlaces) && (t >= P.TreatTimeStart) && (t < P.TreatTimeStart + P.TreatPlaceGeogDuration) && (State.cumT < P.TreatMaxCourses))
