@@ -36,8 +36,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	FILE* dat;
 
 	// allocate memory for integers used in multi=threaded random number generation.
-  Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
-  Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
+	Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
+	Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
