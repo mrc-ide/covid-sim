@@ -20,7 +20,7 @@
 #include "Memory.h"
 
 void* BinFileBuf;
-BinFile* BF;
+BinFile* BinaryFile;
 int netbuf[MAX_NUM_PLACE_TYPES * 1000000];
 
 
@@ -33,44 +33,47 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 	unsigned int rn;
 	double t, s, s2;
 	char buf[2048];
-	FILE* dat;
+	FILE* DensityFile_dat;
 
 	// allocate memory for integers used in multi=threaded random number generation.
 	Xcg1 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
 	Xcg2 = (int32_t*)Memory::xcalloc(MAX_NUM_THREADS * CACHE_LINE_SIZE, sizeof(int32_t));
+
 	P.nextSetupSeed1 = P.setupSeed1;
 	P.nextSetupSeed2 = P.setupSeed2;
 	setall(&P.nextSetupSeed1, &P.nextSetupSeed2);
+
 	P.DoBin = -1;
+
 	if (!density_file.empty())
 	{
 		Files::xfprintf_stderr("Scanning population density file\n");
-		dat = Files::xfopen(density_file.c_str(), "rb");
+		DensityFile_dat = Files::xfopen(density_file.c_str(), "rb");
 		unsigned int density_file_header;
-		Files::fread_big(&density_file_header, sizeof(unsigned int), 1, dat);
-		if (density_file_header == 0xf0f0f0f0) //code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
+		Files::fread_big(&density_file_header, sizeof(unsigned int), 1, DensityFile_dat);
+		if (density_file_header == 0xf0f0f0f0) // code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
-			Files::fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, dat);
+			Files::fread_big(&(P.BinFileLen), sizeof(unsigned int), 1, DensityFile_dat);
 			BinFileBuf = Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-			Files::fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, dat);
-			BF = (BinFile*)BinFileBuf;
-			Files::xfclose(dat);
+			Files::fread_big(BinFileBuf, sizeof(BinFile), (size_t)P.BinFileLen, DensityFile_dat);
+			BinaryFile = (BinFile*)BinFileBuf;
+			Files::xfclose(DensityFile_dat);
 		}
 		else
 		{
 			P.DoBin = 0;
 			// Count the number of lines in the density file
-			rewind(dat);
+			rewind(DensityFile_dat);
 			P.BinFileLen = 0;
-			while(fgets(buf, sizeof(buf), dat) != NULL) P.BinFileLen++;
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			while(fgets(buf, sizeof(buf), DensityFile_dat) != NULL) P.BinFileLen++;
+			if(ferror(DensityFile_dat)) ERR_CRITICAL("Error while reading density file\n");
 			// Read each line, and build the binary structure that corresponds to it
-			rewind(dat);
+			rewind(DensityFile_dat);
 			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-			BF = (BinFile*)BinFileBuf;
+			BinaryFile = (BinFile*)BinFileBuf;
 			unsigned int index = 0;
-			while(fgets(buf, sizeof(buf), dat) != NULL)
+			while(fgets(buf, sizeof(buf), DensityFile_dat) != NULL)
 			{
 				int i2;
 				double x, y;
@@ -91,21 +94,21 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 				// Ensure we use an x which gives us a contiguous whole for the
 				// geography.
 				if (x >= P.LongitudeCutLine) {
-					BF[index].x = x;
+					BinaryFile[index].x = x;
 				}
 				else {
-					BF[index].x = x + 360;
+					BinaryFile[index].x = x + 360;
 				}
-				BF[index].y = y;
-				BF[index].pop = t;
-				BF[index].cnt = i2;
-				BF[index].ad = l;
+				BinaryFile[index].y = y;
+				BinaryFile[index].pop = t;
+				BinaryFile[index].cnt = i2;
+				BinaryFile[index].ad = l;
 				index++;
 			}
-			if(ferror(dat)) ERR_CRITICAL("Error while reading density file\n");
+			if(ferror(DensityFile_dat)) ERR_CRITICAL("Error while reading density file\n");
 			// This shouldn't be able to happen, as we just counted the number of lines:
 			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
-			Files::xfclose(dat);
+			Files::xfclose(DensityFile_dat);
 		}
 
 		if (P.DoAdunitBoundaries)
@@ -117,11 +120,11 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			s2 = 0;
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
-				double x = BF[rn].x;
-				double y = BF[rn].y;
-				t = BF[rn].pop;
-				int i2 = BF[rn].cnt;
-				l = BF[rn].ad;
+				double x = BinaryFile[rn].x;
+				double y = BinaryFile[rn].y;
+				t = BinaryFile[rn].pop;
+				int i2 = BinaryFile[rn].cnt;
+				l = BinaryFile[rn].ad;
 				//					Files::xfprintf_stderr("# %lg %lg %lg %i\t",x,y,t,l);
 
 				m = (l % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
@@ -884,8 +887,8 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 		for (rn = rn2 = mr = 0; rn < P.BinFileLen; rn++)
 		{
 			int k;
-			x = BF[rn].x; y = BF[rn].y; t = BF[rn].pop; country = BF[rn].cnt; j2 = BF[rn].ad;
-			rec = BF[rn];
+			x = BinaryFile[rn].x; y = BinaryFile[rn].y; t = BinaryFile[rn].pop; country = BinaryFile[rn].cnt; j2 = BinaryFile[rn].ad;
+			rec = BinaryFile[rn];
 			if (P.DoAdUnits)
 			{
 				m = (j2 % P.AdunitLevel1Mask) / P.AdunitLevel1Divisor;
@@ -940,7 +943,7 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 						mcell_adunits[l] = 0;
 					if (!out_density_file.empty() && (P.DoBin) && (mcell_adunits[l] >= 0))
 					{
-						if (rn2 < rn) BF[rn2] = rec;
+						if (rn2 < rn) BinaryFile[rn2] = rec;
 						rn2++;
 					}
 				}
@@ -959,17 +962,17 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 				for (l = 0; l < P.NumMicrocells; l++)
 					if (mcell_adunits[l] >= 0) P.BinFileLen++;
 				BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
-				BF = (BinFile*)BinFileBuf;
+				BinaryFile = (BinFile*)BinFileBuf;
 				Files::xfprintf_stderr("Binary density file should contain %i microcells.\n", (int)P.BinFileLen);
 				rn = 0;
 				for (l = 0; l < P.NumMicrocells; l++)
 					if (mcell_adunits[l] >= 0)
 					{
-						BF[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().x; //x
-						BF[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().y; //y
-						BF[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
-						BF[rn].pop = mcell_dens[l];
-						BF[rn].cnt = mcell_country[l];
+						BinaryFile[rn].x = (double)(P.in_microcells_.width * (((double)(l / P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().x; //x
+						BinaryFile[rn].y = (double)(P.in_microcells_.height * (((double)(l % P.total_microcells_high_)) + 0.5)) + P.SpatialBoundingBox.bottom_left().y; //y
+						BinaryFile[rn].ad = (P.DoAdUnits) ? (AdUnits[mcell_adunits[l]].id) : 0;
+						BinaryFile[rn].pop = mcell_dens[l];
+						BinaryFile[rn].cnt = mcell_country[l];
 						rn++;
 					}
 			}

@@ -45,7 +45,8 @@ struct Param
 	CovidSim::TBD1::KernelStruct MoveKernel;
 	CovidSim::TBD1::KernelStruct AirportKernel;
 	unsigned int BinFileLen;
-	int DoBin, DoSaveSnapshot, DoLoadSnapshot, FitIter;
+	int DoBin; // read in binary file or not.
+	int DoSaveSnapshot, DoLoadSnapshot, FitIter;
 	double SnapshotSaveTime, SnapshotLoadTime, clP[100];
 	int NumCells; /**< Number of cells  */
 	int NumMicrocells; /**< Number of microcells  */
