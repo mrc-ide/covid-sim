@@ -277,7 +277,8 @@ struct Intervention
  */
 struct AdminUnit
 {
-	int id, cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15. NI is number of interventions in admin unit.
+	int id; // identifying number of admin unit - list of IDs considered in simulation given in the input file Admin Unit file.
+	int cnt_id, NI, n; //added n - number of people in admin unit: ggilani 05/01/15. NI is number of interventions in admin unit.
 	Intervention InterventionList[MAX_INTERVENTIONS_PER_ADUNIT];
 	char cnt_name[96], ad_name[200];
 	int NP, place_close_trig;

@@ -1436,9 +1436,9 @@ int TreatSweep(double t)
 		for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 			for (int PopulatedMicroCellNum = ThreadNum; PopulatedMicroCellNum < P.NumPopulatedMicrocells; PopulatedMicroCellNum += P.NumThreads) //// loop over populated microcells
 			{
-				int mcellnum	= (int)(McellLookup[PopulatedMicroCellNum] - Mcells); //// microcell number
-				int adi			= (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
-				int AdminUnit	= (P.DoAdUnits) ? AdUnits[adi].id : 0;
+				int mcellnum		= (int)(McellLookup[PopulatedMicroCellNum] - Mcells); //// microcell number
+				int AdUnit_Index	= (P.DoAdUnits) ? Mcells[mcellnum].adunit : -1;
+				int AdUnit_ID		= (P.DoAdUnits) ? AdUnits[AdUnit_Index].id : 0;
 
 				//// Code block goes through various types of treatments/interventions (vaccination/movement restrictions etc.),
 				//// assesses whether various triggers (counts) are over a certain threshold, (specified in ReadParams)
@@ -1477,8 +1477,8 @@ int TreatSweep(double t)
 					TrigThreshReached_Treatment = (global_trig >= P.TreatCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
-					TrigThreshReached_Treatment = (State.trigDC_adunit[adi] > trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.TreatCellIncThresh)) / P.IncThreshPop)) : (int)P.TreatCellIncThresh;
+					TrigThreshReached_Treatment = (State.trigDC_adunit[AdUnit_Index] > trig_thresh);
 				}
 				else
 				{
@@ -1497,9 +1497,9 @@ int TreatSweep(double t)
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
 					bool AskAgainIfStillTreating = false, StillTreating = true;
 
-					if ((!P.TreatByAdminUnit) || (AdminUnit > 0))
+					if ((!P.TreatByAdminUnit) || (AdUnit_ID > 0))
 					{
-						int ad2 = AdminUnit / P.TreatAdminUnitDivisor;
+						int ad2 = AdUnit_ID / P.TreatAdminUnitDivisor;
 						do
 						{
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
@@ -1576,8 +1576,8 @@ int TreatSweep(double t)
 					TrigThreshReached_Vacc = (global_trig >= P.VaccCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
-					TrigThreshReached_Vacc = (State.trigDC_adunit[adi] > trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.VaccCellIncThresh)) / P.IncThreshPop)) : (int)P.VaccCellIncThresh;
+					TrigThreshReached_Vacc = (State.trigDC_adunit[AdUnit_Index] > trig_thresh);
 				}
 				else
 				{
@@ -1595,9 +1595,9 @@ int TreatSweep(double t)
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
 					bool AskAgainIfStillVaccinating = false, StillVaccinating = true;
 
-					if ((!P.VaccByAdminUnit) || (AdminUnit > 0))
+					if ((!P.VaccByAdminUnit) || (AdUnit_ID > 0))
 					{
-						int ad2 = AdminUnit / P.VaccAdminUnitDivisor;
+						int ad2 = AdUnit_ID / P.VaccAdminUnitDivisor;
 						do
 						{
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
@@ -1659,8 +1659,8 @@ int TreatSweep(double t)
 					BelowTrigThreshold_PlaceOpen = (global_trig < P.PlaceCloseCellIncStopThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
-					BelowTrigThreshold_PlaceOpen = (State.trigDC_adunit[adi] < trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.PlaceCloseCellIncStopThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncStopThresh;
+					BelowTrigThreshold_PlaceOpen = (State.trigDC_adunit[AdUnit_Index] < trig_thresh);
 				}
 				else
 				{
@@ -1696,8 +1696,8 @@ int TreatSweep(double t)
 						TrigThreshReached_PlaceClosure = (global_trig >= P.PlaceCloseCellIncThresh);
 					else if (P.DoAdminTriggers)
 					{
-						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
-						TrigThreshReached_PlaceClosure = (State.trigDC_adunit[adi] > trig_thresh);
+						int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.PlaceCloseCellIncThresh)) / P.IncThreshPop)) : P.PlaceCloseCellIncThresh;
+						TrigThreshReached_PlaceClosure = (State.trigDC_adunit[AdUnit_Index] > trig_thresh);
 					}
 					else
 					{
@@ -1715,7 +1715,7 @@ int TreatSweep(double t)
 						if ((P.DoInterventionDelaysByAdUnit) && ((t <= AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart) || (t >= (AdUnits[Mcells[mcellnum].adunit].PlaceCloseTimeStart + AdUnits[Mcells[mcellnum].adunit].PlaceCloseDuration))))
 							interventionFlag = 0;
 
-						if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (AdminUnit > 0)))
+						if ((interventionFlag == 1) && ((!P.PlaceCloseByAdminUnit) || (AdUnit_ID > 0)))
 						{
 							if ((Mcells[mcellnum].n > 0) && (Mcells[mcellnum].placeclose == TreatStat::Untreated))
 							{
@@ -1766,8 +1766,8 @@ int TreatSweep(double t)
 					TrigThreshReached_MoveRestrict = (global_trig >= P.MoveRestrCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
-					TrigThreshReached_MoveRestrict = (State.trigDC_adunit[adi] > trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.MoveRestrCellIncThresh)) / P.IncThreshPop)) : P.MoveRestrCellIncThresh;
+					TrigThreshReached_MoveRestrict = (State.trigDC_adunit[AdUnit_Index] > trig_thresh);
 				}
 				else
 				{
@@ -1785,9 +1785,9 @@ int TreatSweep(double t)
 					int i = 0, MicroCellCounter = 0, ColumnCounter = 1;
 					bool AskAgainIfStillTreating = false, StillTreating = true;
 
-					if ((!P.MoveRestrByAdminUnit) || (AdminUnit > 0))
+					if ((!P.MoveRestrByAdminUnit) || (AdUnit_ID > 0))
 					{
-						int ad2 = AdminUnit / P.MoveRestrAdminUnitDivisor;
+						int ad2 = AdUnit_ID / P.MoveRestrAdminUnitDivisor;
 						do
 						{
 							// depending on characteristics of the nearby Microcells (starting with this microcell), alter their TreatStat variables (start time, TreatStat etc.)
@@ -1843,8 +1843,8 @@ int TreatSweep(double t)
 					BelowTrigThreshold_SocDist = (global_trig < P.SocDistCellIncStopThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
-					BelowTrigThreshold_SocDist = (State.trigDC_adunit[adi] < trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.SocDistCellIncStopThresh)) / P.IncThreshPop)) : P.SocDistCellIncStopThresh;
+					BelowTrigThreshold_SocDist = (State.trigDC_adunit[AdUnit_Index] < trig_thresh);
 				}
 				else
 				{
@@ -1872,8 +1872,8 @@ int TreatSweep(double t)
 					TrigThreshReached_SocDist = (global_trig >= P.SocDistCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
-					TrigThreshReached_SocDist = (State.trigDC_adunit[adi] >= trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.SocDistCellIncThresh)) / P.IncThreshPop)) : P.SocDistCellIncThresh;
+					TrigThreshReached_SocDist = (State.trigDC_adunit[AdUnit_Index] >= trig_thresh);
 				}
 				else
 				{
@@ -1924,8 +1924,8 @@ int TreatSweep(double t)
 					TrigThreshReached_KeyWorkerProph = (global_trig >= P.KeyWorkerProphCellIncThresh);
 				else if (P.DoAdminTriggers)
 				{
-					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[adi].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
-					TrigThreshReached_KeyWorkerProph = (State.trigDC_adunit[adi] > trig_thresh);
+					int trig_thresh = (P.DoPerCapitaTriggers) ? ((int)ceil(((double)(AdUnits[AdUnit_Index].n * P.KeyWorkerProphCellIncThresh)) / P.IncThreshPop)) : P.KeyWorkerProphCellIncThresh;
+					TrigThreshReached_KeyWorkerProph = (State.trigDC_adunit[AdUnit_Index] > trig_thresh);
 				}
 				else
 				{

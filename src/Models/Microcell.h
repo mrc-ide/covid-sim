@@ -30,7 +30,7 @@ struct Microcell
 	*/
 
 	int n; // Number of people in microcell
-	int adunit; // admin unit microcell belongs to
+	int adunit; // index of admin unit that this microcell belongs to. Will take value \in 1,..., P.NumAdunits (after P.NumAdunits set in SetupModel.cpp::SetupPopulation). NOTE: Distinct from Model.h::AdminUnit::id, which gives identifier of admin unit with reference to population file admin unit file.
 	int* members; // array of members/hosts of microcell
 
 	int* places[MAX_NUM_PLACE_TYPES]; // list of places (of various place types) within microcell
