@@ -97,8 +97,10 @@ const int NETWORK_FILE_VERSION = 1;
 
 struct BinFile
 {
-	double x, y, pop;
-	int cnt, ad;
+	double x, y;// latitute and longitude (transformed into x and y coords on grid)
+	double pop; // population size in this microcell
+	int cnt;	// country
+	int ad;		// admin unit
 };
 
 #endif // COVIDSIM_SETUPMODEL_H_INCLUDED_

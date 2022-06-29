@@ -20,7 +20,7 @@
 #include "Memory.h"
 
 void* BinFileBuf;
-BinFile* BinaryFile;
+BinFile* BinaryFile; // global array (this source file only) of type BinFile, i.e. various properties of each cell of population
 int netbuf[MAX_NUM_PLACE_TYPES * 1000000];
 
 
@@ -51,6 +51,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		DensityFile_dat = Files::xfopen(density_file.c_str(), "rb");
 		unsigned int density_file_header;
 		Files::fread_big(&density_file_header, sizeof(unsigned int), 1, DensityFile_dat);
+
 		if (density_file_header == 0xf0f0f0f0) // code for first 4 bytes of binary file ## NOTE - SHOULD BE LONG LONG TO COPE WITH BIGGER POPULATIONS
 		{
 			P.DoBin = 1;
@@ -72,42 +73,41 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			rewind(DensityFile_dat);
 			BinFileBuf = (void*)Memory::xcalloc(P.BinFileLen, sizeof(BinFile));
 			BinaryFile = (BinFile*)BinFileBuf;
-			unsigned int index = 0;
+			unsigned int RowNumber = 0;
+
+			//// Read in population file and populate BinaryFile Array
 			while(fgets(buf, sizeof(buf), DensityFile_dat) != NULL)
 			{
-				int i2;
-				double x, y;
+				int country;
+				double Longitude, Latitude;
 				// This shouldn't be able to happen, as we just counted the number of lines:
-				if (index == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
+				if (RowNumber == P.BinFileLen) ERR_CRITICAL("Too many input lines while reading density file\n");
+
 				if (P.DoAdUnits)
 				{
-					Files::xsscanf(buf, 5, "%lg %lg %lg %i %i", &x, &y, &t, &i2, &l);
-					if (l / P.CountryDivisor != i2)
+					Files::xsscanf(buf, 5, "%lg %lg %lg %i %i", &Longitude, &Latitude, &t, &country, &l);
+					if (l / P.CountryDivisor != country)
 					{
 						//Files::xfprintf_stderr("# %lg %lg %lg %i %i\n",x,y,t,i2,l);
 					}
 				}
 				else {
-					Files::xsscanf(buf, 4, "%lg %lg %lg %i", &x, &y, &t, &i2);
+					Files::xsscanf(buf, 4, "%lg %lg %lg %i", &Longitude, &Latitude, &t, &country);
 					l = 0;
 				}
-				// Ensure we use an x which gives us a contiguous whole for the
-				// geography.
-				if (x >= P.LongitudeCutLine) {
-					BinaryFile[index].x = x;
-				}
-				else {
-					BinaryFile[index].x = x + 360;
-				}
-				BinaryFile[index].y = y;
-				BinaryFile[index].pop = t;
-				BinaryFile[index].cnt = i2;
-				BinaryFile[index].ad = l;
-				index++;
+
+
+				// Ensure we use an x which gives us a contiguous whole for the geography
+				if (Longitude >= P.LongitudeCutLine) BinaryFile[RowNumber].x = Longitude; else BinaryFile[RowNumber].x = Longitude + 360;
+				BinaryFile[RowNumber].y		= Latitude;
+				BinaryFile[RowNumber].pop	= t;
+				BinaryFile[RowNumber].cnt	= country;
+				BinaryFile[RowNumber].ad	= l;
+				RowNumber++;
 			}
 			if(ferror(DensityFile_dat)) ERR_CRITICAL("Error while reading density file\n");
 			// This shouldn't be able to happen, as we just counted the number of lines:
-			if (index != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
+			if (RowNumber != P.BinFileLen) ERR_CRITICAL("Too few input lines while reading density file\n");
 			Files::xfclose(DensityFile_dat);
 		}
 
@@ -120,8 +120,8 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 			s2 = 0;
 			for (rn = 0; rn < P.BinFileLen; rn++)
 			{
-				double x = BinaryFile[rn].x;
-				double y = BinaryFile[rn].y;
+				double Longitude = BinaryFile[rn].x;
+				double Latitude = BinaryFile[rn].y;
 				t = BinaryFile[rn].pop;
 				int i2 = BinaryFile[rn].cnt;
 				l = BinaryFile[rn].ad;
@@ -135,7 +135,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 						s2 += t;
 						// Adjust the bounds of the spatial bounding box so that they include the location
 						// for this block of population.
-						P.SpatialBoundingBox.expand(CovidSim::Geometry::Vector2d(x, y));
+						P.SpatialBoundingBox.expand(CovidSim::Geometry::Vector2d(Longitude, Latitude));
 					}
 			}
 			if (!P.DoSpecifyPop) P.PopSize = (int)s2;
@@ -180,6 +180,7 @@ void SetupModel(std::string const& density_file, std::string const& out_density_
 		P.in_cells_.width = P.in_degrees_.width / ((double)P.ncw);
 		P.in_cells_.height = P.in_degrees_.height / ((double)P.nch);
 	}
+
 	P.NumMicrocells = P.NMCL * P.NMCL * P.NumCells;
 	P.total_microcells_wide_ = P.ncw * P.NMCL;
 	P.total_microcells_high_ = P.nch * P.NMCL;
@@ -868,9 +869,10 @@ void SetupPopulation(std::string const& density_file, std::string const& out_den
 	mcell_country	= std::vector<uint16_t>(P.NumMicrocells, 1);
 	mcell_adunits	= (int*)		Memory::xcalloc(P.NumMicrocells	, sizeof(int));
 
+	// initialize various quantities for microcells
 	for (int mcell = 0; mcell < P.NumMicrocells; mcell++)
 	{
-		Mcells[mcell].n = 0;
+		Mcells[mcell].n = 0; // number of people in microcell
 		mcell_adunits[mcell] = -1;
 		mcell_dens[mcell] = 0;
 		mcell_num[mcell] = 0;
