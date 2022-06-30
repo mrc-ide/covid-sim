@@ -67,6 +67,34 @@ void CalibrationThresholdCheck(double, int);
 void CalcLikelihood(int, std::string const&, std::string const&);
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
 
+void AllocateMemForBetasArray() // called in main (once per fitting run)
+{
+	P.Betas = new double** [P.SimulationDuration]();
+	for (int Day = 0; Day < P.SimulationDuration; Day++)
+	{
+		P.Betas[Day] = new double* [P.NumAdunits]();
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++) P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
+	}
+}
+void InitBetasArray() // called in InitModel (every realistaion/parameter guess iteration). 
+{
+	if (P.VaryBetasOverTimeByRegion == false)
+	{
+		//// if not varying by region or time, assign them to be the same for every simulation day and every admin unit.
+		for (int Day = 0; Day < P.SimulationDuration; Day++)
+			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			{
+				// place (by type)
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+					P.Betas[Day][AdUnit][PlaceType] = P.PlaceTypeTrans[PlaceType];
+				// Household
+				P.Betas[Day][AdUnit][House] = P.HouseholdTrans;
+				// Spatial/Community
+				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
+			}
+	}
+}
+
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** GLOBAL VARIABLES (some structures in CovidSim.h file and some containers) - memory allocated later.
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -261,9 +289,7 @@ int main(int argc, char* argv[])
 	P.NumThreads = 1;
 #endif
 	if (pre_param_file.empty())
-	{
 		pre_param_file = std::string(".." DIRECTORY_SEPARATOR "Pre_") + param_file;
-	}
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** READ IN PARAMETERS, DATA ETC.
@@ -287,14 +313,16 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
-
 	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 	// Allocate memory for Efficacies array
 	P.NumInfectionSettings		= MAX_NUM_PLACE_TYPES + 2;	// Maximum number of place types, plus household, and spatial
-	P.NumInterventionClasses	= 6;					// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
+	P.NumInterventionClasses	= 6;						// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
 	P.Efficacies = new double*[P.NumInterventionClasses]();
 	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
+
+	// Allocate memory for Betas array (dynamic allocation must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
+	AllocateMemForBetasArray(); 
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
@@ -1180,6 +1208,8 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	//// Add all of the above to P.Efficacies array.
 	UpdateEfficacyArray();
+	//// InitializeBetasArray (either to be same for all days and regions), or otherwise depending on how we are modelling them). Memory allocated in main using 
+	InitBetasArray(); 
 
 	// Initialize CFR scalings
 	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];
