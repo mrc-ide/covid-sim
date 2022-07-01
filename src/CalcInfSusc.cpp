@@ -28,7 +28,7 @@ double CalcPlaceInf(int person, int PlaceType, unsigned short int TimeStepNow)
 		*	((Hosts[person].digitalContactTraced == 1) ? P.Efficacies[DigContactTracing][PlaceType] : 1.0)
 		*	((HOST_QUARANTINED(person) && (!Hosts[person].care_home_resident) && (Hosts[person].digitalContactTraced != 1) && (!(HOST_ISOLATED(person)))) ? P.Efficacies[HomeQuarantine][PlaceType] : 1.0)
 		*	((Hosts[person].is_case() && (!Hosts[person].care_home_resident)) ? P.SymptPlaceTypeContactRate[PlaceType] : 1.0)
-		*	P.PlaceTypeTrans[PlaceType] / P.PlaceTypeGroupSizeParam1[PlaceType] * CalcPersonInf(person, TimeStepNow);
+		*	CalcPersonInf(person, TimeStepNow);
 }
 
 double CalcSpatialInf(int person, unsigned short int TimeStepNow)

@@ -409,7 +409,10 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 							if (PlaceLink >= 0)  //// PlaceLink >= 0 means if place type PlaceType is relevant to InfectiousPerson. (Now allowing for partial attendance).
 							{
 								// Place_Infectiousness
-								double Place_Infectiousness = fp * seasonality * CalcPlaceInf(InfectiousPersonIndex, PlaceType, TimeStepNow);
+								double Place_Infectiousness = CalcPlaceInf(InfectiousPersonIndex, PlaceType, TimeStepNow);
+								Place_Infectiousness		*= P.PlaceTypeTrans[PlaceType];
+								Place_Infectiousness		/= P.PlaceTypeGroupSizeParam1[PlaceType];
+								Place_Infectiousness		*= fp * seasonality; 
 								// select microcell of the place linked to InfectiousPerson with link PlaceLink
 								Microcell* Microcell_ThisPersonsPlaceLink = Mcells + Places[PlaceType][PlaceLink].mcell;
 								// if blanket movement restrictions are in place on current day
@@ -423,7 +426,9 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 								}
 								// else if movement restrictions in effect in either household microcell or place microcell
 								else if ((Microcell_ThisPerson->moverest != Microcell_ThisPersonsPlaceLink->moverest) && ((Microcell_ThisPerson->moverest == TreatStat::Treated) || (Microcell_ThisPersonsPlaceLink->moverest == TreatStat::Treated)))
+								{
 									Place_Infectiousness *= P.MoveRestrEffect; // multiply infectiousness of place by movement restriction effect
+								}
 
 								// BEGIN NON-HOTEL INFECTIONS
 
