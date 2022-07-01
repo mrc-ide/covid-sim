@@ -896,7 +896,7 @@ void UpdateEfficacyArray()
 
 void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
-	int nim;
+	int NumImmune = 0;
 
 	if (P.OutputBitmap)
 	{
@@ -1020,7 +1020,6 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		for (int i = 0; i < MAX_CONTACTS+1; i++) StateT[j].contact_dist[i] = 0;
 
 	}
-	nim = 0;
 
 	if (P.DoAdUnits && P.OutputAdUnitAge)
 		for (int Thread = 0; Thread < P.NumThreads; Thread++)
@@ -1068,7 +1067,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 			}
 		}
 
-#pragma omp parallel for reduction(+:nim) schedule(static,1) default(none) \
+#pragma omp parallel for reduction(+:NumImmune) schedule(static,1) default(none) \
 		shared(P, Cells, Hosts, Households)
 	for (int tn = 0; tn < P.NumThreads; tn++)
 	{
@@ -1102,7 +1101,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 								{
 									if ((P.InitialImmunity[0] == 1) || (ranf_mt(tn) < P.InitialImmunity[0]))
 									{
-										nim += Households[Hosts[k].hh].nh;
+										NumImmune += Households[Hosts[k].hh].nh;
 										for (int m = Households[Hosts[k].hh].nh - 1; m >= 0; m--)
 											DoImmune(k + m);
 									}
@@ -1114,7 +1113,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 							int m = HOST_AGE_GROUP(k);
 							if ((P.InitialImmunity[m] == 1) || ((P.InitialImmunity[m] > 0) && (ranf_mt(tn) < P.InitialImmunity[m])))
 							{
-								DoImmune(k); nim += 1;
+								DoImmune(k); NumImmune += 1;
 							}
 						}
 					}
