@@ -295,7 +295,6 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	int Day						= (int)floor(t); // integer value of current day (used for indexing).
 	double fp					= P.ModelTimeStep / (1 - P.FalsePositiveRate); // fp = false positive
 	double seasonality			= (P.DoSeasonality) ? (P.Seasonality[((int)t) % DAYS_PER_YEAR]) : 1.0; // if doing seasonality, pick seasonality from P.Seasonality array using day number in year. Otherwise set to 1.
-	double SpatialSeasonal_Beta = seasonality * fp * P.LocalBeta;
 	
 	// Establish if movement restrictions are in place on current day - store in BlanketMoveRestrInPlace, 0:false, 1:true 
 	int BlanketMoveRestrInPlace = ((P.DoBlanketMoveRestr) && (t >= P.MoveRestrTimeStart) && (t < P.MoveRestrTimeStart + P.MoveRestrDuration));
@@ -303,11 +302,12 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	FILE* stderr_shared = stderr;
 	
 #pragma omp parallel for private(CellQueue) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, SpatialSeasonal_Beta, seasonality, TimeStepNow, fp, BlanketMoveRestrInPlace, stderr_shared)
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, seasonality, TimeStepNow, fp, BlanketMoveRestrInPlace, stderr_shared)
 	for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 	{
 		Cell* ThisCell; 
 		double Household_Beta; // if doing households, Household_Beta = seasonality * fp * P.HouseholdTrans, else Household_Beta = 0
+		double SpatialSeasonal_Beta;
 		double SpatialInf_AllPeopleThisCell; ///// spatial infectiousness summed over all infectious people in loop below
 
 		for (int CellIndex = ThreadNum; CellIndex < P.NumPopulatedCells; CellIndex += P.NumThreads) //// loop over (in parallel) all populated cells. Loop 1)
@@ -327,6 +327,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				InfectiousPersonIndex = ThisCell->infected[InfectiousPersonIndex_ThisCell];
 				//// get InfectiousPerson from Hosts (array of people) corresponding to InfectiousPersonIndex, using pointer arithmetic.
 				InfectiousPerson = Hosts + InfectiousPersonIndex;
+				int AdUnit_ThisPerson = Mcells[InfectiousPerson->mcell].adunit;
+
 
 				//evaluate flag for digital contact tracing (DigiContactTrace_ThisPersonNow) here at the beginning for each individual
 				// DigiContactTrace_ThisPersonNow = 1 if:
@@ -335,20 +337,15 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				// AND Day number (t) is less than the end day for contact tracing in this administrative unit (ie. contact tracing has not ended)
 				// AND the selected host is a digital contact tracing user
 				// otherwise DigiContactTrace_ThisPersonNow = 0
-				DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) && (t >= AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart)
-					&& (t < AdUnits[Mcells[InfectiousPerson->mcell].adunit].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) && (Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
+				DigiContactTrace_ThisPersonNow = ((P.DoDigitalContactTracing) &&
+					(t >= AdUnits[AdUnit_ThisPerson].DigitalContactTracingTimeStart) &&
+					(t <  AdUnits[AdUnit_ThisPerson].DigitalContactTracingTimeStart + P.DigitalContactTracingPolicyDuration) &&
+					(Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
 
-				int AdminUnit = Mcells[Hosts[InfectiousPersonIndex].mcell].adunit;
 
-				if (P.DoHouseholds)
-				{
-					Household_Beta = (P.VaryBetasOverTimeByRegion) ? P.Betas[Day][AdminUnit][House] : P.HouseholdTrans;
-					Household_Beta *= seasonality * fp;
-				}
-				else Household_Beta = 0;
-
+				Household_Beta = (P.DoHouseholds) ? P.Betas[Day][AdUnit_ThisPerson][House] * seasonality * fp : 0;
 				if (Household_Beta > 0)
 				{
 					// For InfectiousPerson's household (InfectiousPerson->hh), 
@@ -410,9 +407,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 							{
 								// Place_Infectiousness
 								double Place_Infectiousness = CalcPlaceInf(InfectiousPersonIndex, PlaceType, TimeStepNow);
-								Place_Infectiousness		*= P.PlaceTypeTrans[PlaceType];
-								Place_Infectiousness		/= P.PlaceTypeGroupSizeParam1[PlaceType];
-								Place_Infectiousness		*= fp * seasonality; 
+								Place_Infectiousness		*= P.Betas[Day][AdUnit_ThisPerson][PlaceType] * fp * seasonality / P.PlaceTypeGroupSizeParam1[PlaceType];
 								// select microcell of the place linked to InfectiousPerson with link PlaceLink
 								Microcell* Microcell_ThisPersonsPlaceLink = Mcells + Places[PlaceType][PlaceLink].mcell;
 								// if blanket movement restrictions are in place on current day
@@ -514,16 +509,14 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 											if ((Hosts[InfectiousPersonIndex].ncontacts < P.MaxDigitalContactsToTrace) && (ranf_mt(ThreadNum) < PlaceSusceptibility_DCT_scaled))
 											{
 												Hosts[InfectiousPersonIndex].ncontacts++; //add to number of contacts made
-												int AdminUnit = Mcells[Hosts[PotentialInfectee_PlaceGroup].mcell].adunit;
-												if ((StateT[ThreadNum].ndct_queue[AdminUnit] < AdUnits[AdminUnit].n))
+												int AdUnit = Mcells[Hosts[PotentialInfectee_PlaceGroup].mcell].adunit;
+												if ((StateT[ThreadNum].ndct_queue[AdUnit] < AdUnits[AdUnit].n))
 												{
 													//find adunit for contact and add both contact and infectious host to lists - storing both so I can set times later.
-													StateT[ThreadNum].dct_queue[AdminUnit][StateT[ThreadNum].ndct_queue[AdminUnit]++] = { PotentialInfectee_PlaceGroup, InfectiousPersonIndex, TimeStepNow };
+													StateT[ThreadNum].dct_queue[AdUnit][StateT[ThreadNum].ndct_queue[AdUnit]++] = { PotentialInfectee_PlaceGroup, InfectiousPersonIndex, TimeStepNow };
 												}
 												else
-												{
-													Files::xfprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", ThreadNum, AdminUnit);
-												}
+													Files::xfprintf(stderr_shared, "No more space in queue! Thread: %i, AdUnit: %i\n", ThreadNum, AdUnit);
 											}
 										}
 
@@ -674,6 +667,8 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 				// if seasonality beta > 0
 				// do spatial infections 
 				//// ie sum spatial infectiousness over all infected people, the infections from which are allocated after loop over infected people.
+
+				SpatialSeasonal_Beta = seasonality * fp * P.Betas[Day][AdUnit_ThisPerson][Spatial];
 				if (SpatialSeasonal_Beta > 0)
 				{
 					double SpatialInf_ThisPerson;
