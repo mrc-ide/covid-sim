@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 		parse_read_file(input.substr(sep + 1), snapshot_save_file);
 	};
 
-	double cl = (double) clock();
+	double StartTime = (double) clock();
 
 	// Default bitmap format is platform dependent.
 #if defined(IMAGE_MAGICK) || defined(_WIN32)
@@ -309,6 +309,11 @@ int main(int argc, char* argv[])
 
 	///// initialize model (for all realisations).
 	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file, output_file_base);
+	InitTransmissionCoeffs();
+	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
+	for (auto const& int_file : InterventionFiles)
+		ReadInterventions(int_file);
+	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double)clock() - StartTime) / CLOCKS_PER_SEC);
 
 	// Allocate memory for Efficacies array
 	P.NumInfectionSettings = MAX_NUM_PLACE_TYPES + 2;	// Maximum number of place types, plus household, and spatial
@@ -318,12 +323,6 @@ int main(int argc, char* argv[])
 
 	// Allocate memory for Betas array (dynamic allocation must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
 	AllocateMemForBetasArray();
-
-	InitTransmissionCoeffs();
-	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
-	for (auto const& int_file : InterventionFiles)
-		ReadInterventions(int_file);
-	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
 
 
@@ -365,7 +364,7 @@ int main(int argc, char* argv[])
 				if (P.NumRealisations > 1)
 				{
 					output_file = output_file_base + "." + std::to_string(Realisation);
-					Files::xfprintf_stderr("Realisation %i of %i (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - cl)) / CLOCKS_PER_SEC, P.NRactNE);
+					Files::xfprintf_stderr("Realisation %i of %i (time=%lf nr_ne=%i)\n", Realisation + 1, P.NumRealisations, ((double)(clock() - StartTime)) / CLOCKS_PER_SEC, P.NRactNE);
 				}
 				///// Set and save seeds
 				if (((Realisation == 0) && (P.FitIter == 1)) || (P.ResetSeeds && P.KeepSameSeeds))
@@ -445,7 +444,7 @@ int main(int argc, char* argv[])
 			Bitmap_Finalise();
 
 			Files::xfprintf_stderr("Extinction in %i out of %i runs\n", P.NRactE, P.NRactNE + P.NRactE);
-			Files::xfprintf_stderr("Model ran in %lf seconds\n", ((double)clock() - cl) / CLOCKS_PER_SEC);
+			Files::xfprintf_stderr("Model ran in %lf seconds\n", ((double)clock() - StartTime) / CLOCKS_PER_SEC);
 			Files::xfprintf_stderr("Model finished\n");
 		}
 	}

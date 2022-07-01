@@ -668,7 +668,7 @@ void InitTransmissionCoeffs(void)
 	{
 		for (int person = Thread; person < P.PopSize; person += P.NumThreads) // loop over people
 		{
-			//int AdUnit = Mcells[person->mcell].adunit;
+			int AdUnit = Mcells[Hosts[person].mcell].adunit;
 
 			// assign susceptibility of each host.
 			if (P.SusceptibilitySD == 0)
@@ -738,7 +738,7 @@ void InitTransmissionCoeffs(void)
 				// sum over "infectee" age groups to scale infectiousness of this infector.
 				for (int InfecteeAge = 0; InfecteeAge < NUM_AGE_GROUPS; InfecteeAge++)
 					//AvContactRate_Infector += P.PropAgeGroup[0][InfecteeAge] * P.WAIFW_Matrix_SpatialOnly[InfecteeAge][HOST_AGE_GROUP(person)]; // use index 0 for admin unit if doing whole country.
-					AvContactRate_Infector += P.PropAgeGroup[Mcells[Hosts[person].mcell].adunit][InfecteeAge] * P.WAIFW_Matrix_SpatialOnly[InfecteeAge][HOST_AGE_GROUP(person)];
+					AvContactRate_Infector += P.PropAgeGroup[AdUnit][InfecteeAge] * P.WAIFW_Matrix_SpatialOnly[InfecteeAge][HOST_AGE_GROUP(person)];
 				// scale spatial infectiousness by weighted average.
 				Spatial_Infectiousness *= AvContactRate_Infector; 
 			}
