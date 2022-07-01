@@ -309,20 +309,22 @@ int main(int argc, char* argv[])
 
 	///// initialize model (for all realisations).
 	SetupModel(density_file, out_density_file, load_network_file, save_network_file, school_file, reg_demog_file, output_file_base);
+
+	// Allocate memory for Efficacies array
+	P.NumInfectionSettings = MAX_NUM_PLACE_TYPES + 2;	// Maximum number of place types, plus household, and spatial
+	P.NumInterventionClasses = 6;						// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
+	P.Efficacies = new double* [P.NumInterventionClasses]();
+	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
+
+	// Allocate memory for Betas array (dynamic allocation must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
+	AllocateMemForBetasArray();
+
 	InitTransmissionCoeffs();
 	for (int i = 0; i < MAX_ADUNITS; i++) AdUnits[i].NI = 0;
 	for (auto const& int_file : InterventionFiles)
 		ReadInterventions(int_file);
 	Files::xfprintf_stderr("Model setup in %lf seconds\n", ((double) clock() - cl) / CLOCKS_PER_SEC);
 
-	// Allocate memory for Efficacies array
-	P.NumInfectionSettings		= MAX_NUM_PLACE_TYPES + 2;	// Maximum number of place types, plus household, and spatial
-	P.NumInterventionClasses	= 6;						// CI, HQ, PC, SD, Enhanced Social Distancing, DCT
-	P.Efficacies = new double*[P.NumInterventionClasses]();
-	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
-
-	// Allocate memory for Betas array (dynamic allocation must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
-	AllocateMemForBetasArray(); 
 
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
