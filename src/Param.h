@@ -36,6 +36,7 @@ struct Param
 	/**< Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep). */
 	double SimulationDuration;				/**< The number of days to run for */
 	double ModelTimeStep;					/**< The length of a time step, in days */
+	double TimeStepsPerDay; 
 	double OutputTimeStep;					/**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
 	int NumModelTimeStepsPerOutputTimeStep;	/**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
 	int NumOutputTimeSteps;					/**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
@@ -108,7 +109,7 @@ struct Param
 	
 	CovidSim::Geometry::BoundingBox2d SpatialBoundingBox;
 	double** LocationInitialInfection;
-	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime, TimeStepsPerDay;
+	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double SeroConvMaxSens, SeroConvP1, SeroConvP2, SeroConvSpec, InfPrevSurveyScale;
 	

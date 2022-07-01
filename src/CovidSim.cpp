@@ -69,8 +69,8 @@ void CalcOriginDestMatrix_adunit(void); //added function to calculate origin des
 
 void AllocateMemForBetasArray() // called in main (once per fitting run)
 {
-	P.Betas = new double** [P.SimulationDuration]();
-	for (int Day = 0; Day < P.SimulationDuration; Day++)
+	P.Betas = new double** [(int)P.SimulationDuration + 1]();
+	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 	{
 		P.Betas[Day] = new double* [P.NumAdunits]();
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++) P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
@@ -78,10 +78,10 @@ void AllocateMemForBetasArray() // called in main (once per fitting run)
 }
 void InitBetasArray() // called in InitModel (every realistaion/parameter guess iteration). 
 {
-	if (P.VaryBetasOverTimeByRegion == false)
-	{
+	//if (P.VaryBetasOverTimeByRegion == false) // while you're setting up, leave this condition out. Put back in later once mobility data included.
+	//{
 		//// if not varying by region or time, assign them to be the same for every simulation day and every admin unit.
-		for (int Day = 0; Day < P.SimulationDuration; Day++)
+		for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			{
 				// place (by type)
@@ -92,7 +92,7 @@ void InitBetasArray() // called in InitModel (every realistaion/parameter guess 
 				// Spatial/Community
 				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
 			}
-	}
+	//}
 }
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
