@@ -350,7 +350,7 @@ int main(int argc, char* argv[])
 			{
 				Params::ReadParams(param_file, pre_param_file, ad_unit_file, &P, AdUnits);
 				if (!P.FixLocalBeta) InitTransmissionCoeffs();
-				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter);
+				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter); 
 			}
 		}
 		else StopFit = 1;
