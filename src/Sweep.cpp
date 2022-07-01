@@ -302,7 +302,7 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 	FILE* stderr_shared = stderr;
 	
 #pragma omp parallel for private(CellQueue) schedule(static,1) default(none) \
-		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, seasonality, TimeStepNow, fp, BlanketMoveRestrInPlace, stderr_shared)
+		shared(t, P, CellLookup, Hosts, AdUnits, Households, Places, SamplingQueue, Cells, Mcells, StateT, seasonality, TimeStepNow, fp, BlanketMoveRestrInPlace, stderr_shared, Day)
 	for (int ThreadNum = 0; ThreadNum < P.NumThreads; ThreadNum++)
 	{
 		Cell* ThisCell; 
