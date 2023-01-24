@@ -120,7 +120,7 @@ struct Param
 	// setting refers to either place, household and spatial/community
 	*/
 	double*** Betas; //// indexed by i) time; ii) region / admin unit; iii) setting.
-	bool VaryBetasOverTimeByRegion = false;
+	bool VaryBetasOverTimeByRegion = true;
 
 
 	double R0, R0scale;

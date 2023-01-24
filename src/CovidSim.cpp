@@ -67,32 +67,57 @@ void CalibrationThresholdCheck(double, int);
 void CalcLikelihood(int, std::string const&, std::string const&);
 void CalcOriginDestMatrix_adunit(void); //added function to calculate origin destination matrix: ggilani 28/01/15
 
-void AllocateMemForBetasArray() // called in main (once per fitting run)
+bool FileExists(std::string FileName)
+{
+	std::ifstream infile(FileName);
+	bool FileOkay = infile.good();
+	infile.close();
+	return FileOkay;
+}
+void AllocateMemForBetasArray() // called in main (once per fitting run). Can you allocate only once but clear values?
 {
 	P.Betas = new double** [(int)P.SimulationDuration + 1]();
 	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 	{
 		P.Betas[Day] = new double* [P.NumAdunits]();
-		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++) P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
 	}
+	// initialize all values to 1;
+	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+			for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
+				P.Betas[Day][AdUnit][Setting] = 1;
 }
-void InitBetasArray() // called in InitModel (every realistaion/parameter guess iteration). 
+void ImportMobilityDataToBetasArray(std::string MobilityFilename, int SettingNumber) // assumes all P.Betas values initialized to 1.
 {
-	//if (P.VaryBetasOverTimeByRegion == false) // while you're setting up, leave this condition out. Put back in later once mobility data included.
-	//{
-		//// if not varying by region or time, assign them to be the same for every simulation day and every admin unit.
-		for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
+	if (MobilityFilename != "NoFileFound" && FileExists(MobilityFilename))
+	{
+		std::ifstream MobFileStream(MobilityFilename.c_str());
+		double ProportionalChange = 0.0; 
+		for (int Day = 0; Day < P.SimulationDuration; Day++)
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			{
-				// place (by type)
-				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
-					P.Betas[Day][AdUnit][PlaceType] = P.PlaceTypeTrans[PlaceType];
-				// Household
-				P.Betas[Day][AdUnit][House] = P.HouseholdTrans;
-				// Spatial/Community
-				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
+				MobFileStream >> ProportionalChange;
+				P.Betas[Day][AdUnit][SettingNumber] += ProportionalChange;
 			}
-	//}
+		MobFileStream.close();
+	}
+	else ERR_CRITICAL(("mobility_file: " + MobilityFilename + " does not exist").c_str());
+}
+void MultiplyMobDataWithTransmissionParams()
+{
+	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+		{
+			// place (by type)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+				P.Betas[Day][AdUnit][PlaceType] *= P.PlaceTypeTrans[PlaceType];
+			// Household
+			P.Betas[Day][AdUnit][House] *= P.HouseholdTrans;
+			// Spatial/Community
+			P.Betas[Day][AdUnit][Spatial] *= P.LocalBeta;
+		}
 }
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
@@ -153,6 +178,8 @@ int main(int argc, char* argv[])
 	std::string reg_demog_file, fit_file, data_file;
 	std::string ad_unit_file, out_density_file, output_file_base;
 	std::string snapshot_load_file, snapshot_save_file;
+	// mobility data filenames
+	std::string spatial_mob_file = "NoFileFound", household_mob_file = "NoFileFound", workplace_mob_file = "NoFileFound"; // set default to "NoFileFound"
 
 	int StopFit = 0;
 	///// Flags to ensure various parameters have been read; set to false as default.
@@ -196,13 +223,18 @@ int main(int argc, char* argv[])
 	//// **** PARSE COMMAND-LINE ARGS
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 
-
+	
 	CmdLineArgs args;
 	args.add_string_option("A", parse_read_file, ad_unit_file, "Administrative Division");
 	args.add_string_option("AP", parse_read_file, air_travel_file, "Air travel data file");
 	args.add_custom_option("BM", parse_bmp_option, "Bitmap format to use [PNG,BMP]");
 	args.add_integer_option("c", P.MaxNumThreads, "Number of threads to use");
 	args.add_integer_option("C", P.PlaceCloseIndepThresh, "Sets the P.PlaceCloseIndepThresh parameter");
+
+	// Mobility data file names (CL args)
+	args.add_string_option("MS", parse_read_file, spatial_mob_file	, "Spatial mobility data file");
+	args.add_string_option("MH", parse_read_file, household_mob_file, "Household mobility data file");
+	args.add_string_option("MW", parse_read_file, workplace_mob_file, "Workplace mobility data file");
 
 	/* Wes: Need to allow /CLPxx up to 99. I'll do this naively for now and prevent the help text from
 			looking overly verybose. To satisfiy all behaviour, /CLP0: to /CLP9: should do the
@@ -321,10 +353,19 @@ int main(int argc, char* argv[])
 	P.Efficacies = new double* [P.NumInterventionClasses]();
 	for (int intervention = 0; intervention < P.NumInterventionClasses; intervention++) P.Efficacies[intervention] = new double[P.NumInfectionSettings]();
 
-	// Allocate memory for Betas array (dynamic allocation must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
-	AllocateMemForBetasArray();
-
-
+	// Allocate memory for Betas array (dynamic allocation - must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
+	// By default, make all multipliers of betas equal to 1. If P.VaryBetasOverTimeByRegion, these multipliers will be mobility data 
+	AllocateMemForBetasArray(); 
+	if (P.VaryBetasOverTimeByRegion)
+	{
+		ImportMobilityDataToBetasArray(workplace_mob_file	, Workplace);
+		ImportMobilityDataToBetasArray(household_mob_file	, House);
+		ImportMobilityDataToBetasArray(spatial_mob_file		, Spatial);
+	}
+	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
+	//	for (int Day = 0; Day < (int)P.SimulationDuration; Day++)
+	//		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+	//			std::cout << "Day " << Day << ", AdUnit " << AdUnit << ", Setting " << Setting << ", Beta " << P.Betas[Day][AdUnit][Setting] << std::endl; ;
 
 	//// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// **** //// ****
 	//// **** RUN MODEL
@@ -378,6 +419,7 @@ int main(int argc, char* argv[])
 				int ContCalib, ModelCalibLoop = 0;
 				P.StopCalibration = P.ModelCalibIteration = ModelCalibLoop = 0;
 
+				//// Run model (possibly repeatedly if calibrating). 
 				do
 				{	// has been interrupted to reset holiday time. Note that this currently only happens in the first run, regardless of how many realisations are being run.
 					if ((P.ModelCalibIteration % 14 == 0) && (ModelCalibLoop < 4))
@@ -1209,7 +1251,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// Add all of the above to P.Efficacies array.
 	UpdateEfficacyArray();
 	//// InitializeBetasArray (either to be same for all days and regions), or otherwise depending on how we are modelling them). Memory allocated in main using 
-	InitBetasArray(); 
+	MultiplyMobDataWithTransmissionParams(); 
 
 	// Initialize CFR scalings
 	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];
@@ -3718,73 +3760,75 @@ void CalibrationThresholdCheck(double t,int n)
 	}
 }
 
-void CalcLikelihood(int run, std::string const& DataFile, std::string const& OutFileBase)
+void CalcLikelihood(int RealisationNum, std::string const& DataFile, std::string const& OutFileBase)
 {
-	FILE* dat;
+	FILE* DataFile_dat;
 
-	static int DataAlreadyRead = 0, ncols, nrows, * ColTypes; // static i.e. won't be reset upon subsequent calls to CalcLikelihood
-	static double** Data, NegBinK, sumL;
+	// static i.e. won't be destroyed at end of function. So in subsequent calls to this function, Data won't have to be read in again, and can add to sum_LogLik.
+	static int DataAlreadyRead = 0, ncols, nrows, * ColTypes; 
+	static double** Data, NegBinK, sum_LogLik;
 
+	// Read in data (if not already read during previous call to this function).
 	if (!DataAlreadyRead)
 	{
 		char FieldName[1024];
-		dat = Files::xfopen(DataFile.c_str(), "r");
-		// Extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution, from Data file
-		Files::xfscanf(dat, 3, "%i %i %lg", &nrows, &ncols, &NegBinK);
+		DataFile_dat = Files::xfopen(DataFile.c_str(), "r");
+
+		// From first row of DataFile, extract numbers of rows and columns, and overdispersion parameter of negative bionomial distribution.
+		Files::xfscanf(DataFile_dat, 3, "%i %i %lg", &nrows, &ncols, &NegBinK);
 
 		// allocate memory
-		ColTypes = (int*) Memory::xcalloc(ncols, sizeof(int));
-		Data = (double**) Memory::xcalloc(nrows, sizeof(double *));
-		for (int i = 0; i < nrows; i++)
-			Data[i] = (double*) Memory::xcalloc(ncols, sizeof(double));
+		ColTypes	= (int*)		Memory::xcalloc(ncols, sizeof(int));
+		Data		= (double**)	Memory::xcalloc(nrows, sizeof(double *));
+		for (int row = 0; row < nrows; row++)
+			Data[row] = (double*) Memory::xcalloc(ncols, sizeof(double));
 
-		// cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
-		for (int i = 0; i < ncols; i++)
+		// From next row of DataFile, cycle through columns assigning an int label to each data/column type in data file. Essentially renaming column names to integers. 
+		for (int col = 0; col < ncols; col++)
 		{
-			ColTypes[i] = -100;
-			Files::xfscanf(dat, 1, "%s", FieldName);
+			ColTypes[col] = -100; // by default assign to negative number as this won't be picked up in loop below.
+
+			// assign entry of this row and column of DataFile to be the variable name
+			Files::xfscanf(DataFile_dat, 1, "%s", FieldName);
+
+			//// cycle through possibilities
 			if (!strcmp(FieldName, "day"))
 			{
-				ColTypes[i] = -1;
-				if (i != 0) ERR_CRITICAL("'day' must be first column in data file\n");
+				ColTypes[col] = -1;
+				if (col != 0) ERR_CRITICAL("'day' must be first column in data file\n");
 			}
-			if (!strcmp(FieldName, "all_deaths"))
-				ColTypes[i] = 0;
-			else if (!strcmp(FieldName, "hospital_deaths"))
-				ColTypes[i] = 1;
-			else if (!strcmp(FieldName, "care_home_deaths"))
-				ColTypes[i] = 2;
-			else if (!strcmp(FieldName, "seroprevalence_numerator"))
-				ColTypes[i] = 3;
+				 if (!strcmp(FieldName, "all_deaths"))						ColTypes[col] = 0;
+			else if (!strcmp(FieldName, "hospital_deaths"))					ColTypes[col] = 1;
+			else if (!strcmp(FieldName, "care_home_deaths"))				ColTypes[col] = 2;
+			else if (!strcmp(FieldName, "seroprevalence_numerator"))		ColTypes[col] = 3;
 			else if (!strcmp(FieldName, "seroprevalence_denominator"))
 			{
-				ColTypes[i] = 4;
-				if (ColTypes[i - 1] != 3) ERR_CRITICAL("Seroprevalence denominator must be next column after numerator in data file\n");
+				ColTypes[col] = 4;
+				if (ColTypes[col - 1] != 3) ERR_CRITICAL("Seroprevalence denominator must be next column after numerator in data file\n");
 			}
-			else if (!strcmp(FieldName, "infection_prevalence_numerator"))
-				ColTypes[i] = 5;
+			else if (!strcmp(FieldName, "infection_prevalence_numerator"))	ColTypes[col] = 5;
 			else if (!strcmp(FieldName, "infection_prevalence_denominator"))
 			{
-				ColTypes[i] = 6;
-				if (ColTypes[i - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
+				ColTypes[col] = 6;
+				if (ColTypes[col - 1] != 5) ERR_CRITICAL("Infection prevalence denominator must be next column after numerator in data file\n");
 			}
 		}
 
 		// extract data into Data array.
-		for (int i = 0; i < nrows; i++)
-			for (int j = 0; j < ncols; j++)
-				Files::xfscanf(dat, 1, "%lg", &(Data[i][j]));
-		Files::xfclose(dat);
+		for (int row = 0; row < nrows; row++)
+			for (int col = 0; col < ncols; col++)
+				Files::xfscanf(DataFile_dat, 1, "%lg", &(Data[row][col]));
+		Files::xfclose(DataFile_dat);
 		DataAlreadyRead = 1;
 	}
 
 	// calculate likelihood function
-	double c, LL = 0.0;
+	double c, LogLik = 0.0;
 	double kp = (P.clP[99] > 0) ? P.clP[99] : NegBinK; // clP[99] reserved for fitting overdispersion. If not positive-definite assign to NegBinK extracted above. 
 	c = 1.0; // 1 / ((double)(P.NRactE + P.NRactNE));
 	int offset = (P.Interventions_StartDate_CalTime > 0) ? ((int)(P.Interventions_StartDate_CalTime - P.DateTriggerReached_SimTime)) : 0;
 
-	for (int col = 1; col < ncols; col++) /// cycle through columns (different sources of data contributing to likelihood), and add to log likelihood (LL) accordingly. 
+	for (int col = 1; col < ncols; col++) /// cycle through columns (different sources of data contributing to likelihood), and add to log likelihood (LL) accordingly. Note starts from 1 as 0th column is day of year.
 	{
 		if ((ColTypes[col] >= 0) && (ColTypes[col] <= 2)) // i.e. "all deaths", "hospital deaths", "care home deaths"
 		{
@@ -3795,12 +3839,14 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				if ((Data[row][col] >= -1) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
 					double ModelValue;
-					if (ColTypes[col] == 0)
-						ModelValue = c * TimeSeries[day - offset].incD; // all deaths by date of death
-					else if (ColTypes[col] == 1)
-						ModelValue = c * (TimeSeries[day - offset].incDeath_Critical + TimeSeries[day - offset].incDeath_SARI); // hospital deaths (SARI and Critical) by date of death
-					else if (ColTypes[col] == 2)
-						ModelValue = c * TimeSeries[day - offset].incDeath_ILI; // care home deaths (ILI) by date of death
+
+					if (ColTypes[col] == 0)			// all deaths by date of death
+						 ModelValue = c * TimeSeries[day - offset].incD;
+					else if (ColTypes[col] == 1)	// hospital deaths (SARI and Critical) by date of death
+						ModelValue = c * (TimeSeries[day - offset].incDeath_Critical + TimeSeries[day - offset].incDeath_SARI);
+					else if (ColTypes[col] == 2)	// care home deaths (ILI) by date of death
+						ModelValue = c * TimeSeries[day - offset].incDeath_ILI;
+
 					ModelValueSum += ModelValue;
 					if (Data[row][col] >= 0)
 					{
@@ -3811,13 +3857,13 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 						}
 						if (NegBinK >= 10000)
 							//prob model and data from same underlying poisson
-							LL += lgamma(2 * (Data[row][col] + ModelValue) + 1) - lgamma(Data[row][col] + ModelValue + 1) - lgamma(Data[row][col] + 1) - lgamma(ModelValue + 1) - (3 * (Data[row][col] + ModelValue) + 1) * log(2);
+							LogLik += lgamma(2 * (Data[row][col] + ModelValue) + 1) - lgamma(Data[row][col] + ModelValue + 1) - lgamma(Data[row][col] + 1) - lgamma(ModelValue + 1) - (3 * (Data[row][col] + ModelValue) + 1) * log(2);
 						else
 						{
 							//neg bin LL (NegBinK=1 implies no over-dispersion. >1 implies more)
 							double knb = 1.0 + ModelValue / kp;
 							double pnb = kp / (1.0 + kp);
-							LL += lgamma(Data[row][col] + knb) - lgamma(Data[row][col] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[row][col] * log(pnb);
+							LogLik += lgamma(Data[row][col] + knb) - lgamma(Data[row][col] + 1) - lgamma(knb) + knb * log(1.0 - pnb) + Data[row][col] * log(pnb);
 						}
 					}
 				}
@@ -3830,9 +3876,9 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
 				if ((Data[row][col] >= 0) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[row][col]; // numerator
-					double N = Data[row][col + 1]; // denominator
-					double ModelValue = 0.0;
+					double m = Data[row][col];		// numerator
+					double N = Data[row][col + 1];	// denominator
+					double ModelValue = 0.0;		// (re)-initialize ModelValue
 					for (int k = offset; k < day; k++) // loop over all days of infection up to day of sample
 					{
 						double prob_seroconvert = P.SeroConvMaxSens * (1.0 - 0.5 * ((exp(-((double)(_I64(day) - k)) * P.SeroConvP1) + 1.0) * exp(-((double)(_I64(day) - k)) * P.SeroConvP2))); // add P1 to P2 to prevent degeneracy
@@ -3840,7 +3886,7 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 					}
 					ModelValue += c * TimeSeries[day - offset].S * (1.0 - P.SeroConvSpec);
 					ModelValue /= ((double)P.PopSize);
-					LL += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20)); // subtract saturated likelihood
+					LogLik += m * log((ModelValue + 1e-20) / (m / N + 1e-20)) + (N - m) * log((1.0 - ModelValue + 1e-20) / (1.0 - m / N + 1e-20)); // subtract saturated likelihood
 				}
 			}
 		}
@@ -3851,32 +3897,32 @@ void CalcLikelihood(int run, std::string const& DataFile, std::string const& Out
 				int day = (int)Data[row][0]; // day is day of year - directly indexes TimeSeries[]
 				if ((Data[row][col] >= 0) && (day < P.NumOutputTimeSteps)) // data is not NA (-ve) and within time range of model run
 				{
-					double m = Data[row][col]; // numerator
-					double N = Data[row][col + 1]; // denominator
+					double m = Data[row][col];		// numerator
+					double N = Data[row][col + 1];	// denominator
 					double ModelValue = P.InfPrevSurveyScale * c * TimeSeries[day - offset].I / ((double)P.PopSize);
-					LL += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
+					LogLik += m * log(ModelValue + 1e-20) + (N - m) * log(1.0 - ModelValue);
 				}
 			}
 		}
 	}
-	Files::xfprintf_stderr("Log-likelihood = %lg\n", LL);
-	if (run == 0)
-		sumL = LL;
+	Files::xfprintf_stderr("Log-likelihood = %lg\n", LogLik);
+	if (RealisationNum == 0)	sum_LogLik = LogLik; // initialize sum to be likelihood for this realisation.
 	else
 	{
-		double maxLL = LL;
-		if (sumL > maxLL) maxLL = sumL;
-		sumL = maxLL + log(exp(sumL - maxLL) + exp(LL - maxLL));
+		// maxLL 
+		double maxLL = LogLik; 
+		if (sum_LogLik > maxLL) maxLL = sum_LogLik; 
+		sum_LogLik = maxLL + log(exp(sum_LogLik - maxLL) + exp(LogLik - maxLL));
 	}
 
-	if (run + 1 == P.NumRealisations) // at final realisation, output log-likelihood
+	if (RealisationNum + 1 == P.NumRealisations) // at final realisation, output log-likelihood
 	{
-		LL = sumL - log((double)P.NumRealisations);
+		double AverageLogLik_AcrossRealisations = sum_LogLik - log((double)P.NumRealisations); /// i.e. average likelihood = sum_LogLik / NumRealisations
 		std::string TmpFile = OutFileBase + ".ll.tmp";
 		std::string OutFile = OutFileBase + ".ll.txt";
-		dat = Files::xfopen(TmpFile.c_str(), "w");
-		Files::xfprintf(dat, "%i\t%.8lg\n", P.FitIter, LL);
-		Files::xfclose(dat);
+		DataFile_dat = Files::xfopen(TmpFile.c_str(), "w");
+		Files::xfprintf(DataFile_dat, "%i\t%.8lg\n", P.FitIter, AverageLogLik_AcrossRealisations);
+		Files::xfclose(DataFile_dat);
 		Files::xrename(TmpFile.c_str(), OutFile.c_str()); // rename only when file is complete and closed
 	}
 }

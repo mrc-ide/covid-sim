@@ -343,8 +343,6 @@ void InfectSweep(double t, int run) // added run number as argument in order to 
 					(Hosts[InfectiousPersonIndex].digitalContactTracingUser == 1)); // && (TimeStepNow <= (Hosts[InfectiousPersonIndex].detected_time + P.usCaseIsolationDelay)));
 
 				// BEGIN HOUSEHOLD INFECTIONS
-
-
 				Household_Beta = (P.DoHouseholds) ? P.Betas[Day][AdUnit_ThisPerson][House] * seasonality * fp : 0;
 				if (Household_Beta > 0)
 				{
