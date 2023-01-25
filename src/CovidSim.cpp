@@ -90,11 +90,11 @@ void InitBetasArray() // called in InitModel (every realistaion/parameter guess 
 			{
 				// place (by type)
 				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
-					P.Betas[Day][AdUnit][PlaceType] *= P.PlaceTypeTrans[PlaceType];
+					P.Betas[Day][AdUnit][PlaceType] = P.PlaceTypeTrans[PlaceType];
 				// Household
-				P.Betas[Day][AdUnit][House] *= P.HouseholdTrans;
+				P.Betas[Day][AdUnit][House] = P.HouseholdTrans;
 				// Spatial/Community
-				P.Betas[Day][AdUnit][Spatial] *= P.LocalBeta;
+				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
 			}
 	//}
 }
