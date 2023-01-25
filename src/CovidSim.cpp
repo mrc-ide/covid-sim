@@ -95,7 +95,7 @@ void ImportMobilityDataToBetasArray(std::string MobilityFilename, int SettingNum
 	{
 		std::ifstream MobFileStream(MobilityFilename.c_str());
 		double ProportionalChange = 0.0; 
-		for (int Day = 0; Day < P.SimulationDuration; Day++)
+		for (int Day = 0; Day < P.SimulationDuration + 1; Day++)
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			{
 				MobFileStream >> ProportionalChange;
@@ -472,10 +472,7 @@ int main(int argc, char* argv[])
 
 			P.NRactual = P.NRactNE;
 			TSMean = TSMeanNE; TSVar = TSVarNE;
-			if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0))
-			{
-				SaveEvents(output_file);
-			}
+			if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun == 0)) SaveEvents(output_file);
 
 			SaveSummaryResults(output_file);
 			P.NRactual = P.NRactE;
@@ -1251,7 +1248,13 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// Add all of the above to P.Efficacies array.
 	UpdateEfficacyArray();
 	//// InitializeBetasArray (either to be same for all days and regions), or otherwise depending on how we are modelling them). Memory allocated in main using 
-	MultiplyMobDataWithTransmissionParams(); 
+	MultiplyMobDataWithTransmissionParams();
+
+	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
+	//	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
+	//		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+	//			std::cout << "Day " << Day << ", AdUnit " << AdUnit << ", Setting " << Setting << ", Beta " << P.Betas[Day][AdUnit][Setting] << std::endl; ;
+
 
 	// Initialize CFR scalings
 	P.CFR_Critical_Scale_Current	= P.CFR_TimeScaling_Critical[0];

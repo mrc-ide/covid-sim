@@ -118,10 +118,11 @@ struct Param
 	/**< Betas array (average number of infectious contacts per day at time t in given region for particular setting)
 	// by default, betas do not vary over time or between regions, unless P.VaryBetasOverTimeByRegion == true
 	// setting refers to either place, household and spatial/community
+	// Flow is to read in mobility data (proportional change in mobility type by region over time).
+	// If VaryBetasOverTimeByRegion == false, rather than read in mobility data, first set all betas to 1, then multipy each day and regions value by P.LocalBeta, P.HouseholdTrans etc. 
 	*/
 	double*** Betas; //// indexed by i) time; ii) region / admin unit; iii) setting.
 	bool VaryBetasOverTimeByRegion = false;
-
 
 	double R0, R0scale;
 	double LocalBeta; //// Spatial/community beta: (roughly the average number of infectious spatial/community contacts per person per unit time)
