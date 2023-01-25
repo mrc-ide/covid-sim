@@ -82,6 +82,8 @@ void AllocateMemForBetasArray() // called in main (once per fitting run)
 }
 void InitBetasArray() // called in InitModel (every realistaion/parameter guess iteration). 
 {
+	double total1 = 0.0;
+	double total2 = 0.0;
 	//if (P.VaryBetasOverTimeByRegion == false) // while you're setting up, leave this condition out. Put back in later once mobility data included.
 	//{
 		//// if not varying by region or time, assign them to be the same for every simulation day and every admin unit.
@@ -89,14 +91,33 @@ void InitBetasArray() // called in InitModel (every realistaion/parameter guess 
 			for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			{
 				// place (by type)
-				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
-					P.Betas[Day][AdUnit][PlaceType] = P.PlaceTypeTrans[PlaceType];
+				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++) {
+					if (P.Betas[Day][AdUnit][PlaceType] != 1) {
+						printf("%d,%d,%d was not 1, but %lf\n", Day, AdUnit, PlaceType, P.Betas[Day][AdUnit][PlaceType]);
+					}
+					P.Betas[Day][AdUnit][PlaceType] *= P.PlaceTypeTrans[PlaceType];
+					total1 += P.PlaceTypeTrans[PlaceType];
+					total2 += P.Betas[Day][AdUnit][PlaceType];
+				}
 				// Household
-				P.Betas[Day][AdUnit][House] = P.HouseholdTrans;
+				if (P.Betas[Day][AdUnit][House] != 1) {
+					printf("%d,%d,%d (House) was not 1, but %lf\n", Day, AdUnit, House, P.Betas[Day][AdUnit][House]);
+				}
+				P.Betas[Day][AdUnit][House] *= P.HouseholdTrans;
+				total1 += P.HouseholdTrans;
+				total2 += P.Betas[Day][AdUnit][House];
 				// Spatial/Community
-				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
+				if (P.Betas[Day][AdUnit][Spatial] != 1) {
+					printf("%d,%d,%d (Spatial) was not 1, but %lf\n", Day, AdUnit, Spatial, P.Betas[Day][AdUnit][Spatial]);
+				}
+
+				P.Betas[Day][AdUnit][Spatial] *= P.LocalBeta;
+				total1 += P.LocalBeta;
+				total2 += P.Betas[Day][AdUnit][Spatial];
+
 			}
 	//}
+		printf("BETA TOTALS: %lf, %lf\n", total1, total2);
 }
 
 ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** ///// ***** /////
