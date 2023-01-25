@@ -73,7 +73,11 @@ void AllocateMemForBetasArray() // called in main (once per fitting run)
 	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 	{
 		P.Betas[Day] = new double* [P.NumAdunits]();
-		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++) P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++) {
+			P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
+			for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
+				P.Betas[Day][AdUnit][Setting] = 1;
+		}
 	}
 }
 void InitBetasArray() // called in InitModel (every realistaion/parameter guess iteration). 
@@ -86,11 +90,11 @@ void InitBetasArray() // called in InitModel (every realistaion/parameter guess 
 			{
 				// place (by type)
 				for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
-					P.Betas[Day][AdUnit][PlaceType] = P.PlaceTypeTrans[PlaceType];
+					P.Betas[Day][AdUnit][PlaceType] *= P.PlaceTypeTrans[PlaceType];
 				// Household
-				P.Betas[Day][AdUnit][House] = P.HouseholdTrans;
+				P.Betas[Day][AdUnit][House] *= P.HouseholdTrans;
 				// Spatial/Community
-				P.Betas[Day][AdUnit][Spatial] = P.LocalBeta;
+				P.Betas[Day][AdUnit][Spatial] *= P.LocalBeta;
 			}
 	//}
 }
