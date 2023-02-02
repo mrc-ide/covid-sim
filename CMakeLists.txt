@@ -91,3 +91,18 @@ if(DOXYGEN_FOUND)
 elseif(DOXYGEN_FOUND)
   message("Doxygen needs to be installed to generate the doxygen documentation")
 endif(DOXYGEN_FOUND)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(OpenMP_C "${CMAKE_C_COMPILER}")
+  set(OpenMP_C_FLAGS "-Xclang -fopenmp -I/usr/local/Cellar/libomp/14.0.0/include")
+  set(OpenMP_C_LIB_NAMES "libomp")
+  set(OpenMP_libomp_LIBRARY "omp")
+
+  set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+  set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I/usr/local/Cellar/libomp/14.0.0/include")
+  set(OpenMP_CXX_LIB_NAMES "libomp")
+  set(OpenMP_libomp_LIBRARY "omp")
+
+  link_directories("/usr/local/Cellar/libomp/14.0.0/lib/")
+  target_link_directories(${PROJECT_NAME} PRIVATE "/usr/local/Cellar/libomp/14.0.0/lib/")
+endif()
