@@ -106,7 +106,7 @@ void ImportMobilityDataToBetasArray(std::string MobilityFilename, int SettingNum
 			}
 		MobFileStream.close();
 	}
-	else ERR_CRITICAL(("mobility_file: " + MobilityFilename + " does not exist").c_str());
+	else ERR_CRITICAL(("mobility_file = " + MobilityFilename + " - file does not exist").c_str());
 }
 void MultiplyBetasArrayWithTransmissionParams()
 {
@@ -381,6 +381,7 @@ int main(int argc, char* argv[])
 		ImportMobilityDataToBetasArray(spatial_mob_file		, Spatial);
 	}
 	MultiplyBetasArrayWithTransmissionParams();
+
 	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
 	//	for (int Day = 0; Day < (int)P.SimulationDuration; Day++)
 	//		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -408,8 +409,10 @@ int main(int argc, char* argv[])
 			StopFit = ReadFitIter(fit_file);
 			if (!StopFit)
 			{
+				DivideBetasArrayWithTransmissionParams();
 				Params::ReadParams(param_file, pre_param_file, ad_unit_file, &P, AdUnits);
 				if (!P.FixLocalBeta) InitTransmissionCoeffs();
+				MultiplyBetasArrayWithTransmissionParams();
 				output_file_base = output_file_base_f + ".f" + std::to_string(P.FitIter); 
 			}
 		}
@@ -1266,13 +1269,6 @@ void InitModel(int Realisation) // passing run number so we can save run number 
 
 	//// Add all of the above to P.Efficacies array.
 	UpdateEfficacyArray();
-	//// InitializeBetasArray (either to be same for all days and regions), or otherwise depending on how we are modelling them). Memory allocated in main using 
-	if (Realisation == 0) MultiplyBetasArrayWithTransmissionParams();
-
-	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
-	//	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
-	//		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
-	//			std::cout << "Day " << Day << ", AdUnit " << AdUnit << ", Setting " << Setting << ", Beta " << P.Betas[Day][AdUnit][Setting] << std::endl; ;
 
 
 	// Initialize CFR scalings

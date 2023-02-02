@@ -661,6 +661,7 @@ void InitTransmissionCoeffs(void)
 	}
 	Files::xfprintf_stderr("Household mean size = %lg\n", HouseholdMeanSize);
 
+
 	//// Loops below sum household and spatial infections 
 	double HH_SAR_Denom = 0.0; // household secondary-attack rate denominator. Will sum over following #pragma loop
 #pragma omp parallel for private(Household_Infectiousness,Spatial_Infectiousness,quantile,LatentToSympDelay,ProbSurvive) schedule(static,1) reduction(+:HH_Infections,SpatialInfections,HH_SAR_Denom) default(none) shared(P, Households, Hosts, Mcells)
@@ -758,6 +759,7 @@ void InitTransmissionCoeffs(void)
 	// Divide total household infections by PopSize to get household R0
 	P.R0household = HH_Infections / ((double)P.PopSize);
 	Files::xfprintf_stderr("Household R0 = %lg\n", P.R0household);
+
 
 	// ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** // ** 
 	// ** // ** Place Infections
