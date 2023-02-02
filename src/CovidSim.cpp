@@ -83,11 +83,14 @@ void AllocateMemForBetasArray() // called in main (once per fitting run). Can yo
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			P.Betas[Day][AdUnit] = new double[P.NumInfectionSettings]();
 	}
+}
+void InitializeBetasToOne()
+{
 	// initialize all values to 1;
 	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
 			for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
-				P.Betas[Day][AdUnit][Setting] = 1;
+				P.Betas[Day][AdUnit][Setting] = 1.0;
 }
 void ImportMobilityDataToBetasArray(std::string MobilityFilename, int SettingNumber) // assumes all P.Betas values initialized to 1.
 {
@@ -105,7 +108,7 @@ void ImportMobilityDataToBetasArray(std::string MobilityFilename, int SettingNum
 	}
 	else ERR_CRITICAL(("mobility_file: " + MobilityFilename + " does not exist").c_str());
 }
-void MultiplyMobDataWithTransmissionParams()
+void MultiplyBetasArrayWithTransmissionParams()
 {
 	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
 		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -117,6 +120,20 @@ void MultiplyMobDataWithTransmissionParams()
 			P.Betas[Day][AdUnit][House] *= P.HouseholdTrans;
 			// Spatial/Community
 			P.Betas[Day][AdUnit][Spatial] *= P.LocalBeta;
+		}
+}
+void DivideBetasArrayWithTransmissionParams()
+{
+	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
+		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
+		{
+			// place (by type)
+			for (int PlaceType = 0; PlaceType < P.NumPlaceTypes; PlaceType++)
+				P.Betas[Day][AdUnit][PlaceType] /= P.PlaceTypeTrans[PlaceType];
+			// Household
+			P.Betas[Day][AdUnit][House] /= P.HouseholdTrans;
+			// Spatial/Community
+			P.Betas[Day][AdUnit][Spatial] /= P.LocalBeta;
 		}
 }
 
@@ -355,13 +372,15 @@ int main(int argc, char* argv[])
 
 	// Allocate memory for Betas array (dynamic allocation - must be done after P.NumAdunits set in SetupModel.cpp::SetupPopulation)
 	// By default, make all multipliers of betas equal to 1. If P.VaryBetasOverTimeByRegion, these multipliers will be mobility data 
-	AllocateMemForBetasArray(); 
+	AllocateMemForBetasArray();
+	InitializeBetasToOne();
 	if (P.VaryBetasOverTimeByRegion)
 	{
 		ImportMobilityDataToBetasArray(workplace_mob_file	, Workplace);
 		ImportMobilityDataToBetasArray(household_mob_file	, House);
 		ImportMobilityDataToBetasArray(spatial_mob_file		, Spatial);
 	}
+	MultiplyBetasArrayWithTransmissionParams();
 	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
 	//	for (int Day = 0; Day < (int)P.SimulationDuration; Day++)
 	//		for (int AdUnit = 0; AdUnit < P.NumAdunits; AdUnit++)
@@ -933,7 +952,7 @@ void UpdateEfficacyArray()
 	P.Efficacies[DigContactTracing][Spatial			]	= P.DCTCaseIsolationEffectiveness;
 }
 
-void InitModel(int run) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
+void InitModel(int Realisation) // passing run number so we can save run number in the infection event log: ggilani - 15/10/2014
 {
 	int NumImmune = 0;
 
@@ -1006,7 +1025,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 				State.cumDC_adunit[i] = State.cumCT_adunit[i] = State.cumCC_adunit[i] = State.trigDC_adunit[i] = State.DCT_adunit[i] = State.cumDCT_adunit[i] = 0; //added hospitalisation, added detected cases, contact tracing per adunit, cases who are contacts: ggilani 03/02/15, 15/06/17
 			AdUnits[i].place_close_trig = 0;
 			AdUnits[i].CaseIsolationTimeStart = AdUnits[i].HQuarantineTimeStart = AdUnits[i].DigitalContactTracingTimeStart = AdUnits[i].SocialDistanceTimeStart = AdUnits[i].PlaceCloseTimeStart = 1e10;
-			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of run
+			AdUnits[i].ndct = 0; //noone being digitally contact traced at beginning of Realisation
 		}
 
 	//update state variables for storing contact distribution
@@ -1248,7 +1267,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	//// Add all of the above to P.Efficacies array.
 	UpdateEfficacyArray();
 	//// InitializeBetasArray (either to be same for all days and regions), or otherwise depending on how we are modelling them). Memory allocated in main using 
-	MultiplyMobDataWithTransmissionParams();
+	if (Realisation == 0) MultiplyBetasArrayWithTransmissionParams();
 
 	//for (int Setting = 0; Setting < P.NumInfectionSettings; Setting++)
 	//	for (int Day = 0; Day < (int)P.SimulationDuration + 1; Day++)
@@ -1272,7 +1291,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 		UpdateProbs(0);
 		DoInitUpdateProbs = 0;
 	}
-	//initialise event log to zero at the beginning of every run: ggilani - 10/10/2014. UPDATE: 15/10/14 - we are now going to store all events from all realisations in one file
+	//initialise event log to zero at the beginning of every Realisation: ggilani - 10/10/2014. UPDATE: 15/10/14 - we are now going to store all events from all realisations in one file
 	if ((P.DoRecordInfEvents) && (P.RecordInfEventsPerRun))
 	{
 		nEvents = 0;
@@ -1286,7 +1305,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 
 	int* NumSeedingInfections_byLocation = new int[P.NumSeedLocations];
 	for (int i = 0; i < P.NumSeedLocations; i++) NumSeedingInfections_byLocation[i] = (int) (((double) P.NumInitialInfections[i]) * P.InitialInfectionsAdminUnitWeight[i]* P.SeedingScaling +0.5);
-	SeedInfection(0, NumSeedingInfections_byLocation, 0, run);
+	SeedInfection(0, NumSeedingInfections_byLocation, 0, Realisation);
 	delete[] NumSeedingInfections_byLocation;
 	P.ControlPropCasesId = P.PreAlertControlPropCasesId;
 	P.TreatTimeStart = 1e10;
@@ -1306,7 +1325,7 @@ void InitModel(int run) // passing run number so we can save run number in the i
 	P.PlaceCloseIncTrig = P.PlaceCloseIncTrig1;
 	P.PlaceCloseTimeStartPrevious = 1e10;
 	P.PlaceCloseCellIncThresh = P.PlaceCloseCellIncThresh1;
-	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through run: ggilani 27/11/2019
+	P.ResetSeedsFlag = 0; //added this to allow resetting seeds part way through Realisation: ggilani 27/11/2019
 	if (!P.StopCalibration) P.DateTriggerReached_SimTime = 0;
 	if (P.InitialInfectionCalTime > 0)
 	{
