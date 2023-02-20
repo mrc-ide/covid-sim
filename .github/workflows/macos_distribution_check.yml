@@ -8,7 +8,7 @@ on:
 
 jobs:
   macos-build-and-test:
-    runs-on: macos-10
+    runs-on: macos-latest
 
     strategy:
       fail-fast: false
@@ -20,7 +20,7 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ..
+        cmake -DUSE_OPENMP=OFF ..
         make
     - name: unit tests
       run: |
