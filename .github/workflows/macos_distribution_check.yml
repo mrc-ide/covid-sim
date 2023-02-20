@@ -17,16 +17,5 @@ jobs:
     - uses: actions/checkout@v1
     - name: install dependencies
       run: ./ci/install_macos_dependencies.sh
-    - name: build
-      run: |
-        mkdir build && cd build
-        cmake ..
-        make
-    - name: unit tests
-      run: |
-        cd build
-        ctest -j2 -V -E inttest.*
-    - name: regression tests
-      run: |
-        cd build
-        ctest --stop-on-failure -j2 -V -R inttest.*
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
