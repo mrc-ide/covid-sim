@@ -55,6 +55,14 @@ if(USE_OPENMP)
    find_package(OpenMP REQUIRED)
 endif()
 
+if (OPENMP_FOUND)
+    include_directories("${OPENMP_INCLUDES}")
+    link_directories("${OPENMP_LIBRARIES}")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif(OPENMP_FOUND)
+
 # Python3 needed for testing
 if (CMAKE_VERSION VERSION_LESS 3.12)
   set(Python_ADDITIONAL_VERSIONS 3 3.9 3.8 3.7 3.6)
