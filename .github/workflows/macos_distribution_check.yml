@@ -20,7 +20,7 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake ..
+        cmake -DUSE_OPENMP=OFF ..
         make
     - name: unit tests
       run: |
