@@ -47,7 +47,7 @@ jobs:
         - container_image: "ubuntu:bionic"
           cmake: "../cmake-3.18.2-Linux-x86_64/bin/cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
-        - container_image: "centos:8"
+        - container_image: "centos:7"
           cmake: "cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "alpine:latest"
