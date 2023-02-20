@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container_image: ["fedora:latest", "debian:10", "ubuntu:bionic", "centos:7",  "alpine:latest"]
+        container_image: ["fedora:latest", "debian:10", "ubuntu:bionic", "centos:8",  "alpine:latest"]
         include:
         - container_image: "fedora:latest"
           cmake: "cmake"
@@ -47,7 +47,7 @@ jobs:
         - container_image: "ubuntu:bionic"
           cmake: "../cmake-3.18.2-Linux-x86_64/bin/cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
-        - container_image: "centos:7"
+        - container_image: "centos:8"
           cmake: "cmake"
           ctest: "../cmake-3.18.2-Linux-x86_64/bin/ctest"
         - container_image: "alpine:latest"
