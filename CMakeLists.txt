@@ -25,6 +25,26 @@ endif()
 
 option(USE_OPENMP "Compile with OpenMP parallelism enabled" ON)
 
+# Find OpenMP
+if(APPLE AND USE_OPENMP)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        set(OpenMP_C "${CMAKE_C_COMPILER}")
+        set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+        set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
+        set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+      set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+      set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
+      set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+    endif()
+endif()
+
 # Packages used
 if(USE_OPENMP)
 # Kludge to get openmp working with clang using cmake on Visual Studio.
