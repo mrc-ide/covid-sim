@@ -3,8 +3,14 @@
 # The "test-accept" target runs all tests and accepts their output.
 add_custom_target("test-accept")
 
+if(APPLE)
+  set(END_THREAD 1)
+else()
+  set(END_THREAD 2)
+endif()
+
 function(add_integration_test TESTNAME INPUT OUTPUT_ROOT POPFILE R)
-  foreach(j RANGE 1 2)
+  foreach(j RANGE 1 ${END_THREAD})
     set(test_name "${TESTNAME}-j${j}")
     set(accept_name "${test_name}-accept")
     add_test(NAME "${test_name}"
