@@ -2272,30 +2272,30 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		//Add origin-destination matrix parameter
 		P->DoOriginDestinationMatrix = Params::get_int(params, pre_params, "Output origin destination matrix", 0, P);
 
-		P->MeanChildAgeGap = Params::get_int(params, pre_params, adm_params, "Mean child age gap", 2, P);
-		P->MinAdultAge = Params::get_int(params, pre_params, adm_params, "Min adult age", 19, P);
-		P->MaxMFPartnerAgeGap = Params::get_int(params, pre_params, adm_params, "Max MF partner age gap", 5, P);
-		P->MaxFMPartnerAgeGap = Params::get_int(params, pre_params, adm_params, "Max FM partner age gap", 5, P);
-		P->MinParentAgeGap = Params::get_int(params, pre_params, adm_params, "Min parent age gap", 19, P);
-		P->MaxParentAgeGap = Params::get_int(params, pre_params, adm_params, "Max parent age gap", 44, P);
-		P->MaxChildAge = Params::get_int(params, pre_params, adm_params, "Max child age", 20, P);
-		P->OneChildTwoPersProb = Params::get_double(params, pre_params, adm_params, "One Child Two Pers Prob", 0.08, P);
-		P->TwoChildThreePersProb = Params::get_double(params, pre_params, adm_params, "Two Child Three Pers Prob", 0.11, P);
-		P->OnePersHouseProbOld = Params::get_double(params, pre_params, adm_params, "One Pers House Prob Old", 0.5, P);
-		P->TwoPersHouseProbOld = Params::get_double(params, pre_params, adm_params, "Two Pers House Prob Old", 0.5, P);
-		P->OnePersHouseProbYoung = Params::get_double(params, pre_params, adm_params, "One Pers House Prob Young", 0.23, P);
-		P->TwoPersHouseProbYoung = Params::get_double(params, pre_params, adm_params, "Two Pers House Prob Young", 0.23, P);
-		P->OneChildProbYoungestChildUnderFive = Params::get_double(params, pre_params, adm_params, "One Child Prob Youngest Child Under Five", 0.5, P);
-		P->TwoChildrenProbYoungestUnderFive = Params::get_double(params, pre_params, adm_params, "Two Children Prob Youngest Under Five", 0.0, P);
-		P->TwoChildrenProbYoungestUnderFive = Params::get_double(params, pre_params, adm_params, "Prob Youngest Child Under Five", 0, P);
-		P->ZeroChildThreePersProb = Params::get_double(params, pre_params, adm_params, "Zero Child Three Pers Prob", 0.25, P);
-		P->OneChildFourPersProb = Params::get_double(params, pre_params, adm_params, "One Child Four Pers Prob", 0.2, P);
-		P->YoungAndSingleSlope = Params::get_double(params, pre_params, adm_params, "Young And Single Slope", 0.7, P);
-		P->YoungAndSingle = Params::get_int(params, pre_params, adm_params, "Young And Single", 36, P);
-		P->NoChildPersAge = Params::get_int(params, pre_params, adm_params, "No Child Pers Age", 44, P);
-		P->OldPersAge = Params::get_int(params, pre_params, adm_params, "Old Pers Age", 60, P);
-		P->ThreeChildFivePersProb = Params::get_double(params, pre_params, adm_params, "Three Child Five Pers Prob", 0.5, P);
-		P->OlderGenGap = Params::get_int(params, pre_params, adm_params, "Older Gen Gap", 19, P);
+		P->MeanChildAgeGap						= Params::get_int(params, pre_params, adm_params, "Mean child age gap", 2, P);
+		P->MinAdultAge							= Params::get_int(params, pre_params, adm_params, "Min adult age", 19, P);
+		P->MaxMFPartnerAgeGap					= Params::get_int(params, pre_params, adm_params, "Max MF partner age gap", 5, P);
+		P->MaxFMPartnerAgeGap					= Params::get_int(params, pre_params, adm_params, "Max FM partner age gap", 5, P);
+		P->MinParentAgeGap						= Params::get_int(params, pre_params, adm_params, "Min parent age gap", 19, P);
+		P->MaxParentAgeGap						= Params::get_int(params, pre_params, adm_params, "Max parent age gap", 44, P);
+		P->MaxChildAge							= Params::get_int(params, pre_params, adm_params, "Max child age", 20, P);
+		P->OneChildTwoPersProb					= Params::get_double(params, pre_params, adm_params, "One Child Two Pers Prob", 0.08, P);
+		P->TwoChildThreePersProb				= Params::get_double(params, pre_params, adm_params, "Two Child Three Pers Prob", 0.11, P);
+		P->OnePersHouseProbOld					= Params::get_double(params, pre_params, adm_params, "One Pers House Prob Old", 0.5, P);
+		P->TwoPersHouseProbOld					= Params::get_double(params, pre_params, adm_params, "Two Pers House Prob Old", 0.5, P);
+		P->OnePersHouseProbYoung				= Params::get_double(params, pre_params, adm_params, "One Pers House Prob Young", 0.23, P);
+		P->TwoPersHouseProbYoung				= Params::get_double(params, pre_params, adm_params, "Two Pers House Prob Young", 0.23, P);
+		P->OneChildProbYoungestChildUnderFive	= Params::get_double(params, pre_params, adm_params, "One Child Prob Youngest Child Under Five", 0.5, P);
+		P->TwoChildrenProbYoungestUnderFive		= Params::get_double(params, pre_params, adm_params, "Two Children Prob Youngest Under Five", 0.0, P);
+		P->TwoChildrenProbYoungestUnderFive		= Params::get_double(params, pre_params, adm_params, "Prob Youngest Child Under Five", 0, P);
+		P->ZeroChildThreePersProb				= Params::get_double(params, pre_params, adm_params, "Zero Child Three Pers Prob", 0.25, P);
+		P->OneChildFourPersProb					= Params::get_double(params, pre_params, adm_params, "One Child Four Pers Prob", 0.2, P);
+		P->YoungAndSingleSlope					= Params::get_double(params, pre_params, adm_params, "Young And Single Slope", 0.7, P);
+		P->YoungAndSingle						= Params::get_int(params, pre_params, adm_params, "Young And Single", 36, P);
+		P->NoChildPersAge						= Params::get_int(params, pre_params, adm_params, "No Child Pers Age", 44, P);
+		P->OldPersAge							= Params::get_int(params, pre_params, adm_params, "Old Pers Age", 60, P);
+		P->ThreeChildFivePersProb				= Params::get_double(params, pre_params, adm_params, "Three Child Five Pers Prob", 0.5, P);
+		P->OlderGenGap							= Params::get_int(params, pre_params, adm_params, "Older Gen Gap", 19, P);
 	}
 
 	if (P->DoOneGen != 0) P->DoOneGen = 1;
@@ -2322,7 +2322,7 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 		if (P->KeyWorkerProphCellIncThresh < 1) P->KeyWorkerProphCellIncThresh = 1;
 	*/
 
-	//// Make unsigned short versions of various intervention variables. And scaled them by number of timesteps per day
+	//// Make unsigned short versions of various intervention variables. And scale them by number of timesteps per day
 	P->usHQuarantineHouseDuration = ((unsigned short int) (P->HQuarantineHouseDuration * P->TimeStepsPerDay));
 	P->usVaccTimeToEfficacy = ((unsigned short int) (P->VaccTimeToEfficacy * P->TimeStepsPerDay));
 	P->usVaccTimeEfficacySwitch = ((unsigned short int) (P->VaccTimeEfficacySwitch * P->TimeStepsPerDay));
@@ -2344,14 +2344,12 @@ void Params::ReadParams(std::string const& ParamFile, std::string const& PrePara
 			P->cosx[i] = cos(t);
 		}
 	}
-	if (P->R0scale != 1.0)
+	if (P->R0scale != 1.0) // if scaling R0, scale household, place and spatial betas
 	{
-		P->HouseholdTrans *= P->R0scale;
-		if (P->FixLocalBeta) P->LocalBeta *= P->R0scale;
-		P->R0 *= P->R0scale;
-		for (int place_type = 0; place_type < P->NumPlaceTypes; place_type++) {
-			P->PlaceTypeTrans[place_type] *= P->R0scale;
-		}
+		P->HouseholdTrans *= P->R0scale; // household
+		if (P->FixLocalBeta) P->LocalBeta *= P->R0scale; // spatial
+		P->R0 *= P->R0scale; // R0
+		for (int place_type = 0; place_type < P->NumPlaceTypes; place_type++)	P->PlaceTypeTrans[place_type] *= P->R0scale; // place
 		Files::xfprintf_stderr("Rescaled transmission coefficients by factor of %lg\n", P->R0scale);
 	}
 	Files::xfprintf_stderr("Parameters read\n");

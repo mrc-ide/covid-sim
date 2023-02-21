@@ -36,6 +36,7 @@ struct Param
 	/**< Time-step defintions. Differentiates between length of time between model updates (ModelTimeStep) and length of time between calculating model outputs (OutputTimeStep). */
 	double SimulationDuration;				/**< The number of days to run for */
 	double ModelTimeStep;					/**< The length of a time step, in days */
+	double TimeStepsPerDay; 
 	double OutputTimeStep;					/**< The length of time in days between calculating model outputs, in days. Note ModelTimeStep <= OutputTimeStep. */
 	int NumModelTimeStepsPerOutputTimeStep;	/**< Number of time steps between samples. NumModelTimeStepsPerOutputTimeStep = OutputTimeStep / ModelTimeStep */
 	int NumOutputTimeSteps;					/**< Total number of time output steps that will be made. NumOutputTimeSteps = SimulationDuration / OutputTimeStep */ 
@@ -108,13 +109,23 @@ struct Param
 	
 	CovidSim::Geometry::BoundingBox2d SpatialBoundingBox;
 	double** LocationInitialInfection;
-	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime, TimeStepsPerDay;
+	double InitialInfectionsAdminUnitWeight[MAX_NUM_SEED_LOCATIONS], InitialInfectionCalTime;
 	double FalsePositiveRate, FalsePositivePerCapitaIncidence, FalsePositiveAgeRate[NUM_AGE_GROUPS];
 	double SeroConvMaxSens, SeroConvP1, SeroConvP2, SeroConvSpec, InfPrevSurveyScale;
 	
 	double AirportTrafficScale;
 
-	double R0, R0scale, LocalBeta;
+	/**< Betas array (average number of infectious contacts per day at time t in given region for particular setting)
+	// by default, betas do not vary over time or between regions, unless P.VaryBetasOverTimeByRegion == true
+	// setting refers to either place, household and spatial/community
+	// Flow is to read in mobility data (proportional change in mobility type by region over time).
+	// If VaryBetasOverTimeByRegion == false, rather than read in mobility data, first set all betas to 1, then multipy each day and regions value by P.LocalBeta, P.HouseholdTrans etc. 
+	*/
+	double*** Betas; //// indexed by i) time; ii) region / admin unit; iii) setting.
+	bool VaryBetasOverTimeByRegion = false;
+
+	double R0, R0scale;
+	double LocalBeta; //// Spatial/community beta: (roughly the average number of infectious spatial/community contacts per person per unit time)
 	double infectious_prof[INFPROF_RES + 1], infectiousness[MAX_INFECTIOUS_STEPS];
 	double InfectiousPeriod; // In days. Mean of icdf (inverse cumulative distribution function).
 	double R0household, R0places, R0spatial;
@@ -140,7 +151,8 @@ struct Param
 	int AbsenteeismPlaceClosure; // Default 0 (off), 1 (on) track place closures in more detail
 	int MaxAbsentTime; // In days.  Max number of days absent, range [0, MAX_ABSENT_TIME].  Default 0 if !P.AbsenteeismPlaceClosure, otherwise MAX_ABSENT_TIME
 	int InvJourneyDurationDistrib[1025], InvLocalJourneyDurationDistrib[1025];
-	double HouseholdTrans, HouseholdTransPow;
+	double HouseholdTrans; //// household beta (roughly the average number of infectious household contacts per person per unit time)
+	double HouseholdTransPow;
 	double** HouseholdSizeDistrib; // [MAX_ADUNITS] [MAX_HOUSEHOLD_SIZE]
 	double HouseholdDenomLookup[MAX_HOUSEHOLD_SIZE];
 	int PlaceTypeAgeMin[MAX_NUM_PLACE_TYPES], PlaceTypeAgeMax[MAX_NUM_PLACE_TYPES], PlaceTypeMaxAgeRead[MAX_NUM_PLACE_TYPES];
@@ -149,7 +161,8 @@ struct Param
 	int PlaceTypeNearestNeighb[MAX_NUM_PLACE_TYPES], PlaceTypeKernelType[MAX_NUM_PLACE_TYPES];
 	double PlaceTypePropAgeGroup[MAX_NUM_PLACE_TYPES], PlaceTypePropAgeGroup2[MAX_NUM_PLACE_TYPES];
 	double PlaceTypePropAgeGroup3[MAX_NUM_PLACE_TYPES], PlaceTypeKernelShape[MAX_NUM_PLACE_TYPES], PlaceTypeKernelScale[MAX_NUM_PLACE_TYPES];
-	double PlaceTypeKernelP3[MAX_NUM_PLACE_TYPES], PlaceTypeKernelP4[MAX_NUM_PLACE_TYPES], PlaceTypeTrans[MAX_NUM_PLACE_TYPES];
+	double PlaceTypeKernelP3[MAX_NUM_PLACE_TYPES], PlaceTypeKernelP4[MAX_NUM_PLACE_TYPES];
+	double PlaceTypeTrans[MAX_NUM_PLACE_TYPES]; //// indexed by place time place type betas (roughly average number of infectious place contacts per person per unit time).
 	double PlaceTypeMeanSize[MAX_NUM_PLACE_TYPES], PlaceTypePropBetweenGroupLinks[MAX_NUM_PLACE_TYPES], PlaceTypeSizeSD[MAX_NUM_PLACE_TYPES]; //added PlaceTypeSizeSD for lognormal distribution - ggilani 09/02/17
 	double PlaceTypeSizePower[MAX_NUM_PLACE_TYPES], PlaceTypeSizeOffset[MAX_NUM_PLACE_TYPES], PlaceTypeSizeMax[MAX_NUM_PLACE_TYPES], PlaceTypeSizeMin[MAX_NUM_PLACE_TYPES];
 	double PlaceTypeGroupSizeParam1[MAX_NUM_PLACE_TYPES], PlaceExclusivityMatrix[MAX_NUM_PLACE_TYPES * MAX_NUM_PLACE_TYPES]; //changed PlaceExclusivityMatrix from [MAX_NUM_PLACE_TYPES][MAX_NUM_PLACE_TYPES]
@@ -262,6 +275,7 @@ struct Param
 	double** Efficacies; //// just 2d while setting up. indexed by i) NPI; ii) Setting; iii) TimeStep; iv) AdminUnit (prob easier to reverse these as then can easilty set time pointers equal to same thing if not varying over time say).
 
 	int NumInterventionClasses = 0, NumInfectionSettings = 0; // initialized in CovidSim.cpp::main.
+
 
 	///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// **** ///// ****
 	///// **** VARIABLE EFFICACIES OVER TIME
