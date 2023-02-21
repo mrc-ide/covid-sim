@@ -3,6 +3,13 @@
 # CMake setup
 cmake_minimum_required (VERSION 3.11)
 
+# Force Mac OS to use a compiler that can compile multi-threaded.
+
+if(APPLE)
+  set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
+  set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
+endif()
+
 # Project initialisation
 project("CovidSim")
 
